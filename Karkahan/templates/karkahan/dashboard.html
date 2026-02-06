@@ -1,0 +1,210 @@
+{% extends 'karkahan/base.html' %}
+{% load static %}
+
+{% block factory_content %}
+<div class="row y-gap-30">
+    <div class="col-12">
+        <div class="row justify-between items-end y-gap-10">
+            <div class="col-auto">
+                <h1 class="text-30 fw-700 tracking-tighter text-dark-1">Operational <span class="text-accent-1">Overview</span></h1>
+                <p class="text-15 text-dark-1 opacity-70">Welcome back, {{ user.get_full_name|default:user.username }}</p>
+            </div>
+            <div class="col-auto">
+                <div class="text-right d-sm-block d-none">
+                    <div class="text-11 fw-700 text-dark-1 opacity-50 uppercase">System Health</div>
+                    <div class="d-flex items-center justify-end mt-5">
+                        <div class="size-8 bg-green-1 rounded-full mr-10"></div>
+                        <span class="text-13 fw-700 text-dark-1">All Systems Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="row x-gap-20 y-gap-20">
+            <div class="col-xl-4 col-md-6">
+                <div class="px-30 py-30 rounded-16 bg-white border-dark-thin shadow-sm">
+                    <div class="d-flex items-center">
+                        <div class="size-60 bg-accent-1 rounded-12 d-flex items-center justify-center">
+                            <i class="fas fa-industry text-24 text-white"></i>
+                        </div>
+                        <div class="ml-20">
+                            <div class="text-13 fw-700 text-dark-1 opacity-60 uppercase tracking-widest">Total Inventory</div>
+                            <div class="text-32 fw-800 text-dark-1 mt-5">{{ total_factories }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="px-30 py-30 rounded-16 bg-white border-dark-thin shadow-sm">
+                    <div class="d-flex items-center">
+                        <div class="size-60 bg-green-1 rounded-12 d-flex items-center justify-center">
+                            <i class="fas fa-check-double text-24 text-white"></i>
+                        </div>
+                        <div class="ml-20">
+                            <div class="text-13 fw-700 text-dark-1 opacity-60 uppercase tracking-widest">Active Units</div>
+                            <div class="text-32 fw-800 text-dark-1 mt-5">{{ active_factories }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-12">
+                <div class="px-30 py-30 rounded-16 bg-dark-1 text-white shadow-accent-thin">
+                    <div class="d-flex items-center">
+                        <div class="size-60 bg-white-10 rounded-12 d-flex items-center justify-center">
+                            <i class="fas fa-shield-halved text-24 text-white"></i>
+                        </div>
+                        <div class="ml-20">
+                            <div class="text-13 fw-700 opacity-70 uppercase tracking-widest">Pending Check</div>
+                            <div class="text-32 fw-800 mt-5">{{ pending_factories|default:"0" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="row y-gap-30">
+            <div class="col-xl-8">
+                <div class="bg-white rounded-16 border-dark-thin overflow-hidden">
+                    <div class="px-30 py-25 border-bottom-dark-thin d-flex items-center justify-between">
+                        <h2 class="text-18 fw-800 text-dark-1">Recent Deployments</h2>
+                        <a href="{% url 'karkahan:factory_list' %}" class="text-14 fw-700 text-accent-1">View All Factories →</a>
+                    </div>
+                    
+                    <div class="px-30 py-20">
+                        <table class="w-100">
+                            <thead>
+                                <tr class="text-12 text-dark-1 opacity-50 uppercase fw-700">
+                                    <th class="pb-15 text-left">Unit Name</th>
+                                    <th class="pb-15 text-left">Region</th>
+                                    <th class="pb-15 text-left">Status</th>
+                                    <th class="pb-15 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factory in recent_factories %}
+                                <tr class="border-top-dark-thin hover-bg-light-2 transition-all">
+                                    <td class="py-20">
+                                        <div class="d-flex items-center">
+                                            <div class="size-40 bg-light-2 rounded-8 d-flex items-center justify-center mr-12">
+                                                <i class="fas fa-building text-dark-1 text-14"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-800 text-dark-1 text-16">{{ factory.name }}</div>
+                                                <div class="text-12 text-dark-1 opacity-60">{{ factory.category.name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-20 text-14 text-dark-1 fw-500">
+                                        <i class="fas fa-location-dot text-accent-1 mr-5 text-12"></i>
+                                        {{ factory.city.name }}
+                                    </td>
+                                    <td class="py-20">
+                                        {% if factory.is_active %}
+                                            <span class="badge-custom bg-green-1 text-white">Live</span>
+                                        {% else %}
+                                            <span class="badge-custom bg-dark-2 text-white">Paused</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-20 text-right">
+                                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" class="button -icon -dark-1 size-35 rounded-full text-white hover-bg-accent-1">
+                                            <i class="fas fa-eye text-12"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-40 text-dark-1 fw-500">No factory data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="bg-white rounded-16 border-dark-thin px-30 py-30">
+                    <div class="d-flex items-center mb-25">
+                        <div class="size-35 bg-accent-1-05 rounded-8 d-flex items-center justify-center mr-12">
+                            <i class="fas fa-sliders text-accent-1"></i>
+                        </div>
+                        <h3 class="text-18 fw-800 text-dark-1">Control Panel</h3>
+                    </div>
+
+                    <div class="y-gap-15">
+                        <a href="{% url 'karkahan:factory_create' %}" class="cp-button bg-accent-1 text-white shadow-sm">
+                            <div class="d-flex items-center">
+                                <i class="fas fa-plus-circle mr-12 text-16"></i>
+                                <span class="text-14 fw-700">Add New Factory</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-10 opacity-50"></i>
+                        </a>
+                        
+                        <a href="{% url 'category:category_list' %}" class="cp-button border-dark-thin text-dark-1 hover-bg-light-2">
+                            <div class="d-flex items-center">
+                                <i class="fas fa-tags mr-12 text-accent-1 text-14"></i>
+                                <span class="text-14 fw-700">Manage Categories</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-10 opacity-30"></i>
+                        </a>
+
+                        <a href="{% url 'location:country_list' %}" class="cp-button border-dark-thin text-dark-1 hover-bg-light-2">
+                            <div class="d-flex items-center">
+                                <i class="fas fa-globe mr-12 text-accent-1 text-14"></i>
+                                <span class="text-14 fw-700">Global Regions</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-10 opacity-30"></i>
+                        </a>
+
+                        <div class="mt-20 p-20 bg-light-2 rounded-12">
+                            <p class="text-13 fw-600 text-dark-1 opacity-70">
+                                <i class="fas fa-circle-info mr-5 text-accent-1"></i>
+                                Need help? Contact the system administrator for advanced governance rights.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Global visibility fixes */
+    .text-dark-1 { color: #000000 !important; }
+    .border-dark-thin { border: 1px solid #EAEAEA !important; }
+    
+    /* Control Panel Button Styling */
+    .cp-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+    }
+
+    .cp-button:hover {
+        transform: translateX(5px);
+    }
+
+    .bg-white-10 { background-color: rgba(255, 255, 255, 0.1); }
+    .badge-custom {
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .hover-bg-light-2:hover { background-color: #F8F9FA !important; }
+    .shadow-accent-thin { box-shadow: 0 10px 30px -5px rgba(235, 102, 43, 0.25); }
+</style>
+{% endblock %}

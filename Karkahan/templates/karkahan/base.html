@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__sidebar bg-dark-1">
+        <div class="dashboard__sidebar_header border-bottom-light-10">
+            <a href="{% url 'karkahan:dashboard' %}" class="text-22 fw-700 text-white tracking-tighter">
+                Factory<span class="text-accent-1">Portal</span>
+            </a>
+        </div>
+        
+        <div class="dashboard__sidebar_content pt-30">
+            {% if user.is_staff %}
+            <div class="sidebar__item px-20 mb-30">
+                <a href="{% url 'karkahan:factory_create' %}" class="button -sm -accent-1 text-white w-100 rounded-12 shadow-accent-thin">
+                    <i class="icon-plus mr-10"></i> Create Factory
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="sidebar__nav px-20">
+                <div class="text-11 fw-700 text-white opacity-40 uppercase tracking-widest mb-15">Management</div>
+                
+                <a href="{% url 'karkahan:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}-is-active{% endif %}">
+                    <i class="icon-grid mr-15"></i> Overview
+                </a>
+                
+                <a href="{% url 'karkahan:factory_list' %}" class="sidebar-link {% if 'factory' in request.path %} -is-active{% endif %}">
+                    <i class="icon-building mr-15"></i> Factory List
+                </a>
+
+                <div class="text-11 fw-700 text-white opacity-40 uppercase tracking-widest mt-30 mb-15">Governance</div>
+                
+                <a href="{% url 'category:category_list' %}" class="sidebar-link">
+                    <i class="icon-layers mr-15"></i> Categories
+                </a>
+                
+                <a href="{% url 'location:country_list' %}" class="sidebar-link">
+                    <i class="icon-location mr-15"></i> Locations
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard__content bg-light-2">
+        
+        <section class="page-header -type-1 bg-dark-1 relative overflow-hidden" style="padding-top: 140px; padding-bottom: 80px;">
+            <div class="absolute top-0 left-0 m-20 z-3 lg:d-none">
+                <button class="dashboard__menuBtn button -icon size-45 rounded-12 bg-accent-1 text-white">
+                    <i class="icon-menu"></i>
+                </button>
+            </div>
+
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#EB662B 0.5px, transparent 0.5px); background-size: 20px 20px;"></div>
+            
+            <div class="container relative z-2">
+                <div class="row justify-between items-end">
+                    <div class="col-auto">
+                        <div class="bg-accent-1 mb-15" style="width: 40px; height: 3px; border-radius: 2px;"></div>
+                        <h1 class="text-40 fw-700 text-white tracking-tighter">
+                            {% block header_title %}Factory <span class="text-accent-1">Dashboard</span>{% endblock %}
+                        </h1>
+                        <div class="text-white opacity-50 text-15 mt-10">
+                            {% block header_subtitle %}Manage your industrial operations and assets{% endblock %}
+                        </div>
+                    </div>
+                    <div class="col-auto d-md-block d-none">
+                        <div class="d-flex x-gap-10 y-gap-10 text-white opacity-50 text-14 uppercase fw-500 tracking-widest">
+                            <a href="{% url 'home' %}" class="hover-text-accent-1 transition-all">Home</a>
+                            <span>/</span>
+                            <span class="text-accent-1">Portal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="dashboard__content_content" style="margin-top: -40px; position: relative; z-index: 5;">
+            <div class="container">
+                {% block factory_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* High Contrast & Clean Sidebar */
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        border-radius: 10px;
+        color: rgba(255,255,255,0.7) !important;
+        font-weight: 500;
+        margin-bottom: 5px;
+        transition: all 0.2s ease;
+    }
+    
+    .sidebar-link i { font-size: 18px; }
+    
+    .sidebar-link:hover, .sidebar-link.-is-active {
+        background-color: rgba(235, 102, 43, 0.1);
+        color: #EB662B !important;
+    }
+    
+    .sidebar-link.-is-active {
+        background-color: #EB662B !important;
+        color: white !important;
+    }
+
+    /* Table & Content Visibility */
+    .text-dark-1 { color: #1A1C1E !important; } /* High contrast black */
+    .bg-light-2 { background-color: #F5F7F9 !important; }
+    
+    .shadow-accent-thin { box-shadow: 0 10px 25px -5px rgba(235, 102, 43, 0.3); }
+
+    /* Fix for the negative margin content overlap */
+    .dashboard__content_content {
+        padding-bottom: 60px;
+    }
+</style>
+{% endblock %}

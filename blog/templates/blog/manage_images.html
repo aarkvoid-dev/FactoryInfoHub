@@ -1,0 +1,570 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{{ title }} - FactoryInfoHub
+{% endblock %}
+
+{% block content %}
+<script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
+<div class="row">
+      <div class="col-12">
+        <div class="featured-hero-card">
+          {% with featured_image=images|dictsort:"is_featured"|last %}
+            {% if featured_image and featured_image.is_featured %}
+              <div class="hero-overlay"></div>
+              <img src="{{ featured_image.image.url }}" alt="Featured" class="hero-img">
+              <div class="hero-content">
+                <span class="badge-featured">CURRENT HERO IMAGE</span>
+                <h1 class="text-white text-40 md:text-30 fw-700 mt-10">{{ blog.title }}</h1>
+                <div class="text-white opacity-70">Author: {{ blog.author.get_full_name|default:blog.author.username }}</div>
+              </div>
+            {% else %}
+              <div class="hero-empty">
+                <i class="icon-image text-40 mb-10"></i>
+                <div class="text-20 fw-600">No Featured Image Set</div>
+                <div class="text-light-2">Upload images and select one as featured to see it here.</div>
+              </div>
+            {% endif %}
+          {% endwith %}
+          <a href="{% url 'blog:post_detail' blog.slug %}" class="hero-back-btn">
+            <i class="icon-arrow-left mr-10"></i> Back to Blog
+          </a>
+        </div>
+      </div>
+    </div>
+<section class="layout-pt-md layout-pb-lg bg-light-1">
+  <div class="container">
+
+    <div class="row justify-center mb-50">
+      <div class="col-xl-8 col-lg-10">
+        <div class="upload-zone-wrapper shadow-2">
+          <div class="text-center mb-30">
+            <h3 class="text-24 fw-600">Add to Gallery</h3>
+            <p class="text-light-2">Enhance your story with high-resolution visuals</p>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            <label for="image-upload" class="upload-dropzone" id="dropzone">
+              <div class="dropzone-content">
+                <div class="icon-wrapper mb-20">
+                  <i class='icon-wrapper mb-5' style='font-size:36px' > </i>
+                </div>
+                <div class="text-18 fw-500">Click or drag images here</div>
+                <div class="text-14 text-light-2 mt-5">Supports JPG, PNG, WEBP (Max 5MB each)</div>
+                <input type="file" name="images" id="image-upload" multiple accept="image/*" class="d-none">
+              </div>
+              <div id="file-preview-name" class="mt-15 text-accent-1 fw-500"></div>
+            </label>
+
+            <button type="submit" class="button -md bg-accent-1 text-white mt-20">
+              Upload Images
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+      {% if images %}
+      <h3 class="text-22 fw-600 mb-25">Manage Images</h3>
+
+      <form method="post" id="image-management-form">
+        {% csrf_token %}
+
+        <div class="row y-gap-30">
+
+          {% for image in images %}
+          <div class="col-xl-4 col-lg-6 image-card"
+               data-id="{{ image.id }}"
+               data-order="{{ image.order }}">
+
+            <div class="blog-image-card">
+
+              <!-- IMAGE -->
+              <div class="image-wrapper">
+                <img src="{{ image.image.url }}" class="card-image">
+
+                {% if image.is_featured %}
+                <div class="featured-badge">★ Featured</div>
+                {% endif %}
+
+                <div class="card-overlay">
+
+                  {% if not image.is_featured %}
+                  <button type="button"
+                          class="overlay-btn primary set-featured-btn"
+                          data-id="{{ image.id }}">
+                    Set Featured
+                  </button>
+                  {% endif %}
+
+                  <button type="button"
+                          class="overlay-btn danger delete-image-btn"
+                          data-id="{{ image.id }}">
+                    Delete
+                  </button>
+
+                </div>
+              </div>
+
+              <!-- BODY -->
+              <div class="card-body">
+
+                <input type="text"
+                       class="caption-input"
+                       placeholder="Add caption..."
+                       value="{{ image.caption|default:'' }}"
+                       data-id="{{ image.id }}">
+
+                <div class="card-footer">
+                  <span class="order-label">
+                    Order {{ image.order }}
+                  </span>
+
+                  <div class="order-buttons">
+                    <button type="button"
+                            class="order-btn move-up-btn"
+                            data-id="{{ image.id }}"
+                            {% if forloop.first %}disabled{% endif %}>
+                      ↑
+                    </button>
+
+                    <button type="button"
+                            class="order-btn move-down-btn"
+                            data-id="{{ image.id }}"
+                            {% if forloop.last %}disabled{% endif %}>
+                      ↓
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+
+        <div class="mt-40">
+          <button class="button -md bg-accent-1 text-white">
+            Save Order
+          </button>
+        </div>
+
+      </form>
+
+      {% else %}
+      <div class="text-center py-60">
+        <div class="text-24 fw-600">No Images Yet</div>
+        <div class="text-light-2 mt-10">
+          Upload images to start building your blog gallery.
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.icon-wrapper{
+    margin:0 auto 20px auto;
+}
+.featured-hero-card {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: #2c3e50;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  z-index: 2;
+}
+
+.badge-featured {
+  background: var(--color-accent-1);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.hero-back-btn {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: .3s;
+}
+
+.hero-back-btn:hover {
+  background: white;
+  color: black;
+}
+
+.hero-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+/* --- Upload Dropzone Styles --- */
+.upload-zone-wrapper {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+}
+
+.upload-dropzone {
+  display: block;
+  border: 2px dashed #e0e0e0;
+  border-radius: 16px;
+  padding: 60px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--color-accent-1);
+  background: rgba(var(--color-accent-1-rgb), 0.02);
+}
+
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.upload-dropzone.dragover {
+  border-color: var(--color-accent-1);
+  background: #f0f7ff;
+}
+
+.blog-image-card{
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+  transition:.25s;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.blog-image-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 18px 40px rgba(0,0,0,0.12);
+}
+
+.image-wrapper{
+  position:relative;
+  overflow:hidden;
+}
+
+.card-image{
+  width:100%;
+  height:240px;
+  object-fit:cover;
+  transition:.4s;
+}
+
+.blog-image-card:hover .card-image{
+  transform:scale(1.05);
+}
+
+.card-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  opacity:0;
+  transition:.25s;
+}
+
+.blog-image-card:hover .card-overlay{
+  opacity:1;
+}
+
+.overlay-btn{
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.overlay-btn.primary{
+  background:var(--color-accent-1);
+  color:white;
+}
+
+.overlay-btn.danger{
+  background:#e74c3c;
+  color:white;
+}
+
+.featured-badge{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:var(--color-accent-1);
+  color:white;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.card-body{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.caption-input{
+  border:1px solid #e5e7eb;
+  padding:10px;
+  border-radius:10px;
+  width:100%;
+}
+
+.card-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.order-buttons{
+  display:flex;
+  gap:6px;
+}
+
+.order-btn{
+  border:1px solid #ddd;
+  background:#fff;
+  border-radius:6px;
+  padding:4px 10px;
+  cursor:pointer;
+}
+
+.order-btn:hover{
+  background:#f3f4f6;
+}
+
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+    // Inside your DOMContentLoaded listener
+    const fileInput = document.getElementById('image-upload');
+    const dropzone = document.getElementById('dropzone');
+    const fileNameDisplay = document.getElementById('file-preview-name');
+
+    // Update filename on select
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            fileNameDisplay.innerText = `Selected ${this.files.length} images: ` + 
+                Array.from(this.files).map(f => f.name).join(', ').substring(0, 50) + '...';
+        }
+    });
+
+    // Drag and drop visual effects
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+        }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        fileInput.files = dt.files; // Assign dropped files to input
+        fileInput.dispatchEvent(new Event('change')); // Trigger filename display
+    });
+
+    const container = document.querySelector('.row.y-gap-30');
+
+    /* -------------------------
+       DELETE IMAGE
+    -------------------------*/
+    document.querySelectorAll('.delete-image-btn').forEach(btn=>{
+        btn.onclick=function(){
+            if(!confirm('Delete this image?')) return;
+
+            const id=this.dataset.id;
+
+            const form=document.createElement('form');
+            form.method='POST';
+            form.innerHTML=`
+                <input type="hidden" name="delete_image" value="${id}">
+                <input type="hidden" name="csrfmiddlewaretoken"
+                       value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+
+    /* -------------------------
+       SET FEATURED
+    -------------------------*/
+    document.querySelectorAll('.set-featured-btn').forEach(btn=>{
+        btn.onclick=function(){
+            const id=this.dataset.id;
+
+            const form=document.createElement('form');
+            form.method='POST';
+            form.innerHTML=`
+                <input type="hidden" name="set_featured" value="${id}">
+                <input type="hidden" name="csrfmiddlewaretoken"
+                       value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+
+    /* -------------------------
+       CAPTION UPDATE (on blur)
+    -------------------------*/
+    document.querySelectorAll('.caption-input').forEach(input=>{
+        input.addEventListener('blur',function(){
+
+            const id=this.dataset.id;
+            const caption=this.value;
+
+            const form=document.createElement('form');
+            form.method='POST';
+            form.innerHTML=`
+                <input type="hidden" name="update_caption" value="1">
+                <input type="hidden" name="image_id" value="${id}">
+                <input type="hidden" name="caption" value="${caption}">
+                <input type="hidden" name="csrfmiddlewaretoken"
+                       value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+
+    /* -------------------------
+       MOVE UP
+    -------------------------*/
+    document.querySelectorAll('.move-up-btn').forEach(btn=>{
+        btn.onclick=function(){
+
+            const card=this.closest('.image-card');
+            const prev=card.previousElementSibling;
+
+            if(prev){
+                card.parentNode.insertBefore(card,prev);
+            }
+        }
+    });
+
+    /* -------------------------
+       MOVE DOWN
+    -------------------------*/
+    document.querySelectorAll('.move-down-btn').forEach(btn=>{
+        btn.onclick=function(){
+
+            const card=this.closest('.image-card');
+            const next=card.nextElementSibling;
+
+            if(next){
+                card.parentNode.insertBefore(next,card);
+            }
+        }
+    });
+
+    /* -------------------------
+       SAVE ORDER
+    -------------------------*/
+    document.getElementById('image-management-form')
+    .addEventListener('submit',function(e){
+
+        e.preventDefault();
+
+        const cards=document.querySelectorAll('.image-card');
+
+        const form=document.createElement('form');
+        form.method='POST';
+
+        let inputs=`
+            <input type="hidden" name="update_order" value="1">
+            <input type="hidden" name="csrfmiddlewaretoken"
+                   value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+        `;
+
+        cards.forEach(card=>{
+            inputs+=`<input type="hidden" name="image_order" value="${card.dataset.id}">`;
+        });
+
+        form.innerHTML=inputs;
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+});
+
+
+
+</script>
+{% endblock %}

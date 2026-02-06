@@ -1,0 +1,424 @@
+{% extends 'karkahan/base.html' %}
+{% load static %}
+
+{% block title %}{{ factory.name }} | FactoryInfoHub{% endblock %}
+
+{% block factory_content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h2 class="mb-1">{{ factory.name }}</h2>
+                            <p class="text-muted mb-0">Factory Details & Information</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to List
+                            </a>
+                            {% if user.is_staff %}
+                            <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-warning">
+                                <i class="bi bi-pencil me-2"></i>Edit
+                            </a>
+                            <a href="{% url 'karkahan:factory_delete' slug=factory.slug %}" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Delete
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Main Factory Information -->
+                        <div class="col-lg-8">
+                            <!-- Factory Image -->
+                            {% if factory.image %}
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-body p-0">
+                                    <img src="{{ factory.image.url }}" alt="{{ factory.name }}" class="img-fluid rounded" style="width: 100%; height: 400px; object-fit: cover;">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Basic Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-info-circle me-2 text-primary"></i>
+                                        Basic Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-tags text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Category</h6>
+                                                    <p class="text-muted mb-0">{{ factory.category.name }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% if factory.subcategory %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-tag text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Subcategory</h6>
+                                                    <p class="text-muted mb-0">{{ factory.subcategory.name }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-gear text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Factory Type</h6>
+                                                    <p class="text-muted mb-0">{{ factory.factory_type|default:"—" }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-calendar text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Established</h6>
+                                                    <p class="text-muted mb-0">{{ factory.established_year|default:"—" }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-geo-alt me-2 text-success"></i>
+                                        Location Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-house text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Address</h6>
+                                                    <p class="text-muted mb-0">{{ factory.address|default:"—" }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-building text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">City</h6>
+                                                    <p class="text-muted mb-0">{{ factory.city.name }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-map text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">State</h6>
+                                                    <p class="text-muted mb-0">{{ factory.state.name }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-globe text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Country</h6>
+                                                    <p class="text-muted mb-0">{{ factory.country.name }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            {% if factory.description %}
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-chat-text me-2 text-secondary"></i>
+                                        Description
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">{{ factory.description }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Contact Information -->
+                            {% if factory.contact_person or factory.contact_phone or factory.contact_email %}
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-telephone me-2 text-info"></i>
+                                        Contact Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-4">
+                                        {% if factory.contact_person %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-person text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Contact Person</h6>
+                                                    <p class="text-muted mb-0">{{ factory.contact_person }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% if factory.contact_phone %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-telephone text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Phone</h6>
+                                                    <a href="tel:{{ factory.contact_phone }}" class="text-decoration-none text-dark">{{ factory.contact_phone }}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% if factory.contact_email %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="bi bi-envelope text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Email</h6>
+                                                    <a href="mailto:{{ factory.contact_email }}" class="text-decoration-none text-dark">{{ factory.contact_email }}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Sidebar Information -->
+                        <div class="col-lg-4">
+                            <!-- Status Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-info-circle me-2 text-info"></i>
+                                        Status Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-column gap-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Verification Status</span>
+                                            {% if factory.is_verified %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Verified
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-x-circle me-1"></i>Not Verified
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Operational Status</span>
+                                            {% if factory.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-pause-circle me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Deletion Status</span>
+                                            {% if factory.is_deleted %}
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-trash me-1"></i>Deleted
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Factory Statistics -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-bar-chart me-2 text-primary"></i>
+                                        Factory Statistics
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-column gap-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Employees</span>
+                                            <span class="badge bg-primary">{{ factory.employee_count|default:"—" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Annual Turnover</span>
+                                            <span class="badge bg-info">{{ factory.annual_turnover|default:"—" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Production Capacity</span>
+                                            <span class="badge bg-warning">{{ factory.production_capacity|default:"—" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Working Hours</span>
+                                            <span class="badge bg-success">{{ factory.working_hours|default:"—" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-tools me-2 text-warning"></i>
+                                        Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-warning">
+                                            <i class="bi bi-pencil me-2"></i>Edit Factory
+                                        </a>
+                                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-arrow-left me-2"></i>View All Factories
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Factory ID -->
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-card-list me-2 text-secondary"></i>
+                                        Factory Details
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-column gap-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Factory ID</span>
+                                            <span class="badge bg-primary">#{{ factory.id|add:1000 }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Slug</span>
+                                            <code>{{ factory.slug }}</code>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Created</span>
+                                            <span class="text-muted small">{{ factory.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Updated</span>
+                                            <span class="text-muted small">{{ factory.updated_at|date:"M d, Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles for factory detail */
+    .card {
+        border-radius: 12px;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .bg-opacity-10 {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .fs-4 {
+        font-size: 1.5rem;
+    }
+    
+    code {
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    
+    .text-muted small {
+        font-size: 0.875rem;
+    }
+    
+    .img-fluid {
+        border-radius: 12px;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+</style>
+{% endblock %}

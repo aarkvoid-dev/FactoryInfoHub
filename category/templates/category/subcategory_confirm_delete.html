@@ -1,0 +1,61 @@
+{% extends 'category/base.html' %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-danger text-white py-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-exclamation-triangle text-white fa-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">Confirm Deletion</h4>
+                        <small>Delete SubCategory: {{ subcategory.name }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning!</strong> This action cannot be undone. This will permanently delete the subcategory.
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="fw-bold">SubCategory Details:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Name:</strong> {{ subcategory.name }}</li>
+                        <li><strong>Description:</strong> {{ subcategory.description|default:"No description" }}</li>
+                        <li><strong>Parent Category:</strong>
+                            <a href="{% url 'category:category_detail' subcategory.category.slug %}" class="text-decoration-none">
+                                <span class="badge bg-primary">{{ subcategory.category.name }}</span>
+                            </a>
+                        </li>
+                        <li><strong>Status:</strong>
+                            {% if subcategory.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Created:</strong> {{ subcategory.created_at|date:"M d, Y H:i" }}</li>
+                        <li><strong>Slug:</strong> {{ subcategory.slug }}</li>
+                    </ul>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'category:subcategory_detail' subcategory.slug %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-trash me-2"></i>Yes, Delete SubCategory
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

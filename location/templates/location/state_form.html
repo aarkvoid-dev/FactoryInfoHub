@@ -1,0 +1,80 @@
+{% extends 'location/base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'location:state_list' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Back to States
+</a>
+{% endblock %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ title }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">State Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">State Code</label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                                <div class="text-danger small">{{ form.code.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Optional state code (e.g., MH for Maharashtra)</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.country.id_for_label }}" class="form-label">Country *</label>
+                        {{ form.country }}
+                        {% if form.country.errors %}
+                            <div class="text-danger small">{{ form.country.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'location:state_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{% if state %}Update{% else %}Create{% endif %} State
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if state %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">State Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Created:</strong> {{ state.created_at|date:"M d, Y H:i" }}</p>
+                            <p><strong>Last Updated:</strong> {{ state.updated_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Country:</strong> {{ state.country.name }}</p>
+                            <p><strong>Cities:</strong> {{ state.districts.count }}</p>
+                            <p><strong>Slug:</strong> {{ state.slug }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

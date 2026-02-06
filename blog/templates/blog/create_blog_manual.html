@@ -1,0 +1,363 @@
+{% extends 'location/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">Create your own blog</h1>
+          <p class="hero__text text-light-1 ">Create blog to show your Ideas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-lg bg-light-soft">
+    <div class="container">
+        <form method="POST" enctype="multipart/form-data" id="main-editor-form">
+            {% csrf_token %}
+            <div class="row g-4 justify-center">
+                <div class="col-xl-11">
+                    <div class="row g-4">
+                        
+                        <div class="col-lg-8">
+                            <div class="editor-card-main">
+                                <div class="card-header-flex">
+                                    <i class="fas fa-pen-nib text-accent"></i>
+                                    <h4>Manuscript</h4>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label>Blog Title</label>
+                                    <input type="text" name="title" placeholder="Enter a catchy title..." required>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label>Short Summary (Excerpt)</label>
+                                    <textarea name="excerpt" placeholder="A brief hook for your readers..."></textarea>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label>Main Content</label>
+                                    <textarea name="content" rows="15" placeholder="Tell your story..." required></textarea>
+                                </div>
+                            </div>
+
+                            <div class="editor-card-main mt-4">
+                                <div class="card-header-flex">
+                                    <i class="fas fa-images text-accent"></i>
+                                    <h4>Gallery</h4>
+                                </div>
+                                <div class="upload-zone" onclick="document.getElementById('id_images').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click or drag to upload high-res images</p>
+                                        <span>Supports JPG, PNG, WEBP</span>
+                                    </div>
+                                    <input type="file" id="id_images" name="images" multiple accept="image/*" hidden>
+                                </div>
+                                <div id="preview" class="preview-grid"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="sticky-sidebar">
+                                <div class="editor-card-sidebar">
+                                    <h5 class="sidebar-title"><i class="fas fa-tag"></i> Classification</h5>
+                                    <div class="select-wrapper">
+                                        <select name="category" id="id_category" class="select2-searchable">
+                                            <option value="">Select Category</option>
+                                            {% for cat in categories %}
+                                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="select-wrapper mt-3">
+                                        <select name="subcategory" id="id_subcategory" class="select2-searchable">
+                                            <option value="">Select Subcategory</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="editor-card-sidebar mt-4">
+                                    <h5 class="sidebar-title"><i class="fas fa-globe-americas"></i> Geography</h5>
+                                    <div class="v-chain">
+                                        <select name="country" id="id_country" class="select2-searchable">
+                                            <option value="">Select Country</option>
+                                            {% for c in countries %}
+                                            <option value="{{ c.id }}">{{ c.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <select name="state" id="id_state" class="select2-searchable"><option value="">Select State</option></select>
+                                        <select name="city" id="id_city" class="select2-searchable"><option value="">Select City</option></select>
+                                        <select name="district" id="id_district" class="select2-searchable"><option value="">Select District</option></select>
+                                        <select name="region" id="id_region" class="select2-searchable"><option value="">Select Region</option></select>
+                                    </div>
+                                </div>
+
+                                <div class="editor-card-sidebar mt-4 action-card">
+                                    <div class="publish-toggle mb-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="is_published" id="pubCheck" checked>
+                                            <label class="form-check-label fw-600" for="pubCheck">Publish Immediately</label>
+                                        </div>
+                                    </div>
+                                    <button class="btn-publish-premium">
+                                        <span>Create & Launch</span>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                    <button type="button" class="btn-draft-link mt-2">Save as Draft</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- ⚠️ YOUR JS BELOW — UNCHANGED -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+$('.select2-searchable').select2({tags:true,width:'100%'});
+
+function updateChain(parent,child,url,clear=[]){
+
+$('#'+parent).on('change',function(){
+
+const val=$(this).val();
+const childEl=$('#'+child);
+
+childEl.html('<option>Loading...</option>').trigger('change');
+
+clear.forEach(id=>$('#'+id).html('<option>---</option>').trigger('change'));
+
+if(val && $.isNumeric(val)){
+$.getJSON(url.replace('0',val),function(data){
+
+let opt='<option value="">Select</option>';
+data.forEach(i=>opt+=`<option value="${i.id}">${i.name}</option>`);
+
+childEl.html(opt).trigger('change');
+
+});
+}
+
+});
+
+}
+
+updateChain('id_category','id_subcategory',"{% url 'category:ajax_load_subcategories' 0 %}");
+updateChain('id_country','id_state',"{% url 'location:states_by_country' 0 %}",['id_city','id_district','id_region']);
+updateChain('id_state','id_city',"{% url 'location:cities_by_state' 0 %}",['id_district','id_region']);
+updateChain('id_city','id_district',"{% url 'location:districts_by_city' 0 %}",['id_region']);
+updateChain('id_district','id_region',"{% url 'location:regions_by_district' 0 %}");
+
+$('#id_images').on('change',function(){
+$('#preview').html('');
+Array.from(this.files).forEach(file=>{
+const reader=new FileReader();
+reader.onload=e=>$('#preview').append(`<img src="${e.target.result}" class="img-preview">`);
+reader.readAsDataURL(file);
+});
+});
+
+</script>
+{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+    --accent: #EB662B;
+    --accent-soft: rgba(235, 102, 43, 0.1);
+    --dark: #1A1C1E;
+    --gray-bg: #F8F9FB;
+    --border: #EAECEF;
+}
+
+.bg-light-soft { background: var(--gray-bg); }
+
+/* HERO DESIGN */
+.hero-premium {
+    background: linear-gradient(135deg, #2D2F33 0%, #1A1C1E 100%);
+    padding: 80px 0;
+    text-align: left;
+    border-bottom: 4px solid var(--accent);
+}
+.hero-content-wrapper h1 { font-size: 42px; letter-spacing: -1px; }
+
+/* CARD DESIGN */
+.editor-card-main {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
+}
+
+.editor-card-sidebar {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    border: 1px solid var(--border);
+}
+
+.card-header-flex {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--gray-bg);
+    padding-bottom: 15px;
+}
+.card-header-flex i { font-size: 24px; color: var(--accent); }
+.card-header-flex h4 { margin: 0; font-weight: 700; color: var(--dark); }
+
+/* INPUT STYLING */
+.form-group-custom { margin-bottom: 25px; }
+.form-group-custom label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #666;
+}
+.form-group-custom input, .form-group-custom textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    border-radius: 12px;
+    transition: all 0.3s;
+    background: #FAFBFC;
+}
+.form-group-custom input:focus, .form-group-custom textarea:focus {
+    border-color: var(--accent);
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+/* UPLOAD ZONE */
+.upload-zone {
+    border: 2px dashed #D1D5DB;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    background: var(--gray-bg);
+}
+.upload-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
+.upload-content i { font-size: 35px; color: var(--accent); margin-bottom: 10px; }
+.upload-content p { font-weight: 600; margin: 0; }
+.upload-content span { font-size: 12px; color: #888; }
+
+.preview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+.img-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* SIDEBAR & BUTTONS */
+.sidebar-title { font-size: 15px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+.v-chain select { margin-bottom: 12px; }
+
+.btn-publish-premium {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    transition: 0.3s;
+}
+.btn-publish-premium:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(235, 102, 43, 0.4); }
+
+.btn-draft-link {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #888;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.sticky-sidebar { position: sticky; top: 30px; }
+
+/* SELECT2 CUSTOMIZATION */
+.select2-container--default .select2-selection--single {
+    border: 1px solid var(--border) !important;
+    height: 50px !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    background: #FAFBFC !important;
+}
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.hero__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    padding: 120px 20px;
+}
+
+/* optional dark overlay for readability */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'category/base.html' %}
+
+{% block page_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0 fw-bold">
+                    <i class="fas fa-folder me-3 text-primary"></i>Categories
+                    <span class="badge bg-primary ms-2">{{ categories|length }}</span>
+                </h2>
+                <p class="text-muted mt-1 mb-0">Manage all categories in your system</p>
+            </div>
+            <a href="{% url 'category:category_create' %}" class="btn btn-primary px-4">
+                <i class="fas fa-plus me-2"></i>Add Category
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if categories %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0 fw-bold py-3 px-4">Category Name</th>
+                        <th class="border-0 fw-bold py-3">Description</th>
+                        <th class="border-0 fw-bold py-3">SubCategories</th>
+                        <th class="border-0 fw-bold py-3">Status</th>
+                        <th class="border-0 fw-bold py-3">Created</th>
+                        <th class="border-0 fw-bold py-3 text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr class="border-bottom border-light">
+                            <td class="py-3 px-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-folder text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'category:category_detail' category.slug %}" class="text-decoration-none fw-bold text-dark">
+                                            {{ category.name }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <small class="text-muted">{{ category.description|truncatechars:50|default:"-" }}</small>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge bg-info">{{ category.subcategories.count }}</span>
+                            </td>
+                            <td class="py-3">
+                                {% if category.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-muted small">{{ category.created_at|date:"M d, Y" }}</td>
+                            <td class="py-3 text-end pe-4">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'category:category_detail' category.slug %}" class="btn btn-sm btn-outline-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'category:category_update' category.slug %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'category:category_delete' category.slug %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+            <i class="fas fa-folder fa-2x text-primary"></i>
+        </div>
+        <h4 class="text-muted mb-2">No categories found</h4>
+        <p class="text-muted mb-4">Start by adding your first category to begin managing content organization.</p>
+        <a href="{% url 'category:category_create' %}" class="btn btn-primary px-4">
+            <i class="fas fa-plus me-2"></i>Add First Category
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

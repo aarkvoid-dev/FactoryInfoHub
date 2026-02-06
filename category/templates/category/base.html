@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Category Management - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Sidebar -->
+    <div class="bg-white border-end d-none d-lg-block" style="width: 260px; flex-shrink: 0;">
+        <div class="sticky-top" style="top: 5.2rem; padding: 2rem 1.5rem;">
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">Navigation</h6>
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active rounded bg-primary text-white{% else %}text-dark hover-light{% endif %}"
+                       href="{% url 'category:dashboard' %}">
+                        <i class="fas fa-chart-line me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'category' in request.resolver_match.url_name and 'subcategory' not in request.resolver_match.url_name %}active rounded bg-primary text-white{% else %}text-dark hover-light{% endif %}"
+                       href="{% url 'category:category_list' %}">
+                        <i class="fas fa-folder me-2 {% if 'category' in request.resolver_match.url_name and 'subcategory' not in request.resolver_match.url_name %}text-white{% else %}text-primary{% endif %}"></i> Categories
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'subcategory' in request.resolver_match.url_name %}active rounded bg-success text-white{% else %}text-dark hover-light{% endif %}"
+                       href="{% url 'category:subcategory_list' %}">
+                        <i class="fas fa-folder-open me-2 {% if 'subcategory' in request.resolver_match.url_name %}text-white{% else %}text-success{% endif %}"></i> SubCategories
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-grow-1 bg-light-custom p-4 p-lg-5">
+        {% block page_content %}{% endblock %}
+    </div>
+</div>
+
+<style>
+    /* Prevent Body Scroll on fixed sidebar */
+    body { background-color: #f8fafb !important; overflow-x: hidden; }
+
+    .hover-light:hover {
+        background-color: #f8fafb;
+        color: var(--primary-color) !important;
+    }
+
+    .nav-link {
+        font-family: 'Satoshi', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .card { border-radius: 12px; }
+    .card-header { border-radius: 12px 12px 0 0 !important; }
+
+    /* Ensure no overlap with the top navbar */
+    main { padding-top: 0 !important; }
+
+    .bg-light-custom { background-color: #f8fafb !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends 'category/base.html' %}
+
+{% block page_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0 fw-bold">
+                    <i class="fas fa-folder-open me-3 text-success"></i>{{ subcategory.name }}
+                    {% if not subcategory.is_active %}
+                        <span class="badge bg-secondary ms-2">Inactive</span>
+                    {% endif %}
+                </h2>
+                <p class="text-muted mt-1 mb-0">
+                    SubCategory details • Belongs to
+                    <a href="{% url 'category:category_detail' subcategory.category.slug %}" class="text-decoration-none">
+                        {{ subcategory.category.name }}
+                    </a>
+                </p>
+            </div>
+            <div class="btn-group" role="group">
+                <a href="{% url 'category:subcategory_update' subcategory.slug %}" class="btn btn-outline-warning px-3">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+                <a href="{% url 'category:subcategory_delete' subcategory.slug %}" class="btn btn-outline-danger px-3">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </a>
+                <a href="{% url 'category:subcategory_list' %}" class="btn btn-outline-secondary px-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-success text-white py-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-folder-open text-white fa-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">{{ subcategory.name }}</h4>
+                        <small>SubCategory Overview</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold">STATUS</label>
+                            <p class="mb-0">
+                                {% if subcategory.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold">PARENT CATEGORY</label>
+                            <p class="mb-0">
+                                <a href="{% url 'category:category_detail' subcategory.category.slug %}" class="text-decoration-none">
+                                    <span class="badge bg-primary">{{ subcategory.category.name }}</span>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold">CREATED</label>
+                            <p class="mb-0">{{ subcategory.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold">LAST UPDATED</label>
+                            <p class="mb-0">{{ subcategory.updated_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold">SLUG</label>
+                            <p class="mb-0 text-muted small">{{ subcategory.slug }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% if subcategory.description %}
+                    <div class="mt-4">
+                        <label class="text-muted small fw-bold">DESCRIPTION</label>
+                        <p class="mb-0">{{ subcategory.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'category:subcategory_update' subcategory.slug %}" class="btn btn-outline-warning py-2">
+                        <i class="fas fa-edit me-2"></i>Edit SubCategory
+                    </a>
+                    <a href="{% url 'category:category_detail' subcategory.category.slug %}" class="btn btn-outline-primary py-2">
+                        <i class="fas fa-folder me-2"></i>View Parent Category
+                    </a>
+                    <a href="{% url 'category:subcategory_list' %}" class="btn btn-outline-secondary py-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to SubCategories
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Hierarchy Info
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fas fa-folder text-primary fa-lg"></i>
+                        </div>
+                        <h6 class="mb-1">{{ subcategory.category.name }}</h6>
+                        <small class="text-muted">Parent Category</small>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="fas fa-arrow-down text-success"></i>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                        <i class="fas fa-folder-open text-success fa-lg"></i>
+                    </div>
+                    <h6 class="mb-1">{{ subcategory.name }}</h6>
+                    <small class="text-muted">Current SubCategory</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related SubCategories -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-folder-open me-2 text-success"></i>Other SubCategories in {{ subcategory.category.name }}
+                    </h5>
+                    <a href="{% url 'category:subcategory_create' %}" class="btn btn-primary px-3">
+                        <i class="fas fa-plus me-2"></i>Add SubCategory
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if subcategory.category.subcategories.count > 1 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 fw-bold py-3 px-4">SubCategory Name</th>
+                                    <th class="border-0 fw-bold py-3">Description</th>
+                                    <th class="border-0 fw-bold py-3">Status</th>
+                                    <th class="border-0 fw-bold py-3">Created</th>
+                                    <th class="border-0 fw-bold py-3 text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for related_subcategory in subcategory.category.subcategories.all %}
+                                    {% if related_subcategory.pk != subcategory.pk %}
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-3 px-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-folder-open text-success"></i>
+                                                    </div>
+                                                    <div>
+                                                        <a href="{% url 'category:subcategory_detail' related_subcategory.slug %}" class="text-decoration-none fw-bold text-dark">
+                                                            {{ related_subcategory.name }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3">
+                                                <small class="text-muted">{{ related_subcategory.description|truncatechars:50|default:"-" }}</small>
+                                            </td>
+                                            <td class="py-3">
+                                                {% if related_subcategory.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-3 text-muted small">{{ related_subcategory.created_at|date:"M d, Y" }}</td>
+                                            <td class="py-3 text-end pe-4">
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'category:subcategory_detail' related_subcategory.slug %}" class="btn btn-sm btn-outline-success" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'category:subcategory_update' related_subcategory.slug %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'category:subcategory_delete' related_subcategory.slug %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card-body text-center py-5">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="fas fa-folder-open fa-2x text-success"></i>
+                        </div>
+                        <h4 class="text-muted mb-2">No other subcategories</h4>
+                        <p class="text-muted mb-4">This is the only subcategory in the {{ subcategory.category.name }} category.</p>
+                        <a href="{% url 'category:subcategory_create' %}" class="btn btn-success px-4">
+                            <i class="fas fa-plus me-2"></i>Add Another SubCategory
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

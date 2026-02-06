@@ -1,0 +1,273 @@
+{% extends 'karkahan/base.html' %}
+{% load static %}
+
+{% block title %}Factories | FactoryInfoHub{% endblock %}
+
+{% block factory_content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">Factory <span class="text-primary fw-bold">Inventory</span></h2>
+                            <p class="text-muted mb-0">Manage and monitor your industrial facilities</p>
+                        </div>
+                        {% if user.is_staff %}
+                        <a href="{% url 'karkahan:factory_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Factory
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Search and Filters -->
+                    <form method="get" action="{% url 'karkahan:factory_list' %}" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" name="search" value="{{ request.GET.search }}" 
+                                       placeholder="Search factories..." 
+                                       class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for category in filter_form.category.field.queryset %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <select name="country" class="form-select">
+                                <option value="">All Countries</option>
+                                {% for country in filter_form.country.field.queryset %}
+                                <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ country.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <select name="is_active" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="True" {% if request.GET.is_active == "True" %}selected{% endif %}>Active</option>
+                                <option value="False" {% if request.GET.is_active == "False" %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-funnel me-2"></i>Filter
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Results Summary -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-muted">
+                            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} factories
+                        </div>
+                        <div>
+                            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-circle me-1"></i>Clear Filters
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Factory Table -->
+                    {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Factory</th>
+                                    <th>Location</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factory in page_obj %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                <i class="bi bi-building text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
+                                                   class="text-decoration-none fw-semibold">
+                                                    {{ factory.name }}
+                                                </a>
+                                                <div class="text-muted small">ID: #{{ factory.id|add:1000 }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-dark">
+                                            <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                            {{ factory.city.name }}, {{ factory.state.name }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ factory.category.name }}</span>
+                                        {% if factory.factory_type %}
+                                        <span class="badge bg-light text-dark ms-1">{{ factory.factory_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% if factory.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-pause-circle me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                            {% if factory.is_verified %}
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-shield-check me-1"></i>Verified
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-eye me-1"></i>View
+                                            </a>
+                                            {% if user.is_staff %}
+                                            <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" 
+                                               class="btn btn-outline-warning btn-sm">
+                                                <i class="bi bi-pencil me-1"></i>Edit
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="text-muted">No factories found</h5>
+                        <p class="text-muted">Try adjusting your search criteria or filters.</p>
+                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Reset Search
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles for factory list */
+    .card {
+        border-radius: 12px;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .pagination .page-link {
+        color: #0d6efd;
+        border: 1px solid #dee2e6;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,613 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}Blog Posts - FactoryInfoHub{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">Know About Local Business Stories & Insights</h1>
+          <p class="hero__text text-light-1 ">Discover tips, success stories, and resources to help our community's businesses thrive.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-2">
+  <div class="container">
+    <div class="row y-gap-40">
+      
+      <div class="col-lg-3">
+        <aside class="sidebar -left">
+          
+          <div class="bg-white rounded-16 p-20 mb-30 shadow-sm">
+            <form action="" method="get" class="sidebar-search-input-circular">
+              <i class="fas fa-search text-accent-1"></i>
+              <input type="text" name="q" placeholder="Search insights..." class="text-14 fw-500">
+            </form>
+          </div>
+
+          <div class="bg-white rounded-16 p-25 mb-30 shadow-sm" style="padding: 10px; border-radius: 10px; ">
+            <h3 class="text-18 fw-800 text-dark-1 mb-20 d-flex items-center">
+                <i class="fas fa-grid-2 text-accent-1 mr-10 text-16"></i> Categories
+            </h3>
+            <div class="y-gap-5">
+              <a href="?category=" class="sidebar-nav-link {% if not request.GET.category %}is-active{% endif %}">
+                <span>All Categories</span>
+                <span class="count">{{ posts.count }}</span>
+              </a>
+              {% for cat in categories %}
+                <a href="?category={{ cat.id }}" class="sidebar-nav-link {% if request.GET.category == cat.id|stringformat:'s' %}is-active{% endif %}">
+                  <span>{{ cat.name }}</span>
+                  <i class="fas fa-chevron-right text-10"></i>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="bg-white rounded-16 p-25 shadow-sm" style="padding: 10px; border-radius: 10px; ">
+            <h3 class="text-18 fw-800 text-dark-1 mb-20 d-flex items-center">
+                <i class="fas fa-location-dot text-accent-1 mr-10 text-16"></i> Global Reach
+            </h3>
+            
+            <div class="mb-40">
+              <div class="y-gap-15">
+                  <div class="location-filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Country</label>
+                      <select id="country-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'state')">
+                          <option value="">Select Country</option>
+                          {% for country in countries %}
+                              <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+
+                  <div class="location-filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">State</label>
+                      <select id="state-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'city')" disabled>
+                          <option value="">Select State</option>
+                      </select>
+                  </div>
+
+                  <div class="location-filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">City</label>
+                      <select id="city-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'district')" disabled>
+                          <option value="">Select City</option>
+                      </select>
+                  </div>
+
+                  <div class="location-filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">District</label>
+                      <select id="district-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'region')" disabled>
+                          <option value="">Select District</option>
+                      </select>
+                  </div>
+
+                  <div class="location-filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Region</label>
+                      <select id="region-select" class="form-select custom-sidebar-select-no-border" onchange="applyFinalFilter(this)" disabled>
+                          <option value="">Select Region</option>
+                      </select>
+                  </div>
+              </div>
+
+              <div class="mt-20 d-flex gap-10">
+                  <button onclick="window.location.href='?'" class="button -sm border-light text-12 w-100 rounded-8">Clear</button>
+                  <button id="apply-filter-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
+              </div>
+          </div>
+
+            {% if user.is_authenticated %}
+            <div class="mt-25 pt-20 border-top-light">
+                <a href="{% url 'blog:post_create' %}" class="button -sm bg-dark-1 text-white w-100 rounded-12 transition-all hover-bg-accent-1">
+                    <i class="fas fa-plus mr-10"></i> Create Post
+                </a>
+            </div>
+            {% endif %}
+          </div>
+
+        </aside>
+      </div>
+
+      <div class="col-lg-9">
+        <div class="row y-gap-30">
+          {% if posts %}
+            {% for post in posts %}
+              <div class="col-lg-4 col-md-6">
+                <a href="{{ post.get_absolute_url }}" class="blogCard -type-1 hover-shadow-lg transition-all">
+                  <div class="blogCard__image ratio ratio-41:30 position-relative overflow-hidden">
+                    {% if post.get_featured_image %}
+                      <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}" class="img-ratio rounded-12 object-cover">
+                    {% else %}
+                      <img src="{% static 'img/blogCards/1/' %}{{ forloop.counter }}.png" alt="{{ post.title }}" class="img-ratio rounded-12 object-cover">
+                    {% endif %}
+                    
+                    {% if post.subcategory %}
+                      <div class="blogCard__badge bg-accent-1 text-white text-11 fw-700 position-absolute top-15 left-15">{{ post.subcategory.name }}</div>
+                    {% endif %}
+                    
+                    <div class="blogCard__overlay position-absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity hover:opacity-100">
+                      <div class="absolute bottom-15 left-15 right-15">
+                        <span class="text-white text-12 fw-600">Read More</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="blogCard__content mt-20">
+                    <div class="blogCard__info text-13 d-flex items-center text-light-2 mb-10">
+                      <div class="lh-13"><i class="far fa-calendar-alt mr-5 text-accent-1"></i> {{ post.published_at|date:"M d, Y" }}</div>
+                      <div class="mx-10 opacity-30">|</div>
+                      <div class="lh-13"><i class="far fa-user mr-5 text-accent-1"></i> {{ post.author.username }}</div>
+                    </div>
+                    <h3 class="blogCard__title text-17 fw-700 text-dark-1 mt-5 line-clamp-2">{{ post.title }}</h3>
+                    
+                    {% if post.excerpt %}
+                      <p class="text-13 text-light-2 mt-10 line-clamp-3">{{ post.excerpt }}</p>
+                    {% endif %}
+                    
+                    <div class="blogCard__meta mt-15 d-flex items-center justify-between">
+                      {% if post.country %}
+                        <span class="text-12 text-light-2"><i class="fas fa-globe mr-5"></i> {{ post.country.name }}</span>
+                      {% endif %}
+                      <span class="text-12 text-light-2"><i class="fas fa-clock mr-5"></i> {{ post.read_time }} min read</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="col-12">
+              <div class="empty-state bg-white rounded-16 border-light p-40 text-center">
+                <div class="empty-state__icon mb-20">
+                  <i class="fas fa-newspaper fa-4x text-light-2 opacity-20"></i>
+                </div>
+                <h3 class="text-20 fw-700 text-dark-1 mb-10">No blog posts found</h3>
+                <p class="text-14 mb-20">Try adjusting your filters or check back later for new content.</p>
+                <div class="empty-state__actions">
+                  <a href="{% url 'blog:post_list' %}" class="button -sm bg-accent-1 text-white mr-10">Clear Filters</a>
+                  {% if user.is_authenticated %}
+                    <a href="{% url 'blog:post_create' %}" class="button -sm bg-dark-1 text-white">Create Post</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if is_paginated %}
+          <div class="d-flex justify-center flex-column mt-60">
+            <div class="pagination-wrapper">
+              <div class="pagination justify-center">
+                {% if page_obj.has_previous %}
+                  <button class="pagination__button button -accent-1 mr-15 -prev">
+                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                      <i class="icon-arrow-left text-15"></i>
+                    </a>
+                  </button>
+                {% endif %}
+
+                <div class="pagination__count">
+                  {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                      <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="is-active">{{ num }}</a>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                      <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+
+                {% if page_obj.has_next %}
+                  <button class="pagination__button button -accent-1 ml-15 -next">
+                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                      <i class="icon-arrow-right text-15"></i>
+                    </a>
+                  </button>
+                {% endif %}
+              </div>
+
+              <div class="pagination-info text-14 text-center mt-20 text-light-2">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_css %}
+<style>
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Premium Sidebar Styling */
+    .bg-light-2 { background-color: #F8F9FB !important; }
+    .border-dark-thin { border: 1px solid #EAEAEA !important; }
+
+    /* Circular Search Bar */
+    .sidebar-search-input-circular {
+        display: flex;
+        align-items: center;
+        background: #F5F7F9;
+        border-radius: 50px;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .sidebar-search-input-circular:hover {
+        background: #F0F3F6;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .sidebar-search-input-circular input {
+        border: none;
+        background: transparent;
+        padding: 8px 12px;
+        width: 100%;
+        outline: none;
+        font-size: 14px;
+        color: #333;
+        border-radius: 50px;
+    }
+    .sidebar-search-input-circular i {
+        font-size: 16px;
+        margin-right: 10px;
+        color: #EB662B;
+        transition: all 0.3s ease;
+    }
+    .sidebar-search-input-circular:hover i {
+        transform: scale(1.1);
+    }
+
+    /* Separator Line */
+    .sidebar + .col-lg-9::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -30px;
+        right: -30px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #EAEAEA, transparent);
+        opacity: 0.5;
+        margin-top: 40px;
+    }
+
+    /* Navigation Links */
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        border-radius: 10px;
+        color: #1A1C1E;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+    }
+    .sidebar-nav-link:hover {
+        background-color: rgba(235, 102, 43, 0.08);
+        color: #EB662B;
+        transform: translateX(8px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.15);
+    }
+    .sidebar-nav-link.is-active {
+        background-color: #EB662B;
+        color: white !important;
+        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.3);
+    }
+    .sidebar-nav-link .count {
+        font-size: 11px;
+        background: #F1F1F1;
+        padding: 2px 8px;
+        border-radius: 6px;
+        color: #666;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+    .sidebar-nav-link.is-active .count { 
+        background: rgba(255,255,255,0.25); 
+        color: white; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Borderless Select Dropdown */
+    .custom-sidebar-select-no-border {
+        appearance: none;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 15px;
+        width: 100%;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #F8F9FB;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23EB662B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        transition: all 0.3s ease;
+        color: #333;
+    }
+    .custom-sidebar-select-no-border:hover {
+        background: #F0F3F6;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transform: translateY(-1px);
+    }
+    .custom-sidebar-select-no-border:focus {
+        outline: none;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
+    }
+
+    /* Card Enhancements */
+    .blogCard {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #F0F0F0;
+    }
+    .blogCard:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        border-color: #EB662B;
+    }
+    
+    .blogCard__image {
+        position: relative;
+        overflow: hidden;
+    }
+    .blogCard__image img {
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+    .blogCard:hover .blogCard__image img {
+        transform: scale(1.05);
+    }
+    
+    .blogCard__badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .blogCard__overlay {
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    
+    .blogCard:hover .blogCard__overlay {
+        opacity: 1;
+    }
+    
+    .blogCard__content {
+        padding: 20px;
+    }
+    
+    .blogCard__title {
+        line-height: 1.4;
+        transition: color 0.3s ease;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .blogCard:hover .blogCard__title {
+        color: #EB662B;
+    }
+    
+    .blogCard__info {
+        transition: color 0.3s ease;
+    }
+    .blogCard:hover .blogCard__info {
+        color: #EB662B !important;
+    }
+    
+    .blogCard__meta {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+    .blogCard:hover .blogCard__meta {
+        opacity: 1;
+    }
+    
+    /* Line Clamping for Text */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+    
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.5;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    .empty-state__icon {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .empty-state__actions .button {
+        transition: all 0.3s ease;
+        transform: translateY(0);
+    }
+    
+    .empty-state__actions .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    /* Pagination Enhancements */
+    .pagination-wrapper {
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    .pagination__button {
+        transition: all 0.3s ease;
+    }
+    
+    .pagination__button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.25);
+    }
+    
+    .pagination__count a {
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .pagination__count a:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    /* Responsive Enhancements */
+    @media (max-width: 768px) {
+        .blogCard__title {
+            -webkit-line-clamp: 3;
+        }
+        
+        .blogCard:hover {
+            transform: none;
+        }
+    }
+
+
+    .hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.hero__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    padding: 120px 20px;
+}
+
+/* optional dark overlay for readability */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+}
+
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+ 
+ <script>
+  function updateLocation(element, targetType) {
+      const id = element.value;
+      const targets = {
+          'state': { next: 'state-select', url: '/location/ajax/states-by-country/', label: 'State' },
+          'city': { next: 'city-select', url: '/location/ajax/cities-by-state/', label: 'City' },
+          'district': { next: 'district-select', url: '/location/ajax/districts-by-city/', label: 'District' }, // Adjust URL if different
+          'region': { next: 'region-select', url: '/location/ajax/regions-by-district/', label: 'Region' }
+      };
+
+      const config = targets[targetType];
+      const nextSelect = document.getElementById(config.next);
+      
+      // Show Apply button since a filter has changed
+      document.getElementById('apply-filter-btn').style.display = 'block';
+      document.getElementById('apply-filter-btn').onclick = () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          urlParams.set(element.id.replace('-select', ''), id);
+          window.location.search = urlParams.toString();
+      };
+
+      if (!id) {
+          nextSelect.disabled = true;
+          nextSelect.innerHTML = `<option value="">Select ${config.label}</option>`;
+          return;
+      }
+
+      fetch(`${config.url}${id}/`)
+          .then(response => response.json())
+          .then(data => {
+              nextSelect.disabled = false;
+              nextSelect.innerHTML = `<option value="">Select ${config.label}</option>`;
+              data.forEach(item => {
+                  nextSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+              });
+          })
+          .catch(error => console.error('Error fetching data:', error));
+  }
+
+  function applyFinalFilter(element) {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('region', element.value);
+      window.location.search = urlParams.toString();
+  }
+</script>
+
+ {% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'location/base.html' %}
+
+{% block page_title %}Delete Country{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'location:country_detail' country.slug %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Back to Country
+</a>
+{% endblock %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Delete Country
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-danger fw-bold">Are you sure you want to delete this country?</p>
+
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> This action cannot be undone. Deleting this country will also delete:
+                    <ul class="mb-0 mt-2">
+                        <li>All states within this country ({{ country.states.count }} states)</li>
+                        <li>All cities within those states</li>
+                        <li>All districts within those cities</li>
+                        <li>All regions within those districts</li>
+                    </ul>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6>Country Details:</h6>
+                        <p><strong>Name:</strong> {{ country.name }}</p>
+                        <p><strong>Code:</strong> {{ country.code }}</p>
+                        <p><strong>States:</strong> {{ country.states.count }}</p>
+                        <p><strong>Created:</strong> {{ country.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'location:country_detail' country.slug %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Yes, Delete Country
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+    <section class="mt-header layout-pt-lg layout-pb-lg">
+      <div class="container">
+        <div data-anim="slide-up" class="row justify-center">
+          <div class="col-xl-6 col-lg-7 col-md-9">
+            <div class="text-center mb-60 md:mb-30">
+              <div class="d-flex justify-content-center align-items-center mb-20">
+                <div class="icon-wrapper bg-accent-1 text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                  <i class="icon-user-add text-24"></i>
+                </div>
+              </div>
+              <h1 class="text-30 fw-700 text-dark">Join FactoryInfoHub</h1>
+              <div class="text-18 fw-500 mt-20 md:mt-15 text-muted">Let's create your account!</div>
+              <div class="mt-5">
+                <span class="text-muted">Already have an account?</span> <a href="{% url 'login' %}" class="text-accent-1 fw-600 text-decoration-none">Log In!</a>
+              </div>
+            </div>
+
+            <div class="contactForm border-1 rounded-12 px-60 py-60 md:px-25 md:py-30">
+              {% if messages %}
+                <div class="alert alert-info">
+                  {% for message in messages %}
+                    <div>{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="text" name="username" required>
+                      <label class="lh-1 text-16 text-light-1">Username</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="email" name="email" required>
+                      <label class="lh-1 text-16 text-light-1">Email Address</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mt-30">
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="text" name="first_name" required>
+                      <label class="lh-1 text-16 text-light-1">First Name</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="text" name="last_name" required>
+                      <label class="lh-1 text-16 text-light-1">Last Name</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mt-30">
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="password" name="password1" required>
+                      <label class="lh-1 text-16 text-light-1">Password</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-input">
+                      <input type="password" name="password2" required>
+                      <label class="lh-1 text-16 text-light-1">Confirm Password</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-input mt-30">
+                  <div class="d-flex items-center">
+                    <div class="form-checkbox">
+                      <input type="checkbox" name="terms" id="terms" required>
+                      <div class="form-checkbox__mark">
+                        <div class="form-checkbox__icon">
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.29082 0.971021C9.01235 0.692189 8.56018 0.692365 8.28134 0.971021L3.73802 5.51452L1.71871 3.49523C1.43988 3.21639 0.987896 3.21639 0.709063 3.49523C0.430231 3.77406 0.430231 4.22604 0.709063 4.50487L3.23309 7.0289C3.37242 7.16823 3.55512 7.23807 3.73783 7.23807C3.92054 7.23807 4.10341 7.16841 4.24274 7.0289L9.29082 1.98065C9.56965 1.70201 9.56965 1.24984 9.29082 0.971021Z" fill="white" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="lh-11 ml-10 text-muted">
+                      I agree to the <a href="#" class="text-accent-1">Terms of Service</a> and <a href="#" class="text-accent-1">Privacy Policy</a>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="button -md -dark-1 bg-accent-1 text-white col-12 mt-30" type="submit">
+                  <span class="d-flex align-items-center justify-content-center">
+                    Create Account
+                    <i class="icon-arrow-top-right ml-2"></i>
+                  </span>
+                </button>
+
+                <div class="relative line mt-50 mb-30">
+                  <div class="line__word fw-500">OR</div>
+                </div>
+
+                <div class="row y-gap-15">
+                  <div class="col">
+                    <button class="button -md -outline-blue-1 text-blue-1 col-12" type="button">
+                      <span class="d-flex align-items-center justify-content-center">
+                        <i class="icon-facebook mr-2"></i>
+                        CONTINUE Facebook
+                      </span>
+                    </button>
+                  </div>
+
+                  <div class="col">
+                    <button class="button -md -outline-red-1 text-red-1 col-12" type="button">
+                      <span class="d-flex align-items-center justify-content-center">
+                        <i class="icon-google mr-2"></i>
+                        CONTINUE Google
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="text-center mt-30 text-muted">
+                  By creating an account, you agree to our <a href="#" class="text-accent-1">Terms of Service</a> and <a href="#" class="text-accent-1">Privacy Policy</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Register page loaded with enhanced FactoryInfoHub styling');
+    
+    // Add smooth animations to form inputs
+    const inputs = document.querySelectorAll('.form-input input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'translateY(-2px)';
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'translateY(0)';
+      });
+    });
+    
+    // Password strength indicator
+    const passwordInput = document.querySelector('input[name="password1"]');
+    const confirmPasswordInput = document.querySelector('input[name="password2"]');
+    
+    if (passwordInput) {
+      passwordInput.addEventListener('input', function() {
+        const strength = getPasswordStrength(this.value);
+        this.style.borderColor = strength.color;
+      });
+    }
+    
+    if (confirmPasswordInput && passwordInput) {
+      confirmPasswordInput.addEventListener('input', function() {
+        if (this.value === passwordInput.value && this.value.length > 0) {
+          this.style.borderColor = '#10b981';
+        } else {
+          this.style.borderColor = '#ef4444';
+        }
+      });
+    }
+    
+    function getPasswordStrength(password) {
+      let strength = { score: 0, color: '#ef4444' };
+      
+      if (password.length >= 8) strength.score++;
+      if (password.match(/[a-z]/)) strength.score++;
+      if (password.match(/[A-Z]/)) strength.score++;
+      if (password.match(/[0-9]/)) strength.score++;
+      if (password.match(/[^a-zA-Z0-9]/)) strength.score++;
+      
+      if (strength.score >= 4) strength.color = '#10b981';
+      else if (strength.score >= 3) strength.color = '#f59e0b';
+      else strength.color = '#ef4444';
+      
+      return strength;
+    }
+  });
+</script>
+{% endblock %}

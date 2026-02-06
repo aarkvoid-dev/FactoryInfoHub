@@ -1,0 +1,218 @@
+{% extends 'location/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-5 bg-light" style="min-height: 100vh;">
+    <form method="POST" id="blogForm">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <h3 class="ff-satoshi-black mb-4">Edit Blog Post</h3>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Post Title</label>
+                        <input type="text" name="title" class="form-control form-control-lg" value="{{ object.title }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Excerpt</label>
+                        <textarea name="excerpt" class="form-control" rows="2">{{ object.excerpt }}</textarea>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Content</label>
+                        <textarea name="content" class="form-control" rows="12" required>{{ object.content }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="card border-0 shadow-sm mb-4 p-4">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Classification</h6>
+                    <div class="mb-3">
+                        <select name="category" id="id_category" class="select2-searchable">
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if object.category and object.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-0">
+                        <select name="subcategory" id="id_subcategory" class="select2-searchable">
+                            <option value="">Select Subcategory</option>
+                            {% if object.subcategory %}
+                                <option value="{{ object.subcategory.id }}" selected>{{ object.subcategory.name }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 p-4">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Location Hierarchy</h6>
+                    <div class="d-flex flex-column gap-3">
+                        <select name="country" id="id_country" class="select2-searchable">
+                            <option value="">Select Country</option>
+                            {% for c in countries %}
+                                <option value="{{ c.id }}" {% if object.country and object.country.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="state" id="id_state" class="select2-searchable">
+                            <option value="">Select State</option>
+                            {% if object.state %}
+                                <option value="{{ object.state.id }}" selected>{{ object.state.name }}</option>
+                            {% endif %}
+                        </select>
+                        <select name="city" id="id_city" class="select2-searchable">
+                            <option value="">Select City</option>
+                            {% if object.city %}
+                                <option value="{{ object.city.id }}" selected>{{ object.city.name }}</option>
+                            {% endif %}
+                        </select>
+                        <select name="district" id="id_district" class="select2-searchable">
+                            <option value="">Select District</option>
+                            {% if object.district %}
+                                <option value="{{ object.district.id }}" selected>{{ object.district.name }}</option>
+                            {% endif %}
+                        </select>
+                        <select name="region" id="id_region" class="select2-searchable">
+                            <option value="">Select Region</option>
+                            {% if object.region %}
+                                <option value="{{ object.region.id }}" selected>{{ object.region.name }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm p-4 bg-white">
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="is_published" id="publishSwitch" {% if object.is_published %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="publishSwitch">Publish Immediately</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 mb-2">Update Blog Post</button>
+                    <a href="{% url 'blog:post_detail' slug=object.slug %}" class="btn btn-outline-secondary w-100 py-2">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // 1. Init Select2 with Tagging
+    $('.select2-searchable').select2({
+        tags: true,
+        width: '100%',
+        placeholder: "Search or Type New..."
+    });
+
+    // 2. Chained Data Loader
+    function updateChain(parentId, childId, urlTemplate, grandchildIds = []) {
+        $(`#${parentId}`).on('change', function() {
+            const val = $(this).val();
+            const $child = $(`#${childId}`);
+            
+            // Clear all descendants
+            $child.html('<option value="">Loading...</option>').trigger('change');
+            grandchildIds.forEach(id => $(`#${id}`).html('<option value="">---------</option>').trigger('change'));
+
+            if (val && $.isNumeric(val)) {
+                const url = urlTemplate.replace('0', val);
+                $.getJSON(url, function(data) {
+                    let options = '<option value="">Select Option</option>';
+                    data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                    $child.html(options).trigger('change');
+                });
+            } else {
+                $child.html('<option value="">---------</option>').trigger('change');
+            }
+        });
+    }
+
+    // 3. Define the Chains
+    updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
+    updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
+    updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
+    updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
+    updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
+
+    // 4. Initialize cascading for edit mode
+    function initializeCascading() {
+        // Load subcategories for the selected category
+        const categoryVal = $('#id_category').val();
+        if (categoryVal && $.isNumeric(categoryVal)) {
+            const url = "{% url 'category:ajax_load_subcategories' 0 %}".replace('0', categoryVal);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                $('#id_subcategory').html(options).trigger('change');
+            });
+        }
+
+        // Load states for the selected country
+        const countryVal = $('#id_country').val();
+        if (countryVal && $.isNumeric(countryVal)) {
+            const url = "{% url 'location:states_by_country' 0 %}".replace('0', countryVal);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                $('#id_state').html(options).trigger('change');
+            });
+        }
+
+        // Load cities for the selected state
+        const stateVal = $('#id_state').val();
+        if (stateVal && $.isNumeric(stateVal)) {
+            const url = "{% url 'location:cities_by_state' 0 %}".replace('0', stateVal);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                $('#id_city').html(options).trigger('change');
+            });
+        }
+
+        // Load districts for the selected city
+        const cityVal = $('#id_city').val();
+        if (cityVal && $.isNumeric(cityVal)) {
+            const url = "{% url 'location:districts_by_city' 0 %}".replace('0', cityVal);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                $('#id_district').html(options).trigger('change');
+            });
+        }
+
+        // Load regions for the selected district
+        const districtVal = $('#id_district').val();
+        if (districtVal && $.isNumeric(districtVal)) {
+            const url = "{% url 'location:regions_by_district' 0 %}".replace('0', districtVal);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => options += `<option value="${item.id}">${item.name}</option>`);
+                $('#id_region').html(options).trigger('change');
+            });
+        }
+    }
+
+    // Initialize cascading after DOM is ready
+    setTimeout(initializeCascading, 100);
+});
+</script>
+
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 45px !important;
+        display: flex;
+        align-items: center;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 45px; }
+    .ff-satoshi-black { font-weight: 900; letter-spacing: -0.02em; }
+</style>
+{% endblock %}

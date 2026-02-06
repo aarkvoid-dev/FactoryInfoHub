@@ -1,0 +1,197 @@
+{% extends 'category/base.html' %}
+
+{% block page_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2">
+                            <i class="fas fa-folder-tree me-3"></i>Category Management System
+                        </h2>
+                        <p class="opacity-75 mb-0">
+                            Manage categories and subcategories for blogs and factories.
+                            Create hierarchical organization structures efficiently.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end d-none d-md-block">
+                        <i class="fas fa-sitemap fa-5x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-folder text-primary fa-lg"></i>
+                </div>
+                <h3 class="fw-bold text-primary mb-1">{{ categories_count }}</h3>
+                <p class="text-muted small mb-3">Categories</p>
+                <div class="d-flex gap-1 justify-content-center">
+                    <a href="{% url 'category:category_list' %}" class="btn btn-sm btn-outline-primary px-2"><i class="fas fa-list"></i></a>
+                    <a href="{% url 'category:category_create' %}" class="btn btn-sm btn-primary px-2"><i class="fas fa-plus"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-folder-open text-success fa-lg"></i>
+                </div>
+                <h3 class="fw-bold text-success mb-1">{{ subcategories_count }}</h3>
+                <p class="text-muted small mb-3">SubCategories</p>
+                <div class="d-flex gap-1 justify-content-center">
+                    <a href="{% url 'category:subcategory_list' %}" class="btn btn-sm btn-outline-success px-2"><i class="fas fa-list"></i></a>
+                    <a href="{% url 'category:subcategory_create' %}" class="btn btn-sm btn-success px-2"><i class="fas fa-plus"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-check-circle text-info fa-lg"></i>
+                </div>
+                <h3 class="fw-bold text-info mb-1">{{ active_categories }}</h3>
+                <p class="text-muted small mb-3">Active Categories</p>
+                <span class="badge bg-info">Active</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-check text-warning fa-lg"></i>
+                </div>
+                <h3 class="fw-bold text-warning mb-1">{{ active_subcategories }}</h3>
+                <p class="text-muted small mb-3">Active SubCategories</p>
+                <span class="badge bg-warning">Active</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row mb-4">
+    <!-- Recent Categories -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                <h6 class="mb-0"><i class="fas fa-folder me-2"></i>Recent Categories</h6>
+                <a href="{% url 'category:category_create' %}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_categories %}
+                    <div class="list-group list-group-flush">
+                        {% for category in recent_categories %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ category.name }}</p>
+                                    <small class="text-muted">
+                                        {{ category.subcategories.count }} subcategories •
+                                        {% if category.is_active %}Active{% else %}Inactive{% endif %} •
+                                        {{ category.created_at|date:"M d" }}
+                                    </small>
+                                </div>
+                                <a href="{% url 'category:category_detail' category.slug %}" class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'category:category_list' %}" class="btn btn-sm btn-outline-primary">
+                            View All Categories
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No categories added yet.</p>
+                        <a href="{% url 'category:category_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add First Category
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent SubCategories -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-3">
+                <h6 class="mb-0"><i class="fas fa-folder-open me-2"></i>Recent SubCategories</h6>
+                <a href="{% url 'category:subcategory_create' %}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_subcategories %}
+                    <div class="list-group list-group-flush">
+                        {% for subcategory in recent_subcategories %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ subcategory.name }}</p>
+                                    <small class="text-muted">
+                                        {{ subcategory.category.name }} •
+                                        {% if subcategory.is_active %}Active{% else %}Inactive{% endif %} •
+                                        {{ subcategory.created_at|date:"M d" }}
+                                    </small>
+                                </div>
+                                <a href="{% url 'category:subcategory_detail' subcategory.slug %}" class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'category:subcategory_list' %}" class="btn btn-sm btn-outline-success">
+                            View All SubCategories
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No subcategories added yet.</p>
+                        <a href="{% url 'category:subcategory_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Add First SubCategory
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3 col-sm-6"><a href="{% url 'category:category_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add Category</a></div>
+                    <div class="col-md-3 col-sm-6"><a href="{% url 'category:subcategory_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add SubCategory</a></div>
+                    <div class="col-md-3 col-sm-6"><a href="{% url 'category:category_list' %}" class="btn btn-outline-primary w-100 py-2 small">View Categories</a></div>
+                    <div class="col-md-3 col-sm-6"><a href="{% url 'home' %}" class="btn btn-outline-secondary w-100 py-2 small">Home</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

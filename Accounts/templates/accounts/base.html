@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced styling for auth pages */
+    .mt-header {
+        padding-top: 60px;
+        padding-bottom: 60px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .contactForm {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .contactForm::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #EB662B, #F28555);
+    }
+    
+    .form-input {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .form-input input {
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        padding: 16px 20px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    
+    .form-input input:focus {
+        outline: none;
+        border-color: #EB662B;
+        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .form-input label {
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: white;
+        padding: 0 8px;
+        font-size: 12px;
+        color: #EB662B;
+        font-weight: 600;
+        z-index: 1;
+    }
+    
+    .button {
+        border-radius: 12px;
+        padding: 16px 32px;
+        font-weight: 700;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(235, 102, 43, 0.3);
+    }
+    
+    .alert {
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+    }
+    
+    .text-center.mb-60.md\:mb-30 {
+        position: relative;
+    }
+    
+    .text-center.mb-60.md\:mb-30::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, #EB662B, #F28555);
+        border-radius: 2px;
+    }
+    
+    .relative.line.mt-50.mb-30 {
+        margin-top: 40px !important;
+        margin-bottom: 30px !important;
+    }
+    
+    .button.-md.-outline-blue-1.text-blue-1 {
+        border: 2px solid #3b82f6;
+        color: #3b82f6 !important;
+        background: transparent;
+    }
+    
+    .button.-md.-outline-blue-1.text-blue-1:hover {
+        background: #3b82f6;
+        color: white !important;
+    }
+    
+    .button.-md.-outline-red-1.text-red-1 {
+        border: 2px solid #ef4444;
+        color: #ef4444 !important;
+        background: transparent;
+    }
+    
+    .button.-md.-outline-red-1.text-red-1:hover {
+        background: #ef4444;
+        color: white !important;
+    }
+    
+    .form-checkbox {
+        margin-right: 10px;
+    }
+    
+    .form-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #EB662B;
+    }
+    
+    .row.y-gap-15 .col .button {
+        padding: 14px 20px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {{ block.super }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Django auth pages loaded with FactoryInfoHub styling');
+    });
+</script>
+{% endblock %}

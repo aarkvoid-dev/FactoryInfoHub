@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="page-header -type-1 bg-dark-1 relative overflow-hidden" style="padding-top: 140px; padding-bottom: 80px;">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#EB662B 0.5px, transparent 0.5px); background-size: 20px 20px;"></div>
+    
+    <div class="container relative z-2">
+        <div class="row justify-between items-end">
+            <div class="col-auto">
+                <div class="bg-accent-1 mb-15" style="width: 40px; height: 3px; border-radius: 2px;"></div>
+                <h1 class="text-40 fw-700 text-white tracking-tighter">My <span class="text-accent-1">Profile</span></h1>
+                <div class="text-white opacity-50 text-15 mt-10">Manage your factory account and preferences</div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex x-gap-10 y-gap-10 text-white opacity-50 text-14 uppercase fw-500 tracking-widest">
+                    <a href="{% url 'home' %}" class="hover-text-accent-1">Home</a>
+                    <span>/</span>
+                    <span class="text-accent-1">Dashboard</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="layout-pt-md layout-pb-lg">
+    <div class="container">
+        <div class="row y-gap-40">
+            
+            <div class="col-xl-3 col-lg-4">
+                <div class="bg-white px-30 py-40 rounded-24 shadow-1 border-light">
+                    <div class="text-center">
+                        <div class="size-100 mx-auto relative">
+                            <div class="absolute inset-0 bg-accent-1 opacity-10 rounded-full"></div>
+                            <div class="size-100 bg-white rounded-full d-flex justify-center items-center border-accent-1 relative z-1">
+                                <i class="icon-person text-40 text-accent-1"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-20 fw-700 mt-20 tracking-tighter">{{ user.username }}</h4>
+                        <div class="text-14 text-light-3 mt-5">{{ user.email }}</div>
+                    </div>
+                    
+                    <div class="line mt-30 mb-30"></div>
+                    
+                    <div class="y-gap-10">
+                        <a href="#" class="d-flex items-center justify-between px-20 py-15 rounded-16 bg-accent-1-05 text-accent-1 fw-600">
+                            <span class="d-flex items-center"><i class="icon-edit text-18 mr-12"></i> Edit Profile</span>
+                            <i class="icon-chevron-right text-10"></i>
+                        </a>
+                        <a href="{% url 'change_password' %}" class="d-flex items-center justify-between px-20 py-15 rounded-16 text-dark-1 hover-bg-light-2 transition">
+                            <span class="d-flex items-center"><i class="icon-lock text-18 mr-12"></i> Password</span>
+                            <i class="icon-chevron-right text-10"></i>
+                        </a>
+                        <div class="line my-10"></div>
+                        <a href="{% url 'logout' %}" class="d-flex items-center px-20 py-15 text-red-1 fw-500">
+                            <i class="icon-logout text-18 mr-12"></i> Log out
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-9 col-lg-8">
+                <div class="bg-white rounded-24 shadow-1 overflow-hidden border-light">
+                    <div class="px-40 py-30 border-bottom-light d-flex items-center justify-between">
+                        <h4 class="text-20 fw-700">General Information</h4>
+                        <i class="icon-gear text-20 text-light-3"></i>
+                    </div>
+
+                    <div class="px-40 py-40">
+                        <form method="post" class="contactForm row y-gap-30">
+                            {% csrf_token %}
+                            
+                            <div class="col-md-6">
+                                <div class="form-input">
+                                    <input type="text" name="username" value="{{ user.username }}" required>
+                                    <label class="lh-1 text-14 text-light-3">Username</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-input">
+                                    <input type="email" name="email" value="{{ user.email }}" required>
+                                    <label class="lh-1 text-14 text-light-3">Email Address</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-input ">
+                                    <input type="text" name="first_name" value="{{ user.first_name }}">
+                                    <label class="lh-1 text-14 text-light-3">First Name</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-input">
+                                    <input type="text" name="last_name" value="{{ user.last_name }}">
+                                    <label class="lh-1 text-14 text-light-3">Last Name</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-20">
+                                <div class="d-flex items-center justify-end">
+                                    <button type="submit" class="button -md -dark-1 bg-accent-1 text-white rounded-16 px-40 shadow-accent">
+                                        Update Account Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Direct theme synchronization */
+    .bg-accent-1-05 { background-color: rgba(235, 102, 43, 0.05) !important; }
+    .rounded-24 { border-radius: 24px !important; }
+    .rounded-16 { border-radius: 16px !important; }
+    
+    /* Input Styling to match the 'DM Sans' sleekness */
+    .fancy-field {
+        transition: all 0.2s ease;
+        border: 1px solid #E5E7EB !important;
+        border-radius: 12px !important;
+    }
+    .fancy-field:focus-within {
+        border-color: #EB662B !important;
+        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
+    }
+    
+    .shadow-accent {
+        box-shadow: 0 10px 20px -5px rgba(235, 102, 43, 0.3);
+    }
+
+    .tracking-tighter { letter-spacing: -0.03em; }
+    .tracking-widest { letter-spacing: 0.12em; }
+</style>
+{% endblock %}

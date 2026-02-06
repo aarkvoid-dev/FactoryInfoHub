@@ -1,0 +1,199 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Contact Hero Section -->
+    <section class="mt-header layout-pt-lg layout-pb-lg">
+      <div class="container">
+        <div data-anim="slide-up" class="row justify-center">
+          <div class="col-xl-8 col-lg-9 col-md-10">
+            <div class="text-center mb-60 md:mb-30">
+              <h1 class="text-30">Get in Touch</h1>
+              <div class="text-18 fw-500 mt-20 md:mt-15">We'd love to hear from you!</div>
+              <div class="mt-5">
+                Have questions about our factory management services? Contact us today.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section class="layout-pt-xl layout-pb-xl">
+      <div class="container">
+        <div class="row y-gap-40">
+          <div class="col-lg-6">
+            <div class="contactForm border-1 rounded-12 px-60 py-60 md:px-25 md:py-30">
+              <h2 class="text-24 fw-700 mb-30">Send us a Message</h2>
+              
+              <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-input">
+                  <input type="text" name="name" required>
+                  <label class="lh-1 text-16 text-light-1">Your Name</label>
+                </div>
+
+                <div class="form-input mt-30">
+                  <input type="email" name="email" required>
+                  <label class="lh-1 text-16 text-light-1">Your Email</label>
+                </div>
+
+                <div class="form-input mt-30">
+                  <input type="text" name="subject" required>
+                  <label class="lh-1 text-16 text-light-1">Subject</label>
+                </div>
+
+                <div class="form-input mt-30">
+                  <textarea name="message" rows="6" required></textarea>
+                  <label class="lh-1 text-16 text-light-1">Your Message</label>
+                </div>
+
+                <button class="button -md -dark-1 bg-accent-1 text-white col-12 mt-30" type="submit">
+                  Send Message
+                  <i class="icon-arrow-top-right ml-10"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="contactInfo">
+              <h2 class="text-24 fw-700 mb-30">Contact Information</h2>
+              
+              <div class="row y-gap-30">
+                <div class="col-md-6">
+                  <div class="contactInfo__item d-flex items-center">
+                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
+                      <i class="icon-location text-24 text-accent-1"></i>
+                    </div>
+                    <div class="contactInfo__content ml-20">
+                      <h4 class="text-16 fw-500">Address</h4>
+                      <p class="text-14 mt-5">123 Factory Street<br>Industrial Area, Mumbai<br>India - 400001</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="contactInfo__item d-flex items-center">
+                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
+                      <i class="icon-phone text-24 text-accent-1"></i>
+                    </div>
+                    <div class="contactInfo__content ml-20">
+                      <h4 class="text-16 fw-500">Phone</h4>
+                      <p class="text-14 mt-5">+91 22 1234 5678<br>+91 22 8765 4321</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="contactInfo__item d-flex items-center">
+                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
+                      <i class="icon-email text-24 text-accent-1"></i>
+                    </div>
+                    <div class="contactInfo__content ml-20">
+                      <h4 class="text-16 fw-500">Email</h4>
+                      <p class="text-14 mt-5">info@factoryinfohub.com<br>support@factoryinfohub.com</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="contactInfo__item d-flex items-center">
+                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
+                      <i class="icon-clock text-24 text-accent-1"></i>
+                    </div>
+                    <div class="contactInfo__content ml-20">
+                      <h4 class="text-16 fw-500">Working Hours</h4>
+                      <p class="text-14 mt-5">Monday - Friday: 9:00 AM - 6:00 PM<br>Saturday: 10:00 AM - 2:00 PM<br>Sunday: Closed</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-50">
+                <h4 class="text-18 fw-700 mb-20">Follow Us</h4>
+                <div class="d-flex x-gap-15">
+                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
+                    <i class="icon-facebook text-16"></i>
+                  </a>
+                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
+                    <i class="icon-twitter text-16"></i>
+                  </a>
+                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
+                    <i class="icon-instagram text-16"></i>
+                  </a>
+                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
+                    <i class="icon-linkedin text-16"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="layout-pt-xl layout-pb-xl">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div class="map rounded-12 overflow-hidden">
+              <div class="ratio ratio-16:9">
+                <div id="contactMap" style="width: 100%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Contact page loaded with FactoryInfoHub styling');
+    
+    // Initialize Google Map
+    initContactMap();
+  });
+
+  function initContactMap() {
+    const location = { lat: 19.0760, lng: 72.8777 }; // Mumbai coordinates
+    const map = new google.maps.Map(document.getElementById('contactMap'), {
+      zoom: 12,
+      center: location,
+      styles: [
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{"color": "#e9e9e9"}, {"lightness": 17}]
+        },
+        {
+          "featureType": "landscape",
+          "elementType": "geometry",
+          "stylers": [{"color": "#f5f5f5"}, {"lightness": 20}]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry.fill",
+          "stylers": [{"color": "#ffffff"}, {"lightness": 17}]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry.stroke",
+          "stylers": [{"color": "#ffffff"}, {"lightness": 29}, {"weight": 0.2}]
+        }
+      ]
+    });
+
+    const marker = new google.maps.Marker({
+      position: location,
+      map: map,
+      title: "FactoryInfoHub Office"
+    });
+  }
+</script>
+{% endblock %}

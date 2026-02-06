@@ -1,0 +1,179 @@
+{% extends 'home/base.html' %}
+
+{% block title %}Blog Admin Dashboard - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Blog Admin Dashboard</h1>
+                <div>
+                    <a href="{% url 'admin:blog_blogpost_changelist' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-cogs me-1"></i>Django Admin
+                    </a>
+                    <a href="{% url 'blog:post_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Create New Post
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title mb-0">{{ total_posts }}</h5>
+                                    <small>Total Posts</small>
+                                </div>
+                                <i class="fas fa-newspaper fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title mb-0">{{ published_posts }}</h5>
+                                    <small>Published</small>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title mb-0">{{ draft_posts }}</h5>
+                                    <small>Drafts</small>
+                                </div>
+                                <i class="fas fa-edit fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title mb-0">{{ deleted_posts }}</h5>
+                                    <small>Deleted</small>
+                                </div>
+                                <i class="fas fa-trash fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Recent Posts -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recent Posts</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_posts %}
+                                <div class="list-group list-group-flush">
+                                    {% for post in recent_posts %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
+                                                        {{ post.title }}
+                                                    </a>
+                                                    {% if post.is_deleted %}
+                                                        <span class="badge bg-danger ms-2">Deleted</span>
+                                                    {% elif not post.is_published %}
+                                                        <span class="badge bg-warning ms-2">Draft</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success ms-2">Published</span>
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    By {{ post.author.username }} • {{ post.created_at|date:"M d, Y" }}
+                                                </small>
+                                            </div>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'blog:post_update' post.slug %}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-0">No posts yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Statistics -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Posts by Category</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if category_stats %}
+                                {% for stat in category_stats %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>{{ stat.subcategory__name|default:"Uncategorized" }}</span>
+                                        <span class="badge bg-primary">{{ stat.count }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted mb-0">No category data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'blog:post_create' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-1"></i>Create Post
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin:blog_blogpost_changelist' %}?is_published__exact=0" class="btn btn-warning w-100">
+                                <i class="fas fa-edit me-1"></i>Manage Drafts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin:blog_blogpost_changelist' %}?is_deleted__exact=1" class="btn btn-danger w-100">
+                                <i class="fas fa-trash-restore me-1"></i>View Deleted
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'blog:post_list' %}" class="btn btn-info w-100">
+                                <i class="fas fa-eye me-1"></i>View Blog
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

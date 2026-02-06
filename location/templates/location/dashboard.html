@@ -1,0 +1,311 @@
+{% extends 'location/base.html' %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh;">
+    <div class="bg-white border-end d-none d-lg-block" style="width: 260px; flex-shrink: 0;">
+        <div class="sticky-top" style="top: 5.2rem; padding: 2rem 1.5rem;">
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">Navigation</h6>
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a class="nav-link active rounded bg-primary text-white" href="{% url 'location:dashboard' %}">
+                        <i class="fas fa-chart-line me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark hover-light" href="{% url 'location:country_list' %}">
+                        <i class="fas fa-globe me-2 text-primary"></i> Countries
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark hover-light" href="{% url 'location:state_list' %}">
+                        <i class="fas fa-map-marker-alt me-2 text-success"></i> States
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark hover-light" href="{% url 'location:city_list' %}">
+                        <i class="fas fa-city me-2 text-info"></i> Cities
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark hover-light" href="{% url 'location:district_list' %}">
+                        <i class="fas fa-building me-2 text-warning"></i> Districts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark hover-light" href="{% url 'location:region_list' %}">
+                        <i class="fas fa-map me-2 text-danger"></i> Regions
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 bg-light-custom p-4 p-lg-5">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="ff-satoshi-black mb-2">
+                                    <i class="fas fa-map-marked-alt me-3"></i>Location Management System
+                                </h2>
+                                <p class="opacity-75 mb-0">
+                                    Manage your geographical data with our comprehensive location management system.
+                                    Create and organize countries, states, cities, districts, and regions efficiently.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end d-none d-md-block">
+                                <i class="fas fa-globe fa-5x opacity-25"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-globe text-primary fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-1">{{ countries_count }}</h3>
+                        <p class="text-muted small mb-3">Countries</p>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'location:country_list' %}" class="btn btn-sm btn-outline-primary px-2"><i class="fas fa-list"></i></a>
+                            <a href="{% url 'location:country_create' %}" class="btn btn-sm btn-primary px-2"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-map-marker-alt text-success fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-success mb-1">{{ states_count }}</h3>
+                        <p class="text-muted small mb-3">States</p>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'location:state_list' %}" class="btn btn-sm btn-outline-success px-2"><i class="fas fa-list"></i></a>
+                            <a href="{% url 'location:state_create' %}" class="btn btn-sm btn-success px-2"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-city text-info fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-info mb-1">{{ cities_count }}</h3>
+                        <p class="text-muted small mb-3">Cities</p>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'location:city_list' %}" class="btn btn-sm btn-outline-info px-2"><i class="fas fa-list"></i></a>
+                            <a href="{% url 'location:city_create' %}" class="btn btn-sm btn-info px-2"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-building text-warning fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-warning mb-1">{{ districts_count }}</h3>
+                        <p class="text-muted small mb-3">Districts</p>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'location:district_list' %}" class="btn btn-sm btn-outline-warning px-2"><i class="fas fa-list"></i></a>
+                            <a href="{% url 'location:district_create' %}" class="btn btn-sm btn-warning px-2"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-map text-danger fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-danger mb-1">{{ regions_count }}</h3>
+                        <p class="text-muted small mb-3">Regions</p>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'location:region_list' %}" class="btn btn-sm btn-outline-danger px-2"><i class="fas fa-list"></i></a>
+                            <a href="{% url 'location:region_create' %}" class="btn btn-sm btn-danger px-2"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm border-0 bg-white">
+                    <div class="card-body text-center">
+                        <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-chart-line text-secondary fa-lg"></i>
+                        </div>
+                        <h5 class="fw-bold text-secondary mb-1">System</h5>
+                        <p class="text-muted small mb-3">Status</p>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="fas fa-chart-bar me-2 text-primary"></i>Data Insights
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 border-end">
+                                <h4 class="text-primary fw-bold">{{ total_locations }}</h4>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Total Locations</small>
+                            </div>
+                            <div class="col-md-3 border-end">
+                                <h4 class="text-success fw-bold">{{ avg_states_per_country }}</h4>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Avg States/Country</small>
+                            </div>
+                            <div class="col-md-3 border-end">
+                                <h4 class="text-info fw-bold">{{ avg_cities_per_state }}</h4>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Avg Cities/State</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 class="text-warning fw-bold">{{ avg_districts_per_city }}</h4>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Avg Districts/City</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                        <h6 class="mb-0"><i class="fas fa-globe me-2"></i>Recent Countries</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_countries %}
+                            <div class="list-group list-group-flush">
+                                {% for country in recent_countries %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                        <div>
+                                            <p class="mb-0 fw-bold">{{ country.name }}</p>
+                                            <small class="text-muted">{{ country.code }} • {{ country.created_at|date:"M d" }}</small>
+                                        </div>
+                                        <a href="{% url 'location:country_detail' country.slug %}" class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-center text-muted py-4">No data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-3">
+                        <h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Recent States</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_states %}
+                            <div class="list-group list-group-flush">
+                                {% for state in recent_states %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                        <div>
+                                            <p class="mb-0 fw-bold">{{ state.name }}</p>
+                                            <small class="text-muted">{{ state.country.name }} • {{ state.created_at|date:"M d" }}</small>
+                                        </div>
+                                        <a href="{% url 'location:state_detail' state.slug %}" class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-center text-muted py-4">No data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-3">
+                        <h6 class="mb-0"><i class="fas fa-city me-2"></i>Recent Cities</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_cities %}
+                            <div class="list-group list-group-flush">
+                                {% for city in recent_cities %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                        <div>
+                                            <p class="mb-0 fw-bold">{{ city.name }}</p>
+                                            <small class="text-muted">{{ city.district.name }} • {{ city.created_at|date:"M d" }}</small>
+                                        </div>
+                                        <a href="{% url 'location:city_detail' city.slug %}" class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-center text-muted py-4">No data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'location:country_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add Country</a></div>
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'location:state_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add State</a></div>
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'location:district_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add District</a></div>
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'location:city_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add City</a></div>
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'location:region_create' %}" class="btn btn-outline-primary w-100 py-2 small">Add Region</a></div>
+                            <div class="col-md-2 col-sm-6"><a href="{% url 'home' %}" class="btn btn-outline-secondary w-100 py-2 small">Home</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Prevent Body Scroll on fixed sidebar */
+    body { background-color: #f8fafb !important; overflow-x: hidden; }
+    
+    .hover-light:hover {
+        background-color: #f8fafb;
+        color: var(--primary-color) !important;
+    }
+
+    .nav-link {
+        font-family: 'Satoshi', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .card { border-radius: 12px; }
+    .card-header { border-radius: 12px 12px 0 0 !important; }
+    
+    /* Ensure no overlap with the top navbar */
+    main { padding-top: 0 !important; }
+</style>
+{% endblock %}

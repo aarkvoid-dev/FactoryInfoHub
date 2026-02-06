@@ -1,0 +1,330 @@
+{% extends 'karkahan/base.html' %}
+{% load static %}
+
+{% block title %}{% if factory %}Edit Factory{% else %}Add New Factory{% endif %} | FactoryInfoHub{% endblock %}
+
+{% block factory_content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <a href="{% url 'karkahan:factory_list' %}" class="text-decoration-none text-primary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Factories
+                            </a>
+                            <h2 class="mb-1">{% if factory %}Edit Factory{% else %}Add New Factory{% endif %}</h2>
+                            <p class="text-muted mb-0">Fill in the details below to {% if factory %}update{% else %}create{% endif %} a factory</p>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="row g-4">
+                        {% csrf_token %}
+                        
+                        <!-- Left Column -->
+                        <div class="col-lg-6">
+                            <!-- Basic Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-info-circle me-2 text-primary"></i>
+                                        Basic Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Factory Name *</label>
+                                            {{ form.name }}
+                                            {% if form.name.errors %}
+                                                <div class="text-danger mt-1">{{ form.name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Category *</label>
+                                            {{ form.category }}
+                                            {% if form.category.errors %}
+                                                <div class="text-danger mt-1">{{ form.category.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Factory Type</label>
+                                            {{ form.factory_type }}
+                                            {% if form.factory_type.errors %}
+                                                <div class="text-danger mt-1">{{ form.factory_type.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Established Year</label>
+                                            {{ form.established_year }}
+                                            {% if form.established_year.errors %}
+                                                <div class="text-danger mt-1">{{ form.established_year.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-geo-alt me-2 text-success"></i>
+                                        Location Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Address</label>
+                                            {{ form.address }}
+                                            {% if form.address.errors %}
+                                                <div class="text-danger mt-1">{{ form.address.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">City *</label>
+                                            {{ form.city }}
+                                            {% if form.city.errors %}
+                                                <div class="text-danger mt-1">{{ form.city.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">State *</label>
+                                            {{ form.state }}
+                                            {% if form.state.errors %}
+                                                <div class="text-danger mt-1">{{ form.state.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Country *</label>
+                                            {{ form.country }}
+                                            {% if form.country.errors %}
+                                                <div class="text-danger mt-1">{{ form.country.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Pincode</label>
+                                            {{ form.pincode }}
+                                            {% if form.pincode.errors %}
+                                                <div class="text-danger mt-1">{{ form.pincode.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-telephone me-2 text-info"></i>
+                                        Contact Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Contact Person</label>
+                                            {{ form.contact_person }}
+                                            {% if form.contact_person.errors %}
+                                                <div class="text-danger mt-1">{{ form.contact_person.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Contact Phone</label>
+                                            {{ form.contact_phone }}
+                                            {% if form.contact_phone.errors %}
+                                                <div class="text-danger mt-1">{{ form.contact_phone.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Contact Email</label>
+                                            {{ form.contact_email }}
+                                            {% if form.contact_email.errors %}
+                                                <div class="text-danger mt-1">{{ form.contact_email.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-lg-6">
+                            <!-- Factory Statistics -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-bar-chart me-2 text-primary"></i>
+                                        Factory Statistics
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Employee Count</label>
+                                            {{ form.employee_count }}
+                                            {% if form.employee_count.errors %}
+                                                <div class="text-danger mt-1">{{ form.employee_count.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Annual Turnover</label>
+                                            {{ form.annual_turnover }}
+                                            {% if form.annual_turnover.errors %}
+                                                <div class="text-danger mt-1">{{ form.annual_turnover.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Production Capacity</label>
+                                            {{ form.production_capacity }}
+                                            {% if form.production_capacity.errors %}
+                                                <div class="text-danger mt-1">{{ form.production_capacity.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Working Hours</label>
+                                            {{ form.working_hours }}
+                                            {% if form.working_hours.errors %}
+                                                <div class="text-danger mt-1">{{ form.working_hours.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status & Media -->
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-0">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-gear me-2 text-warning"></i>
+                                        Status & Media
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Factory Image</label>
+                                            {{ form.image }}
+                                            {% if form.image.errors %}
+                                                <div class="text-danger mt-1">{{ form.image.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Description</label>
+                                            {{ form.description }}
+                                            {% if form.description.errors %}
+                                                <div class="text-danger mt-1">{{ form.description.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                {{ form.is_active }}
+                                                <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                                    Is Active
+                                                </label>
+                                                {% if form.is_active.errors %}
+                                                    <div class="text-danger mt-1">{{ form.is_active.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                {{ form.is_verified }}
+                                                <label class="form-check-label fw-semibold" for="{{ form.is_verified.id_for_label }}">
+                                                    Is Verified
+                                                </label>
+                                                {% if form.is_verified.errors %}
+                                                    <div class="text-danger mt-1">{{ form.is_verified.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex gap-3">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save me-2"></i>
+                                            {% if factory %}Update Factory{% else %}Create Factory{% endif %}
+                                        </button>
+                                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle me-2"></i>
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles for factory form */
+    .card {
+        border-radius: 12px;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .text-danger {
+        font-size: 0.875rem;
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+    }
+    
+    .fw-semibold {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
