@@ -1,0 +1,85 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="restore-icon mb-3">
+                            <i class="fas fa-undo fa-3x text-success"></i>
+                        </div>
+                        <h4 class="fw-bold">Restore Worker</h4>
+                        <p class="text-muted">Are you sure you want to restore this worker?</p>
+                    </div>
+
+                    <div class="worker-info bg-light rounded-3 p-3 mb-4">
+                        <h6 class="fw-bold mb-2">{{ worker.full_name }}</h6>
+                        <div class="row small text-muted">
+                            <div class="col-6">Category: {{ worker.category }}</div>
+                            <div class="col-6">Position: {{ worker.position }}</div>
+                            <div class="col-12 mt-1">Experience: {{ worker.years_of_experience }} years</div>
+                            <div class="col-12 mt-1">Gender: {{ worker.get_gender_display }}</div>
+                            {% if worker.factory %}
+                            <div class="col-12 mt-1">Assigned Factory: {{ worker.factory.name }}</div>
+                            {% endif %}
+                        </div>
+                        {% if worker.deleted_at %}
+                        <div class="row small text-muted mt-2">
+                            <div class="col-12">Deleted: {{ worker.deleted_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Restoring this worker will:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Make the worker visible again in the system</li>
+                            <li>Restore all associated work experience records</li>
+                            <li>Set the worker status back to active</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'admin_interface:admin_workers' %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i> Cancel
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-undo me-2"></i> Restore Worker
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .restore-icon {
+        background: #ecfdf5;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .worker-info {
+        border: 1px solid #e5e7eb;
+    }
+    
+    .alert-warning {
+        border-color: #f59e0b;
+        background-color: #fffbeb;
+        color: #92400e;
+    }
+</style>
+{% endblock %}

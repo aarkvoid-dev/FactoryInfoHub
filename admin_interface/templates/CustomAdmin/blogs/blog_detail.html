@@ -1,0 +1,258 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">{{ blog.title }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_blogs' %}">Blog Posts</a></li>
+                            <li class="breadcrumb-item active">{{ blog.title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_interface:admin_blog_edit' blog.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+                    <a href="{% url 'admin_interface:admin_blogs' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Details -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Blog Content Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Blog Content</h5>
+                        <div>
+                            {% if blog.is_published %}
+                                <span class="badge bg-success">Published</span>
+                            {% else %}
+                                <span class="badge bg-warning">Draft</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Featured Image -->
+                    {% if blog.get_featured_image %}
+                        <div class="mb-4">
+                            <img src="{{ blog.get_featured_image.image.url }}" alt="Featured Image" class="img-fluid rounded" style="max-height: 400px; object-fit: cover;">
+                        </div>
+                    {% endif %}
+
+                    <!-- Blog Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Category</h6>
+                            <p class="text-muted">{{ blog.category.name }}</p>
+                            {% if blog.subcategory %}
+                                <h6>Subcategory</h6>
+                                <p class="text-muted">{{ blog.subcategory.name }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Author</h6>
+                            <p class="text-muted">
+                                {% if blog.author %}
+                                    {{ blog.author.get_full_name|default:blog.author.username }}
+                                {% else %}
+                                    System
+                                {% endif %}
+                            </p>
+                            <h6>Published</h6>
+                            <p class="text-muted">
+                                {% if blog.published_at %}
+                                    {{ blog.published_at|date:"M d, Y H:i" }}
+                                {% else %}
+                                    Not published
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Excerpt -->
+                    {% if blog.excerpt %}
+                        <div class="mb-4">
+                            <h6>Excerpt</h6>
+                            <p class="text-muted">{{ blog.excerpt }}</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Content -->
+                    <div class="mb-4">
+                        <h6>Content</h6>
+                        <div class="blog-content">
+                            {{ blog.content|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Related Factories -->
+                    {% if blog.related_factories.exists %}
+                        <div class="mb-4">
+                            <h6>Related Factories</h6>
+                            <div class="row">
+                                {% for factory in blog.related_factories.all %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ factory.name }}</h6>
+                                                <p class="card-text text-muted small">{{ factory.get_location_hierarchy.country }}, {{ factory.get_location_hierarchy.state }}, {{ factory.get_location_hierarchy.city }}</p>
+                                                <a href="{% url 'admin_interface:admin_factory_detail' factory.id %}" class="btn btn-sm btn-outline-primary">View Factory</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Gallery -->
+            {% if blog.get_gallery_images %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Gallery</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for image in blog.get_gallery_images %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <img src="{{ image.image.url }}" alt="Blog Image" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <p class="card-text small text-muted">{{ image.caption|default:"No caption" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Blog Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Blog Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Slug</h6>
+                        <p class="text-muted">{{ blog.slug }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Created</h6>
+                        <p class="text-muted">{{ blog.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Updated</h6>
+                        <p class="text-muted">{{ blog.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Location</h6>
+                        <p class="text-muted">
+                            {% if blog.city %}{{ blog.city.name }}, {% endif %}
+                            {% if blog.state %}{{ blog.state.name }}, {% endif %}
+                            {% if blog.country %}{{ blog.country.name }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_interface:admin_blog_edit' blog.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Blog
+                        </a>
+                        <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-images me-2"></i>Manage Images
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Delete Blog
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Blog Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this blog post?</p>
+                <p><strong>{{ blog.title }}</strong></p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'admin_interface:admin_blog_delete' blog.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.blog-content {
+    line-height: 1.6;
+    color: #333;
+}
+
+.blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4, .blog-content h5, .blog-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.blog-content p {
+    margin-bottom: 1rem;
+}
+
+.blog-content ul, .blog-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.blog-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+</style>
+{% endblock %}

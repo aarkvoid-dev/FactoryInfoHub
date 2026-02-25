@@ -1,0 +1,715 @@
+{% extends 'base.html' %}
+{% load static i18n humanize %}
+
+{% block title %}Purchase History | Factory InfoHub{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.purchase-checkbox');
+    const bulkSendBtn = document.getElementById('bulk-send-btn');
+    const selectAllCheckbox = document.getElementById('select-all');
+    const selectionCount = document.getElementById('selection-count');
+
+    function updateBulkActions() {
+        const checkedBoxes = document.querySelectorAll('.purchase-checkbox:checked');
+        const count = checkedBoxes.length;
+        
+        bulkSendBtn.disabled = count === 0;
+        selectionCount.textContent = `${count} item${count !== 1 ? 's' : ''} selected`;
+        
+        // Update select all checkbox state
+        const totalCheckboxes = document.querySelectorAll('.purchase-checkbox:not(:disabled)').length;
+        const checkedNotDisabled = document.querySelectorAll('.purchase-checkbox:not(:disabled):checked').length;
+        
+        if (checkedNotDisabled === 0) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = false;
+        } else if (checkedNotDisabled === totalCheckboxes) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = true;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+            selectAllCheckbox.checked = false;
+        }
+    }
+
+    function selectAll() {
+    // Correct logic: match the state of the "Select All" master checkbox
+        const shouldSelect = selectAllCheckbox.checked; 
+        
+        checkboxes.forEach(checkbox => {
+            // Only toggle checkboxes that aren't disabled (email not already sent)
+            if (!checkbox.disabled) {
+                checkbox.checked = shouldSelect;
+            }
+        });
+        updateBulkActions();
+    }
+
+    function clearSelection() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateBulkActions();
+    }
+
+    // Event listeners
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+
+    selectAllCheckbox.addEventListener('change', selectAll);
+
+    // Initial update
+    updateBulkActions();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Profile Page Styles */
+    .profile-container {
+        margin: 0 auto;
+        
+    }
+
+    /* Profile Header */
+    .profile-header {
+        background: linear-gradient(135deg, #1A2B3E 0%, #0F172A 100%);
+        color: white;
+        /* border-radius: 20px; */
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        padding-top: 7rem;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(50%, -50%);
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #EB662B, #FF8A50);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 10px 30px rgba(235, 102, 43, 0.4);
+    }
+
+    .profile-info h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 800;
+    }
+
+    .profile-info p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Sidebar Navigation */
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+    }
+
+    .profile-sidebar {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .nav-section {
+        margin-bottom: 2rem;
+    }
+
+    .nav-section h3 {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        color: #64748B;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #334155;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .nav-link:hover {
+        background: #f8fafc;
+        color: #1A2B3E;
+    }
+
+    .nav-link.active {
+        background: linear-gradient(135deg, #EB662B, #FF8A50);
+        color: white;
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    /* Main Content */
+    .profile-content {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .content-header h2 {
+        font-size: 1.5rem;
+        margin: 0;
+        color: #1A2B3E;
+    }
+
+    .content-body {
+        padding: 2rem;
+    }
+
+    /* Purchase Cards */
+    .purchase-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border-left: 4px solid #EB662B;
+    }
+
+    .purchase-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .purchase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .factory-info h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1A2B3E;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .factory-category {
+        background: #f1f5f9;
+        color: #64748B;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .purchase-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748B;
+        font-size: 0.875rem;
+    }
+
+    .meta-item i {
+        font-size: 1rem;
+    }
+
+    .purchase-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .detail-card h4 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #64748B;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+    }
+
+    .detail-card .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1A2B3E;
+    }
+
+    .purchase-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #EB662B, #FF8A50);
+        color: white;
+        box-shadow: 0 4px 15px rgba(235, 102, 43, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.4);
+    }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+    }
+
+    .email-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-success {
+        background: #dcfce7;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-warning {
+        background: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .status-icon {
+        font-size: 1.25rem;
+    }
+
+    /* Bulk Actions */
+    .bulk-actions {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .bulk-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .bulk-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1A2B3E;
+    }
+
+    .bulk-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .checkbox-group input {
+        width: 18px;
+        height: 18px;
+        accent-color: #EB662B;
+    }
+
+    .selection-info {
+        color: #64748B;
+        font-size: 0.875rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748B;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1A2B3E;
+        margin-bottom: 1rem;
+    }
+
+    .empty-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .profile-info{
+        color: #dcfce7;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .profile-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-sidebar {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+        
+        .profile-header {
+            padding: 1.5rem;
+        }
+        
+        .profile-info h1 {
+            font-size: 1.75rem;
+        }
+        
+        .profile-stats {
+            gap: 1rem;
+        }
+        
+        .purchase-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .purchase-actions {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="d-flex align-items-center gap-4">
+            <div class="profile-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="profile-info">
+                <h1 style="color: #bbf7d0;">{{ user.username }}</h1>
+                <p style="color: #bbf7d0;" >Factory Chemistry Member</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ purchases.count }}</span>
+                        <span class="stat-label">Purchases</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ purchases.count }}</span>
+                        <span class="stat-label">Factories</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">Rs. {{ purchases.aggregate.total_amount|floatformat:0|intcomma|default:"0" }}</span>
+                        <span class="stat-label">Total Spent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Layout -->
+    <div class="profile-layout">
+        <!-- Sidebar Navigation -->
+        <div class="profile-sidebar">
+            <div class="nav-section">
+                <h3>Account</h3>
+                <div class="nav-links">
+                    <a href="{% url 'profile' %}" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        Profile
+                    </a>
+                    <a href="{% url 'karkahan:purchase_history' %}" class="nav-link active">
+                        <i class="fas fa-shopping-bag"></i>
+                        Purchase History
+                    </a>
+                    <a href="{% url 'karkahan:cart_view' %}" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        Shopping Cart
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Actions</h3>
+                <div class="nav-links">
+                    <a href="{% url 'karkahan:factory_list' %}" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        Browse Factories
+                    </a>
+                    <a href="{% url 'blog:post_list' %}" class="nav-link">
+                        <i class="fas fa-newspaper"></i>
+                        Blog
+                    </a>
+                    <a href="{% url 'contact' %}" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="profile-content">
+            <div class="content-header">
+                <h2><i class="fas fa-shopping-bag me-2"></i>Purchase History</h2>
+            </div>
+            
+            <div class="content-body">
+                {% if purchases %}
+                    <!-- Bulk Actions -->
+                    <form method="post" action="{% url 'karkahan:send_selected_emails' %}">
+                        {% csrf_token %}
+                        <div class="bulk-actions">
+                            <div class="bulk-header">
+                                <div class="bulk-title">Bulk Email Actions</div>
+                                <div class="bulk-controls">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="select-all">
+                                        <label for="select-all">Select All</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="bulk-send-btn" disabled>
+                                        <i class="fas fa-envelope me-2"></i> Send Selected Emails
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="selection-info" id="selection-count">
+                                0 items selected
+                            </div>
+                        </div>
+
+                        <!-- Purchase Cards -->
+                        {% for purchase in purchases %}
+                        <div class="purchase-card">
+                            <div class="purchase-header">
+                                <div class="factory-info">
+                                    <h3>{{ purchase.factory_name }}</h3>
+                                    <span class="factory-category">{{ purchase.factory_category }}</span>
+                                </div>
+                                <div class="purchase-meta">
+                                    <div class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        {{ purchase.purchase_date|date:"F j, Y" }}
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        {{ purchase.purchase_date|time:"g:i A" }}
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span class="badge bg-success">Completed</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="purchase-details">
+                                <div class="detail-card">
+                                    <h4>Location</h4>
+                                    <div class="value">{{ purchase.factory_location }}</div>
+                                </div>
+                                <div class="detail-card">
+                                    <h4>Amount</h4>
+                                    <div class="value">Rs. {{ purchase.purchase_price|intcomma }}</div>
+                                </div>
+                                <div class="detail-card">
+                                    <h4>Quantity</h4>
+                                    <div class="value">{{ purchase.purchase_quantity }}</div>
+                                </div>
+                            </div>
+
+                            <div class="purchase-actions">
+                                <div class="action-buttons">
+                                    <div class="form-check">
+                                        <input class="form-check-input purchase-checkbox" type="checkbox" name="selected_purchases" value="{{ purchase.id }}" id="purchase-{{ purchase.id }}" {% if purchase.email_delivered %}disabled{% endif %}>
+                                        <label class="form-check-label" for="purchase-{{ purchase.id}}">
+                                            Select for bulk email
+                                        </label>
+                                    </div>
+                                    
+                                    <a href="{% url 'karkahan:factory_detail' slug=purchase.factory_slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-eye me-2"></i> View Factory
+                                    </a>
+                                    
+                                    {% if not purchase.email_delivered %}
+                                        <a href="{% url 'karkahan:resend_purchase_email' purchase_id=purchase.id %}" class="btn btn-primary">
+                                            <i class="fas fa-redo me-2"></i> Resend Email
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if purchase.email_delivered %}
+                                    <div class="email-status status-success">
+                                        <i class="fas fa-envelope status-icon"></i>
+                                        Details sent to {{ user.email }}
+                                    </div>
+                                {% else %}
+                                    <div class="email-status status-warning">
+                                        <i class="fas fa-exclamation-triangle status-icon"></i>
+                                        Email not delivered
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </form>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3 class="empty-title">No Purchase History</h3>
+                        <p class="empty-subtitle">You haven't purchased any factory details yet.</p>
+                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i> Browse Factories
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

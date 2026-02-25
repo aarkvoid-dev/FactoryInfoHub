@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Work Experience - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<section class="layout-pt-xl layout-pb-xl">
+    <div class="container">
+        <div class="row justify-center">
+            <div class="col-lg-8">
+                <div class="card rounded-24 shadow-2">
+                    <div class="card__body p-50">
+                        <div class="text-center mb-40">
+                            <h2 class="text-30 fw-700">Add Work Experience</h2>
+                            <p class="text-16 mt-10">Add your work experience to get better job matches</p>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row y-gap-20">
+                                <div class="col-md-6">
+                                    {{ form.company_name.label_tag }}
+                                    {{ form.company_name }}
+                                    {% if form.company_name.errors %}
+                                        <div class="text-danger">{{ form.company_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    {{ form.job_title.label_tag }}
+                                    {{ form.job_title }}
+                                    {% if form.job_title.errors %}
+                                        <div class="text-danger">{{ form.job_title.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    {{ form.start_date.label_tag }}
+                                    {{ form.start_date }}
+                                    {% if form.start_date.errors %}
+                                        <div class="text-danger">{{ form.start_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    {{ form.end_date.label_tag }}
+                                    {{ form.end_date }}
+                                    {% if form.end_date.errors %}
+                                        <div class="text-danger">{{ form.end_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12">
+                                    {{ form.description.label_tag }}
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="text-danger">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        {{ form.is_current_job }}
+                                        {{ form.is_current_job.label }}
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="button -lg -primary w-full">Add Work Experience</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-30">
+                            <a href="{% url 'worker_profile' %}" class="text-accent-1">Back to Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

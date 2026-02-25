@@ -1,0 +1,206 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="fw-bold mb-1">Communication Hub</h3>
+            <p class="text-muted small">Configure how you receive critical factory updates and system alerts.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="fas fa-sliders-h me-2 text-primary"></i> Delivery Channels
+                </h5>
+                <form>
+                    <div class="channel-item d-flex align-items-center justify-content-between p-3 rounded-4 bg-light mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-white text-primary me-3 shadow-sm">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Email Notifications</h6>
+                                <p class="extra-small text-muted mb-0">Daily reports and account security alerts.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input custom-switch" type="checkbox" id="email_notifications" checked>
+                        </div>
+                    </div>
+
+                    <div class="channel-item d-flex align-items-center justify-content-between p-3 rounded-4 bg-light mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-white text-info me-3 shadow-sm">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Push Notifications</h6>
+                                <p class="extra-small text-muted mb-0">Real-time browser and in-app updates.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input custom-switch" type="checkbox" id="in_app_notifications" checked>
+                        </div>
+                    </div>
+
+                    <div class="channel-item d-flex align-items-center justify-content-between p-3 rounded-4 bg-light mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-white text-success me-3 shadow-sm">
+                                <i class="fas fa-comment-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">SMS Alerts</h6>
+                                <p class="extra-small text-muted mb-0">Critical safety alerts and downtime warnings.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input custom-switch" type="checkbox" id="sms_notifications">
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">DIGEST FREQUENCY</label>
+                            <select class="form-select border-0 bg-light rounded-3">
+                                <option>Immediately</option>
+                                <option>Hourly Digest</option>
+                                <option>Daily Digest</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">DO NOT DISTURB (QUIET HOURS)</label>
+                            <div class="input-group">
+                                <input type="time" class="form-control border-0 bg-light" value="22:00">
+                                <span class="input-group-text border-0 bg-light text-muted">to</span>
+                                <input type="time" class="form-control border-0 bg-light" value="07:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">
+                            Update Preferences
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Recent Activity</h5>
+                    <button class="btn btn-light btn-sm rounded-pill text-muted small">Clear Log</button>
+                </div>
+                
+                <div class="notification-timeline">
+                    <div class="timeline-event pb-4 d-flex">
+                        <div class="event-icon bg-soft-success text-success me-3">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge bg-soft-primary text-primary extra-small">Email</span>
+                                <span class="extra-small text-muted">10:30 AM</span>
+                            </div>
+                            <h6 class="mb-1 small fw-bold">New user registration: john_doe</h6>
+                            <p class="extra-small text-muted mb-0">Delivered successfully to mailserver.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event pb-4 d-flex">
+                        <div class="event-icon bg-soft-info text-info me-3">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge bg-soft-info text-info extra-small">In-App</span>
+                                <span class="extra-small text-muted">09:15 AM</span>
+                            </div>
+                            <h6 class="mb-1 small fw-bold">Factory update: ABC Manufacturing</h6>
+                            <p class="extra-small text-muted mb-0">Viewed by Administrator.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event d-flex">
+                        <div class="event-icon bg-soft-warning text-warning me-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge bg-soft-primary text-primary extra-small">Email</span>
+                                <span class="extra-small text-muted">Yesterday</span>
+                            </div>
+                            <h6 class="mb-1 small fw-bold">Weekly report ready</h6>
+                            <p class="extra-small text-muted mb-0">Queueing for outbound delivery.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Switches and Icons */
+    .custom-switch {
+        width: 3rem !important;
+        height: 1.5rem !important;
+        cursor: pointer;
+    }
+
+    .icon-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    /* Timeline Styles */
+    .notification-timeline {
+        position: relative;
+    }
+
+    .timeline-event {
+        position: relative;
+    }
+
+    .timeline-event:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: 17px;
+        top: 35px;
+        height: calc(100% - 30px);
+        width: 2px;
+        background: #f1f5f9;
+    }
+
+    .event-icon {
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        z-index: 2;
+    }
+
+    /* Helpers */
+    .bg-soft-success { background: #ecfdf5; }
+    .bg-soft-info { background: #e0f2fe; }
+    .bg-soft-warning { background: #fffbeb; }
+    .bg-soft-primary { background: #eef2ff; }
+    .extra-small { font-size: 11px; }
+    .event-content { flex-grow: 1; }
+</style>
+{% endblock %}

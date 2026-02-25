@@ -22,6 +22,11 @@ class StateForm(forms.ModelForm):
             'country': forms.Select(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter countries to only show active ones
+        self.fields['country'].queryset = Country.objects.filter(deleted_at__isnull=True)
+
 
 class CityForm(forms.ModelForm):
     class Meta:
@@ -38,6 +43,11 @@ class CityForm(forms.ModelForm):
             'longitude': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Longitude', 'step': '0.000001'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter states to only show active ones
+        self.fields['state'].queryset = State.objects.filter(deleted_at__isnull=True)
+
 
 class DistrictForm(forms.ModelForm):
     class Meta:
@@ -48,6 +58,11 @@ class DistrictForm(forms.ModelForm):
             'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter district code'}),
             'city': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter cities to only show active ones
+        self.fields['city'].queryset = City.objects.filter(deleted_at__isnull=True)
 
 
 class RegionForm(forms.ModelForm):
@@ -61,3 +76,8 @@ class RegionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Describe this region/area'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter districts to only show active ones
+        self.fields['district'].queryset = District.objects.filter(deleted_at__isnull=True)

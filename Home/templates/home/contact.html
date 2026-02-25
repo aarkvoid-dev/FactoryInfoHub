@@ -2,148 +2,122 @@
 {% load static %}
 
 {% block content %}
-    <!-- Contact Hero Section -->
-    <section class="mt-header layout-pt-lg layout-pb-lg">
+    <section class="layout-pt-xl layout-pb-xl bg-gradient-primary">
       <div class="container">
         <div data-anim="slide-up" class="row justify-center">
           <div class="col-xl-8 col-lg-9 col-md-10">
-            <div class="text-center mb-60 md:mb-30">
-              <h1 class="text-30">Get in Touch</h1>
-              <div class="text-18 fw-500 mt-20 md:mt-15">We'd love to hear from you!</div>
-              <div class="mt-5">
-                Have questions about our factory management services? Contact us today.
-              </div>
+            <div class="text-center">
+                <div class="d-inline-flex items-center px-20 py-8 rounded-full bg-white-10 text-white fw-600 text-14 mb-25 backdrop-blur">
+                    <i class="fas fa-envelope-open-text mr-10"></i> CONTACT OUR TEAM
+                </div>
+                <h1 class="text-54 fw-800 text-white tracking-tighter mb-20">Let's Build Something <span class="text-accent-1">Great</span></h1>
+                <p class="text-18 text-white opacity-80 max-w-600 mx-auto">Have a question or need a customized factory management solution? We're ready to help you optimize your operations.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Contact Form Section -->
-    <section class="layout-pt-xl layout-pb-xl">
+    <section class="layout-pt-md layout-pb-xl bg-light-1">
       <div class="container">
         <div class="row y-gap-40">
-          <div class="col-lg-6">
-            <div class="contactForm border-1 rounded-12 px-60 py-60 md:px-25 md:py-30">
-              <h2 class="text-24 fw-700 mb-30">Send us a Message</h2>
+          <div class="col-lg-7">
+            <div class="bg-white rounded-24 px-45 py-50 md:px-25 md:py-30 shadow-xl border-light">
+              <h2 class="text-26 fw-700 mb-10">Send us a Message</h2>
+              <p class="text-light-2 mb-35">Fill out the form below and we'll get back to you within 24 hours.</p>
               
-              <form method="post">
+              <form method="post" class="contact-form">
                 {% csrf_token %}
                 
-                <div class="form-input">
-                  <input type="text" name="name" required>
-                  <label class="lh-1 text-16 text-light-1">Your Name</label>
+                <div class="row y-gap-25">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Full Name</label>
+                            <input type="text" name="name" class="custom-input" placeholder="e.g. Rahul Sharma" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Work Email</label>
+                            <input type="email" name="email" class="custom-input" placeholder="rahul@factory.com" 
+                                   value="{% if user_email %}{{ user_email }}{% elif user.is_authenticated %}{{ user.email }}{% endif %}"
+                                   {% if user.is_authenticated %}readonly{% endif %} required>
+                            {% if user.is_authenticated %}
+                                <small class="text-muted">Using your registered email. <a href="#" id="edit-email-link" class="text-accent-1">Edit</a></small>
+                                <br>
+                                <small class="text-muted">Or <a href="#" id="open-gmail-link" class="text-accent-1">send directly from your Gmail</a></small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Subject</label>
+                            <input type="text" name="subject" class="custom-input" placeholder="Inquiry about Registration" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Message Details</label>
+                            <textarea name="message" class="custom-input" rows="5" placeholder="Please describe your requirements..." required></textarea>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-input mt-30">
-                  <input type="email" name="email" required>
-                  <label class="lh-1 text-16 text-light-1">Your Email</label>
-                </div>
-
-                <div class="form-input mt-30">
-                  <input type="text" name="subject" required>
-                  <label class="lh-1 text-16 text-light-1">Subject</label>
-                </div>
-
-                <div class="form-input mt-30">
-                  <textarea name="message" rows="6" required></textarea>
-                  <label class="lh-1 text-16 text-light-1">Your Message</label>
-                </div>
-
-                <button class="button -md -dark-1 bg-accent-1 text-white col-12 mt-30" type="submit">
-                  Send Message
-                  <i class="icon-arrow-top-right ml-10"></i>
+                <button class="btn-submit-accent mt-35" type="submit">
+                    <span>SEND MESSAGE</span>
+                    <i class="fas fa-paper-plane ml-10"></i>
                 </button>
               </form>
             </div>
           </div>
 
-          <div class="col-lg-6">
-            <div class="contactInfo">
-              <h2 class="text-24 fw-700 mb-30">Contact Information</h2>
-              
-              <div class="row y-gap-30">
-                <div class="col-md-6">
-                  <div class="contactInfo__item d-flex items-center">
-                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
-                      <i class="icon-location text-24 text-accent-1"></i>
+          <div class="col-lg-5">
+            <div class="pl-30 lg:pl-0">
+                <h3 class="text-22 fw-700 mb-30">Our Office</h3>
+                
+                <div class="y-gap-20">
+                    <div class="info-card-modern">
+                        <div class="icon-circle">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <span class="label">Main Headquarters</span>
+                            <p class="value">123 Factory Street, Industrial Area, Mumbai, 400001</p>
+                        </div>
                     </div>
-                    <div class="contactInfo__content ml-20">
-                      <h4 class="text-16 fw-500">Address</h4>
-                      <p class="text-14 mt-5">123 Factory Street<br>Industrial Area, Mumbai<br>India - 400001</p>
+
+                    <div class="info-card-modern">
+                        <div class="icon-circle">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div>
+                            <span class="label">Direct Hotline</span>
+                            <p class="value">+91 22 1234 5678</p>
+                        </div>
                     </div>
-                  </div>
+
+                    <div class="info-card-modern">
+                        <div class="icon-circle">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <span class="label">Official Support</span>
+                            <p class="value">support@factoryinfohub.com</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                  <div class="contactInfo__item d-flex items-center">
-                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
-                      <i class="icon-phone text-24 text-accent-1"></i>
+                <div class="mt-45 pt-30 border-top-light">
+                    <h5 class="text-16 fw-700 mb-20">Connect With Us</h5>
+                    <div class="d-flex x-gap-15">
+                        <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-circle"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
                     </div>
-                    <div class="contactInfo__content ml-20">
-                      <h4 class="text-16 fw-500">Phone</h4>
-                      <p class="text-14 mt-5">+91 22 1234 5678<br>+91 22 8765 4321</p>
-                    </div>
-                  </div>
                 </div>
-
-                <div class="col-md-6">
-                  <div class="contactInfo__item d-flex items-center">
-                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
-                      <i class="icon-email text-24 text-accent-1"></i>
-                    </div>
-                    <div class="contactInfo__content ml-20">
-                      <h4 class="text-16 fw-500">Email</h4>
-                      <p class="text-14 mt-5">info@factoryinfohub.com<br>support@factoryinfohub.com</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <div class="contactInfo__item d-flex items-center">
-                    <div class="contactInfo__icon size-60 rounded-full bg-accent-1-05 d-flex items-center justify-center">
-                      <i class="icon-clock text-24 text-accent-1"></i>
-                    </div>
-                    <div class="contactInfo__content ml-20">
-                      <h4 class="text-16 fw-500">Working Hours</h4>
-                      <p class="text-14 mt-5">Monday - Friday: 9:00 AM - 6:00 PM<br>Saturday: 10:00 AM - 2:00 PM<br>Sunday: Closed</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-50">
-                <h4 class="text-18 fw-700 mb-20">Follow Us</h4>
-                <div class="d-flex x-gap-15">
-                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
-                    <i class="icon-facebook text-16"></i>
-                  </a>
-                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
-                    <i class="icon-twitter text-16"></i>
-                  </a>
-                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
-                    <i class="icon-instagram text-16"></i>
-                  </a>
-                  <a href="#" class="size-50 rounded-full bg-light-2 d-flex items-center justify-center">
-                    <i class="icon-linkedin text-16"></i>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Map Section -->
-    <section class="layout-pt-xl layout-pb-xl">
-      <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <div class="map rounded-12 overflow-hidden">
-              <div class="ratio ratio-16:9">
-                <div id="contactMap" style="width: 100%; height: 100%;"></div>
-              </div>
             </div>
           </div>
         </div>
@@ -153,47 +127,182 @@
 
 {% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Contact page loaded with FactoryInfoHub styling');
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.querySelector('input[name="email"]');
+    const editEmailLink = document.getElementById('edit-email-link');
+    const openGmailLink = document.getElementById('open-gmail-link');
     
-    // Initialize Google Map
-    initContactMap();
-  });
+    if (editEmailLink) {
+        editEmailLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            emailInput.removeAttribute('readonly');
+            emailInput.focus();
+            this.style.display = 'none';
+        });
+    }
+    
+    if (openGmailLink) {
+        openGmailLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.querySelector('input[name="name"]').value;
+            const email = document.querySelector('input[name="email"]').value;
+            const subject = document.querySelector('input[name="subject"]').value;
+            const message = document.querySelector('textarea[name="message"]').value;
+            
+            // Create Gmail compose URL with pre-filled content
+            const gmailSubject = encodeURIComponent(`FactoryInfoHub Contact: ${subject}`);
+            const gmailBody = encodeURIComponent(`Hello FactoryInfoHub Team,
 
-  function initContactMap() {
-    const location = { lat: 19.0760, lng: 72.8777 }; // Mumbai coordinates
-    const map = new google.maps.Map(document.getElementById('contactMap'), {
-      zoom: 12,
-      center: location,
-      styles: [
-        {
-          "featureType": "water",
-          "elementType": "geometry",
-          "stylers": [{"color": "#e9e9e9"}, {"lightness": 17}]
-        },
-        {
-          "featureType": "landscape",
-          "elementType": "geometry",
-          "stylers": [{"color": "#f5f5f5"}, {"lightness": 20}]
-        },
-        {
-          "featureType": "road.highway",
-          "elementType": "geometry.fill",
-          "stylers": [{"color": "#ffffff"}, {"lightness": 17}]
-        },
-        {
-          "featureType": "road.highway",
-          "elementType": "geometry.stroke",
-          "stylers": [{"color": "#ffffff"}, {"lightness": 29}, {"weight": 0.2}]
-        }
-      ]
-    });
+My name is ${name} (${email}).
 
-    const marker = new google.maps.Marker({
-      position: location,
-      map: map,
-      title: "FactoryInfoHub Office"
-    });
-  }
+${message}
+
+Best regards,
+${name}`);
+            
+            // Open Gmail compose page in new tab
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=support@factoryinfohub.com&su=${gmailSubject}&body=${gmailBody}`;
+            window.open(gmailUrl, '_blank');
+        });
+    }
+    
+    // Add some visual feedback for readonly fields
+    if (emailInput && emailInput.hasAttribute('readonly')) {
+        emailInput.style.backgroundColor = '#f8fafc';
+        emailInput.style.cursor = 'not-allowed';
+    }
+});
 </script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Gradient Header */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .bg-white-10 { background: rgba(255, 255, 255, 0.1); }
+    .backdrop-blur { backdrop-filter: blur(10px); }
+
+    /* Modern Form Inputs with Borders */
+    .custom-input {
+        width: 100%;
+        padding: 15px 20px;
+        background-color: #ffffff;
+        
+        /* Darker, more professional border */
+        border: 2px solid #cbd5e1; 
+        border-radius: 12px;
+        
+        font-size: 15px;
+        color: #1e293b;
+        transition: all 0.2s ease-in-out;
+        
+        /* Adds a subtle depth to the field */
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    /* Hover State - makes the form feel interactive */
+    .custom-input:hover {
+        border-color: #94a3b8;
+    }
+
+    /* Active/Focus State - using your brand orange */
+    .custom-input:focus {
+        outline: none;
+        border-color: #EB662B; 
+        background-color: #fff;
+        /* Glowing effect using your accent color */
+        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.15);
+    }
+
+    /* Info Cards and Social Icons (keep your existing CSS here) */
+    .info-card-modern {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 16px;
+        border: 2px solid #f1f5f9; /* Added consistent border here too */
+        transition: all 0.3s ease;
+    }
+    .info-card-modern:hover {
+        border-color: #EB662B;
+        transform: translateX(5px);
+    }
+
+    /* Professional Button */
+    .btn-submit-accent {
+        width: 100%;
+        background: #EB662B;
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 20px rgba(235, 102, 43, 0.2);
+    }
+
+    .btn-submit-accent:hover {
+        background: #d45620;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px rgba(235, 102, 43, 0.3);
+    }
+
+    /* Info Cards */
+    .info-card-modern {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #eee;
+        transition: all 0.3s ease;
+    }
+    .info-card-modern:hover {
+        border-color: #EB662B;
+        transform: translateX(5px);
+    }
+    .icon-circle {
+        width: 45px;
+        height: 45px;
+        background: rgba(235, 102, 43, 0.1);
+        color: #EB662B;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    .info-card-modern .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+    .info-card-modern .value { font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 0; }
+
+    /* Social Icons */
+    .social-circle {
+        width: 40px;
+        height: 40px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #475569;
+        transition: all 0.3s ease;
+    }
+    .social-circle:hover {
+        background: #EB662B;
+        color: white;
+        transform: scale(1.1);
+    }
+</style>
 {% endblock %}

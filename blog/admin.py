@@ -15,7 +15,7 @@ class BlogPostAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'slug', 'excerpt', 'content')
+            'fields': ('title', 'slug', 'excerpt', 'content','related_factories')
         }),
         ('Categorization', {
             'fields': ('category', 'subcategory', 'country', 'state', 'city', 'district', 'region')

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class SoftDeleteManager(models.Manager):
@@ -95,3 +96,61 @@ class SoftDeleteAdminMixin:
     restore_selected.short_description = "Restore selected objects"
     hard_delete_selected.short_description = "Permanently delete selected objects"
     soft_delete_selected.short_description = "Soft delete selected objects"
+
+
+class HomePageVideo(SoftDeleteModel):
+    title = models.CharField(max_length=200)
+    video = models.FileField(upload_to='home_videos/')
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            *SoftDeleteModel.Meta.indexes,
+            models.Index(fields=['is_active']),
+        ]
+
+
+class ContactMessage(SoftDeleteModel):
+    """Model to store contact form submissions"""
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=254)
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="The user who submitted this message (if logged in)"
+    )
+    is_read = models.BooleanField(default=False, help_text="Whether the message has been read by admin")
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Message from {self.name} - {self.subject}"
+
+    def mark_as_read(self):
+        """Mark this message as read"""
+        self.is_read = True
+        self.read_at = timezone.now()
+        self.save()
+
+    class Meta:
+        ordering = ['-created_at', '-is_read']
+        verbose_name = "Contact Message"
+        verbose_name_plural = "Contact Messages"
+        indexes = [
+            *SoftDeleteModel.Meta.indexes,
+            models.Index(fields=['is_read']),
+            models.Index(fields=['email']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['user']),
+        ]

@@ -24,7 +24,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
@@ -32,8 +32,10 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.http import Http404
+from django.db.models import Q
 from .models import BlogPost, BlogImage
-from .forms import BlogPostForm, BlogImageForm, BlogImageFormSet
+from .forms import BlogPostForm, BlogImageForm, BlogImageFormSet, BlogPostFilterForm
+from Karkahan.models import Factory
 from .utils import (
     handle_multiple_images, get_location_cascading_data, 
     set_featured_image, delete_blog_image, get_blog_statistics
@@ -55,49 +57,136 @@ class BlogPostListView(ListView):
     def get_queryset(self):
         queryset = BlogPost.objects.filter(is_published=True)\
             .select_related('author', 'subcategory', 'region')
+        
+        # Prepare initial data for form based on GET parameters
+        initial_data = {}
+        if 'category' in self.request.GET:
+            try:
+                category_id = int(self.request.GET.get('category'))
+                initial_data['category'] = category_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'subcategory' in self.request.GET:
+            try:
+                subcategory_id = int(self.request.GET.get('subcategory'))
+                initial_data['subcategory'] = subcategory_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'country' in self.request.GET:
+            try:
+                country_id = int(self.request.GET.get('country'))
+                initial_data['country'] = country_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'state' in self.request.GET:
+            try:
+                state_id = int(self.request.GET.get('state'))
+                initial_data['state'] = state_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'city' in self.request.GET:
+            try:
+                city_id = int(self.request.GET.get('city'))
+                initial_data['city'] = city_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'district' in self.request.GET:
+            try:
+                district_id = int(self.request.GET.get('district'))
+                initial_data['district'] = district_id
+            except (ValueError, TypeError):
+                pass
+        
+        if 'region' in self.request.GET:
+            try:
+                region_id = int(self.request.GET.get('region'))
+                initial_data['region'] = region_id
+            except (ValueError, TypeError):
+                pass
 
-        request = self.request
+        # Apply filters using the filter form
+        self.filter_form = BlogPostFilterForm(self.request.GET, initial=initial_data)
+        if self.filter_form.is_valid():
+            category = self.filter_form.cleaned_data.get('category')
+            subcategory = self.filter_form.cleaned_data.get('subcategory')
+            country = self.filter_form.cleaned_data.get('country')
+            state = self.filter_form.cleaned_data.get('state')
+            city = self.filter_form.cleaned_data.get('city')
+            district = self.filter_form.cleaned_data.get('district')
+            region = self.filter_form.cleaned_data.get('region')
 
-        # Search
-        q = request.GET.get('q')
-        if q:
-            queryset = queryset.filter(title__icontains=q)
+            if category:
+                queryset = queryset.filter(category=category)
+            if subcategory:
+                queryset = queryset.filter(subcategory=subcategory)
+            if country:
+                queryset = queryset.filter(country=country)
+            if state:
+                queryset = queryset.filter(state=state)
+            if city:
+                queryset = queryset.filter(city=city)
+            if district:
+                queryset = queryset.filter(district=district)
+            if region:
+                queryset = queryset.filter(region=region)
 
-        # Category
-        category = request.GET.get('category')
-        if category:
-            queryset = queryset.filter(category_id=category)
-
-        # Location Filters
-        country = request.GET.get('country')
-        state = request.GET.get('state')
-        city = request.GET.get('city')
-        district = request.GET.get('district')
-        region = request.GET.get('region')
-
-        if country:
-            queryset = queryset.filter(country_id=country)
-
-        if state:
-            queryset = queryset.filter(state_id=state)
-
-        if city:
-            queryset = queryset.filter(city_id=city)
-
-        if district:
-            queryset = queryset.filter(district_id=district)
-
-        if region:
-            queryset = queryset.filter(region_id=region)
+        # Apply search
+        search_query = self.request.GET.get('search', '')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(content__icontains=search_query) |
+                Q(excerpt__icontains=search_query)
+            )
 
         return queryset
-    
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['filter_form'] = self.filter_form
+        context['search_query'] = self.request.GET.get('search', '')
         context['categories'] = Category.objects.all()
         context['countries'] = Country.objects.all()
+
+        # --- Filter Logic for Related Factories ---
+        req = self.request.GET
+        factory_filters = {}
+        
+        # 1. Location Mapping
+        loc_mapping = {
+            'country': 'country_id',
+            'state': 'state_id',
+            'city': 'city_id',
+            'district': 'district_id',
+            'region': 'region_id',
+        }
+
+        for url_key, model_field in loc_mapping.items():
+            val = req.get(url_key)
+            if val:
+                factory_filters[model_field] = val
+
+        # 2. Category Mapping
+        # Filters factories based on the blog category selected
+        category_val = req.get('category')
+        if category_val:
+            factory_filters['category_id'] = category_val
+
+        # 3. Execute Query
+        # We use .distinct() in case of complex joins, and limit to 8
+        factories = Factory.objects.filter(**factory_filters).select_related('city', 'country', 'category')
+        
+        if not factory_filters:
+            # If no filters, show featured/latest
+            context['related_factories'] = factories.order_by('-created_at')[:4]
+        else:
+            context['related_factories'] = factories[:8]
+        
         return context
 
 
@@ -231,13 +320,29 @@ def create_blog_post_form(request):
         'form': form,
         'categories': Category.objects.all(),
         'countries': Country.objects.all(),
+        'factories': Factory.objects.filter(is_active=True),
     }
     return render(request, 'blog/post_form.html', context)
 
 
+def blog_author_or_admin_required(view_func):
+    """Decorator to check if user is admin or blog author"""
+    def _wrapped_view(request, slug, *args, **kwargs):
+        blog = get_object_or_404(BlogPost, slug=slug)
+        
+        # Check if user is admin or the author of the blog
+        if not (request.user.is_staff or request.user == blog.author):
+            messages.error(request, "You don't have permission to edit this blog post.")
+            return redirect('blog:post_detail', slug=slug)
+        
+        return view_func(request, slug, *args, **kwargs)
+    return _wrapped_view
+
+
 @login_required
+@blog_author_or_admin_required
 def edit_blog_post(request, slug):
-    blog = get_object_or_404(BlogPost, slug=slug, author=request.user)
+    blog = get_object_or_404(BlogPost, slug=slug)
     
     if request.method == 'POST':
         form = BlogPostForm(request.POST, request.FILES, instance=blog)
@@ -264,11 +369,13 @@ def edit_blog_post(request, slug):
         'blog': blog,
         'categories': Category.objects.all(),
         'countries': Country.objects.all(),
+        'factories': Factory.objects.filter(is_active=True),
     }
     return render(request, 'blog/edit_blog.html', context)
 
 
 @login_required
+@blog_author_or_admin_required
 def manage_images(request, slug):
     """
     Manage images for a specific blog post.
@@ -283,7 +390,7 @@ def manage_images(request, slug):
     Returns:
         HttpResponse: Rendered manage images template or redirect
     """
-    blog = get_object_or_404(BlogPost, slug=slug, author=request.user)
+    blog = get_object_or_404(BlogPost, slug=slug)
     
     if request.method == 'POST':
         # Handle image deletion
@@ -363,8 +470,9 @@ def manage_blog_images(request, slug):
 
 
 @login_required
+@blog_author_or_admin_required
 def upload_images(request, slug):
-    blog = get_object_or_404(BlogPost, slug=slug, author=request.user)
+    blog = get_object_or_404(BlogPost, slug=slug)
     
     if request.method == 'POST':
         images = request.FILES.getlist('images')
@@ -397,8 +505,10 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['countries'] = Country.objects.all()
+        context['featured_image'] = self.object.get_featured_image()
+        context['gallery_images'] = self.object.get_gallery_images()
+        context['related_factories'] = self.object.related_factories.filter(is_active=True)
+        context['factories'] = Factory.objects.filter(is_active=True)
         return context
 
 

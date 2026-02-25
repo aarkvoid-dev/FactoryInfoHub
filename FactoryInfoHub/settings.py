@@ -38,12 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'Home',
     'Accounts',
     'blog',
     'location',
     'category',
     'Karkahan',
+    'Workers',
+    'admin_interface',
+    'faq',
 ]
 
 MIDDLEWARE = [
@@ -129,9 +133,20 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email configuration (for development, emails will be printed to console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@factoryinfohub.com'
+# Email configuration (using Gmail SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'arfatur.shaikh@gmail.com'
+EMAIL_HOST_PASSWORD = 'lyfqxmiroiulvoqe'
+DEFAULT_FROM_EMAIL = 'arfatur.shaikh@gmail.com'
+
+# For development/testing, you can use console backend to see emails in terminal
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Contact form email recipients
+CONTACT_EMAIL_RECIPIENTS = ['arfatur.shaikh@gmail.com', 'support@factoryinfohub.com']
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
@@ -191,7 +206,7 @@ LOGGING = {
 }
 
 
-# CSRF_TRUSTED_ORIGINS = ['https://ef1f623d16c0.ngrok-free.app']
+# CSRF_TRUSTED_ORIGINS = ['https://0429-202-134-177-80.ngrok-free.app']
 
 # CSRF_COOKIE_SAMESITE = 'None'
 # CSRF_COOKIE_SECURE = True
@@ -200,5 +215,5 @@ LOGGING = {
 
 # CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOWED_ORIGINS = [
-#     "https://ef1f623d16c0.ngrok-free.app",
+#     "https://0429-202-134-177-80.ngrok-free.app",
 # ]

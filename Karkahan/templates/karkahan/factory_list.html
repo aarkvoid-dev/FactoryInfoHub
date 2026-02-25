@@ -1,273 +1,873 @@
-{% extends 'karkahan/base.html' %}
-{% load static %}
+{% extends 'home/base.html' %}
+{% load static humanize %}
 
-{% block title %}Factories | FactoryInfoHub{% endblock %}
+{% block title %}Factory Inventory - Factory Chemistry{% endblock %}
 
-{% block factory_content %}
-<div class="container-fluid py-4">
+
+{% block extra_css %}
+<style>
+    /* Layout & Hero */
+    .hero { position: relative; overflow: hidden; min-height: 450px; display: flex; align-items: center; justify-content: center; }
+    .hero__bg { position: absolute; inset: 0; z-index: 1; }
+    .hero__bg img { width: 100%; height: 100%; object-fit: cover; }
+    .hero::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 2; }
+    .hero__content { position: relative; z-index: 3; color: white; text-align: center; padding: 100px 0; }
+    .hero__title { font-size: 60px; font-weight: 700; }
+    .hero__text { font-size: 20px; margin-top: 15px; opacity: 0.9; }
+
+    /* Sidebar Filters */
+    .sidebar { background: white; border: 1px solid #EDEDED; }
+    .sidebar__content { padding: 20px; }
+    .sidebar__item { margin-bottom: 20px; }
+    .sidebar__item h5 { margin-bottom: 15px; }
+    .accordion__button { background: #F8F9FB; border: 1px solid #EDEDED; border-radius: 8px; padding: 12px 16px; cursor: pointer; }
+    .accordion__content { padding: 15px 0; }
+    .modern-select-top { width: 100%; height: 45px; border-radius: 8px; border: 1px solid #EDEDED; background: #F8F9FB; padding: 0 15px; font-weight: 600; color: #1A1C1E; appearance: none; }
+    .form-checkbox { margin-bottom: 10px; }
+    .form-checkbox input { margin-right: 10px; }
+
+    /* Filter Header & Actions */
+    .filter-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .filter-title { font-size: 18px; font-weight: 700; color: #1A1C1E; }
+    .filter-actions { display: flex; gap: 8px; }
+    .filter-actions .button { font-size: 12px; padding: 8px 12px; border-radius: 6px; }
+    .filter-actions .btn-clear { background: #F8F9FB; color: #666; border: 1px solid #EDEDED; }
+    .filter-actions .btn-apply { background: #ff5500; color: white; border: none; font-weight: 600; align: center; border-radius: 20%}
+    .filter-actions .btn-apply:hover { background: #ff6a00; }
+
+    /* Filter Groups */
+    .filter-group { margin-bottom: 16px; }
+    .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-group select { width: 100%; height: 40px; border-radius: 8px; border: 1px solid #EDEDED; background: #F8F9FB; padding: 0 12px; font-weight: 600; color: #1A1C1E; appearance: none; }
+    .filter-group select:focus { outline: none; border-color: #1A1C1E; box-shadow: 0 0 0 3px rgba(26, 28, 30, 0.1); }
+    .filter-group .form-checkbox { display: flex; align-items: center; gap: 8px; }
+    .filter-group .form-checkbox input { width: 16px; height: 16px; accent-color: #1A1C1E; }
+    .filter-group .form-checkbox label { font-size: 14px; font-weight: 500; color: #333; margin: 0; cursor: pointer; }
+
+    /* Compact Filter Toggle */
+    .compact-filter-toggle { display: none; }
+    @media (max-width: 991px) {
+        .compact-filter-toggle { display: block; margin-bottom: 12px; }
+        #mobile-filters { display: none; }
+        #mobile-filters.active { display: block; }
+    }
+
+    /* Factory Cards - Tour Card Style */
+    .factoryCard { 
+        background: white; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        border: 1px solid #EDEDED; 
+        transition: all 0.4s ease; 
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .factoryCard:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+    }
+    
+    .factoryCard__image { 
+        position: relative; 
+        flex-shrink: 0;
+        width: 280px;
+        height: 180px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .factoryCard__image img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        transition: transform 0.3s ease; 
+    }
+    
+    .factoryCard__image:hover img { 
+        transform: scale(1.02); 
+    }
+    
+    .factoryCard__badge { 
+        position: absolute; 
+        top: 12px; 
+        left: 12px; 
+    }
+    
+    .factoryCard__favorite { 
+        position: absolute; 
+        top: 12px; 
+        right: 12px; 
+    }
+    
+    /* Content Indicators */
+    .factoryCard__indicators {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 6px;
+    }
+    
+    .indicator-badge {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #EDEDED;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .indicator-badge:hover {
+        background: #EB662B;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .badge-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #EB662B;
+        color: white;
+        font-size: 10px;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .gallery-indicator { border-color: #EB662B; }
+    .video-indicator { border-color: #28a745; }
+    
+    .factoryCard__content { 
+        flex: 1;
+        padding: 0;
+    }
+    
+    .factoryCard__location { 
+        color: #666; 
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .factoryCard__title { 
+        font-size: 18px; 
+        font-weight: 700; 
+        margin-top: 8px;
+        line-height: 1.3;
+        color: #1A1C1E;
+    }
+    
+    .factoryCard__text { 
+        color: #666; 
+        font-size: 13px; 
+        line-height: 1.5;
+        margin-top: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .factoryCard__info { 
+        padding: 15px 0 0 0; 
+        border-top: 1px solid #EDEDED; 
+        display: flex; 
+        justify-content: flex-start;
+        align-items: center;
+        margin-top: auto;
+    }
+    
+    /* Enhanced Button Group Styling */
+    .factoryCard__info .d-flex {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .factoryCard__info .button {
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #EDEDED;
+    }
+    
+    .factoryCard__info .button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .factoryCard__info .btn-sm {
+        min-width: 120px;
+        justify-content: center;
+    }
+    
+    .factoryCard__price { 
+        margin: 0;
+    }
+    
+    .factoryCard__price div { 
+        font-size: 12px; 
+        color: #666; 
+    }
+    
+    .factoryCard__price .text-20 { 
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #333; 
+    }
+
+    /* Responsive Design - Smaller Mobile Dimensions */
+    @media (max-width: 1199px) {
+        .factoryCard { 
+            padding: 16px;
+            gap: 16px;
+        }
+        .factoryCard__image { 
+            width: 240px;
+            height: 160px;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .factoryCard { 
+            flex-direction: column;
+            padding: 16px;
+        }
+        .factoryCard__image { 
+            width: 100%;
+            height: 160px;
+        }
+        .factoryCard__content { 
+            padding: 0;
+        }
+        .factoryCard__info { 
+            padding: 12px 0 0 0;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero { min-height: 350px; }
+        .hero__title { font-size: 32px; }
+        .hero__text { font-size: 16px; }
+        .sidebar { margin-bottom: 20px; }
+        .accordion__button { font-size: 14px; padding: 10px 12px; }
+        .modern-select-top { height: 40px; font-size: 14px; }
+        
+        .factoryCard { 
+            padding: 14px;
+            gap: 12px;
+        }
+        .factoryCard__image { 
+            height: 140px;
+        }
+        .factoryCard__title { 
+            font-size: 16px;
+        }
+        .factoryCard__text { 
+            font-size: 12px;
+            -webkit-line-clamp: 2;
+        }
+        .factoryCard__price .text-20 { 
+            font-size: 14px; 
+        }
+    }
+
+    @media (max-width: 576px) {
+        .factoryCard { 
+            padding: 12px;
+            gap: 10px;
+        }
+        .factoryCard__image { 
+            height: 120px;
+        }
+        .factoryCard__title { 
+            font-size: 15px;
+        }
+        .factoryCard__text { 
+            font-size: 12px;
+            -webkit-line-clamp: 1;
+        }
+        .factoryCard__location { 
+            font-size: 12px;
+        }
+        .factoryCard__price .text-20 { 
+            font-size: 13px; 
+        }
+    }
+
+    /* Accordion Styles */
+    .accordion -simple-2 .accordion__item { margin-bottom: 10px; }
+    .accordion -simple-2 .accordion__button { background: #F8F9FB; border: 1px solid #EDEDED; }
+    .accordion -simple-2 .accordion__content { border-top: 1px solid #EDEDED; }
+    .accordion__icon { transition: transform 0.3s ease; }
+    .accordion__item-active .accordion__icon { transform: rotate(180deg); }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">Factory <span class="text-accent-1">Inventory</span></h1>
+          <p class="hero__text text-light-1 ">Discover and explore industrial facilities across our global network.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="layout-pt-md layout-pb-xl bg-light-1">
+  <div class="container">
     <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <h2 class="mb-1">Factory <span class="text-primary fw-bold">Inventory</span></h2>
-                            <p class="text-muted mb-0">Manage and monitor your industrial facilities</p>
-                        </div>
-                        {% if user.is_staff %}
-                        <a href="{% url 'karkahan:factory_create' %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i>Add New Factory
-                        </a>
-                        {% endif %}
+      <div class="col-xl-3 col-lg-4">
+        <!-- <div class="compact-filter-toggle">
+          <button class="button -md bg-accent-1 text-white px-30 rounded-12 w-100" onclick="toggleMobileFilters()">
+            <i class="icon-filter mr-10"></i>
+            Show Filters
+          </button>
+        </div> -->
+        
+        <div class="lg:d-none" id="mobile-filters">
+          <div class="sidebar -type-1 overflow-hidden rounded-12">
+            <div class="sidebar__content">
+              <!-- Location Filters -->
+              <div class="filter-group">
+                <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Locations</label>
+                <label for="country">Country</label>
+                <select name="country" class="js-filter-select modern-select-top" data-next="state">
+                    <option value="">Select Country</option>
+                    {% for country in filter_form.fields.country.queryset %}
+                        <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                    {% endfor %}
+                </select>
+              
+                <label for="state">State</label>
+                <select name="state" class="js-filter-select modern-select-top" data-next="city" {% if not request.GET.country %}disabled{% endif %}>
+                    <option value="">Select State</option>
+                    {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
+                </select>
+             
+                <label for="city">City</label>
+                <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
+                    <option value="">Select City</option>
+                    {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
+                </select>
+              
+                <label for="district">District</label>
+                <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.state %}disabled{% endif %}>
+                    <option value="">Select District</option>
+                    {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.city == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
+                </select>
+              
+                <label for="region">Region</label>
+                <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.state %}disabled{% endif %}>
+                    <option value="">Select Region</option>
+                    {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.city == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
+                </select>
+              </div>
+
+              <!-- Category Filters -->
+              <div class="filter-group">
+                <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Work</label>
+                <label for="category">Category</label>
+                <select name="category" class="js-filter-select modern-select-top" data-next="subcategory">
+                    <option value="">All Categories</option>
+                    {% for category in filter_form.fields.category.queryset %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+              
+                <label for="subcategory">Subcategory</label>
+                <select name="subcategory" class="js-filter-select modern-select-top" {% if not request.GET.category %}disabled{% endif %}>
+                    <option value="">Subcategory</option>
+                    {% for sub in filter_form.fields.subcategory.queryset %}<option value="{{ sub.id }}" {% if request.GET.subcategory == sub.id|stringformat:'s' %}selected{% endif %}>{{ sub.name }}</option>{% endfor %}
+                </select>
+              </div>
+
+              <!-- Operational Status -->
+              <!-- <div class="filter-group">
+                <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Operational Status</label>
+                <div class="d-flex flex-column y-gap-15">
+                  <div class="form-checkbox">
+                    <input type="checkbox" name="is_active" {% if request.GET.is_active == 'true' %}checked{% endif %}>
+                    <label>Active Facilities</label>
+                  </div>
+                  <div class="form-checkbox">
+                    <input type="checkbox" name="is_verified" {% if request.GET.is_verified == 'true' %}checked{% endif %}>
+                    <label>Verified Facilities</label>
+                  </div>
+                </div>
+              </div> -->
+
+              <div class="filter-actions">
+                <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                <!-- <button id="apply-filter-btn" class="btn-apply" style="display:none; text-align:center;">
+                  <i class="icon-filter mr-10" ></i>Apply Filter
+                </button> -->
+                <button id="apply-filter-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
+              </div>
+              {% if user.is_authenticated %}
+                <div class="mt-25 pt-20 border-top-light">
+                    <a href="{% url 'karkahan:factory_create' %}" class="button -sm bg-dark-1 text-white w-100 rounded-12 transition-all hover-bg-accent-1">
+                        <i class="fas fa-plus mr-10"></i> Create Factory
+                    </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="accordion d-none mb-30 lg:d-flex js-accordion">
+          <div class="accordion__item col-12">
+            <button class="accordion__button button -dark-1 bg-light-1 px-25 py-10 border-1 rounded-12">
+              <i class="icon-sort-down mr-10 text-16"></i>
+              Filter
+            </button>       
+            <div class="accordion__content">
+              <div class="pt-20">
+                <div class="sidebar -type-1 overflow-hidden rounded-12">
+                  <div class="sidebar__content">
+                    <!-- Location Filters -->
+                    <div class="filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Locations</label>
+                      <label for="country">Country</label>
+                      <select name="country" class="js-filter-select modern-select-top" data-next="state">
+                          <option value="">Select Country</option>
+                          {% for country in filter_form.fields.country.queryset %}
+                              <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                          {% endfor %}
+                      </select>
+                    
+                      <label for="state">State</label>
+                      <select name="state" class="js-filter-select modern-select-top" data-next="city" {% if not request.GET.country %}disabled{% endif %}>
+                          <option value="">Select State</option>
+                          {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
+                      </select>
+                    
+                      <label for="city">City</label>
+                      <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
+                          <option value="">Select City</option>
+                          {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
+                      </select>
+                    
+                      <label for="district">District</label>
+                      <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.state %}disabled{% endif %}>
+                          <option value="">Select District</option>
+                          {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.city == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
+                      </select>
+                    
+                      <label for="region">Region</label>
+                      <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.state %}disabled{% endif %}>
+                          <option value="">Select Region</option>
+                          {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.city == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
+                      </select>
                     </div>
 
-                    <!-- Search and Filters -->
-                    <form method="get" action="{% url 'karkahan:factory_list' %}" class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text" name="search" value="{{ request.GET.search }}" 
-                                       placeholder="Search factories..." 
-                                       class="form-control">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <select name="category" class="form-select">
-                                <option value="">All Categories</option>
-                                {% for category in filter_form.category.field.queryset %}
-                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ category.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <select name="country" class="form-select">
-                                <option value="">All Countries</option>
-                                {% for country in filter_form.country.field.queryset %}
-                                <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ country.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <select name="is_active" class="form-select">
-                                <option value="">All Status</option>
-                                <option value="True" {% if request.GET.is_active == "True" %}selected{% endif %}>Active</option>
-                                <option value="False" {% if request.GET.is_active == "False" %}selected{% endif %}>Inactive</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-funnel me-2"></i>Filter
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Results Summary -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="text-muted">
-                            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} factories
-                        </div>
-                        <div>
-                            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-x-circle me-1"></i>Clear Filters
-                            </a>
-                        </div>
+                    <!-- Category Filters -->
+                    <div class="filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Work</label>
+                      <label for="category">Category</label>
+                      <select name="category" class="js-filter-select modern-select-top" data-next="subcategory">
+                          <option value="">All Categories</option>
+                          {% for category in filter_form.fields.category.queryset %}
+                              <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                          {% endfor %}
+                      </select>
+                   
+                      <label for="subcategory">Subcategory</label>
+                      <select name="subcategory" class="js-filter-select modern-select-top" {% if not request.GET.category %}disabled{% endif %}>
+                          <option value="">Subcategory</option>
+                          {% for sub in filter_form.fields.subcategory.queryset %}<option value="{{ sub.id }}" {% if request.GET.subcategory == sub.id|stringformat:'s' %}selected{% endif %}>{{ sub.name }}</option>{% endfor %}
+                      </select>
                     </div>
 
-                    <!-- Factory Table -->
-                    {% if page_obj %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Factory</th>
-                                    <th>Location</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for factory in page_obj %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="bi bi-building text-primary"></i>
-                                            </div>
-                                            <div>
-                                                <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
-                                                   class="text-decoration-none fw-semibold">
-                                                    {{ factory.name }}
-                                                </a>
-                                                <div class="text-muted small">ID: #{{ factory.id|add:1000 }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="text-dark">
-                                            <i class="bi bi-geo-alt me-2 text-primary"></i>
-                                            {{ factory.city.name }}, {{ factory.state.name }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ factory.category.name }}</span>
-                                        {% if factory.factory_type %}
-                                        <span class="badge bg-light text-dark ms-1">{{ factory.factory_type }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            {% if factory.is_active %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Active
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-warning">
-                                                    <i class="bi bi-pause-circle me-1"></i>Inactive
-                                                </span>
-                                            {% endif %}
-                                            {% if factory.is_verified %}
-                                                <span class="badge bg-info">
-                                                    <i class="bi bi-shield-check me-1"></i>Verified
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group" role="group">
-                                            <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
-                                               class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-eye me-1"></i>View
-                                            </a>
-                                            {% if user.is_staff %}
-                                            <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" 
-                                               class="btn btn-outline-warning btn-sm">
-                                                <i class="bi bi-pencil me-1"></i>Edit
-                                            </a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    <!-- Operational Status
+                    <div class="filter-group">
+                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Operational Status</label>
+                      <div class="d-flex flex-column y-gap-15">
+                        <div class="form-checkbox">
+                          <input type="checkbox" name="is_active" {% if request.GET.is_active == 'true' %}checked{% endif %}>
+                          <label>Active Facilities</label>
+                        </div>
+                        <div class="form-checkbox">
+                          <input type="checkbox" name="is_verified" {% if request.GET.is_verified == 'true' %}checked{% endif %}>
+                          <label>Verified Facilities</label>
+                        </div>
+                      </div>
+                    </div> -->
 
-                    <!-- Pagination -->
-                    {% if page_obj.has_other_pages %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    <i class="bi bi-chevron-left"></i> Previous
-                                </a>
-                            </li>
-                            {% endif %}
-                            
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if num == page_obj.number %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    Next <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                    <div class="filter-actions">
+                      <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                      <button id="apply-filter-btn" class="btn-apply" style="display:none;">
+                        <i class="icon-filter mr-10"></i>Apply Filter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> 
+      <div class="col-xl-9 col-lg-8">
+        <div class="row y-gap-5 justify-between">
+          <div class="col-auto">
+            <div>{{ page_obj.paginator.count }} results</div>
+          </div>     
+          <div class="col-auto">
+            <div class="d-flex align-items-center gap-3">
+              <div class="searchForm -type-1 -col-1 -narrow">
+                <div class="searchForm__form">
+                  <div class="searchFormItem">
+                    <div class="searchFormItem__button">
+                      <div class="pl-calendar d-flex items-center">
+                        <i class="icon-search text-20 mr-15"></i>
+                        <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" placeholder="Search factories...">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% if user.is_authenticated %}
+              <a href="{% url 'karkahan:cart_view' %}" class="button -md bg-accent-1 text-white px-20 py-10 rounded-8 position-relative">
+                <i class="fas fa-shopping-cart me-2"></i> Cart
+                {% if cart_items_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ cart_items_count }}
+                  <span class="visually-hidden">items in cart</span>
+                </span>
+                {% endif %}
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="row y-gap-30 pt-30">
+          {% if page_obj %}
+            {% for factory in page_obj %}
+              <div class="col-12">
+                <div class="factoryCard -type-2">
+                  <div class="factoryCard__image">
+                    {% with primary_image=factory.get_primary_image %}
+                      {% if primary_image %}
+                        <img src="{{ primary_image }}" alt="{{ factory.name }}">
+                      {% else %}
+                        <div class="placeholder-icon h-100 center bg-light-1"><i class="fas fa-industry fa-4x text-accent-1 opacity-20"></i></div>
+                      {% endif %}
+                    {% endwith %}
+                    
+                    <div class="factoryCard__badge">
+                      <div class="bg-accent-1 rounded-12 text-white lh-11 text-13 px-15 py-10">
+                        {{ factory.factory_type|default:"Industrial Asset" }}
+                      </div>
+                    </div>               
+                    {% if factory.is_verified %}
+                    <div class="factoryCard__favorite">
+                      <button class="button -accent-1 size-35 bg-white rounded-full flex-center">
+                        <i class="icon-check text-15"></i>
+                      </button>
+                    </div>
                     {% endif %}
                     
-                    {% else %}
-                    <div class="text-center py-5">
-                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                            <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5 class="text-muted">No factories found</h5>
-                        <p class="text-muted">Try adjusting your search criteria or filters.</p>
-                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-arrow-clockwise me-2"></i>Reset Search
-                        </a>
+                    <!-- Content Indicators -->
+                    <div class="factoryCard__indicators">
+                        {% if factory.images.exists %}
+                        <span class="indicator-badge gallery-indicator" title="View Gallery">
+                            <i class="fas fa-images"></i>
+                            <span class="badge-count">{{ factory.images.count }}</span>
+                        </span>
+                        {% endif %}
+                        
+                        {% if factory.video_url %}
+                        <span class="indicator-badge video-indicator" title="Watch Video">
+                            <i class="fas fa-play"></i>
+                        </span>
+                        {% endif %}
+                        
+                        {% if user.is_authenticated %}
+                            {% for cart_item in cart_items %}
+                                {% if cart_item.factory == factory %}
+                                <span class="indicator-badge bg-warning text-dark" title="In Cart">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </span>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
                     </div>
-                    {% endif %}
+                  </div>             
+                  <div class="factoryCard__content">
+                    <div class="factoryCard__location">
+                      <i class="icon-pin"></i>
+                      {{ factory.city.name }}, {{ factory.state.name }}
+                    </div>               
+                    <h3 class="factoryCard__title mt-5">
+                      <span>{{ factory.name }}</span>
+                    </h3>                 
+                    <p class="factoryCard__text mt-5">
+                      {{ factory.description|default:"Detailed manufacturing data for this facility is available in the profile."|truncatewords:20 }}
+                    </p>    
+                    <div>
+                      <div class="d-flex items-center text-14">
+                        <i class="icon-building mr-10"></i>
+                        {{ factory.category.name }}
+                      </div>        
+                    </div>   
+                    <div>
+                      <div class="d-flex items-center text-14">
+                        <i class="icon-building mr-10"></i>
+                        {% if factory.price > 0 %}
+                            Rs. {{ factory.price|intcomma }}
+                        {% else %}
+                            <span class="badge bg-success">Free</span>
+                        {% endif %}
+                      </div>        
+                    </div>
+                  </div>             
+                    <div class="factoryCard__info">
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Gallery Button - Only if images exist -->
+                        {% if factory.images.exists %}
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" 
+                           class="button -outline-accent-1 text-accent-1 btn-sm">
+                            <i class="fas fa-images me-2"></i> Gallery ({{ factory.images.count }})
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Video Button - Only if video exists -->
+                        {% if factory.video_url %}
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#video" 
+                           class="button -outline-accent-1 text-accent-1 btn-sm">
+                            <i class="fas fa-play me-2"></i> Video Tour
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Main Details Button -->
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
+                           class="button -outline-accent-1 text-accent-1 btn-sm">
+                            <i class="fas fa-info-circle me-2"></i> Details
+                        </a>
+                        
+                        <!-- Purchase Button -->
+                        {% if factory.price >= 0 %}
+                            {% if user.is_authenticated %}
+                                {% if factory.has_user_purchased.user %}
+                                    <span class="button -md bg-success text-white btn-sm disabled">
+                                        <i class="fas fa-check me-2"></i> Purchased
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" 
+                                       class="button -md bg-accent-1 text-white btn-sm">
+                                        <i class="fas fa-shopping-cart me-2"></i> 
+                                        {% if factory.price > 0 %}
+                                            Add to Cart - Rs. {{ factory.price|intcomma }}
+                                        {% else %}
+                                            Add to Cart - Free
+                                        {% endif %}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                                   class="button -md bg-accent-1 text-white btn-sm">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
+                                    {% if factory.price > 0 %}
+                                        - Rs. {{ factory.price|intcomma }}
+                                    {% else %}
+                                        - Free
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="button -md bg-secondary text-white btn-sm disabled">
+                                <i class="fas fa-ban me-2"></i> Not Available
+                            </span>
+                        {% endif %}
+                    </div>
+                  </div>
                 </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="col-12 text-center py-60">
+                <i class="fas fa-industry fa-4x text-light-2 mb-20"></i>
+                <h3>No facilities match your search criteria.</h3>
+                <a href="?" class="button -md bg-accent-1 text-white mt-20">Clear All Filters</a>
+            </div>
+          {% endif %}
+        </div>   
+        {% if is_paginated %}
+          <div class="d-flex justify-center flex-column mt-60">
+            <div class="pagination justify-center">
+                {% if page_obj.has_previous %}
+                  <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination__button button -accent-1 mr-15">
+                      <i class="icon-arrow-left text-15"></i>
+                  </a>
+                {% endif %}           
+                  <div class="pagination__count">
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <a href="#" class="is-active">{{ num }}</a>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                  </div>           
+                {% if page_obj.has_next %}
+                  <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination__button button -accent-1 ml-15">
+                      <i class="icon-arrow-right text-15"></i>
+                  </a>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
-<style>
-    /* Custom styles for factory list */
-    .card {
-        border-radius: 12px;
-    }
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+// Mobile Filter Toggle Function
+function toggleMobileFilters() {
+    const filters = document.getElementById('mobile-filters');
+    const button = document.querySelector('.compact-filter-toggle .button');
     
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
+    if (filters.classList.contains('active')) {
+        filters.classList.remove('active');
+        button.innerHTML = '<i class="icon-filter mr-10"></i>Show Filters';
+    } else {
+        filters.classList.add('active');
+        button.innerHTML = '<i class="icon-filter mr-10"></i>Hide Filters';
     }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     
-    .badge {
-        font-size: 0.75rem;
-        padding: 4px 8px;
+    // 1. Helper: Update all instances of a dropdown (Mobile & Desktop)
+    const updateTargetDropdowns = (name, data, label) => {
+        const selects = document.querySelectorAll(`select[name="${name}"]`);
+        selects.forEach(select => {
+            select.disabled = false;
+            select.innerHTML = `<option value="">${label}</option>`;
+            data.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+            });
+        });
+    };
+
+    // 2. AJAX & Chaining Logic
+    const handleFilterChange = (element) => {
+        const value = element.value;
+        const name = element.getAttribute('name');
+        const nextField = element.getAttribute('data-next');
+
+        // Sync values between Mobile and Desktop immediately
+        document.querySelectorAll(`select[name="${name}"]`).forEach(el => { if (el !== element) el.value = value; });
+
+        // Show Apply buttons
+        document.querySelectorAll('.js-apply-btn, #apply-filter-btn').forEach(btn => btn.style.display = 'block');
+
+        if (!value || !nextField) return;
+
+        let url = '';
+        if (name === 'category') url = `/categories/ajax/load-subcategories/${value}/`;
+        else if (name === 'country') url = `/location/ajax/states-by-country/${value}/`;
+        else if (name === 'state') url = `/location/ajax/cities-by-state/${value}/`;
+        else if (name === 'city') url = `/location/ajax/districts-by-city/${value}/`;
+        else if (name === 'district') url = `/location/ajax/regions-by-district/${value}/`;
+
+        if (url) {
+            fetch(url).then(res => res.json()).then(data => {
+                // Handle different JSON structures (List vs Object)
+                const items = Array.isArray(data) ? data : (data.subcategories || []);
+                const label = `Select ${nextField.charAt(0).toUpperCase() + nextField.slice(1)}`;
+                updateTargetDropdowns(nextField, items, label);
+            });
+        }
+    };
+
+    // 3. Bind Events
+    document.querySelectorAll('.js-filter-select').forEach(select => {
+        select.addEventListener('change', function() { handleFilterChange(this); });
+    });
+
+    // 4. Final Submission Logic
+    document.querySelectorAll('.js-apply-btn, #apply-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            applyFilters();
+        });
+    });
+
+    // 5. Search Functionality
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        // Trigger search on Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFilters();
+            }
+        });
+
+        // Optional: Add debounced search on input (search after user stops typing for 500ms)
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+            }, 500);
+        });
     }
-    
-    .btn-group .btn {
-        border-radius: 0;
+
+    // Helper function to apply filters and search
+    function applyFilters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const fields = ['category', 'subcategory', 'country', 'state', 'city', 'district', 'region'];
+        
+        fields.forEach(field => {
+            const el = document.querySelector(`select[name="${field}"]`);
+            if (el && el.value) urlParams.set(field, el.value);
+            else urlParams.delete(field);
+        });
+
+        // Handle Search
+        const search = document.querySelector('input[name="search"]');
+        if (search && search.value) {
+            urlParams.set('search', search.value);
+        } else {
+            urlParams.delete('search');
+        }
+
+        urlParams.delete('page'); 
+        window.location.search = urlParams.toString();
     }
-    
-    .btn-group .btn:first-child {
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-    }
-    
-    .btn-group .btn:last-child {
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-    }
-    
-    .pagination .page-link {
-        color: #0d6efd;
-        border: 1px solid #dee2e6;
-    }
-    
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    
-    .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    
-    .btn-primary:hover {
-        background-color: #0b5ed7;
-        border-color: #0a58ca;
-    }
-</style>
+});
+</script>
 {% endblock %}

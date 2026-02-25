@@ -16,13 +16,13 @@ from django.utils.translation import gettext_lazy as _
 from .models import BlogPost, BlogImage
 from location.models import Country, State, City, District, Region
 from category.models import Category, SubCategory
+from Karkahan.models import Factory
 from .mixins import (
     LocationCascadingMixin, UserFormMixin, CategoryCascadingMixin
 )
 from django.forms import ClearableFileInput
 
 # class MultipleFileInput(forms.ClearableFileInput):
-#     """Custom widget for multiple file uploads"""
 #     allow_multiple_selected = True
 
 #     def __init__(self, attrs=None):
@@ -206,12 +206,21 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         label=_('Upload Images'),
         help_text=_('Select multiple images to upload. The first image will be set as featured.')
     )
+    
+    # Related factories field
+    related_factories = forms.ModelMultipleChoiceField(
+        queryset=Factory.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        help_text=_('Select factories related to this blog post')
+    )
 
     class Meta:
         model = BlogPost
         fields = [
             'title', 'content', 'excerpt', 'category', 'subcategory', 
-            'country', 'state', 'city', 'district', 'region', 'is_published'
+            'country', 'state', 'city', 'district', 'region', 
+            'related_factories', 'is_published'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -233,6 +242,31 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # 1. Populate querysets if we are editing an existing post
+        if self.instance and self.instance.pk:
+            # Category Hierarchy
+            if self.instance.category:
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                    category=self.instance.category
+                )
+            
+            # Location Hierarchy
+            if self.instance.country:
+                self.fields['state'].queryset = State.objects.filter(country=self.instance.country)
+            if self.instance.state:
+                self.fields['city'].queryset = City.objects.filter(state=self.instance.state)
+            if self.instance.city:
+                self.fields['district'].queryset = District.objects.filter(city=self.instance.city)
+            if self.instance.district:
+                self.fields['region'].queryset = Region.objects.filter(district=self.instance.district)
+
+        # 2. Maintain support for POST data (if validation fails, keep selections)
+        if 'category' in self.data:
+            try:
+                category_id = int(self.data.get('category'))
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(category_id=category_id)
+            except (ValueError, TypeError):
+                pass
         
         # Set up initial values for edit mode
         if self.instance.pk:
@@ -275,6 +309,8 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
 
         if commit:
             instance.save()
+
+            self.save_m2m()
             
             # Handle multiple images
             images = data.get('images', [])
@@ -331,3 +367,129 @@ class BlogImageFormSet(forms.BaseInlineFormSet):
         super().__init__(*args, **kwargs)
         for form in self.forms:
             form.empty_permitted = False
+
+
+class BlogPostFilterForm(forms.Form):
+    """Form for filtering blog posts similar to factory filter"""
+    
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        empty_label="All Categories"
+    )
+    subcategory = forms.ModelChoiceField(
+        queryset=SubCategory.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Subcategories"
+    )
+    country = forms.ModelChoiceField(
+        queryset=Country.objects.all(),
+        required=False,
+        empty_label="All Countries"
+    )
+    state = forms.ModelChoiceField(
+        queryset=State.objects.all(),
+        required=False,
+        empty_label="All States"
+    )
+    city = forms.ModelChoiceField(
+        queryset=City.objects.all(),
+        required=False,
+        empty_label="All Cities"
+    )
+    district = forms.ModelChoiceField(
+        queryset=District.objects.all(),
+        required=False,
+        empty_label="All Districts"
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        empty_label="All Regions"
+    )
+    is_published = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Update querysets based on selected values from GET parameters
+        if 'category' in self.data:
+            try:
+                category_id = int(self.data.get('category'))
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                    category_id=category_id, is_active=True
+                ).order_by('name')
+            except (ValueError, TypeError):
+                pass
+
+        if 'country' in self.data:
+            try:
+                country_id = int(self.data.get('country'))
+                self.fields['state'].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by('name')
+            except (ValueError, TypeError):
+                pass
+
+        if 'state' in self.data:
+            try:
+                state_id = int(self.data.get('state'))
+                self.fields['city'].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by('name')
+            except (ValueError, TypeError):
+                pass
+
+        # Initialize subcategory queryset based on initial category value
+        if self.initial.get('category'):
+            try:
+                category_id = self.initial.get('category').id
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                    category_id=category_id, is_active=True
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize state queryset based on initial country value
+        if self.initial.get('country'):
+            try:
+                country_id = self.initial.get('country').id
+                self.fields['state'].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize city queryset based on initial state value
+        if self.initial.get('state'):
+            try:
+                state_id = self.initial.get('state').id
+                self.fields['city'].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize district queryset based on initial city value
+        if self.initial.get('city'):
+            try:
+                city_id = self.initial.get('city').id
+                self.fields['district'].queryset = District.objects.filter(
+                    city_id=city_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize region queryset based on initial district value
+        if self.initial.get('district'):
+            try:
+                district_id = self.initial.get('district').id
+                self.fields['region'].queryset = Region.objects.filter(
+                    district_id=district_id
+                ).order_by('name')
+            except AttributeError:
+                pass

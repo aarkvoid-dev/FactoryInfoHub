@@ -1,11 +1,275 @@
 {% extends 'home/base.html' %}
 {% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+<style>
+.video-container {
+    height: 50vh;
+    min-height: 250px;
+    max-height: 500px;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+}
+
+.video-container video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+}
+
+.video-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.video-controls button {
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.video-controls button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.video-container:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-height: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+.video-container:fullscreen video {
+    position: static;
+    transform: none;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+}
+
+/* Fix the "Font gets small" issue */
+/* This happens because some browsers try to scale the 'root' font in fullscreen */
+:fullscreen {
+    font-size: 16px !important; 
+}
+
+.featureIcon {
+    transition: transform 0.3s ease;
+}
+
+.featureIcon:hover {
+    transform: translateX(10px);
+}
+
+body {
+    overflow-x: hidden; /* Prevents horizontal shifting */
+    width: 100%;
+    position: relative;
+}
+
+/* Fix for the hero slider that might be causing the shift */
+.hero.-type-9 {
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .video-container {
+        height: 60vh;
+        min-height: 200px;
+        max-height: 400px;
+    }
+
+    .video-controls {
+        bottom: 10px;
+        right: 10px;
+        padding: 5px;
+    }
+
+    .video-controls button {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+/* Section-Wide Border Styling */
+.section-border-container {
+  border: 1px solid #E7E8F2; /* Light border color */
+  background-color: #ffffff;
+  position: relative;
+}
+
+/* Positioning Arrows on the edges */
+.section-slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.section-slider-nav:hover {
+  background-color: #3554D1 !important;
+  color: white !important;
+}
+
+.section-slider-nav.-prev {
+  left: 10px;
+}
+
+.section-slider-nav.-next {
+  right: 10px;
+}
+
+/* Adjusting Swiper padding to make room for arrows */
+.px-40 {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+/* Smooth Rounded Corners (Tailwind equivalent rounded-16) */
+.rounded-16 {
+  border-radius: 16px;
+}
+
+
+</style>
+
+<style>
+/* Global Mobile Typography Fix */
+html { font-size: 14px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+/* Hero Section Adjustments */
+.hero__title {
+    font-size: 1.8rem !important; /* Scaled down for mobile */
+    line-height: 1.2 !important;
+}
+.hero__text {
+    font-size: 0.95rem !important;
+}
+
+@media (min-width: 768px) {
+    .hero__title { font-size: 3.5rem !important; }
+}
+
+/* Video Responsive Height */
+.video-container {
+    height: 35vh; /* Shorter on mobile to prevent infinite scrolling */
+    min-height: 200px;
+}
+
+@media (min-width: 768px) {
+    .video-container { height: 50vh; }
+}
+
+/* Circular Categories Scaling */
+.size-130 {
+    width: 90px !important; /* Smaller circles on mobile */
+    height: 90px !important;
+}
+
+@media (min-width: 768px) {
+    .size-130 {
+        width: 130px !important;
+        height: 130px !important;
+    }
+}
+
+/* Feature Icon Cards */
+.featureIcon {
+    padding: 25px 20px !important; /* Tighter padding on mobile */
+}
+
+/* Section Spacing */
+.layout-pt-xl { padding-top: 50px !important; }
+.layout-pb-xl { padding-bottom: 50px !important; }
+
+@media (min-width: 768px) {
+    .layout-pt-xl { padding-top: 120px !important; }
+    .layout-pb-xl { padding-bottom: 120px !important; }
+}
+
+/* Force 2 Columns on very small screens for categories */
+@media (max-width: 400px) {
+    .base-2 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+}
+
+/* Factory Card Scaling */
+.tourCard__title { font-size: 16px !important; }
+.tourCard__content { padding: 15px !important; }
+
+/* Swiper Nav Button Fixes */
+.section-slider-nav {
+    display: none !important; /* Hide arrows on mobile, use swipe instead */
+}
+@media (min-width: 992px) {
+    .section-slider-nav { display: flex !important; }
+}
+
+/* Prevent image stretching */
+.img-ratio {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Border container padding */
+.section-border-container .px-40 {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+@media (min-width: 768px) {
+    .section-border-container .px-40 {
+        padding-left: 40px !important;
+        padding-right: 40px !important;
+    }
+}
+</style>
+{% endblock %}
+
+
+
 
 {% block content %}
-    <section data-anim="fade" class="hero -type-9">
+    <!-- <section data-anim="fade" class="hero -type-9">
       <div class="hero__slider js-section-slider" data-gap="0" data-slider-cols="xl-1 lg-1 md-1 sm-1 base-1" data-pagination="js-main-slider-pagination">
         <div class="swiper-wrapper">
-
           <div class="swiper-slide">
             <div class="hero__bg">
               <img src="{% static 'img/hero/9/3.jpg' %}" alt="background">
@@ -43,6 +307,54 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="container -pagination">
+          <div class="hero__pagination js-main-slider-pagination"></div>
+        </div>
+      </div>
+    </section> -->
+    <section data-anim="fade" class="hero -type-9">
+      <div class="hero__slider js-section-slider" data-gap="0" data-slider-cols="xl-1 lg-1 md-1 sm-1 base-1" data-pagination="js-main-slider-pagination">
+        <div class="swiper-wrapper">
+
+          <div class="swiper-slide">
+            <div class="hero__bg">
+              <img src="{% static 'img/hero/9/3.jpg' %}" alt="background">
+            </div>
+
+            <div class="container">
+              <div class="hero__content">
+                <div class="row items-center justify-between">
+                  <div class="col-xl-7 col-lg-8">
+                    <div class="hero__subtitle text-18 fw-500 text-white mb-10">Start With Us</div>
+
+                    <h1 class="hero__title text-white">
+                      Weaving Quality. <br class="lg:d-none">
+                      Delivering Trust.
+                    </h1>
+
+                    <div class="hero__text text-white mt-10">
+                      Premium textile manufacturing with innovation, precision,<br class="lg:d-none"> and global standards..
+                    </div>
+
+                    <div class="hero__button mt-30">
+                      <button class="button -md -outline-white text-white">
+                        View Tour
+                        <i class="icon-arrow-top-right ml-10"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <div class="hero__image">
+                      <img src="{% static 'img/hero/9/image.svg' %}" alt="image">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="swiper-slide">
             <div class="hero__bg">
@@ -65,10 +377,10 @@
                     </div>
 
                     <div class="hero__button mt-30">
-                      <a href="{% url 'karkahan:dashboard' %}" class="button -md -outline-white text-white">
-                        View Factories
+                      <button class="button -md -outline-white text-white">
+                        View Tour
                         <i class="icon-arrow-top-right ml-10"></i>
-                      </a>
+                      </button>
                     </div>
                   </div>
 
@@ -94,19 +406,98 @@
                     <div class="hero__subtitle text-18 fw-500 text-white mb-10">Start With Us</div>
 
                     <h1 class="hero__title text-white">
-                      Premium Factory<br class="lg:d-none">
-                      Management
+                      Iceland's legendary<br class="lg:d-none">
+                      Golden Circle
                     </h1>
 
                     <div class="hero__text text-white mt-10">
-                      Comprehensive factory management system with<br class="lg:d-none"> advanced features and global standards.
+                      Enjoy a full-day bus tour of Iceland's legendary Golden Circle.<br class="lg:d-none">
+                      Soak in the warm thermal waters of the Secret Lagoon.
                     </div>
 
                     <div class="hero__button mt-30">
-                      <a href="{% url 'karkahan:dashboard' %}" class="button -md -outline-white text-white">
-                        View Factories
+                      <button class="button -md -outline-white text-white">
+                        View Tour
                         <i class="icon-arrow-top-right ml-10"></i>
-                      </a>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <div class="hero__image">
+                      <img src="{% static 'img/hero/9/image.svg' %}" alt="image">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="swiper-slide">
+            <div class="hero__bg">
+              <img src="{% static 'img/hero/9/6.jpg' %}" alt="background">
+            </div>
+
+            <div class="container">
+              <div class="hero__content">
+                <div class="row items-center justify-between">
+                  <div class="col-xl-7 col-lg-8">
+                    <div class="hero__subtitle text-18 fw-500 text-white mb-10">Start With Us</div>
+
+                    <h1 class="hero__title text-white">
+                      Iceland's legendary<br class="lg:d-none">
+                      Golden Circle
+                    </h1>
+
+                    <div class="hero__text text-white mt-10">
+                      Enjoy a full-day bus tour of Iceland's legendary Golden Circle.<br class="lg:d-none">
+                      Soak in the warm thermal waters of the Secret Lagoon.
+                    </div>
+
+                    <div class="hero__button mt-30">
+                      <button class="button -md -outline-white text-white">
+                        View Tour
+                        <i class="icon-arrow-top-right ml-10"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <div class="hero__image">
+                      <img src="{% static 'img/hero/9/image.svg' %}" alt="image">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="swiper-slide">
+            <div class="hero__bg">
+              <img src="{% static 'img/hero/9/7.jpg' %}" alt="background">
+            </div>
+
+            <div class="container">
+              <div class="hero__content">
+                <div class="row items-center justify-between">
+                  <div class="col-xl-7 col-lg-8">
+                    <div class="hero__subtitle text-18 fw-500 text-white mb-10">Start With Us</div>
+
+                    <h1 class="hero__title text-white">
+                      Iceland's legendary<br class="lg:d-none">
+                      Golden Circle
+                    </h1>
+
+                    <div class="hero__text text-white mt-10">
+                      Enjoy a full-day bus tour of Iceland's legendary Golden Circle.<br class="lg:d-none">
+                      Soak in the warm thermal waters of the Secret Lagoon.
+                    </div>
+
+                    <div class="hero__button mt-30">
+                      <button class="button -md -outline-white text-white">
+                        View Tour
+                        <i class="icon-arrow-top-right ml-10"></i>
+                      </button>
                     </div>
                   </div>
 
@@ -128,82 +519,58 @@
       </div>
     </section>
 
-    <!-- Trusted Reviews Section -->
     <section class="layout-pt-xl">
       <div data-anim-wrap class="container">
         <div data-anim-child="slide-up" class="row y-gap-10 justify-between items-end">
           <div class="col-auto">
-            <h2 class="text-30">Discover Something Different - Factory Categories</h2>
+            <h2 class="text-30 md:text-24">Discover Something Different - Factory Categories</h2>
           </div>
-
           <div class="col-auto">
-            <a href="{% url 'category:category_list' %}" class="buttonArrow d-flex items-center ">
+            <a href="{% url 'category:category_list' %}" class="buttonArrow d-flex items-center">
               <span>See all</span>
               <i class="icon-arrow-top-right text-16 ml-10"></i>
             </a>
           </div>
         </div>
 
-        <div class="row y-gap-30 md:y-gap-20 pt-40 sm:pt-20">
-
-          <div data-anim-child="slide-up delay-1" class="col-xl-3 col-lg-4 col-md-6">
-            <a href="{% url 'category:category_list' %}" class="featureCard -type-9">
-              <div class="featureCard__image">
-                <img src="{% static 'img/features/6/1.jpg' %}" alt="image">
+        <div class="section-border-container mt-40 shadow-1 rounded-16">
+          <div class="relative px-40 py-40 sm:px-20 sm:py-20" data-anim-child="slide-up delay-2">
+            
+            <div class="overflow-hidden js-section-slider" 
+                data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" 
+                data-gap="36" 
+                data-nav-prev="js-cat-prev" 
+                data-nav-next="js-cat-next">
+              
+              <div class="swiper-wrapper">
+                {% for category in category_stats %}
+                <div class="swiper-slide">
+                  <a href="{% url 'category:category_list' %}?category={{ category.id }}" class="featureImage -type-1 text-center -hover-image-scale">
+                    <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
+                      <img src="{% static 'img/features/6/' %}{{ forloop.counter }}.jpg" alt="image" class="size-130 object-cover rounded-full">
+                    </div>
+                    <h3 class="featureImage__title text-16 fw-500 mt-20">{{ category.name }}</h3>
+                    <p class="text-14">{{ category.factory_count }}+ Factories</p>
+                  </a>
+                </div>
+                {% endfor %}
               </div>
+            </div>
 
-              <div class="featureCard__content ml-20">
-                <h4 class="text-18 fw-500">Textile Manufacturing</h4>
-                <div class="text-14 lh-13 mt-5">{{ categories.count|default:0 }}+ Factories</div>
-              </div>
-            </a>
+            <button class="section-slider-nav -prev flex-center button -blue-1 bg-white shadow-1 size-40 rounded-full js-cat-prev">
+              <i class="icon-arrow-left text-12"></i>
+            </button>
+            <button class="section-slider-nav -next flex-center button -blue-1 bg-white shadow-1 size-40 rounded-full js-cat-next">
+              <i class="icon-arrow-right text-12"></i>
+            </button>
+            
           </div>
-
-          <div data-anim-child="slide-up delay-2" class="col-xl-3 col-lg-4 col-md-6">
-            <a href="{% url 'category:category_list' %}" class="featureCard -type-9">
-              <div class="featureCard__image">
-                <img src="{% static 'img/features/6/2.jpg' %}" alt="image">
-              </div>
-
-              <div class="featureCard__content ml-20">
-                <h4 class="text-18 fw-500">Apparel Production</h4>
-                <div class="text-14 lh-13 mt-5">{{ categories.count|default:0 }}+ Factories</div>
-              </div>
-            </a>
-          </div>
-
-          <div data-anim-child="slide-up delay-3" class="col-xl-3 col-lg-4 col-md-6">
-            <a href="{% url 'category:category_list' %}" class="featureCard -type-9">
-              <div class="featureCard__image">
-                <img src="{% static 'img/features/6/3.jpg' %}" alt="image">
-              </div>
-
-              <div class="featureCard__content ml-20">
-                <h4 class="text-18 fw-500">Home Textiles</h4>
-                <div class="text-14 lh-13 mt-5">{{ categories.count|default:0 }}+ Factories</div>
-              </div>
-            </a>
-          </div>
-
-          <div data-anim-child="slide-up delay-4" class="col-xl-3 col-lg-4 col-md-6">
-            <a href="{% url 'category:category_list' %}" class="featureCard -type-9">
-              <div class="featureCard__image">
-                <img src="{% static 'img/features/6/4.jpg' %}" alt="image">
-              </div>
-
-              <div class="featureCard__content ml-20">
-                <h4 class="text-18 fw-500">Technical Textiles</h4>
-                <div class="text-14 lh-13 mt-5">{{ categories.count|default:0 }}+ Factories</div>
-              </div>
-            </a>
-          </div>
-
         </div>
       </div>
     </section>
 
     <!-- Location Guides Section -->
-    <section class="layout-pt-xl">
+    <section class="bg-accent-1-05 layout-pt-xl">
       <div data-anim-wrap class="container">
         <div data-anim-child="slide-up" class="row y-gap-10 justify-between items-end">
           <div class="col-auto">
@@ -218,161 +585,109 @@
           </div>
         </div>
 
-        <div class="overflow-hidden pt-40 sm:pt-20 js-section-slider" data-anim-child="slide-up delay-2" data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" data-gap="36" data-pagination="js-dest-pagination">
-          <div class="swiper-wrapper">
+        <div class="section-border-container mt-40 shadow-1 rounded-16">
+          <div class="relative px-40 py-40 sm:px-20 sm:py-20" data-anim-child="slide-up delay-2">
+            
+            <div class="overflow-hidden js-section-slider" 
+                data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" 
+                data-gap="36" 
+                data-nav-prev="js-loc-prev" 
+                data-nav-next="js-loc-next"
+                data-pagination="js-loc-pagination">
+              
+              <div class="swiper-wrapper">
+                {% for city in city_stats %}
+                <div class="swiper-slide">
+                  <a href="{% url 'location:country_list' %}?city={{ city.id }}" class="featureImage -type-1 text-center -hover-image-scale">
+                    <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
+                      <img src="{% static 'img/destinationCards/1/' %}{{ forloop.counter }}.png" alt="image" class="size-130 object-cover rounded-full">
+                    </div>
 
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/1.png' %}" alt="image" class="size-130 object-cover rounded-full">
+                    <h3 class="featureImage__title text-16 fw-500 mt-20">{{ city.name }}</h3>
+                    <p class="text-14">{{ city.factory_count }}+ Factories</p>
+                  </a>
                 </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">India</h3>
-                <p class="text-14">100+ Factories</p>
-              </a>
+                {% endfor %}
+              </div>
             </div>
 
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/2.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
+            <button class="section-slider-nav -prev flex-center button -blue-1 bg-white shadow-1 size-40 rounded-full js-loc-prev">
+              <i class="icon-arrow-left text-12"></i>
+            </button>
+            <button class="section-slider-nav -next flex-center button -blue-1 bg-white shadow-1 size-40 rounded-full js-loc-next">
+              <i class="icon-arrow-right text-12"></i>
+            </button>
 
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Bangladesh</h3>
-                <p class="text-14">80+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/3.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Vietnam</h3>
-                <p class="text-14">60+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/4.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">China</h3>
-                <p class="text-14">120+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/5.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Turkey</h3>
-                <p class="text-14">40+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/6.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Pakistan</h3>
-                <p class="text-14">50+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/7.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Indonesia</h3>
-                <p class="text-14">35+ Factories</p>
-              </a>
-            </div>
-
-            <div class="swiper-slide">
-              <a href="{% url 'location:country_list' %}" class="featureImage -type-1 text-center -hover-image-scale">
-                <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                  <img src="{% static 'img/destinationCards/1/8.png' %}" alt="image" class="size-130 object-cover rounded-full">
-                </div>
-
-                <h3 class="featureImage__title text-16 fw-500 mt-20">Thailand</h3>
-                <p class="text-14">25+ Factories</p>
-              </a>
-            </div>
-
-          </div>
-
-          <div class="pagination -type-1 justify-center pt-60 md:pt-40 js-dest-pagination">
-            <div class="pagination__button"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Why Choose Section -->
-    <section data-anim="slide-up delay-1" class="relative">
-      <div class="sectionBg -type-1">
-        <div class="bg-accent-1-05 rounded-24"></div>
-        <img src="{% static 'img/about/3/1.jpg' %}" alt="image" class="rounded-24">
-      </div>
-
+    <!-- Video Section -->
+    <section class="layout-pt-xl layout-pb-xl">
       <div class="container">
-        <div class="aboutSection -type-1">
-          <div class="row">
-            <div class="col-xl offset-xl-5 col-lg-7 offset-lg-5">
-              <div class="aboutSection__text">
-                <h2 class="text-30 md:text-24 fw-700">Why Choose FactoryInfoHub</h2>
-                <p>Most viewed and all-time top-selling factory listings</p>
+        <div class="row justify-center items-center min-h-screen">
+          <div class="col-lg-10">
+            <div class="video-container">
+              <video id="mainVideo" class="w-full h-auto" autoplay loop muted playsinline>
+                <source src="{{ home_page_video.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <div class="video-controls">
+                <button id="muteBtn" class="video-control-btn" onclick="toggleMute()">
+                  <i class="fas fa-volume-mute"></i>
+                </button>
+                <button id="fullscreenBtn" class="video-control-btn" onclick="toggleFullscreen()">
+                  <i class="fas fa-expand"></i>
+                </button>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="row">
-            <div class="col-xl offset-xl-2 col-lg-7 offset-lg-5">
-              <div class="row y-gap-30">
+    <!-- Cards Section -->
+    <section data-anim="slide-up delay-2" class="relative">
+      <div class="sectionBg -mx-30 bg-accent-1-05 rounded-24"></div>
+      <div class="container">
+        <div class="aboutSection -type-1">
+          <div class="aboutSection__text text-center mb-12">
+            <h2 class="text-30 md:text-24 fw-700">Why Choose FactoryInfoHub</h2>
+            <p>Most viewed and all-time top-selling factory listings</p>
+          </div>
 
-                <div class="col-xl-4 col-lg-6 col-sm-6">
-                  <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
-                    <div class="featureIcon__icon">
-                      <img src="{% static 'img/icons/1/ticket.svg' %}" alt="icon">
-                    </div>
-
-                    <h3 class="featureIcon__title text-18 fw-500 mt-30">Verified Factories</h3>
-                    <p class="featureIcon__text mt-10">All factories are verified and meet international standards.</p>
-                  </div>
+          <div class="row y-gap-30">
+            <div class="col-lg-4">
+              <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
+                <div class="featureIcon__icon">
+                  <img src="{% static 'img/icons/1/ticket.svg' %}" alt="icon">
                 </div>
 
-                <div class="col-xl-4 col-lg-6 col-sm-6">
-                  <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
-                    <div class="featureIcon__icon">
-                      <img src="{% static 'img/icons/1/hot-air-balloon.svg' %}" alt="icon">
-                    </div>
+                <h3 class="featureIcon__title text-18 fw-500 mt-30">Verified Factories</h3>
+                <p class="featureIcon__text mt-10">All factories are verified and meet international standards.</p>
+              </div>
+            </div>
 
-                    <h3 class="featureIcon__title text-18 fw-500 mt-30">Global Coverage</h3>
-                    <p class="featureIcon__text mt-10">Access to factories across multiple countries and regions.</p>
-                  </div>
+            <div class="col-lg-4">
+              <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
+                <div class="featureIcon__icon">
+                  <img src="{% static 'img/icons/1/hot-air-balloon.svg' %}" alt="icon">
                 </div>
 
-                <div class="col-xl-4 col-lg-6 col-sm-6">
-                  <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
-                    <div class="featureIcon__icon">
-                      <img src="{% static 'img/icons/1/diamond.svg' %}" alt="icon">
-                    </div>
+                <h3 class="featureIcon__title text-18 fw-500 mt-30">Global Coverage</h3>
+                <p class="featureIcon__text mt-10">Access to factories across multiple countries and regions.</p>
+              </div>
+            </div>
 
-                    <h3 class="featureIcon__title text-18 fw-500 mt-30">Quality Assurance</h3>
-                    <p class="featureIcon__text mt-10">High quality standards with detailed factory information.</p>
-                  </div>
+            <div class="col-lg-4">
+              <div class="featureIcon -type-1 px-40 py-40 rounded-24 bg-white shadow-1">
+                <div class="featureIcon__icon">
+                  <img src="{% static 'img/icons/1/diamond.svg' %}" alt="icon">
                 </div>
 
+                <h3 class="featureIcon__title text-18 fw-500 mt-30">Quality Assurance</h3>
+                <p class="featureIcon__text mt-10">High quality standards with detailed factory information.</p>
               </div>
             </div>
           </div>
@@ -400,6 +715,61 @@
           <div class="js-section-slider" data-gap="30" data-slider-cols="xl-3 lg-3 md-2 sm-1 base-1" data-nav-prev="js-slider1-prev" data-nav-next="js-slider1-next">
             <div class="swiper-wrapper">
 
+              {% for factory in featured_factories %}
+              <div class="swiper-slide">
+                <a href="{{ factory.get_absolute_url }}" class="tourCard -type-3 -hover-image-scale">
+                  <div class="tourCard__image ratio ratio-41:45 rounded-12 -hover-image-scale__image">
+                    {% if factory.image %}
+                    <img src="{{ factory.image.url }}" alt="{{ factory.name }}" class="img-ratio rounded-12">
+                    {% else %}
+                    <img src="{% static 'img/tourCards/1/11.jpg' %}" alt="{{ factory.name }}" class="img-ratio rounded-12">
+                    {% endif %}
+                  </div>
+
+                  <div class="tourCard__wrap">
+                    <div class="tourCard__header d-flex justify-between items-center text-13 text-white">
+                      <div class="d-flex items-center">
+                        <i class="icon-building text-16 mr-5"></i>
+                        {{ factory.category.name }}
+                      </div>
+
+                      <button class="tourCard__favorite">
+                        <i class="icon-heart"></i>
+                      </button>
+                    </div>
+
+                    <div class="tourCard__content">
+                      <div>
+                        <div class="tourCard__location d-flex items-center text-13 text-white">
+                          <i class="icon-pin d-flex text-16 text-white mr-5"></i>
+                          {{ factory.city.name }}, {{ factory.state.name }}
+                        </div>
+
+                        <h3 class="tourCard__title text-18 text-white fw-500 mt-5">
+                          <span>{{ factory.name }}</span>
+                        </h3>
+
+                        <div class="tourCard__rating d-flex items-center text-13 mt-5">
+                          <div class="d-flex items-center x-gap-5">
+                            <i class="icon-star text-yellow-2 text-12"></i>
+                            <i class="icon-star text-yellow-2 text-12"></i>
+                            <i class="icon-star text-yellow-2 text-12"></i>
+                            <i class="icon-star text-yellow-2 text-12"></i>
+                            <i class="icon-star text-yellow-2 text-12"></i>
+                          </div>
+                          <span class="text-white ml-10">4.8 (269)</span>
+                        </div>
+                      </div>
+
+                      <div class="text-right text-white">
+                        <div class="text-13 lh-14">Est. Capacity</div>
+                        <div class="text-18 fw-500">{{ factory.production_capacity|default:"10,000+ units/month" }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              {% empty %}
               <div class="swiper-slide">
                 <a href="{% url 'karkahan:factory_list' %}" class="tourCard -type-3 -hover-image-scale">
                   <div class="tourCard__image ratio ratio-41:45 rounded-12 -hover-image-scale__image">
@@ -443,112 +813,13 @@
 
                       <div class="text-right text-white">
                         <div class="text-13 lh-14">Est. Capacity</div>
-                        <div class="text-18 fw-500">10,000+ units/month</div>
+                        <div class="text-18 fw-500">10,000+ units/month"></div>
                       </div>
                     </div>
                   </div>
                 </a>
               </div>
-
-              <div class="swiper-slide">
-                <a href="{% url 'karkahan:factory_list' %}" class="tourCard -type-3 -hover-image-scale">
-                  <div class="tourCard__image ratio ratio-41:45 rounded-12 -hover-image-scale__image">
-                    <img src="{% static 'img/tourCards/1/12.jpg' %}" alt="image" class="img-ratio rounded-12">
-                  </div>
-
-                  <div class="tourCard__wrap">
-                    <div class="tourCard__header d-flex justify-between items-center text-13 text-white">
-                      <div class="d-flex items-center">
-                        <i class="icon-building text-16 mr-5"></i>
-                        Apparel
-                      </div>
-
-                      <button class="tourCard__favorite">
-                        <i class="icon-heart"></i>
-                      </button>
-                    </div>
-
-                    <div class="tourCard__content">
-                      <div>
-                        <div class="tourCard__location d-flex items-center text-13 text-white">
-                          <i class="icon-pin d-flex text-16 text-white mr-5"></i>
-                          Chennai, India
-                        </div>
-
-                        <h3 class="tourCard__title text-18 text-white fw-500 mt-5">
-                          <span>Global Apparel Solutions</span>
-                        </h3>
-
-                        <div class="tourCard__rating d-flex items-center text-13 mt-5">
-                          <div class="d-flex items-center x-gap-5">
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                          </div>
-                          <span class="text-white ml-10">4.9 (320)</span>
-                        </div>
-                      </div>
-
-                      <div class="text-right text-white">
-                        <div class="text-13 lh-14">Est. Capacity</div>
-                        <div class="text-18 fw-500">15,000+ units/month</div>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              </div>
-
-              <div class="swiper-slide">
-                <a href="{% url 'karkahan:factory_list' %}" class="tourCard -type-3 -hover-image-scale">
-                  <div class="tourCard__image ratio ratio-41:45 rounded-12 -hover-image-scale__image">
-                    <img src="{% static 'img/tourCards/1/13.jpg' %}" alt="image" class="img-ratio rounded-12">
-                  </div>
-
-                  <div class="tourCard__wrap">
-                    <div class="tourCard__header d-flex justify-between items-center text-13 text-white">
-                      <div class="d-flex items-center">
-                        <i class="icon-building text-16 mr-5"></i>
-                        Technical
-                      </div>
-
-                      <button class="tourCard__favorite">
-                        <i class="icon-heart"></i>
-                      </button>
-                    </div>
-
-                    <div class="tourCard__content">
-                      <div>
-                        <div class="tourCard__location d-flex items-center text-13 text-white">
-                          <i class="icon-pin d-flex text-16 text-white mr-5"></i>
-                          Bangalore, India
-                        </div>
-
-                        <h3 class="tourCard__title text-18 text-white fw-500 mt-5">
-                          <span>Advanced Technical Textiles</span>
-                        </h3>
-
-                        <div class="tourCard__rating d-flex items-center text-13 mt-5">
-                          <div class="d-flex items-center x-gap-5">
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                            <i class="icon-star text-yellow-2 text-12"></i>
-                          </div>
-                          <span class="text-white ml-10">4.7 (185)</span>
-                        </div>
-                      </div>
-
-                      <div class="text-right text-white">
-                        <div class="text-13 lh-14">Est. Capacity</div>
-                        <div class="text-18 fw-500">8,000+ units/month</div>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              </div>
+              {% endfor %}
 
             </div>
           </div>
@@ -573,46 +844,51 @@
       <div data-anim-wrap class="container">
         <div data-anim-child="slide-up" class="row justify-center text-center">
           <div class="col-auto">
-            <h2 class="text-30 md:text-24 fw-700">Our Factory Network</h2>
+            <h2 class="text-30 md:text-24 fw-700">Management Dashboard & Support</h2>
+            <p class="text-muted">Quick access to expand your network and get assistance</p>
           </div>
         </div>
 
-        <div class="row pt-40 md:pt-30">
+        <div class="row pt-40 md:pt-30 justify-center">
 
-          <div data-anim-child="fade delay-2" class="col-lg-3 col-6">
-            <div class="text-center py-50 md:py-20 rounded-24 -hover-bg-white">
-              <img src="{% static 'img/icons/3/1.svg' %}" alt="icon">
-
-              <h3 class="text-40 md:text-30 lh-14 fw-700 mt-30 md:mt-15">{{ factories_count|default:0 }}</h3>
-              <p class="lh-15">Verified Factories</p>
-            </div>
+          <div data-anim-child="fade delay-2" class="col-lg-3 col-sm-6 mb-20">
+            <a href="{% url 'karkahan:factory_create' %}" class="d-block text-center py-50 md:py-20 rounded-24 bg-white shadow-hover-1 transition-all">
+              <div class="icon-box text-accent-1 mb-20">
+                <i class="fas fa-industry fa-3x"></i>
+              </div>
+              <h3 class="text-20 lh-14 fw-700">Add Factory</h3>
+              <p class="lh-15 px-20">Register a new production unit</p>
+            </a>
           </div>
 
-          <div data-anim-child="fade delay-3" class="col-lg-3 col-6">
-            <div class="text-center py-50 md:py-20 rounded-24 -hover-bg-white">
-              <img src="{% static 'img/icons/3/2.svg' %}" alt="icon">
-
-              <h3 class="text-40 md:text-30 lh-14 fw-700 mt-30 md:mt-15">{{ countries_count|default:0 }}</h3>
-              <p class="lh-15">Countries Covered</p>
-            </div>
+          <div data-anim-child="fade delay-3" class="col-lg-3 col-sm-6 mb-20">
+            <a href="{% url 'workers:register_worker' %}" class="d-block text-center py-50 md:py-20 rounded-24 bg-white shadow-hover-1 transition-all">
+              <div class="icon-box text-accent-1 mb-20">
+                <i class="fas fa-users-cog fa-3x"></i>
+              </div>
+              <h3 class="text-20 lh-14 fw-700">Add Worker</h3>
+              <p class="lh-15 px-20">List professional staff or labor</p>
+            </a>
           </div>
 
-          <div data-anim-child="fade delay-4" class="col-lg-3 col-6">
-            <div class="text-center py-50 md:py-20 rounded-24 -hover-bg-white">
-              <img src="{% static 'img/icons/3/3.svg' %}" alt="icon">
-
-              <h3 class="text-40 md:text-30 lh-14 fw-700 mt-30 md:mt-15">{{ categories_count|default:0 }}</h3>
-              <p class="lh-15">Product Categories</p>
-            </div>
+          <div data-anim-child="fade delay-4" class="col-lg-3 col-sm-6 mb-20">
+            <a href="{% url 'blog:post_create' %}" class="d-block text-center py-50 md:py-20 rounded-24 bg-white shadow-hover-1 transition-all">
+              <div class="icon-box text-accent-1 mb-20">
+                <i class="fas fa-pen-nib fa-3x"></i>
+              </div>
+              <h3 class="text-20 lh-14 fw-700">Create Blog</h3>
+              <p class="lh-15 px-20">Share industry news and updates</p>
+            </a>
           </div>
 
-          <div data-anim-child="fade delay-5" class="col-lg-3 col-6">
-            <div class="text-center py-50 md:py-20 rounded-24 -hover-bg-white">
-              <img src="{% static 'img/icons/3/4.svg' %}" alt="icon">
-
-              <h3 class="text-40 md:text-30 lh-14 fw-700 mt-30 md:mt-15">{{ total_capacity|default:0 }}</h3>
-              <p class="lh-15">Monthly Capacity</p>
-            </div>
+          <div data-anim-child="fade delay-5" class="col-lg-3 col-sm-6 mb-20">
+            <a href="{% url 'contact' %}" class="d-block text-center py-50 md:py-20 rounded-24 bg-white shadow-hover-1 transition-all">
+              <div class="icon-box text-accent-1 mb-20">
+                <i class="fas fa-headset fa-3x"></i>
+              </div>
+              <h3 class="text-20 lh-14 fw-700">Support Hub</h3>
+              <p class="lh-15 px-20">Contact us for any assistance</p>
+            </a>
           </div>
 
         </div>
@@ -642,7 +918,11 @@
           <div class="col-lg-4 col-md-6">
             <a href="{% url 'blog:post_detail' post.slug %}" class="blogCard -type-1">
               <div class="blogCard__image ratio ratio-41:30">
+                {% if post.images.first %}
+                <img src="{{ post.images.first.image.url }}" alt="{{ post.title }}" class="img-ratio rounded-12">
+                {% else %}
                 <img src="{% static 'img/blogCards/1/1.png' %}" alt="{{ post.title }}" class="img-ratio rounded-12">
+                {% endif %}
                 <div class="blogCard__badge">{{ post.category.name|default:'Industry' }}</div>
               </div>
 
@@ -670,7 +950,100 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Initialize sliders and animations for the home page
-    console.log('Home page loaded with FactoryInfoHub styling');
+    console.log('Home page loaded with Factory Chemistry styling');
   });
 </script>
+
+<script>
+  function toggleMute() {
+    const video = document.getElementById('mainVideo');
+    const btn = document.getElementById('muteBtn');
+    
+    video.muted = !video.muted;
+    
+    if (video.muted) {
+        btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    } else {
+        btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    }
+}
+
+function toggleFullscreen() {
+    const container = document.querySelector('.video-container');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    
+    if (!document.fullscreenElement) {
+        // Go fullscreen
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        } else if (container.msRequestFullscreen) {
+            container.msRequestFullscreen();
+        }
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+    }
+}
+
+// Advertisement video controls
+function toggleAdMute() {
+    const video = document.getElementById('adVideo');
+    const btn = document.getElementById('adMuteBtn');
+    
+    video.muted = !video.muted;
+    
+    if (video.muted) {
+        btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    } else {
+        btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    }
+}
+
+function maximizeAdVideo() {
+    const container = document.querySelector('.floating-video');
+    if (container.requestFullscreen) {
+        container.requestFullscreen();
+    }
+}
+
+// Toggle floating video function
+function toggleFloatingVideo() {
+    const container = document.querySelector('.floating-video-container');
+    const toggleBtn = document.querySelector('.floating-video__toggle-btn');
+    if (container && toggleBtn) {
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            toggleBtn.classList.remove('hidden');
+            toggleBtn.textContent = '×';
+        } else {
+            container.style.display = 'none';
+            toggleBtn.classList.add('hidden');
+            toggleBtn.textContent = '►';
+        }
+    }
+}
+
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        // This forces the browser to re-paint the layout correctly
+        window.scrollTo(window.scrollX, window.scrollY);
+        document.body.style.display = 'none';
+        document.body.offsetHeight; // trigger reflow
+        document.body.style.display = '';
+    }
+});
+</script>
 {% endblock %}
+
+</file_content>
+</write_to_file>

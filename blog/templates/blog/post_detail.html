@@ -93,7 +93,7 @@
             <div class="row y-gap-30 pt-20">
               {% for image in gallery_images %}
                 <div class="col-md-6">
-                  <img src="{{ image.image.url }}" alt="{% if image.caption %}{{ image.caption }}{% else %}{{ post.title }}{% endif %}" class="rounded-8 w-100" style="height: 300px; object-fit: cover;">
+                  <img src="{{ image.image.url }}" alt="{% if image.caption %}{{ image.caption }}{% else %}{{ post.title }}{% endif %}" class="rounded-8 w-100" style="height: 200px; object-fit: cover;">
                   {% if image.caption %}
                     <div class="mt-10 text-14 ">{{ image.caption }}</div>
                   {% endif %}
@@ -102,6 +102,67 @@
             </div>
           {% endif %}
         {% endwith %}
+
+        <!-- Related Factories Section -->
+   
+        {% if post.related_factories %}
+       
+          <div class="line mt-30 mb-30"></div>
+          
+          <h3 class="text-24 fw-600 mb-20">Related Factories</h3>
+          
+          <!-- Search Bar for Related Factories -->
+          <div class="mb-20">
+            <div class="form-input">
+              <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control">
+              <label class="lh-1 text-14">Search Related Factories</label>
+            </div>
+          </div>
+          
+          <!-- Sideways Scrollable Related Factories -->
+          <div class="related-factories-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
+            <div id="related-factories-grid" class="factory-cards-wrapper" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
+              {% for factory in post.related_factories.all %}
+                <div class="related-factory-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
+                  <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                    <div class="position-relative">
+                      {% if factory.get_primary_image %}
+                        <img src="{{ factory.get_primary_image.image.url }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                      {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                          <i class="icon-building text-40 text-muted"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div class="card-body p-3">
+                      <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">
+                        <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="text-decoration-none text-dark">
+                          {{ factory.name }}
+                        </a>
+                      </h6>
+                      <p class="card-text text-muted mb-2" style="font-size: 12px;">{{ factory.city.name }}, {{ factory.state.name }}</p>
+                      <div class="d-flex gap-2 mb-2">
+                        {% if factory.category %}
+                          <span class="badge bg-primary" style="font-size: 11px;">
+                            <i class="icon-tag text-10 me-1"></i>{{ factory.category.name }}
+                          </span>
+                        {% endif %}
+                        {% if factory.subcategory %}
+                          <span class="badge bg-info" style="font-size: 11px;">
+                            <i class="icon-tags text-10 me-1"></i>{{ factory.subcategory.name }}
+                          </span>
+                        {% endif %}
+                      </div>
+                      <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="btn btn-outline-primary btn-sm w-100">
+                        View Factory <i class="icon-arrow-right text-12 ms-2"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
 
         <div class="row y-gap-15 justify-between items-center pt-20">
           <div class="col-auto">
@@ -160,9 +221,11 @@
           <div class="line mt-60 mb-30"></div>
           
           <div class="d-flex gap-2 mb-4">
+            {% if user.is_staff or factory.created_by == user %}
             <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
               <i class="icon-edit text-16 me-1"></i>Edit Post
             </a>
+            {% endif %}
             <a href="{% url 'blog:manage_images' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
               <i class="icon-images text-16 me-1"></i>Manage Images
             </a>
@@ -357,5 +420,83 @@
   background: #f8f9fa;
   color: #6c757d;
 }
+
+/* Related Factories Search Highlighting */
+.related-factory-item mark {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Factory Cards Styling */
+.factory-cards-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.factory-cards-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.factory-cards-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.factory-cards-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Card hover effects */
+.related-factory-item .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.related-factory-item:hover .card {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Related Factories Search Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('related-factory-search');
+    const factoryItems = document.querySelectorAll('.related-factory-item');
+
+    if (searchInput && factoryItems.length > 0) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            factoryItems.forEach(item => {
+                const factoryName = item.getAttribute('data-name');
+                const card = item.querySelector('.card');
+                
+                if (searchTerm === '' || factoryName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    // Highlight matching text
+                    if (searchTerm) {
+                        const title = item.querySelector('.card-title a');
+                        const originalText = title.textContent;
+                        const highlightedText = originalText.replace(
+                            new RegExp(`(${searchTerm})`, 'gi'),
+                            '<mark>$1</mark>'
+                        );
+                        title.innerHTML = highlightedText;
+                    } else {
+                        const title = item.querySelector('.card-title a');
+                        title.innerHTML = title.textContent;
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

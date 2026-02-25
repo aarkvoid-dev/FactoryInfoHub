@@ -1,0 +1,103 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Reports - Factory Admin{% endblock %}
+
+{% block header %}Reports{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+    <div class="col-12">
+        <div class="table-container">
+            <h3 class="mb-4">Generate Report</h3>
+            <form>
+                <div class="row y-gap-20">
+                    <div class="col-md-4">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-control">
+                            <option>Factory Data Report</option>
+                            <option>Worker Data Report</option>
+                            <option>Combined Report</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Format</label>
+                        <select class="form-control">
+                            <option>Excel (.xlsx)</option>
+                            <option>CSV (.csv)</option>
+                            <option>PDF (.pdf)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-20">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="table-container">
+            <h3 class="mb-4">Recent Reports</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Size</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>Factory Data</td>
+                        <td>2024-01-15</td>
+                        <td>2.5 MB</td>
+                        <td><span class="badge badge-success">Completed</span></td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="#">Download</a>
+                                    <a class="dropdown-item" href="#">View</a>
+                                    <a class="dropdown-item" href="#">Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>Worker Data</td>
+                        <td>2024-01-14</td>
+                        <td>1.8 MB</td>
+                        <td><span class="badge badge-success">Completed</span></td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="#">Download</a>
+                                    <a class="dropdown-item" href="#">View</a>
+                                    <a class="dropdown-item" href="#">Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

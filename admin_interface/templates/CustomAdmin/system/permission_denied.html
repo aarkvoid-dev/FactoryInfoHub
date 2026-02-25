@@ -1,0 +1,41 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Permission Denied - Factory Admin{% endblock %}
+
+{% block header %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+    <div class="col-12">
+        <div class="table-container">
+            <div class="text-center">
+                <div class="size-120 flex-center bg-danger-1-05 rounded-full mb-4">
+                    <i class="fas fa-lock text-danger-1"></i>
+                </div>
+                <h2 class="text-24 fw-500 mb-2">Access Denied</h2>
+                <p class="text-muted mb-4">You don't have permission to access this page.</p>
+                <div class="mb-4">
+                    <div class="rounded-12 bg-accent-1-05 p-4">
+                        <h4 class="text-18 fw-500 mb-2">Your Role: {{ profile.role|title }}</h4>
+                        <p class="text-muted mb-0">
+                            {% if profile.role == 'admin' %}
+                                You have full access to all features.
+                            {% elif profile.role == 'staff' %}
+                                You can manage users, factories, and workers but cannot access account settings.
+                            {% else %}
+                                You can only view data and edit your own profile.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="pt-4">
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

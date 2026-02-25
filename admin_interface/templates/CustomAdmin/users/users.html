@@ -1,0 +1,180 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-1">User Directory</h3>
+            <p class="text-muted small mb-0">Manage permissions, roles, and account access levels.</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <div class="d-inline-flex gap-2 w-100 justify-content-md-end">
+                <div class="search-group position-relative flex-grow-1 flex-md-grow-0" style="min-width: 250px;">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" class="form-control rounded-pill ps-5 bg-white border-0 shadow-sm" placeholder="Search users...">
+                </div>
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm" disabled>
+                    <i class="fas fa-user-plus me-2"></i> Add User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle custom-user-table mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">User Details</th>
+                        <th>Email Address</th>
+                        <th>Access Role</th>
+                        <th>Account Status</th>
+                        <th>Last Login</th>
+                        <th class="text-end pe-4">Manage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-md rounded-circle me-3 bg-soft-{{ user.profile.role|default:'primary' }} text-{{ user.profile.role|default:'primary' }} fw-bold d-flex align-items-center justify-content-center">
+                                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ user.get_full_name|default:user.username }}</h6>
+                                    <span class="extra-small text-muted">ID: #UX-{{ user.id }}</span>
+                                    {% if user.is_superuser %}
+                                        <span class="badge bg-danger-soft text-danger extra-small ms-1">System Root</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="small text-dark fw-medium">{{ user.email }}</span>
+                        </td>
+                        <td>
+                            {% if user.profile.role == 'admin' %}
+                                <div class="role-pill admin"><i class="fas fa-shield-alt me-1"></i> Admin</div>
+                            {% elif user.profile.role == 'staff' %}
+                                <div class="role-pill staff"><i class="fas fa-user-cog me-1"></i> Staff</div>
+                            {% else %}
+                                <div class="role-pill user"><i class="fas fa-user me-1"></i> User</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge-status online"></span> <span class="small fw-medium">Active</span>
+                            {% else %}
+                                <span class="badge-status offline"></span> <span class="small fw-medium text-muted">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small text-muted">
+                                {{ user.last_login|date:"M d, Y"|default:"Never" }}<br>
+                                <span class="extra-small">{{ user.last_login|time:"H:i" }}</span>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'admin_interface:admin_user_edit' user.id %}" class="action-icon text-primary bg-soft-primary" title="Edit User">
+                                    <i class="fas fa-user-edit"></i>
+                                </a>
+                                <div class="dropdown">
+                                    <button class="action-icon text-muted bg-light border-0" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
+                                        <li><a class="dropdown-item" href="{% url 'admin_interface:admin_user_edit' user.id %}"><i class="fas fa-user-edit me-2"></i> Edit User</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-key me-2"></i> Reset Password</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-envelope me-2"></i> Send Notification</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'admin_interface:admin_user_delete' user.id %}"><i class="fas fa-trash-alt me-2"></i> Delete User</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="opacity-50">
+                                <i class="fas fa-users-slash fa-3x mb-3"></i>
+                                <h5>No Users Found</h5>
+                                <p class="small">Try clearing your filters or adding a new member.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* User Specific Modern Styling */
+    .custom-user-table thead th {
+        background-color: #f8fafc;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #64748b;
+        padding: 16px;
+        border: none;
+    }
+
+    /* Avatars */
+    .avatar-md {
+        width: 42px;
+        height: 42px;
+        font-size: 14px;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Role Pills */
+    .role-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .role-pill.admin { background: #fee2e2; color: #dc2626; }
+    .role-pill.staff { background: #fef3c7; color: #d97706; }
+    .role-pill.user { background: #e0f2fe; color: #0284c7; }
+
+    /* Status Indicators */
+    .badge-status {
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .badge-status.online { background-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+    .badge-status.offline { background-color: #94a3b8; }
+
+    /* Action Icons */
+    .action-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: 0.2s;
+        text-decoration: none;
+    }
+    .action-icon:hover { transform: translateY(-2px); filter: brightness(0.95); }
+
+    .bg-soft-primary { background-color: #e0f2fe; }
+    .bg-danger-soft { background-color: #fef2f2; }
+    .extra-small { font-size: 10px; }
+</style>
+{% endblock %}

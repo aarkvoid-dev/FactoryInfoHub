@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from category.models import SubCategory, Category
 from location.models import Region, District, City, State, Country
 from Home.models import SoftDeleteModel
+from Karkahan.models import Factory
 
 
 class BlogPost(SoftDeleteModel):
@@ -29,6 +30,10 @@ class BlogPost(SoftDeleteModel):
     published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Related factories
+    related_factories = models.ManyToManyField(Factory, blank=True, related_name='blog_posts', 
+                                              help_text="Factories related to this blog post")
 
     class Meta:
         ordering = ['-created_at']

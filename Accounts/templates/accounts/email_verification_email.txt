@@ -1,0 +1,12 @@
+Hi {{ user.username }},
+
+Please verify your email address by clicking the link below:
+
+{{ protocol }}://{{ domain }}{% url 'verify_email' uid token %}
+
+This link will expire in 24 hours for security reasons.
+
+If you didn't create an account with {{ site_name }}, you can safely ignore this email.
+
+Best regards,
+The {{ site_name }} Team

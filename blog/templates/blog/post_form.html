@@ -4,658 +4,654 @@
 {% block title %}Create Blog Post - FactoryInfoHub{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="hero__bg">
-    <img src="{% static 'img/hero/1.png' %}" alt="image">
-    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
-  </div>
-  <div class="container">
-    <div class="row justify-center">
-      <div class="col-xl-12">
-        <div class="hero__content ">
-          <h1 class="hero__title text-light-1 ">Create your own blog</h1>
-          <p class="hero__text text-light-1 ">Create blog to show your Ideas</p>
+
+<div class="row">
+    <div class="col-12">
+        <div class="featured-hero-card">
+            <div class="hero-overlay"></div>
+            <img src="{% static 'img/hero/1.png' %}" alt="Featured" class="hero-img" id="hero-preview">
+            <div class="hero-content">
+                <span class="badge-featured">NEW POST EDITOR</span>
+                <h1 class="text-white text-40 md:text-30 fw-700 mt-10" id="title-live-preview">Untitled Article</h1>
+                <div class="text-white opacity-70">Author: {{ user.get_full_name|default:user.username }}</div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-</section>
+</div>
 
-<section class="layout-pt-lg layout-pb-lg">
-  <div class="container">
-    <div class="row justify-center">
-      <div class="col-xl-8 col-lg-10 col-md-12">
-        <div class="text-center mb-60 md:mb-30">
-          <h1 class="text-30">Create Blog Post</h1>
-          <div class="text-18 fw-500 mt-20 md:mt-15">Share your insights and experiences with our community</div>
-        </div>
-
-        <!-- Colored div to make navbar visible -->
-        <div style="height: 80px; background: linear-gradient(135deg, #EB662B 0%, #FF8C42 100%);"></div>
-        
-        <div class="contactForm border-1 rounded-12 px-60 py-60 md:px-25 md:py-30">
-          {% if messages %}
-            <div class="alert alert-info mb-30">
-              {% for message in messages %}
-                <div class="text-14">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-          
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger mb-30">
-              {% for error in form.non_field_errors %}
-                <div class="text-14">{{ error }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-          
-          <form method="post" enctype="multipart/form-data" id="blog-form">
+<section class="layout-pt-md layout-pb-xl">
+    <div class="container">
+        <form method="post" enctype="multipart/form-data" id="blog-form">
             {% csrf_token %}
             
-            <div class="row y-gap-30">
-              <div class="col-md-12">
-                <div class="form-input">
-                  {{ form.title }}
-                  <label class="lh-1 text-16 text-light-1">Blog Title</label>
-                  {% if form.title.errors %}
-                    <div class="text-danger mt-10">{{ form.title.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.category }}
-                  <label class="lh-1 text-16 text-light-1">Category</label>
-                  {% if form.category.errors %}
-                    <div class="text-danger mt-10">{{ form.category.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.subcategory }}
-                  <label class="lh-1 text-16 text-light-1">Sub-Category</label>
-                  {% if form.subcategory.errors %}
-                    <div class="text-danger mt-10">{{ form.subcategory.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.country }}
-                  <label class="lh-1 text-16 text-light-1">Country</label>
-                  {% if form.country.errors %}
-                    <div class="text-danger mt-10">{{ form.country.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.state }}
-                  <label class="lh-1 text-16 text-light-1">State/Province</label>
-                  {% if form.state.errors %}
-                    <div class="text-danger mt-10">{{ form.state.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.city }}
-                  <label class="lh-1 text-16 text-light-1">City</label>
-                  {% if form.city.errors %}
-                    <div class="text-danger mt-10">{{ form.city.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-input">
-                  {{ form.district }}
-                  <label class="lh-1 text-16 text-light-1">District</label>
-                  {% if form.district.errors %}
-                    <div class="text-danger mt-10">{{ form.district.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-12">
-                <div class="form-input">
-                  {{ form.region }}
-                  <label class="lh-1 text-16 text-light-1">Region</label>
-                  {% if form.region.errors %}
-                    <div class="text-danger mt-10">{{ form.region.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-12">
-                <div class="form-input">
-                  {{ form.excerpt }}
-                  <label class="lh-1 text-16 text-light-1">Excerpt</label>
-                  <div class="text-12 text-light-1 mt-5">A brief summary of your blog post (150-200 characters)</div>
-                  {% if form.excerpt.errors %}
-                    <div class="text-danger mt-10">{{ form.excerpt.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-12">
-                <div class="form-input">
-                  {{ form.content }}
-                  <label class="lh-1 text-16 text-light-1">Content</label>
-                  {% if form.content.errors %}
-                    <div class="text-danger mt-10">{{ form.content.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="col-md-12">
-                <div class="form-input">
-                  <label class="lh-1 text-16 text-light-1 mb-15">Upload Images</label>
-                  {{ form.images }}
-                  <div class="text-12 text-light-1 mt-5">Select multiple images to upload. The first image will be set as featured.</div>
-                  
-                  <!-- Preview area for selected images -->
-                  <div id="image-preview" class="mt-20"></div>
-                </div>
-              </div>
-
-              <div class="col-md-12">
-                <div class="d-flex items-center">
-                  <div class="form-checkbox">
-                    {{ form.is_published }}
-                    <div class="form-checkbox__mark">
-                      <div class="form-checkbox__icon">
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9.29082 0.971021C9.01235 0.692189 8.56018 0.692365 8.28134 0.971021L3.73802 5.51452L1.71871 3.49523C1.43988 3.21639 0.987896 3.21639 0.709063 3.49523C0.430231 3.77406 0.430231 4.22604 0.709063 4.50487L3.23309 7.0289C3.37242 7.16823 3.55512 7.23807 3.73783 7.23807C3.92054 7.23807 4.10341 7.16841 4.24274 7.0289L9.29082 1.98065C9.56965 1.70201 9.56965 1.24984 9.29082 0.971021Z" fill="white" />
-                        </svg>
-                      </div>
+            <div class="row y-gap-30 justify-center">
+                <div class="col-lg-8">
+                    
+                    <div class="form-input mb-20">
+                        {{ form.title }}
+                        <label class="lh-1 text-16">Post Title</label>
                     </div>
-                  </div>
-                  <div class="lh-16 ml-15">{{ form.is_published.label }}</div>
-                  {% if form.is_published.errors %}
-                    <div class="text-danger mt-10">{{ form.is_published.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
 
-            <div class="row y-gap-20 pt-30">
-              <div class="col-md-6">
-                <button type="submit" class="button -md -dark-1 bg-accent-1 text-white w-100">
-                  Create Post
-                  <i class="icon-arrow-top-right text-16 ml-10"></i>
-                </button>
-              </div>
-              <div class="col-md-6">
-                <a href="{% url 'blog:post_list' %}" class="button -md -outline-dark-1 bg-light-1 text-dark-1 w-100">
-                  Cancel
-                </a>
-              </div>
+                    <div class="d-flex flex-wrap align-items-center mb-30 gap-2">
+                        <div class="form-group-custom">
+                            {{ form.category }}
+                        </div>
+                        <div class="form-group-custom">
+                            {{ form.subcategory }}
+                        </div>
+                    </div>
+
+                    <div class="post-content mt-20">
+                        <div class="form-input">
+                            {{ form.content }}
+                            <label class="lh-1 text-16">Article Content</label>
+                        </div>
+                    </div>
+
+                    <h4 class="text-18 fw-600 mb-20">Post Settings</h4>
+                        
+                    <div class="form-input mb-20">
+                        {{ form.excerpt }}
+                        <label class="lh-1 text-14">Short Summary</label>
+                    </div>
+
+                    <div class="line mb-20"></div>
+
+                    <h5 class="text-18 fw-600 mb-20">Target Location</h5>
+                    
+                    <div class="d-flex flex-wrap align-items-center mb-30 gap-2">
+                        <div class="form-group-custom">
+                            {{ form.country }}
+                        </div>
+                        <div class="form-group-custom">
+                            {{ form.state }}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center mb-30 gap-2">
+                        <div class="form-group-custom">
+                            {{ form.city }}
+                        </div>
+                        <div class="form-group-custom">
+                            {{ form.district }}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center mb-30 gap-2">
+                        <div class="form-group-custom">
+                            {{ form.region }}
+                        </div>
+                    </div>
+                       
+                    <div class="line mt-20 mb-20"></div>
+
+                    <h5 class="text-18 fw-600 mb-20">Related Factories</h5>
+                    
+                    <div class="form-group mb-30">
+                        <div class="text-muted mb-15">Select factories that are related to this blog post:</div>
+                        
+                        <!-- Search Bar -->
+                        <div class="mb-15">
+                            <div class="form-input">
+                                <input type="text" id="factory-search" placeholder="Search factories by name..." class="form-control">
+                                <label class="lh-1 text-14">Search Factories</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Sideways Scrollable Factory Cards -->
+                        <div class="factory-cards-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
+                            <div id="factory-cards" class="factory-cards-wrapper" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
+                                {% for factory in factories %}
+                                    <div class="factory-card-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
+                                        <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                            <div class="position-relative">
+                                                {% if factory.get_primary_image %}
+                                                    <img src="{{ factory.get_primary_image }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                                        <i class="icon-building text-40 text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="position-absolute top-0 start-0 m-2">
+                                                    <input type="checkbox" name="related_factories" value="{{ factory.id }}" id="factory_{{ factory.id }}" class="form-check-input" style="width: 18px; height: 18px; accent-color: #EB662B;"
+                                                        {% if factory in post.related_factories.all %}checked{% endif %}>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">{{ factory.name }}</h6>
+                                                <p class="card-text text-muted mb-0" style="font-size: 12px;">{{ factory.city.name }}, {{ factory.state.name }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-muted text-center py-3 w-100">
+                                        No factories found. Please ensure factories are created in the system.
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Selection Controls -->
+                        <div class="mt-15">
+                            <button type="button" id="select-all-factories" class="btn btn-outline-primary btn-sm me-2">
+                                Select All
+                            </button>
+                            <button type="button" id="clear-all-factories" class="btn btn-outline-secondary btn-sm">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="line mt-20 mb-20"></div>
+
+                    <div class="d-flex items-center mb-30">
+                        <div class="form-checkbox">
+                            {{ form.is_published }}
+                        </div>
+                        <div class="lh-16 ml-15">Save as Published</div>
+                    </div>
+
+                    <h2 class="text-24 fw-700 pt-40 mb-20">Post Gallery</h2>
+                    <div class="upload-zone mb-20" onclick="document.getElementById('images-input').click()">
+                        <i class="icon-upload text-30 mb-10"></i>
+                        <p>Click to upload multiple images</p>
+                        <input type="file" id="images-input" name="images" multiple accept="image/*" hidden>
+                    </div>
+
+                    <div id="image-preview-grid" class="row y-gap-30 pt-20">
+                        </div>
+
+                    <div class="row y-gap-15 justify-between items-center pt-40">
+                        <div class="col-auto">
+                            <button type="submit" class="button -md -dark-1 bg-accent-1 text-white">
+                                Publish Post <i class="icon-arrow-top-right text-16 ml-10"></i>
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'blog:post_list' %}" class="text-muted">Cancel and go back</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </form>
-        </div>
-      </div>
+        </form>
     </div>
-  </div>
 </section>
+
 {% endblock %}
+
 {% block extra_css %}
 <style>
-  /* Enhanced form styling to match website design */
-  .contactForm {
-    background: #fff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  }
+/* 1. DIRECT COPIES FROM BLOG_DETAILS.HTML */
+.featured-hero-card {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: #2c3e50;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
 
-  .form-input {
-    position: relative;
-    margin-bottom: 20px;
-  }
+.hero-img { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+}
 
-  .form-input input,
-  .form-input select,
-  .form-input textarea {
+.hero-content { position: absolute; bottom: 40px; left: 40px; z-index: 2; }
+
+.badge-featured {
+  background: #EB662B; /* Using your accent color */
+  color: white;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 2. FORM ELEMENTS REFINED TO FIT THE DESIGN */
+.form-input { position: relative; width: 100%; }
+.form-input input, .form-input textarea, select {
     width: 100%;
-    padding: 15px 20px;
+    padding: 15px;
     border: 1px solid #EAEAEA;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 16px;
-    transition: all 0.3s ease;
-    background: #fff;
-  }
+}
 
-  .form-input input:focus,
-  .form-input select:focus,
-  .form-input textarea:focus {
-    outline: none;
-    border-color: #EB662B;
-    box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
-  }
-
-  .form-input textarea {
-    min-height: 150px;
-    resize: vertical;
-  }
-
-  .form-input label {
+.form-input label {
     position: absolute;
-    left: 20px;
-    top: 15px;
-    background: #fff;
+    top: -10px;
+    left: 12px;
+    background: white;
     padding: 0 5px;
-    color: #999;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .form-input input:focus + label,
-  .form-input select:focus + label,
-  .form-input textarea:focus + label,
-  .form-input input:not(:placeholder-shown) + label,
-  .form-input textarea:not(:placeholder-shown) + label {
-    top: -10px;
-    left: 15px;
     font-size: 12px;
     color: #EB662B;
-    background: #fff;
-  }
+    font-weight: 600;
+}
 
-  .form-input input:not(:placeholder-shown) + label {
-    top: -10px;
-    left: 15px;
-    font-size: 12px;
-    color: #EB662B;
-    background: #fff;
-  }
-
-  .form-input textarea:not(:placeholder-shown) + label {
-    top: -10px;
-    left: 15px;
-    font-size: 12px;
-    color: #EB662B;
-    background: #fff;
-  }
-
-  .form-control-file {
-    border: 1px solid #EAEAEA;
+.upload-zone {
+    border: 2px dashed #EB662B;
+    padding: 30px;
+    text-align: center;
     border-radius: 12px;
-    padding: 10px;
-    background: #fff;
-    width: 100%;
-  }
+    background: #FFF9F6;
+    cursor: pointer;
+}
 
-  .form-checkbox {
+/* Match the gallery images from details */
+.gallery-preview-img {
+    border-radius: 8px;
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+/* Form field styling improvements */
+.form-group-custom {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group-custom select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #EAEAEA;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+.form-checkbox {
     display: flex;
     align-items: center;
-  }
+    gap: 10px;
+}
 
-  .form-checkbox input {
-    width: auto;
+.form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #EB662B;
     margin-right: 10px;
-  }
+}
 
-  .button {
-    border-radius: 12px;
-    padding: 15px 30px;
-    font-size: 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-  }
+/* Error styling */
+.form-input.error input, .form-input.error textarea, .form-input.error select {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
 
-  .button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  }
-
-  .text-danger {
+.form-error {
     color: #dc3545;
-    font-size: 14px;
+    font-size: 12px;
     margin-top: 5px;
-  }
+    display: block;
+}
 
-  /* Image preview styling */
-  #image-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 15px;
-  }
+/* Form field improvements */
+.form-group-custom {
+    margin-bottom: 15px;
+}
 
-  .image-preview-item {
-    position: relative;
-    width: 120px;
-    height: 120px;
-  }
+/* Checkbox label styling */
+.form-checkbox label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    margin: 0;
+}
 
-  .image-preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #EAEAEA;
-  }
+/* Section spacing improvements */
+.line {
+    height: 1px;
+    background: #EAEAEA;
+    margin: 20px 0;
+}
 
-  @media (max-width: 768px) {
-    .contactForm {
-      padding: 25px;
+/* Better form layout */
+.mb-30 {
+    margin-bottom: 30px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .form-group-custom {
+        flex: 1 1 100%;
+        min-width: 100%;
     }
     
-    .form-input input,
-    .form-input select,
-    .form-input textarea {
-      font-size: 16px; /* Prevent zoom on iOS */
+    .d-flex.flex-wrap.align-items-center {
+        flex-direction: column;
+        align-items: stretch;
     }
-  }
-
-  .hero {
-    position: relative;
-    overflow: hidden;
+    
+    .d-flex.flex-wrap.align-items-center > .form-group-custom {
+        margin-bottom: 15px;
+    }
 }
 
-.hero__bg {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
+/* Factory Cards Styling */
+.factory-cards-wrapper::-webkit-scrollbar {
+    height: 8px;
 }
 
-.hero__bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.factory-cards-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
 }
 
-.hero__content {
-    position: relative;
-    z-index: 2;
-    color: white;
-    text-align: center;
-    padding: 120px 20px;
+.factory-cards-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
 }
 
-/* optional dark overlay for readability */
-.hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 1;
+.factory-cards-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
+/* Card hover effects */
+.factory-card-item .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.factory-card-item:hover .card {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Search highlighting */
+.factory-card-item mark {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 600;
+}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('images-input');
-    const previewContainer = document.getElementById('image-preview');
+// Live Preview for Title
+document.querySelector('input[name="title"]').addEventListener('input', function(e) {
+    document.getElementById('title-live-preview').innerText = e.target.value || "Untitled Article";
+});
 
-    // Image preview functionality
-    fileInput.addEventListener('change', function(e) {
-        previewContainer.innerHTML = '';
-        
-        if (this.files && this.files.length > 0) {
-            const files = Array.from(this.files);
+// Gallery Preview matching your exact Detail Page layout
+document.getElementById('images-input').addEventListener('change', function(e) {
+    const grid = document.getElementById('image-preview-grid');
+    grid.innerHTML = '';
+    
+    Array.from(this.files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            // First image becomes hero preview
+            if(index === 0) document.getElementById('hero-preview').src = event.target.result;
             
-            files.forEach((file, index) => {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        const previewDiv = document.createElement('div');
-                        previewDiv.className = 'image-preview-item';
-                        previewDiv.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview ${index + 1}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                        `;
-                        previewContainer.appendChild(previewDiv);
-                    };
-                    
-                    reader.readAsDataURL(file);
+            const col = document.createElement('div');
+            col.className = 'col-md-6';
+            col.innerHTML = `
+                <img src="${event.target.result}" class="gallery-preview-img">
+                <div class="mt-10 text-14">Image Preview ${index + 1}</div>
+            `;
+            grid.appendChild(col);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+// Form validation
+document.getElementById('blog-form').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const content = document.querySelector('textarea[name="content"]').value.trim();
+    
+    if (!title) {
+        e.preventDefault();
+        const titleInput = document.querySelector('input[name="title"]');
+        titleInput.parentElement.classList.add('error');
+        if (!titleInput.parentElement.querySelector('.form-error')) {
+            const error = document.createElement('span');
+            error.className = 'form-error';
+            error.textContent = 'Title is required';
+            titleInput.parentElement.appendChild(error);
+        }
+    }
+    
+    if (!content) {
+        e.preventDefault();
+        const contentInput = document.querySelector('textarea[name="content"]');
+        contentInput.parentElement.classList.add('error');
+        if (!contentInput.parentElement.querySelector('.form-error')) {
+            const error = document.createElement('span');
+            error.className = 'form-error';
+            error.textContent = 'Content is required';
+            contentInput.parentElement.appendChild(error);
+        }
+    }
+});
+
+// Clear error states on input
+document.querySelectorAll('.form-input input, .form-input textarea').forEach(input => {
+    input.addEventListener('input', function() {
+        this.parentElement.classList.remove('error');
+        const error = this.parentElement.querySelector('.form-error');
+        if (error) error.remove();
+    });
+});
+
+// Related Factories Search and Selection Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('factory-search');
+    const factoryCards = document.querySelectorAll('.factory-card-item');
+    const selectAllBtn = document.getElementById('select-all-factories');
+    const clearAllBtn = document.getElementById('clear-all-factories');
+
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            factoryCards.forEach(item => {
+                const factoryName = item.getAttribute('data-name');
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                
+                if (searchTerm === '' || factoryName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    // Highlight matching text in card title
+                    if (searchTerm) {
+                        const title = item.querySelector('.card-title');
+                        const originalText = title.textContent;
+                        const highlightedText = originalText.replace(
+                            new RegExp(`(${searchTerm})`, 'gi'),
+                            '<mark>$1</mark>'
+                        );
+                        title.innerHTML = highlightedText;
+                    } else {
+                        const title = item.querySelector('.card-title');
+                        title.innerHTML = title.textContent;
+                    }
+                } else {
+                    item.style.display = 'none';
                 }
             });
-        }
-    });
-
-    // Add placeholder text to textarea
-    const contentField = document.querySelector('textarea[name="content"]');
-    if (contentField) {
-        contentField.setAttribute('placeholder', 'Write your blog post content here...');
+        });
     }
 
-    // Add placeholder text to excerpt field
-    const excerptField = document.querySelector('input[name="excerpt"]');
-    if (excerptField) {
-        excerptField.setAttribute('placeholder', 'Brief summary of your blog post...');
+    // Select All functionality
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            factoryCards.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (item.style.display !== 'none') {
+                    checkbox.checked = true;
+                }
+            });
+        });
     }
 
-    // Dynamic cascading functionality for categories and locations
-    const categorySelect = document.getElementById('id_category');
-    const subcategorySelect = document.getElementById('id_subcategory');
-    const countrySelect = document.getElementById('id_country');
-    const stateSelect = document.getElementById('id_state');
-    const citySelect = document.getElementById('id_city');
-    const districtSelect = document.getElementById('id_district');
-    const regionSelect = document.getElementById('id_region');
+    // Clear All functionality
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+            factoryCards.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+            });
+        });
+    }
 
-    // Category cascading using existing category app AJAX endpoint
-    if (categorySelect) {
+    // Cascading Filter Logic for Categories and Locations
+    const categorySelect = document.querySelector('select[name="category"]');
+    const subcategorySelect = document.querySelector('select[name="subcategory"]');
+    const countrySelect = document.querySelector('select[name="country"]');
+    const stateSelect = document.querySelector('select[name="state"]');
+    const citySelect = document.querySelector('select[name="city"]');
+    const districtSelect = document.querySelector('select[name="district"]');
+    const regionSelect = document.querySelector('select[name="region"]');
+
+    // Category to Subcategory cascading
+    if (categorySelect && subcategorySelect) {
         categorySelect.addEventListener('change', function() {
             const categoryId = this.value;
             if (categoryId) {
+                // Enable subcategory dropdown
+                subcategorySelect.disabled = false;
+                
+                // Clear current options except the first one
+                const firstOption = subcategorySelect.options[0];
+                subcategorySelect.innerHTML = '';
+                subcategorySelect.appendChild(firstOption);
+                
+                // Fetch subcategories for selected category
                 fetch(`/categories/ajax/load-subcategories/${categoryId}/`)
                     .then(response => response.json())
                     .then(data => {
-                        subcategorySelect.innerHTML = '<option value="">Select Sub-Category</option>';
                         data.forEach(subcategory => {
                             const option = document.createElement('option');
                             option.value = subcategory.id;
                             option.textContent = subcategory.name;
                             subcategorySelect.appendChild(option);
                         });
-                        subcategorySelect.disabled = false;
                     })
-                    .catch(error => {
-                        console.error('Error fetching subcategories:', error);
-                        subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
-                        subcategorySelect.disabled = true;
-                    });
+                    .catch(error => console.error('Error fetching subcategories:', error));
             } else {
-                subcategorySelect.innerHTML = '<option value="">Select Sub-Category</option>';
+                // Disable subcategory dropdown if no category selected
                 subcategorySelect.disabled = true;
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
             }
         });
     }
 
-    // Country cascading using existing location app AJAX endpoint
-    if (countrySelect) {
+    // Country to State cascading
+    if (countrySelect && stateSelect) {
         countrySelect.addEventListener('change', function() {
             const countryId = this.value;
             if (countryId) {
+                stateSelect.disabled = false;
+                const firstOption = stateSelect.options[0];
+                stateSelect.innerHTML = '';
+                stateSelect.appendChild(firstOption);
+                
                 fetch(`/location/ajax/states-by-country/${countryId}/`)
                     .then(response => response.json())
                     .then(data => {
-                        stateSelect.innerHTML = '<option value="">Select State</option>';
                         data.forEach(state => {
                             const option = document.createElement('option');
                             option.value = state.id;
                             option.textContent = state.name;
                             stateSelect.appendChild(option);
                         });
-                        stateSelect.disabled = false;
                     })
-                    .catch(error => {
-                        console.error('Error fetching states:', error);
-                        stateSelect.innerHTML = '<option value="">Error loading states</option>';
-                        stateSelect.disabled = true;
-                    });
+                    .catch(error => console.error('Error fetching states:', error));
             } else {
-                stateSelect.innerHTML = '<option value="">Select State</option>';
                 stateSelect.disabled = true;
+                stateSelect.innerHTML = '<option value="">Select State</option>';
             }
         });
     }
 
-    // State cascading using existing location app AJAX endpoint
-    if (stateSelect) {
+    // State to City cascading
+    if (stateSelect && citySelect) {
         stateSelect.addEventListener('change', function() {
             const stateId = this.value;
             if (stateId) {
+                citySelect.disabled = false;
+                const firstOption = citySelect.options[0];
+                citySelect.innerHTML = '';
+                citySelect.appendChild(firstOption);
+                
                 fetch(`/location/ajax/cities-by-state/${stateId}/`)
                     .then(response => response.json())
                     .then(data => {
-                        citySelect.innerHTML = '<option value="">Select City</option>';
                         data.forEach(city => {
                             const option = document.createElement('option');
                             option.value = city.id;
                             option.textContent = city.name;
                             citySelect.appendChild(option);
                         });
-                        citySelect.disabled = false;
                     })
-                    .catch(error => {
-                        console.error('Error fetching cities:', error);
-                        citySelect.innerHTML = '<option value="">Error loading cities</option>';
-                        citySelect.disabled = true;
-                    });
+                    .catch(error => console.error('Error fetching cities:', error));
             } else {
-                citySelect.innerHTML = '<option value="">Select City</option>';
                 citySelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select City</option>';
             }
         });
     }
 
-    // City cascading using existing location app AJAX endpoint
-    if (citySelect) {
+    // City to District cascading
+    if (citySelect && districtSelect) {
         citySelect.addEventListener('change', function() {
             const cityId = this.value;
             if (cityId) {
+                districtSelect.disabled = false;
+                const firstOption = districtSelect.options[0];
+                districtSelect.innerHTML = '';
+                districtSelect.appendChild(firstOption);
+                
                 fetch(`/location/ajax/districts-by-city/${cityId}/`)
                     .then(response => response.json())
                     .then(data => {
-                        districtSelect.innerHTML = '<option value="">Select District</option>';
                         data.forEach(district => {
                             const option = document.createElement('option');
                             option.value = district.id;
                             option.textContent = district.name;
                             districtSelect.appendChild(option);
                         });
-                        districtSelect.disabled = false;
                     })
-                    .catch(error => {
-                        console.error('Error fetching districts:', error);
-                        districtSelect.innerHTML = '<option value="">Error loading districts</option>';
-                        districtSelect.disabled = true;
-                    });
+                    .catch(error => console.error('Error fetching districts:', error));
             } else {
-                districtSelect.innerHTML = '<option value="">Select District</option>';
                 districtSelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select District</option>';
             }
         });
     }
 
-    // District cascading using existing location app AJAX endpoint
-    if (districtSelect) {
+    // District to Region cascading
+    if (districtSelect && regionSelect) {
         districtSelect.addEventListener('change', function() {
             const districtId = this.value;
             if (districtId) {
+                regionSelect.disabled = false;
+                const firstOption = regionSelect.options[0];
+                regionSelect.innerHTML = '';
+                regionSelect.appendChild(firstOption);
+                
                 fetch(`/location/ajax/regions-by-district/${districtId}/`)
                     .then(response => response.json())
                     .then(data => {
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
                         data.forEach(region => {
                             const option = document.createElement('option');
                             option.value = region.id;
                             option.textContent = region.name;
                             regionSelect.appendChild(option);
                         });
-                        regionSelect.disabled = false;
                     })
-                    .catch(error => {
-                        console.error('Error fetching regions:', error);
-                        regionSelect.innerHTML = '<option value="">Error loading regions</option>';
-                        regionSelect.disabled = true;
-                    });
+                    .catch(error => console.error('Error fetching regions:', error));
             } else {
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
                 regionSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
             }
         });
-    }
-
-    // Initialize cascading based on existing values (for edit mode)
-    if (categorySelect && categorySelect.value) {
-        // Set the subcategory value if it exists
-        const subcategoryValue = document.getElementById('id_subcategory').value;
-        categorySelect.dispatchEvent(new Event('change'));
-        
-        // After the subcategories are loaded, set the selected value
-        setTimeout(() => {
-            if (subcategoryValue) {
-                document.getElementById('id_subcategory').value = subcategoryValue;
-            }
-        }, 500);
-    }
-    if (countrySelect && countrySelect.value) {
-        // Set the state value if it exists
-        const stateValue = document.getElementById('id_state').value;
-        countrySelect.dispatchEvent(new Event('change'));
-        
-        // After the states are loaded, set the selected value
-        setTimeout(() => {
-            if (stateValue) {
-                document.getElementById('id_state').value = stateValue;
-            }
-        }, 500);
-    }
-    if (stateSelect && stateSelect.value) {
-        // Set the city value if it exists
-        const cityValue = document.getElementById('id_city').value;
-        stateSelect.dispatchEvent(new Event('change'));
-        
-        // After the cities are loaded, set the selected value
-        setTimeout(() => {
-            if (cityValue) {
-                document.getElementById('id_city').value = cityValue;
-            }
-        }, 500);
-    }
-    if (citySelect && citySelect.value) {
-        // Set the district value if it exists
-        const districtValue = document.getElementById('id_district').value;
-        citySelect.dispatchEvent(new Event('change'));
-        
-        // After the districts are loaded, set the selected value
-        setTimeout(() => {
-            if (districtValue) {
-                document.getElementById('id_district').value = districtValue;
-            }
-        }, 500);
-    }
-    if (districtSelect && districtSelect.value) {
-        // Set the region value if it exists
-        const regionValue = document.getElementById('id_region').value;
-        districtSelect.dispatchEvent(new Event('change'));
-        
-        // After the regions are loaded, set the selected value
-        setTimeout(() => {
-            if (regionValue) {
-                document.getElementById('id_region').value = regionValue;
-            }
-        }, 500);
     }
 });
 </script>

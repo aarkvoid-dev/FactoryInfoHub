@@ -1,32 +1,70 @@
 from django import forms
-from django.forms import ModelForm
-from .models import Factory
+from django.forms import ModelForm, inlineformset_factory
+from .models import Factory, FactoryImage
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 
 
 class FactoryForm(ModelForm):
+    # Add dynamic category creation fields
+    new_category = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Create new category...',
+            'style': 'display: none;'
+        }),
+        label='New Category'
+    )
+    
+    new_subcategory = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Create new subcategory...',
+            'style': 'display: none;'
+        }),
+        label='New Subcategory'
+    )
+
     class Meta:
         model = Factory
         fields = [
             'name', 'description', 'category', 'subcategory',
             'country', 'state', 'city', 'district', 'region',
             'address', 'pincode', 'contact_person', 'contact_phone',
-            'contact_email', 'website', 'established_year',
-            'employee_count', 'annual_turnover', 'factory_type',
+            'contact_email', 'website', 'video_url', 'established_year',
+            'employee_count', 'annual_turnover', 'factory_type','price',
             'production_capacity', 'working_hours', 'holidays',
             'is_active', 'is_verified'
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
-            'address': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
-            'holidays': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
-            'contact_phone': forms.TextInput(attrs={'type': 'tel'}),
-            'contact_email': forms.EmailInput(attrs={'type': 'email'}),
-            'website': forms.URLInput(attrs={'type': 'url'}),
-            'established_year': forms.NumberInput(attrs={'min': 1900, 'max': 2030}),
-            'employee_count': forms.NumberInput(attrs={'min': 0}),
-            'annual_turnover': forms.NumberInput(attrs={'step': '0.01'}),
+            'description': forms.Textarea(attrs={'rows': 4, 'cols': 40, 'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control'}),
+            'holidays': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control'}),
+            'contact_phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control'}),
+            'contact_email': forms.EmailInput(attrs={'type': 'email', 'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'type': 'url', 'class': 'form-control'}),
+            'video_url': forms.URLInput(attrs={
+                'type': 'url', 
+                'class': 'form-control',
+                'placeholder': 'https://youtube.com/watch?v=...',
+                'pattern': 'https://.*',
+                'title': 'Please enter a valid URL starting with https://',
+                'data-video-preview': 'true'
+            }),
+            'established_year': forms.NumberInput(attrs={'min': 1900, 'max': 2030, 'class': 'form-control'}),
+            'employee_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control'}),
+            'annual_turnover': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'factory_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'production_capacity': forms.TextInput(attrs={'class': 'form-control'}),
+            'working_hours': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'pincode': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
         }
         labels = {
             'name': 'Factory Name',
@@ -44,6 +82,7 @@ class FactoryForm(ModelForm):
             'contact_phone': 'Contact Phone',
             'contact_email': 'Contact Email',
             'website': 'Website',
+            'video_url': 'Video Tour URL',
             'established_year': 'Established Year',
             'employee_count': 'Employee Count',
             'annual_turnover': 'Annual Turnover (in INR)',
@@ -53,12 +92,14 @@ class FactoryForm(ModelForm):
             'holidays': 'Holidays',
             'is_active': 'Is Active',
             'is_verified': 'Is Verified',
+            'price' :'Amount'
         }
         help_texts = {
             'factory_type': 'e.g., Manufacturing, Assembly, Processing',
             'production_capacity': 'e.g., 1000 units/month',
             'working_hours': 'e.g., 9:00 AM - 6:00 PM',
             'holidays': 'List of holidays observed',
+            'video_url': 'Paste YouTube or Vimeo link for factory virtual tour',
         }
 
     def __init__(self, *args, **kwargs):
@@ -140,12 +181,77 @@ class FactoryForm(ModelForm):
         else:
             self.fields['region'].queryset = Region.objects.none()
 
-        # Add CSS classes for styling
-        for field_name, field in self.fields.items():
-            if field_name in ['description', 'address', 'holidays']:
-                field.widget.attrs.update({'class': 'form-control'})
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get('category')
+        new_category = cleaned_data.get('new_category')
+        subcategory = cleaned_data.get('subcategory')
+        new_subcategory = cleaned_data.get('new_subcategory')
+
+        # Handle dynamic category creation
+        if new_category and not category:
+            # Create new category
+            category, created = Category.objects.get_or_create(
+                name=new_category.strip(),
+                defaults={'description': f'Auto-created category: {new_category.strip()}'}
+            )
+            cleaned_data['category'] = category
+
+        # Handle dynamic subcategory creation
+        if new_subcategory and not subcategory:
+            parent_category = cleaned_data.get('category')
+            if not parent_category:
+                self.add_error('new_subcategory', 'Please select or create a category first.')
             else:
-                field.widget.attrs.update({'class': 'form-control'})
+                # Create new subcategory
+                subcategory, created = SubCategory.objects.get_or_create(
+                    name=new_subcategory.strip(),
+                    category=parent_category,
+                    defaults={'description': f'Auto-created subcategory: {new_subcategory.strip()}'}
+                )
+                cleaned_data['subcategory'] = subcategory
+
+        return cleaned_data
+
+
+class FactoryImageForm(ModelForm):
+    """Form for individual factory images"""
+    class Meta:
+        model = FactoryImage
+        fields = ['image', 'alt_text', 'is_primary']
+        widgets = {
+            'image': forms.FileInput(attrs={
+                'accept': 'image/*',
+                'class': 'form-control-file'
+            }),
+            'alt_text': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Description of this image...'
+            }),
+            'is_primary': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+        labels = {
+            'image': 'Image File',
+            'alt_text': 'Alternative Text (for accessibility)',
+            'is_primary': 'Set as Primary Image'
+        }
+        help_texts = {
+            'alt_text': 'Describe what this image shows for screen readers and SEO',
+            'is_primary': 'This image will be shown as the main preview image'
+        }
+
+
+# Formset for handling multiple FactoryImage objects
+FactoryImageFormSet = inlineformset_factory(
+    Factory,
+    FactoryImage,
+    form=FactoryImageForm,
+    extra=3,  # Show 3 empty forms by default
+    can_delete=True,
+    can_order=False
+)
 
 
 class FactoryFilterForm(forms.Form):
@@ -175,6 +281,16 @@ class FactoryFilterForm(forms.Form):
         required=False,
         empty_label="All Cities"
     )
+    district = forms.ModelChoiceField(
+        queryset=District.objects.all(),
+        required=False,
+        empty_label="All Districts"
+    )
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        empty_label="All Regions"
+    )
     factory_type = forms.CharField(
         max_length=100,
         required=False,
@@ -189,7 +305,7 @@ class FactoryFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Update querysets based on selected values
+        # Update querysets based on selected values from GET parameters
         if 'category' in self.data:
             try:
                 category_id = int(self.data.get('category'))
@@ -215,4 +331,54 @@ class FactoryFilterForm(forms.Form):
                     state_id=state_id
                 ).order_by('name')
             except (ValueError, TypeError):
+                pass
+
+        # Initialize subcategory queryset based on initial category value
+        if self.initial.get('category'):
+            try:
+                category_id = self.initial.get('category').id
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                    category_id=category_id, is_active=True
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize state queryset based on initial country value
+        if self.initial.get('country'):
+            try:
+                country_id = self.initial.get('country').id
+                self.fields['state'].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize city queryset based on initial state value
+        if self.initial.get('state'):
+            try:
+                state_id = self.initial.get('state').id
+                self.fields['city'].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize district queryset based on initial city value
+        if self.initial.get('city'):
+            try:
+                city_id = self.initial.get('city').id
+                self.fields['district'].queryset = District.objects.filter(
+                    city_id=city_id
+                ).order_by('name')
+            except AttributeError:
+                pass
+
+        # Initialize region queryset based on initial district value
+        if self.initial.get('district'):
+            try:
+                district_id = self.initial.get('district').id
+                self.fields['region'].queryset = Region.objects.filter(
+                    district_id=district_id
+                ).order_by('name')
+            except AttributeError:
                 pass

@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static i18n humanize %}
+
+{% block title %}Payment Successful | Factory InfoHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .success-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: #10b981;
+        margin-bottom: 1rem;
+        animation: bounce 1s ease-in-out;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-30px);}
+        60% {transform: translateY(-15px);}
+    }
+    
+    .success-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .purchase-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .summary-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1A2B3E;
+        display: block;
+    }
+    
+    .summary-label {
+        color: #64748B;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .purchase-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .purchase-item:last-child {
+        border-bottom: none;
+    }
+    
+    .factory-name {
+        font-weight: 600;
+        color: #1A2B3E;
+    }
+    
+    .factory-location {
+        font-size: 0.875rem;
+        color: #64748B;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #EB662B 0%, #FF8A50 100%);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #64748B;
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+    }
+    
+    .email-status {
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .email-icon {
+        font-size: 1.5rem;
+        color: #16a34a;
+        margin-right: 1rem;
+    }
+    
+    .actions-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .confetti {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-header">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h1 class="mb-2">Payment Successful!</h1>
+        <p class="text-muted">Thank you for your purchase. Factory details have been sent to your email.</p>
+    </div>
+
+    <div class="success-card">
+        <div class="email-status">
+            <div class="d-flex align-items-center">
+                <div class="email-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div>
+                    <strong>Email Sent Successfully</strong><br>
+                    <span class="text-muted">Check your inbox for factory details and contact information.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="purchase-summary">
+            <div class="summary-box">
+                <span class="summary-number">{{ purchase_count }}</span>
+                <div class="summary-label">Factories Purchased</div>
+            </div>
+            <div class="summary-box">
+                <span class="summary-number">Rs. {{ total_spent|intcomma }}</span>
+                <div class="summary-label">Total Spent</div>
+            </div>
+        </div>
+
+        <h5 class="mb-3">Purchased Factories</h5>
+        
+        {% for purchase in recent_purchases %}
+        <div class="purchase-item">
+            <div>
+                <div class="factory-name">{{ purchase.factory.name }}</div>
+                <div class="factory-location">
+                    {{ purchase.factory.city.name }}, {{ purchase.factory.state.name }} • 
+                    {{ purchase.factory.category.name }}
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold">Rs. {{ purchase.total_amount|intcomma }}</div>
+                <small class="text-muted">{{ purchase.created_at|date:"M d, Y" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="actions-row">
+            <a href="{% url 'karkahan:purchase_history' %}" class="btn btn-secondary">
+                <i class="fas fa-history me-2"></i>View Purchase History
+            </a>
+            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    <div class="text-center text-muted">
+        <p><i class="fas fa-info-circle me-2"></i>Need help? Contact our support team for assistance with your purchase.</p>
+    </div>
+</div>
+
+<script>
+// Add confetti effect
+document.addEventListener('DOMContentLoaded', function() {
+    createConfetti();
+    
+    // Auto-redirect after 10 seconds
+    setTimeout(function() {
+        window.location.href = "{% url 'karkahan:purchase_history' %}";
+    }, 10000);
+});
+
+function createConfetti() {
+    const colors = ['#EB662B', '#FF8A50', '#10b981', '#3b82f6', '#8b5cf6'];
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti';
+    document.body.appendChild(confettiContainer);
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'absolute';
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = Math.random() * 10 + 5 + 'px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.opacity = Math.random();
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear infinite`;
+        confettiContainer.appendChild(confetti);
+    }
+    
+    // Add CSS for confetti animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+{% endblock %}

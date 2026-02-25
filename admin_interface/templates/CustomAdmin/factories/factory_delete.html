@@ -1,0 +1,111 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Delete Factory: {{ factory.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Delete Factory</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_factories' %}">Factories</a></li>
+                            <li class="breadcrumb-item active">Delete Factory</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_factories' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Confirm Deletion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All data associated with this factory will be permanently deleted.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Factory Name</h6>
+                            <p class="text-muted">{{ factory.name }}</p>
+                            
+                            <h6>Category</h6>
+                            <p class="text-muted">{{ factory.category.name }}</p>
+                            
+                            <h6>Subcategory</h6>
+                            <p class="text-muted">{{ factory.subcategory.name|default:"Not specified" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Location</h6>
+                            <p class="text-muted">{{ factory.get_full_location }}</p>
+                            
+                            <h6>Production Capacity</h6>
+                            <p class="text-muted">{{ factory.production_capacity|default:"Not specified" }}</p>
+                            
+                            <h6>Employee Count</h6>
+                            <p class="text-muted">{{ factory.employee_count|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6>Associated Data</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-image me-2"></i>Factory Images: {{ factory.images.count }}</li>
+                                <li><i class="fas fa-blog me-2"></i>Related Blog Posts: {{ factory.blogpost_set.count }}</li>
+                                <li><i class="fas fa-user me-2"></i>Associated Workers: {{ factory.worker_set.count }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Note:</strong> This factory will be permanently deleted along with all its associated data including images, related blog posts, and worker associations.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'admin_interface:admin_factories' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <form method="POST" action="{% url 'admin_interface:admin_factory_delete' factory.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Permanently Delete Factory
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-warning {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+}
+</style>
+{% endblock %}

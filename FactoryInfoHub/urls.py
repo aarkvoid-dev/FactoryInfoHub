@@ -27,6 +27,9 @@ urlpatterns = [
     path('location/', include('location.urls')),
     path('categories/', include('category.urls')),
     path('karkahan/', include('Karkahan.urls')),
+    path('workers/', include('Workers.urls')),
+    path('admin_interface/', include('admin_interface.urls')),
+    path('faq/', include('faq.urls')),
 ]
 
 # Serve media files during development

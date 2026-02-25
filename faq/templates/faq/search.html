@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load faq_filters %}
+
+{% block title %}Search Results - FAQ{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<!-- <nav aria-label="breadcrumb" class="mt-4">
+    <div class="container">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'faq:home' %}">FAQ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Search Results</li>
+        </ol>
+    </div>
+</nav> -->
+
+<!-- Search Header -->
+<section class="search-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="search-summary">
+                    <h1>Search Results</h1>
+                    {% if query %}
+                    <p>Found {{ total_results }} result{{ total_results|pluralize }} for "<strong>{{ query }}</strong>"</p>
+                    {% else %}
+                    <p>Please enter a search term to find answers</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Filters -->
+<section class="search-filters">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="filters-card">
+                    <form action="{% url 'faq:search' %}" method="GET" class="search-filters-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="search-query">Search Query</label>
+                                    <input type="text" name="q" id="search-query" class="form-control" 
+                                           placeholder="Enter your search terms..." value="{{ query|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category-filter">Filter by Category</label>
+                                    <select name="category" id="category-filter" class="form-control">
+                                        <option value="">All Categories</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.slug }}" {% if category.slug == category_filter %}selected{% endif %}>
+                                            {{ category.name }} ({{ category.question_count }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Results -->
+<section class="search-results">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                {% if questions %}
+                <div class="results-list">
+                    {% for question in questions %}
+                    <div class="result-item">
+                        <div class="result-content">
+                            <div class="result-meta">
+                                <span class="category-badge">{{ question.category.name }}</span>
+                                <span class="date">{{ question.created_at|date:"M d, Y" }}</span>
+                                <span class="views">
+                                    <i class="fas fa-eye"></i> {{ question.view_count }}
+                                </span>
+                            </div>
+                            <h4>
+                                <a href="{{ question.get_absolute_url }}">
+                                    {{ question.title }}
+                                </a>
+                            </h4>
+                            <p class="result-excerpt">
+                                {% if query %}
+                                {{ question.question_text|truncatewords:25|highlight:query }}
+                                {% else %}
+                                {{ question.question_text|truncatewords:25 }}
+                                {% endif %}
+                            </p>
+                            {% if question.get_tags_list %}
+                            <div class="result-tags">
+                                {% for tag in question.get_tags_list %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if questions.has_other_pages %}
+                <nav aria-label="Search results pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if questions.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&category={{ category_filter }}&page={{ questions.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in questions.paginator.page_range %}
+                        {% if num == questions.number %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > questions.number|add:'-3' and num < questions.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&category={{ category_filter }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if questions.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&category={{ category_filter }}&page={{ questions.next_page_number }}">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="no-results">
+                    <div class="no-results-content">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h3>No Results Found</h3>
+                        <p>Sorry, we couldn't find any questions matching your search criteria.</p>
+                        
+                        {% if query %}
+                        <div class="suggestions">
+                            <h5>Try these suggestions:</h5>
+                            <ul>
+                                <li>Check your spelling</li>
+                                <li>Use more general keywords</li>
+                                <li>Try different search terms</li>
+                                <li>Browse by category instead</li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="search-actions">
+                            <a href="{% url 'faq:home' %}" class="btn btn-primary">Browse All Questions</a>
+                            <a href="{% url 'faq:all_questions' %}" class="btn btn-outline-primary">View All Questions</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="sidebar">
+                    <!-- Popular Categories -->
+                    {% if categories %}
+                    <div class="sidebar-card">
+                        <h5>Popular Categories</h5>
+                        <ul class="list-unstyled">
+                            {% for category in categories %}
+                            <li class="mb-2">
+                                <a href="{% url 'faq:category' category.slug %}" class="d-flex justify-content-between align-items-center">
+                                    <span>{{ category.name }}</span>
+                                    <span class="badge badge-primary">{{ category.question_count }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Related Searches -->
+                    {% if query %}
+                    <div class="sidebar-card">
+                        <h5>Related Searches</h5>
+                        <div class="related-searches">
+                            <a href="{% url 'faq:search' %}?q=help" class="badge badge-secondary">help</a>
+                            <a href="{% url 'faq:search' %}?q=account" class="badge badge-secondary">account</a>
+                            <a href="{% url 'faq:search' %}?q=password" class="badge badge-secondary">password</a>
+                            <a href="{% url 'faq:search' %}?q=login" class="badge badge-secondary">login</a>
+                            <a href="{% url 'faq:search' %}?q=settings" class="badge badge-secondary">settings</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Contact Support -->
+                    <div class="sidebar-card">
+                        <h5>Need More Help?</h5>
+                        <p>Can't find what you're looking for? Contact our support team for personalized assistance.</p>
+                        <a href="#" class="btn btn-outline-primary btn-block">Contact Support</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding-top: 120px ;
+        margin-bottom: 0;
+    }
+    
+    .search-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .search-summary p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .search-filters {
+        background: #f8f9fa;
+        padding: 30px 0;
+        margin-bottom: 0;
+    }
+    
+    .filters-card {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .search-results {
+        padding: 40px 0;
+    }
+    
+    .result-item {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .result-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .result-meta {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .category-badge {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .date, .views {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .result-content h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .result-content h4 a {
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .result-content h4 a:hover {
+        color: #667eea;
+    }
+    
+    .result-excerpt {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+    
+    .result-tags {
+        margin-top: 10px;
+    }
+    
+    .tag {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .no-results {
+        background: white;
+        padding: 50px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .no-results-content h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .suggestions {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .suggestions h5 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .suggestions ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .suggestions li {
+        padding: 5px 0;
+        color: #666;
+    }
+    
+    .search-actions {
+        margin-top: 20px;
+    }
+    
+    .sidebar {
+        margin-top: 30px;
+    }
+    
+    .sidebar-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .sidebar-card h5 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .sidebar-card ul li a {
+        color: #667eea;
+        text-decoration: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .sidebar-card ul li a:hover {
+        color: #5a67d8;
+        text-decoration: none;
+    }
+    
+    .related-searches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .related-searches .badge {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .related-searches .badge:hover {
+        background-color: #667eea;
+        color: white;
+    }
+    
+    .pagination .page-link {
+        color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add highlighting for search terms
+    function highlightSearchTerms() {
+        const query = '{{ query|escapejs }}';
+        if (query) {
+            const elements = document.querySelectorAll('.result-excerpt');
+            elements.forEach(element => {
+                const text = element.textContent;
+                const regex = new RegExp(`(${query})`, 'gi');
+                element.innerHTML = text.replace(regex, '<mark>$1</mark>');
+            });
+        }
+    }
+    
+    // Initialize highlighting on page load
+    document.addEventListener('DOMContentLoaded', highlightSearchTerms);
+    
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

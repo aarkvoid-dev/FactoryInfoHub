@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static i18n humanize %}
+
+{% block title %}Checkout | Factory InfoHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .checkout-header {
+        background: linear-gradient(135deg, #1A2B3E 0%, #0F172A 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+    }
+    
+    .checkout-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .checkout-steps::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: rgba(255,255,255,0.3);
+        z-index: 1;
+    }
+    
+    .step {
+        background: rgba(255,255,255,0.1);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .step.active {
+        background: white;
+        color: #1A2B3E;
+        font-weight: bold;
+    }
+    
+    .order-summary {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 1.5rem 0 0 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1A2B3E;
+        border-top: 2px solid #e2e8f0;
+        margin-top: 1rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #EB662B 0%, #FF8A50 100%);
+        border: none;
+        padding: 1.5rem 3rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+        width: 100%;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #64748B;
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+    }
+    
+    .security-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .security-icon {
+        font-size: 1.5rem;
+        color: #16a34a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="checkout-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">Checkout</h1>
+                <p class="mb-0 opacity-75">Review your order and complete the purchase</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="badge bg-light text-dark fs-5 px-3 py-2">
+                    {{ cart_items.count }} item{{ cart_items.count|pluralize }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-steps">
+        <div class="step active">
+            <i class="fas fa-shopping-cart mb-2"></i>
+            <div>Review Order</div>
+        </div>
+        <div class="step">
+            <i class="fas fa-credit-card mb-2"></i>
+            <div>Payment</div>
+        </div>
+        <div class="step">
+            <i class="fas fa-check-circle mb-2"></i>
+            <div>Complete</div>
+        </div>
+    </div>
+
+    <div class="security-badge">
+        <div class="security-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div>
+            <strong>Secure Transaction</strong><br>
+            Your information is encrypted and secure. We use proxy payment for demonstration purposes.
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="order-summary">
+                <h4 class="mb-3">Order Summary</h4>
+                
+                {% for item in cart_items %}
+                <div class="summary-item">
+                    <div>
+                        <strong>{{ item.factory.name }}</strong><br>
+                        <span class="text-muted">{{ item.factory.category.name }} • {{ item.factory.city.name }}, {{ item.factory.state.name }}</span><br>
+                        <span class="text-muted">Qty: {{ item.quantity }} × Rs. {{ item.factory.price|intcomma }}</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="fw-bold">Rs. {{ item.total_price|intcomma }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="summary-total">
+                    <span>Total Amount</span>
+                    <span>Rs. {{ total_price|intcomma }}</span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'karkahan:cart_view' %}" class="btn btn-secondary me-3">
+                    <i class="fas fa-arrow-left"></i> Back to Cart
+                </a>
+                <form method="post" action="{% url 'karkahan:process_purchase' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-lock"></i> Complete Purchase
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="order-summary">
+                <h5 class="mb-3">Purchase Details</h5>
+                <div class="summary-item">
+                    <span>Items ({{ cart_items.count }})</span>
+                    <span>Rs. {{ total_price|intcomma }}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Service Fee</span>
+                    <span>Rs. 0</span>
+                </div>
+                <div class="summary-item">
+                    <span>Tax</span>
+                    <span>Rs. 0</span>
+                </div>
+                <div class="summary-total">
+                    <span>Grand Total</span>
+                    <span>Rs. {{ total_price|intcomma }}</span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="bg-light p-3 rounded">
+                    <h6 class="mb-2">What You'll Get</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i> Complete factory details</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Contact information</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Location details</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Email delivery</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

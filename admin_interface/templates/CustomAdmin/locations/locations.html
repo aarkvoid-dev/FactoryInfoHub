@@ -1,0 +1,406 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Location Management - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-map-marker-alt"></i>
+                Location Management
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Location Hierarchy</h3>
+            <h2>Manage Geographic Data</h2>
+            <p>Organize and manage countries, states, cities, districts, and regions for your factory and worker data.</p>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <div class="stat-card-trend">
+                <i class="fas fa-info-circle"></i>
+                Geographic Structure
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Location Hierarchy</h3>
+            <h2>Country → State → City → District → Region</h2>
+            <p>Each level builds upon the previous one to create a complete geographic hierarchy.</p>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-check-circle"></i>
+                Data Integrity
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Validation Rules</h3>
+            <h2>Consistent Data Structure</h2>
+            <p>All locations are validated to ensure proper hierarchy and data consistency.</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Location Summary</h3>
+        <div class="header-actions">
+            <span class="badge badge-info">
+                <i class="fas fa-flag"></i>
+                {{ countries_total }} Countries
+            </span>
+            <span class="badge badge-secondary">
+                <i class="fas fa-landmark"></i>
+                {{ states_total }} States
+            </span>
+            <span class="badge badge-primary">
+                <i class="fas fa-city"></i>
+                {{ cities_total }} Cities
+            </span>
+            <span class="badge badge-warning">
+                <i class="fas fa-building"></i>
+                {{ districts_total }} Districts
+            </span>
+            <span class="badge badge-success">
+                <i class="fas fa-map"></i>
+                {{ regions_total }} Regions
+            </span>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Location Type</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-flag"></i>
+                            Countries
+                        </span>
+                    </td>
+                    <td>Top-level geographic divisions with ISO country codes</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_countries' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-landmark"></i>
+                            States
+                        </span>
+                    </td>
+                    <td>Administrative divisions within countries</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-city"></i>
+                            Cities
+                        </span>
+                    </td>
+                    <td>Urban centers within states</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-building"></i>
+                            Districts
+                        </span>
+                    </td>
+                    <td>Administrative areas within cities</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_districts' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-map"></i>
+                            Regions
+                        </span>
+                    </td>
+                    <td>Local areas within districts</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_regions' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Location Management Actions</h3>
+        <div class="header-actions">
+            <a href="{% url 'admin_interface:admin_countries' %}" class="btn btn-primary">
+                <i class="fas fa-flag"></i>
+                <span>Countries</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-primary">
+                <i class="fas fa-landmark"></i>
+                <span>States</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-primary">
+                <i class="fas fa-city"></i>
+                <span>Cities</span>
+            </a>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Location Type</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-flag"></i>
+                            Countries
+                        </span>
+                    </td>
+                    <td>Top-level geographic divisions with ISO country codes</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_countries' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-landmark"></i>
+                            States
+                        </span>
+                    </td>
+                    <td>Administrative divisions within countries</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-city"></i>
+                            Cities
+                        </span>
+                    </td>
+                    <td>Urban centers within states</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-building"></i>
+                            Districts
+                        </span>
+                    </td>
+                    <td>Administrative areas within cities</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_districts' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-map"></i>
+                            Regions
+                        </span>
+                    </td>
+                    <td>Local areas within districts</td>
+                    <td>
+                        <a href="{% url 'admin_interface:admin_regions' %}" class="btn btn-outline">
+                            <i class="fas fa-list"></i>
+                            <span>Manage</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Quick Actions</h3>
+    </div>
+    
+    <div class="admin-main">
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-lightbulb"></i>
+                    Add New Location
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Quick Add</h3>
+                <h2>Use the individual location pages to add new entries</h2>
+                <p>Each location type has its own management page with dedicated forms and validation.</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-filter"></i>
+                    Filter & Search
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Find Locations</h3>
+                <h2>Use search and filter options on each location page</h2>
+                <p>Quickly locate specific entries using name, code, or other criteria.</p>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Hierarchy Dependencies
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Important</h3>
+                <h2>Locations depend on their parent hierarchy</h2>
+                <p>States require countries, cities require states, etc. Always create parent locations first.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
 <head>
@@ -10,15 +11,67 @@
   <link rel="preconnect" href="https://fonts.googleapis.com/">
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+  
 
   <!-- Website CSS -->
   <link rel="stylesheet" href="{% static 'css/vendors.css' %}">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <!-- Font Awesome 6.x -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Mobile responsive styles -->
+  <style>
+    @media (max-width: 768px) {
+      .desktopNav__item a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .desktopNav__item {
+        margin: 5px 0;
+      }
+
+      .header__logo h4 {
+        font-size: 20px;
+      }
+
+      .header__right .button {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+
+      .header__right a {
+        font-size: 14px;
+      }
+    }
+    @media (max-width: 1024px) {
+        .desktopNav, .xl\:d-none {
+            display: none !important;
+        }
+        
+        /* 2. Force the mobile menu button to become visible */
+        .headerMobile__left {
+            display: block !important;
+        }
+
+        /* 3. Adjust spacing for the 'middle' tablet size */
+        .header__container {
+            padding: 0 20px;
+        }
+    }
+
+    /* 4. Fix for the 'Middle' screen sizes (768px to 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .header__right {
+            display: flex !important;
+        }
+    }
+  </style>
 
   <!-- CSRF Token -->
   <meta name="csrf-token" content="{{ csrf_token }}">
 
-  <title>{% block title %}FactoryInfoHub{% endblock %}</title>
+  <title>{% block title %}Factory Chemistry{% endblock %}</title>
   
   {% block extra_css %}{% endblock %}
 </head>
@@ -40,7 +93,7 @@
       </div>
     </div>
 
-    <div class="preloader__title"> FactoryInfoHub </div>
+    <div class="preloader__title"> Factory Chemistry </div>
   </div>
 
   <div class="tourPagesSidebar" data-x="tourPagesSidebar" data-x-toggle="-is-active">
@@ -83,67 +136,62 @@
             </div>
 
             <div class="header__left d-flex items-center">
-            <div class="header__logo">
-                <a href="{% url 'home' %}">
-                <h4 class="text-white fw-700 tracking-tighter">Factory<span class="text-accent-1">Info</span>Hub</h4>
-                </a>
-            </div>
 
-            <div class="ml-40 xl:d-none">
-                <div class="desktopNav -light">
-                <div class="desktopNav__item">
-                    <a href="{% url 'home' %}">Home</a>
-                </div>
-
-                <div class="desktopNav__item">
-                    <a href="{% url 'karkahan:dashboard' %}">Factories</a>
-                </div>
-
-                <div class="desktopNav__item">
-                    <a href="{% url 'blog:post_list' %}">Blog</a>
-                </div>
-
-                <div class="desktopNav__item">
-                    <a href="#">
-                    Categories <i class="icon-chevron-down text-10 ml-5"></i>
+                <div class="header__logo">
+                    <a href="{% url 'home' %}">
+                        <h4 class="text-white fw-700 tracking-tighter">Factory<span class="text-accent-1"> Chemistry</span></h4>
                     </a>
-                    <div class="desktopNavSubnav">
-                    <div class="desktopNavSubnav__content">
-                        <div class="desktopNavSubnav__item">
-                        <a href="{% url 'category:category_list' %}">All Categories</a>
-                        </div>
-                        <div class="desktopNavSubnav__item">
-                        <a href="{% url 'location:country_list' %}">Locations</a>
-                        </div>
-                    </div>
-                    </div>
                 </div>
 
-                <div class="desktopNav__item">
-                    <a href="{% url 'contact' %}">Contact</a>
-                </div>
-                </div>
-            </div>
+                <div class="ml-40 lg:d-none">
+                  <div class="desktopNav -light">
+                  <div class="desktopNav__item">
+                      <a href="{% url 'home' %}">Home</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'karkahan:factory_list' %}">Factories</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'blog:post_list' %}">Blog</a>
+                  </div>
+
+                  {% if request.user.is_staff or request.user.is_superuser %}
+                  <div class="desktopNav__item">
+                      <a href="{% url 'admin_interface:admin_dashboard' %}">Admin Dashboard</a>
+                  </div>
+                  {% endif %}
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'contact' %}">Contact</a>
+                  </div>
+
+                  {% if user.is_authenticated %}
+                  <div class="desktopNav__item">
+                      <a href="{% url 'karkahan:purchase_history' %}">Purchase History</a>
+                  </div>
+                  {% endif %}
+                  </div>
+              </div>
             </div>
 
             <div class="header__right d-flex items-center">
             {% if user.is_authenticated %}
                 <a href="{% url 'profile' %}" class="text-white fw-500 mr-20">
-                {{ user.username }}
+                    <i class="fas fa-user-circle me-2"></i>{{ user.username }}
                 </a>
-                <a href="{% url 'logout' %}" class="button -sm -outline-white text-white rounded-200">
-                Log out
+                <a href="{% url 'logout' %}" class="text-white fw-500 mr-20">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
                 </a>
             {% else %}
-                <a href="{% url 'login' %}" class="text-white fw-500 mr-20">Log in</a>
-                <a href="{% url 'register' %}" class="button -sm -outline-white text-white rounded-200">
-                Sign up
+                <a href="{% url 'login' %}" class="text-white fw-500 mr-20">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+                <a href="{% url 'register' %}" class="text-white fw-500 mr-20">
+                    <i class="fas fa-user-plus me-2"></i>Register
                 </a>
             {% endif %}
-
-            <button class="button size-42 -outline-white text-white rounded-full ml-20">
-                <i class="icon-search text-18"></i>
-            </button>
             </div>
         </div>
         </header>
@@ -152,12 +200,263 @@
     <!-- Messages Section -->
     {% block messages %}
     {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <div class="message-modal-overlay" id="messageModalOverlay">
+        <div class="message-modal-content" id="messageModalContent">
+          {% for message in messages %}
+            <div class="message-popup message-{{ message.tags|default:'info' }}" data-message-type="{{ message.tags|default:'info' }}">
+              <div class="message-icon">
+                {% if message.tags == 'success' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif message.tags == 'error' %}
+                  <i class="fas fa-exclamation-circle"></i>
+                {% elif message.tags == 'warning' %}
+                  <i class="fas fa-exclamation-triangle"></i>
+                {% elif message.tags == 'info' %}
+                  <i class="fas fa-info-circle"></i>
+                {% else %}
+                  <i class="fas fa-info-circle"></i>
+                {% endif %}
+              </div>
+              <div class="message-text">{{ message }}</div>
+              <button class="message-close-btn" onclick="closeMessage(this.closest('.message-popup'))">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
+      
+      <style>
+        /* Message Modal Overlay */
+        .message-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+        }
+        
+        .message-modal-overlay.show {
+          opacity: 1;
+          visibility: visible;
+        }
+        
+        /* Message Modal Content */
+        .message-modal-content {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          padding: 24px;
+          max-width: 500px;
+          width: 90%;
+          text-align: center;
+          animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes modalSlideIn {
+          from {
+            transform: translateY(-30px) scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+        }
+        
+        /* Individual Message Popups */
+        .message-popup {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          margin-bottom: 12px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          animation: popupSlideIn 0.3s ease-out;
+          transition: all 0.3s ease;
+        }
+        
+        .message-popup:last-child {
+          margin-bottom: 0;
+        }
+        
+        @keyframes popupSlideIn {
+          from {
+            transform: translateX(-20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        /* Message Types */
+        .message-success {
+          background: linear-gradient(135deg, #28a745, #20c997);
+          color: white;
+          box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+        }
+        
+        .message-error {
+          background: linear-gradient(135deg, #dc3545, #fd7e14);
+          color: white;
+          box-shadow: 0 8px 24px rgba(220, 53, 69, 0.3);
+        }
+        
+        .message-warning {
+          background: linear-gradient(135deg, #ffc107, #fd7e14);
+          color: #212529;
+          box-shadow: 0 8px 24px rgba(255, 193, 7, 0.3);
+        }
+        
+        .message-info {
+          background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+          color: white;
+          box-shadow: 0 8px 24px rgba(23, 162, 184, 0.3);
+        }
+        
+        /* Message Icon */
+        .message-icon {
+          font-size: 24px;
+          margin-right: 16px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+        
+        .message-success .message-icon i {
+          filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.5));
+        }
+        
+        .message-error .message-icon i {
+          filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.5));
+        }
+        
+        .message-warning .message-icon i {
+          filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.5));
+        }
+        
+        .message-info .message-icon i {
+          filter: drop-shadow(0 2px 4px rgba(23, 162, 184, 0.5));
+        }
+        
+        /* Message Text */
+        .message-text {
+          flex-grow: 1;
+          font-weight: 600;
+          font-size: 16px;
+          text-align: left;
+        }
+        
+        /* Close Button */
+        .message-close-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          width: 36px;
+          height: 36px;
+        }
+        
+        .message-close-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: scale(1.1);
+        }
+        
+        .message-close-btn i {
+          font-size: 16px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+          .message-modal-content {
+            width: 95%;
+            padding: 20px;
+          }
+          
+          .message-popup {
+            padding: 14px 16px;
+          }
+          
+          .message-text {
+            font-size: 14px;
+          }
+          
+          .message-icon {
+            font-size: 20px;
+            margin-right: 12px;
+          }
+        }
+        
+        /* Auto-hide animation */
+        .message-popup.removing {
+          animation: popupSlideOut 0.3s ease-in;
+          opacity: 0;
+        }
+        
+        @keyframes popupSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(20px);
+            opacity: 0;
+          }
+        }
+      </style>
+      
+      <script>
+        // Auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+          const overlay = document.getElementById('messageModalOverlay');
+          const messages = document.querySelectorAll('.message-popup');
+          
+          // Show the modal
+          overlay.classList.add('show');
+          
+          // Auto-hide each message after 5 seconds
+          messages.forEach((message, index) => {
+            setTimeout(() => {
+              message.classList.add('removing');
+              setTimeout(() => {
+                message.remove();
+                // Close modal if no messages left
+                if (document.querySelectorAll('.message-popup').length === 0) {
+                  overlay.classList.remove('show');
+                }
+              }, 300);
+            }, (index + 1) * 5000);
+          });
+        });
+        
+        function closeMessage(messageElement) {
+          messageElement.classList.add('removing');
+          setTimeout(() => {
+            messageElement.remove();
+            const overlay = document.getElementById('messageModalOverlay');
+            // Close modal if no messages left
+            if (document.querySelectorAll('.message-popup').length === 0) {
+              overlay.classList.remove('show');
+            }
+          }, 300);
+        }
+      </script>
     {% endif %}
     {% endblock %}
 
@@ -165,8 +464,122 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- Mobile Menu -->
+  <div class="menu js-menu">
+    <div class="menu__overlay js-menu-button"></div>
+
+    <div class="menu__container">
+      <div class="menu__header">
+        <h4>Main Menu</h4>
+
+        <button class="js-menu-button"><i class="icon-cross text-10"></i></button>
+      </div>
+
+      <div class="menu__content">
+        <ul class="menuNav js-navList">
+          <li class="menuNav__item -has-submenu js-has-submenu">
+            <a>
+              Home
+              <i class="icon-chevron-right"></i>
+            </a>
+
+            <ul class="submenu">
+              <li class="submenu__item js-nav-list-back">
+                <a>Back</a>
+              </li>
+
+              <li class="submenu__item">
+                <a href="{% url 'home' %}">Home</a>
+              </li>
+
+              <li class="submenu__item">
+                <a href="{% url 'karkahan:factory_list' %}">Factories</a>
+              </li>
+
+              <li class="submenu__item">
+                <a href="{% url 'blog:post_list' %}">Blog</a>
+              </li>
+
+              
+
+              <li class="submenu__item">
+                <a href="{% url 'category:category_list' %}">Categories</a>
+              </li>
+
+              <li class="submenu__item">
+                <a href="{% url 'location:country_list' %}">Locations</a>
+              </li>
+
+              <li class="submenu__item">
+                <a href="{% url 'contact' %}">Contact</a>
+              </li>
+
+              {% if user.is_authenticated %}
+              <li class="submenu__item">
+                <a href="{% url 'karkahan:purchase_history' %}">Purchase History</a>
+              </li>
+              {% endif %}
+            </ul>
+          </li>
+
+          {% if user.is_authenticated %}
+          <li class="menuNav__item">
+            <a href="{% url 'profile' %}">Profile</a>
+          </li>
+          <li class="menuNav__item">
+            <a href="{% url 'logout' %}">Logout</a>
+          </li>
+          {% else %}
+          <li class="menuNav__item">
+            <a href="{% url 'login' %}">Login</a>
+          </li>
+          <li class="menuNav__item">
+            <a href="{% url 'register' %}">Register</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="menu__footer">
+        <i class="icon-headphone text-50"></i>
+
+        <div class="text-20 lh-12 fw-500 mt-20">
+          <div>Speak to our expert at</div>
+          <div class="text-accent-1">1-800-453-6744</div>
+        </div>
+
+        <div class="d-flex items-center x-gap-10 pt-30">
+
+          <div>
+            <a class="d-block">
+              <i class="icon-facebook"></i>
+            </a>
+          </div>
+
+          <div>
+            <a class="d-block">
+              <i class="icon-twitter"></i>
+            </a>
+          </div>
+
+          <div>
+            <a class="d-block">
+              <i class="icon-instagram"></i>
+            </a>
+          </div>
+
+          <div>
+            <a class="d-block">
+              <i class="icon-linkedin"></i>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer Section -->
-  {% block footer %}
   <footer class="footer -type-1 -round">
     <div class="footer__main">
       <div class="footer__bg bg-accent-1-05 rounded-24"></div>
@@ -182,7 +595,7 @@
                 <div class="col-auto">
                   <div class="text-20 fw-500">
                     Factory Management System
-                    <span class="text-accent-1">FactoryInfoHub</span>
+                    <span class="text-accent-1">Factory Chemistry</span>
                   </div>
                 </div>
               </div>
@@ -254,7 +667,7 @@
       <div class="footer__bottom">
         <div class="row y-gap-5 justify-between items-center">
           <div class="col-auto">
-            <div>© Copyright FactoryInfoHub 2026</div>
+            <div>© Copyright Factory Chemistry 2026</div>
           </div>
           <div class="col-auto">
             <div class="footer__images d-flex items-center x-gap-10">
@@ -270,21 +683,83 @@
       </div>
     </div>
   </footer>
-  {% endblock %}
 
   <!-- Website JavaScript -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAz77U5XQuEME6TpftaMdX0bBelQxXRlM"></script>
   <script src="https://unpkg.com/@googlemaps/markerclusterer@2.6.2/dist/index.min.js"></script>
   <script src="{% static 'js/vendors.js' %}"></script>
   <script src="{% static 'js/main.js' %}"></script>
-  
+
+  <!-- Mobile menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu toggle
+        const menuButton = document.querySelector('.js-menu-button');
+        const menu = document.querySelector('.js-menu');
+        const menuOverlay = document.querySelector('.menu__overlay');
+
+        if (menuButton && menu) {
+            menuButton.addEventListener('click', function() {
+                menu.classList.toggle('is-active');
+                document.body.classList.toggle('menu-open');
+            });
+
+            // Close menu when clicking on overlay
+            if (menuOverlay) {
+                menuOverlay.addEventListener('click', function() {
+                    menu.classList.remove('is-active');
+                    document.body.classList.remove('menu-open');
+                });
+            }
+
+            // Close menu when clicking on menu links
+            const menuLinks = menu.querySelectorAll('.menuNav__item a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    menu.classList.remove('is-active');
+                    document.body.classList.remove('menu-open');
+                });
+            });
+        }
+
+        // Mobile menu subnav toggle
+        const hasSubmenuItems = document.querySelectorAll('.js-has-submenu');
+        hasSubmenuItems.forEach(item => {
+            const link = item.querySelector('a');
+            const submenu = item.querySelector('.submenu');
+
+            if (link && submenu) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    item.classList.toggle('-has-submenu-active');
+                });
+            }
+        });
+
+        // Mobile menu back button
+        const backButtons = document.querySelectorAll('.js-nav-list-back');
+        backButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentItem = this.closest('.js-has-submenu');
+                if (parentItem) {
+                    parentItem.classList.remove('-has-submenu-active');
+                }
+            });
+        });
+    });
+  </script>
+
   <!-- Django-specific JavaScript -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Django application loaded with website styling');
     });
   </script>
-  
+
   {% block extra_js %}{% endblock %}
+
+  <!-- Floating Video Section -->
+  {% block floating_video %}{% endblock %}
 </body>
 </html>

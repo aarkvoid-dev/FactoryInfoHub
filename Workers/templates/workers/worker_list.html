@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Find Workers - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<section class="layout-pt-xl layout-pb-xl">
+    <div class="container">
+        <div class="row justify-center">
+            <div class="col-lg-10">
+                <div class="card rounded-24 shadow-2 mb-30">
+                    <div class="card__body p-40">
+                        <div class="text-center mb-30">
+                            <h2 class="text-30 fw-700">Find Workers</h2>
+                            <p class="text-16 mt-10">Search and connect with skilled workers</p>
+                        </div>
+
+                        <form method="get" class="mb-30">
+                            <div class="row y-gap-15">
+                                <div class="col-md-4">
+                                    <input type="text" name="q" class="form-control" placeholder="Search by name, skills, or category" value="{{ query }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <input type="text" name="category" class="form-control" placeholder="Category (e.g., Tailor, Electrician)" value="{{ category }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <input type="text" name="city" class="form-control" placeholder="City" value="{{ city }}">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <button type="submit" class="button -primary w-full">Search</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if workers.exists %}
+                            <div class="row y-gap-30">
+                                {% for worker in workers %}
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="card rounded-12 shadow-1 hover:shadow-2 transition-shadow">
+                                        <div class="card__body p-30">
+                                            <div class="d-flex justify-between items-start mb-20">
+                                                <h4 class="text-16 fw-600">{{ worker.full_name }}</h4>
+                                                <span class="badge -primary">{{ worker.category }}</span>
+                                            </div>
+
+                                            <div class="mb-15">
+                                                <p class="text-14 text-muted">Experience: {{ worker.years_of_experience }} years</p>
+                                                <p class="text-14 text-muted">Skills: {{ worker.skills|truncatewords:10 }}</p>
+                                                <p class="text-14 text-muted">Location: {{ worker.city }}, {{ worker.state }}</p>
+                                                <p class="text-14 text-muted">Daily Wage: &#8377; {{ worker.expected_daily_wage }}/day</p>
+                                            </div>
+
+                                            <div class="d-flex justify-between items-center">
+                                                <a href="{% url 'workers:worker_detail' worker.slug %}" class="button -sm -outline-primary">View Profile</a>
+                                                <span class="text-12 text-muted">{{ worker.created_at|date:"M d, Y" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if workers.has_other_pages %}
+                                <div class="pagination mt-40">
+                                    {% if workers.has_previous %}
+                                        <a href="?q={{ query }}&category={{ category }}&city={{ city }}&page={{ workers.previous_page_number }}" class="pagination__button">Previous</a>
+                                    {% endif %}
+
+                                    {% for num in workers.paginator.page_range %}
+                                        {% if workers.number == num %}
+                                            <span class="pagination__button -active">{{ num }}</span>
+                                        {% elif num > workers.number|add:'-3' and num < workers.number|add:'3' %}
+                                            <a href="?q={{ query }}&category={{ category }}&city={{ city }}&page={{ num }}" class="pagination__button">{{ num }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if workers.has_next %}
+                                        <a href="?q={{ query }}&category={{ category }}&city={{ city }}&page={{ workers.next_page_number }}" class="pagination__button">Next</a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-60">
+                                <div class="mb-20">
+                                    <i class="icon-users text-60 text-muted"></i>
+                                </div>
+                                <h3 class="text-20 fw-500 mb-10">No workers found</h3>
+                                <p class="text-16 text-muted">Try adjusting your search criteria or <a href="{% url 'workers:register_worker' %}" class="text-accent-1">register as a worker</a></p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

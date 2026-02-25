@@ -1,0 +1,133 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block content %}
+<div class="dashboard__main">
+    <div class="col-12">
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Responsive Test Page</h3>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>John Doe</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Jane Smith</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Bob Johnson</td>
+                            <td><span class="badge badge-danger">Inactive</span></td>
+                            <td>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <h3>Responsive Design</h3>
+                <h2>✓ Working</h2>
+                <p>This admin interface is now fully responsive and works on mobile, tablet, and desktop devices.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="stat-card success">
+            <div class="stat-card-content">
+                <h3>Mobile Support</h3>
+                <h2>✓ Enabled</h2>
+                <p>Side navigation collapses into a hamburger menu on smaller screens.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Additional responsive styles for the test page */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 14px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .stat-card {
+            margin-bottom: 15px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .table th, .table td {
+            padding: 8px 6px;
+            font-size: 12px;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+    }
+</style>
+{% endblock %}

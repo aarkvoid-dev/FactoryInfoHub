@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - {{ worker.full_name }} - Factory Chemistry{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">Edit Profile</h1>
+          <p class="hero__text text-light-1 ">Update your professional information</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-surface">
+    <div class="container">
+        <form method="POST" id="worker-edit-form">
+            {% csrf_token %}
+            <div class="row g-4">
+                
+                <div class="col-lg-8">
+                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+                        <div class="canvas-header d-flex align-items-center justify-content-between p-4 border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-box bg-accent-soft text-accent rounded-3 p-2">
+                                    <i class="fas fa-user-edit fs-5"></i>
+                                </div>
+                                <h5 class="mb-0 fw-bold">Edit Worker Profile</h5>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill px-3">Phase 01</span>
+                        </div>
+
+                        <div class="p-4 p-md-5">
+                            <div class="row g-4 mb-5">
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.full_name.label }}</label>
+                                        {{ form.full_name }}
+                                        {% if form.full_name.errors %}<div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.date_of_birth.label }}</label>
+                                        {{ form.date_of_birth }}
+                                        {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.gender.label }}</label>
+                                        {{ form.gender }}
+                                        {% if form.gender.errors %}<div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator-text mb-4"><span>Skill Architecture</span></div>
+
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.category.label }}</label>
+                                        {{ form.category }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_cat_wrapper')">+ Create New Category</small>
+                                    </div>
+                                    <div id="new_cat_wrapper" style="display:none;" class="mt-2">
+                                        <label class="label-tech-sm">New Category Name</label>
+                                        {{ form.new_category }} <input type="text" class="form-control" placeholder="Type category name..." 
+                                            oninput="document.getElementById('id_new_category').value = this.value">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.subcategory.label }}</label>
+                                        {{ form.subcategory }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_subcat_wrapper')">+ Create New Specialization</small>
+                                    </div>
+                                    <div id="new_subcat_wrapper" style="display:none;" class="mt-2">
+                                        <label class="label-tech-sm">New Specialization Name</label>
+                                        {{ form.new_subcategory }} <input type="text" class="form-control" placeholder="Type specialization name..." 
+                                            oninput="document.getElementById('id_new_subcategory').value = this.value">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.years_of_experience.label }}</label>
+                                        {{ form.years_of_experience }}
+                                        {% if form.years_of_experience.errors %}<div class="text-danger small mt-1">{{ form.years_of_experience.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.expected_daily_wage.label }}</label>
+                                        {{ form.expected_daily_wage }}
+                                        {% if form.expected_daily_wage.errors %}<div class="text-danger small mt-1">{{ form.expected_daily_wage.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.skills.label }}</label>
+                                        {{ form.skills }}
+                                        <p class="text-muted text-12 mt-1">{{ form.skills.help_text }}</p>
+                                        {% if form.skills.errors %}<div class="text-danger small mt-1">{{ form.skills.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator-text mb-4"><span>Contact Ledger</span></div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.phone_number.label }}</label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.email.label }}</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4">
+                        <div class="canvas-header p-4 border-bottom bg-light-surface">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-globe-americas text-accent me-2"></i>Location Chaining</h5>
+                        </div>
+                        <div class="p-4 p-md-5">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.country.label }}</label>
+                                        {{ form.country }}
+                                        {% if form.country.errors %}<div class="text-danger small mt-1">{{ form.country.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.state.label }}</label>
+                                        {{ form.state }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_state_wrapper')">+ Create New State</small>
+                                    </div>
+                                    <div id="new_state_wrapper" style="display:none;" class="mt-2">
+                                        {{ form.new_state }} <input type="text" class="form-control" placeholder="Type new state name..." 
+                                            oninput="document.getElementById('id_new_state').value = this.value">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.city.label }}</label>
+                                        {{ form.city }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_city_wrapper')">+ New City</small>
+                                    </div>
+                                    <div id="new_city_wrapper" style="display:none;" class="mt-2">
+                                        {{ form.new_city }}
+                                        <input type="text" class="form-control" placeholder="City name..." 
+                                            oninput="document.getElementById('id_new_city').value = this.value">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.district.label }}</label>
+                                        {{ form.district }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_district_wrapper')">+ New District</small>
+                                    </div>
+                                    <div id="new_district_wrapper" style="display:none;" class="mt-2">
+                                        {{ form.new_district }}
+                                        <input type="text" class="form-control" placeholder="District name..." 
+                                            oninput="document.getElementById('id_new_district').value = this.value">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.region.label }}</label>
+                                        {{ form.region }}
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_region_wrapper')">+ New Region</small>
+                                    </div>
+                                    <div id="new_region_wrapper" style="display:none;" class="mt-2">
+                                        {{ form.new_region }}
+                                        <input type="text" class="form-control" placeholder="Region name..." 
+                                            oninput="document.getElementById('id_new_region').value = this.value">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">{{ form.address.label }}</label>
+                                        {{ form.address }}
+                                        {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-sidebar">
+                        <div class="sidebar-card-premium border-accent">
+                            <div class="sidebar-card-header border-bottom">
+                                <h6 class="mb-0 fw-800"><i class="fas fa-bolt me-2"></i>Actions</h6>
+                            </div>
+                            <div class="p-4 bg-white d-grid gap-3">
+                                <div class="form-group-custom">
+                                    <label class="label-tech-sm">Availability Status</label>
+                                    {{ form.availability }}
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="fw-bold small">Active Profile</span>
+                                    <div class="form-check form-switch m-0">{{ form.is_active }}</div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <span class="fw-bold small">Verified Status</span>
+                                    <div class="form-check form-switch m-0">{{ form.is_verified }}</div>
+                                </div>
+
+                                <button type="submit" class="btn-action-main w-100">
+                                    <span>Update Profile</span>
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <a href="{% url 'workers:worker_detail' worker.slug %}" class="btn btn-link w-100 text-muted text-decoration-none mt-2 small">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');
+
+    :root {
+        --accent: #EB662B;
+        --accent-glow: rgba(235, 102, 43, 0.15);
+        --dark-bg: #111827;
+        --surface: #F9FAFB;
+        --border-soft: #E5E7EB;
+        --text-muted: #6B7280;
+    }
+
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
+    .font-syne { font-family: 'Syne', sans-serif; }
+    .fw-800 { font-weight: 800; }
+    .bg-light-surface { background-color: var(--surface); }
+
+    /* Hero */
+    .hero-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .hero-visual-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 32px 32px;
+    }
+    .text-accent { color: var(--accent); }
+
+    /* Canvas Cards */
+    .editor-main-canvas { border: 1px solid var(--border-soft); }
+    .shadow-soft { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
+    
+    .label-tech { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+    .label-tech-sm { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; display: block; }
+
+    .separator-text { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .separator-text::before, .separator-text::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
+    .separator-text span { padding: 0 15px; }
+
+    /* Inputs */
+    .form-group-custom input, .form-group-custom textarea, .form-group-custom select {
+        border: 1.5px solid var(--border-soft) !important;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        background: white !important;
+        font-weight: 500;
+        transition: 0.2s ease-in-out;
+    }
+    .form-group-custom input:focus, .form-group-custom textarea:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px var(--accent-glow) !important;
+        outline: none;
+    }
+
+    /* Premium Upload Area */
+    .upload-area-premium {
+        border: 2px dashed var(--border-soft);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        background: var(--surface);
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .upload-area-premium:hover { border-color: var(--accent); background: white; }
+    .upload-icon-pulse { font-size: 30px; color: var(--accent); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Sidebar Cards */
+    .sidebar-card-premium {
+        background: white; border-radius: 20px;
+        border: 1px solid var(--border-soft); overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    }
+    .sidebar-card-header { background: #fcfcfc; padding: 15px 20px; border-bottom: 1px solid var(--border-soft); }
+    .border-accent { border-top: 4px solid var(--accent) !important; }
+
+    .sticky-sidebar { position: sticky; top: 100px; }
+
+    /* Action Button */
+    .btn-action-main {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-action-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
+
+    /* Select2 High-End Overrides */
+    .select2-container--default .select2-selection--single {
+        border: 1.5px solid var(--border-soft) !important;
+        height: 50px !important;
+        border-radius: 12px !important;
+        padding-top: 10px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { top: 12px !important; }
+
+    @media (max-width: 991px) {
+        .sticky-sidebar { position: static; }
+    }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.hero__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    padding: 120px 20px;
+}
+
+/* optional dark overlay for readability */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$('.select2-searchable').select2({tags:true,width:'100%'});
+
+// Toggle New Category/Subcategory inputs
+function toggleNewField(id) {
+    const wrapper = document.getElementById(id);
+    const input = wrapper.querySelector('input');
+    if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        input.focus();
+    } else {
+        wrapper.style.display = 'none';
+        input.value = '';
+    }
+}
+
+// AJAX Chaining Logic
+function updateChain(parentId, childId, urlTemplate, clearIds = []) {
+    $(`#${parentId}`).on('change', function() {
+        const val = $(this).val();
+        const childEl = $(`#${childId}`);
+        
+        // Reset children
+        childEl.html('<option value="">---</option>');
+        clearIds.forEach(id => $(`#${id}`).html('<option value="">---</option>'));
+
+        // Only run AJAX if the value is a number (Existing ID)
+        // If it's a new manual entry, we can't fetch children from DB yet
+        if (val && !isNaN(val)) {
+            const url = urlTemplate.replace('0', val);
+            $.getJSON(url, function(data) {
+                let options = '<option value="">Select Option</option>';
+                data.forEach(item => {
+                    options += `<option value="${item.id}">${item.name}</option>`;
+                });
+                childEl.html(options);
+            });
+        }
+    });
+}
+
+// Initialize Chaining for Skills
+updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
+
+// Initialize Chaining for Location
+updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
+updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
+updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
+updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
+</script>
+{% endblock %}

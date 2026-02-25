@@ -1,0 +1,267 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    
+    <div class="row g-4 mb-4">
+        {% for card in stats %}
+        {% endfor %}
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+                <div class="icon-box bg-soft-primary text-primary me-3">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0 small fw-bold">TOTAL USERS</p>
+                    <h4 class="mb-0 fw-bold">{{ total_users|default:"1,234" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 12%</span></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+                <div class="icon-box bg-soft-success text-success me-3">
+                    <i class="fas fa-industry"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0 small fw-bold">FACTORIES</p>
+                    <h4 class="mb-0 fw-bold">{{ total_factories|default:"567" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 8%</span></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+                <div class="icon-box bg-soft-warning text-warning me-3">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0 small fw-bold">WORKERS</p>
+                    <h4 class="mb-0 fw-bold">{{ total_workers|default:"2,345" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 15%</span></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+                <div class="icon-box bg-soft-danger text-danger me-3">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                    <p class="text-muted mb-0 small fw-bold">PENDING REPORTS</p>
+                    <h4 class="mb-0 fw-bold">{{ pending_reports|default:"23" }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Live Activity Feed</h5>
+                    <button class="btn btn-light btn-sm rounded-pill px-3">View Full Log</button>
+                </div>
+                <div class="card-body px-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Timestamp</th>
+                                    <th>Activity</th>
+                                    <th>Admin/User</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4"><span class="text-muted small">2m ago</span></td>
+                                    <td><span class="fw-medium">New User Joined</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle me-2">JD</div>
+                                            <span class="small">john_doe</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="status-dot bg-success"></span> <span class="small">Success</span></td>
+                                    <td class="text-end pe-4"><i class="fas fa-chevron-right text-muted clickable"></i></td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Operational Efficiency</h5>
+                    <select class="form-select border-0 bg-light w-auto fw-bold small">
+                        <option>This Week</option>
+                        <option>Last Month</option>
+                    </select>
+                </div>
+                <div class="chart-area bg-light rounded-4 d-flex align-items-center justify-center" style="height: 280px;">
+                    <div class="text-center">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3 opacity-25"></i>
+                        <p class="text-muted small">Analytics Module Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 bg-dark text-white">
+                <h6 class="fw-bold mb-3 text-uppercase small text-secondary">Quick Shortcuts</h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="#" class="action-btn">
+                            <i class="fas fa-user-plus d-block mb-2"></i>
+                            User
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="action-btn bg-success">
+                            <i class="fas fa-industry d-block mb-2"></i>
+                            Factory
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="action-btn bg-warning">
+                            <i class="fas fa-file-pdf d-block mb-2"></i>
+                            Report
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="#" class="action-btn bg-info">
+                            <i class="fas fa-paper-plane d-block mb-2"></i>
+                            Alert
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h6 class="fw-bold mb-4">Infrastructure Status</h6>
+                
+                <div class="health-item mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small fw-bold">Database Server</span>
+                        <span class="badge bg-soft-success text-success">98.2%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 98%"></div>
+                    </div>
+                </div>
+
+                <div class="health-item mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small fw-bold">Cloud Storage</span>
+                        <span class="badge bg-soft-primary text-primary">72% Full</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: 72%"></div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="fw-bold mb-3">Pending Tasks</h6>
+                <div class="task-item d-flex align-items-center p-2 mb-2 bg-light rounded-3">
+                    <i class="fas fa-circle-check text-muted me-3"></i>
+                    <span class="small">Approve Worker Licenses</span>
+                    <span class="ms-auto badge bg-danger rounded-circle">4</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Dashboard-specific responsive styles */
+    .kpi-card {
+        transition: transform 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .custom-table thead th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #94a3b8;
+        border: none;
+        padding: 15px 10px;
+    }
+
+    .avatar-sm {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .action-btn {
+        display: block;
+        padding: 20px 10px;
+        text-align: center;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .action-btn:hover {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    /* Mobile-specific overrides */
+    @media (max-width: 768px) {
+        .kpi-card {
+            margin-bottom: 15px;
+        }
+        
+        .action-btn {
+            padding: 15px 8px;
+            font-size: 10px;
+        }
+        
+        .custom-table th, .custom-table td {
+            padding: 10px 8px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<script>
+    // Subtle entry animations
+    document.addEventListener("DOMContentLoaded", function() {
+        const cards = document.querySelectorAll('.card, .kpi-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = "0";
+            card.style.transform = "translateY(20px)";
+            setTimeout(() => {
+                card.style.transition = "all 0.5s ease";
+                card.style.opacity = "1";
+                card.style.transform = "translateY(0)";
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

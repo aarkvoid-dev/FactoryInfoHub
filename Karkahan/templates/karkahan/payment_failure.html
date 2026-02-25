@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static i18n humanize %}
+
+{% block title %}Payment Failed | Factory InfoHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .failure-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .failure-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .failure-icon {
+        font-size: 4rem;
+        color: #ef4444;
+        margin-bottom: 1rem;
+    }
+    
+    .failure-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .error-box {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .error-icon {
+        font-size: 2rem;
+        color: #ef4444;
+        margin-right: 1rem;
+    }
+    
+    .retry-box {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .retry-icon {
+        font-size: 2rem;
+        color: #f59e0b;
+        margin-right: 1rem;
+    }
+    
+    .purchase-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .purchase-item:last-child {
+        border-bottom: none;
+    }
+    
+    .factory-name {
+        font-weight: 600;
+        color: #1A2B3E;
+    }
+    
+    .factory-location {
+        font-size: 0.875rem;
+        color: #64748B;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #EB662B 0%, #FF8A50 100%);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #64748B;
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+    }
+    
+    .btn-outline-danger {
+        border: 2px solid #ef4444;
+        color: #ef4444;
+        background: transparent;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-outline-danger:hover {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .actions-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .support-info {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .support-icon {
+        font-size: 1.5rem;
+        color: #3b82f6;
+        margin-right: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="failure-container">
+    <div class="failure-header">
+        <div class="failure-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1 class="mb-2">Payment Failed</h1>
+        <p class="text-muted">We're sorry, but your payment could not be processed. Please try again.</p>
+    </div>
+
+    <div class="failure-card">
+        <div class="error-box">
+            <div class="d-flex align-items-center">
+                <div class="error-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div>
+                    <strong>Payment Processing Error</strong><br>
+                    <span class="text-muted">Your payment could not be completed due to a technical issue.</span>
+                </div>
+            </div>
+        </div>
+
+        {% if retry_available %}
+        <div class="retry-box">
+            <div class="d-flex align-items-center">
+                <div class="retry-icon">
+                    <i class="fas fa-redo"></i>
+                </div>
+                <div>
+                    <strong>Retry Available</strong><br>
+                    <span class="text-muted">You can retry the payment for the following items:</span>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3">Failed Purchases</h5>
+        
+        {% for purchase in pending_purchases %}
+        <div class="purchase-item">
+            <div>
+                <div class="factory-name">{{ purchase.factory.name }}</div>
+                <div class="factory-location">
+                    {{ purchase.factory.city.name }}, {{ purchase.factory.state.name }} • 
+                    {{ purchase.factory.category.name }}
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold">Rs. {{ purchase.total_amount|intcomma }}</div>
+                <small class="text-muted">{{ purchase.created_at|date:"M d, Y" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="actions-row">
+            <a href="{% url 'karkahan:payment_page' purchase_amount=0 %}" class="btn btn-primary">
+                <i class="fas fa-credit-card me-2"></i>Retry Payment
+            </a>
+            <a href="{% url 'karkahan:cart_view' %}" class="btn btn-secondary">
+                <i class="fas fa-shopping-cart me-2"></i>Review Cart
+            </a>
+            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-danger">
+                <i class="fas fa-times me-2"></i>Cancel Purchase
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <p class="text-muted">No pending purchases found. Please start a new purchase.</p>
+            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Start New Purchase
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="support-info">
+        <div class="d-flex align-items-center">
+            <div class="support-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div>
+                <strong>Need Help?</strong><br>
+                <span class="text-muted">If you continue to experience issues, please contact our support team at <a href="mailto:support@factoryinfohub.com">support@factoryinfohub.com</a> or call us at +91-XXX-XXX-XXXX.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center text-muted mt-3">
+        <p><i class="fas fa-info-circle me-2"></i>Your cart items have been preserved. You can retry the payment or modify your cart as needed.</p>
+    </div>
+</div>
+
+<script>
+// Add shake animation to failure icon
+document.addEventListener('DOMContentLoaded', function() {
+    const failureIcon = document.querySelector('.failure-icon');
+    if (failureIcon) {
+        failureIcon.style.animation = 'shake 0.5s ease-in-out';
+    }
+});
+
+// Add CSS for shake animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

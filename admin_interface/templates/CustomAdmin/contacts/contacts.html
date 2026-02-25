@@ -1,0 +1,451 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static i18n %}
+
+{% block title %}Contact Messages | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-0">Contact Messages</h1>
+                    <p class="text-muted mb-0">Manage all contact form submissions</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin:Home_contactmessage_changelist' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-2"></i> Django Admin
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-white-50">Total Messages</h6>
+                                    <h3 class="mb-0">{{ messages.count }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-envelope fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-white-50">Unread</h6>
+                                    <h3 class="mb-0">{{ unread_count }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-envelope-open fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-white-50">Read</h6>
+                                    <h3 class="mb-0">{{ read_count }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-white-50">This Month</h6>
+                                    <h3 class="mb-0">{{ this_month_count }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-calendar-alt fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Search by name, email, or subject" value="{{ filters.search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Messages</option>
+                                <option value="unread" {% if filters.status == 'unread' %}selected{% endif %}>Unread</option>
+                                <option value="read" {% if filters.status == 'read' %}selected{% endif %}>Read</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">User</label>
+                            <select name="user" class="form-select">
+                                <option value="">All Users</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if filters.user == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <div class="input-group">
+                                <input type="date" name="start_date" class="form-control" value="{{ filters.start_date }}">
+                                <span class="input-group-text">to</span>
+                                <input type="date" name="end_date" class="form-control" value="{{ filters.end_date }}">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i> Filter
+                            </button>
+                            <a href="{% url 'admin_interface:admin_contacts' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-times me-2"></i> Clear Filters
+                            </a>
+                            <a href="?download=csv" class="btn btn-success ms-2">
+                                <i class="fas fa-download me-2"></i> Export CSV
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Messages Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Messages List</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if messages %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="select-all" class="form-check-input">
+                                    </th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Subject</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for message in messages %}
+                                <tr {% if not message.is_read %}class="table-warning"{% endif %}>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input select-row" value="{{ message.id }}">
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ message.name }}</strong>
+                                            {% if message.user %}
+                                            <br><small class="text-muted">Registered User</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:{{ message.email }}" class="text-decoration-none">
+                                            {{ message.email }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;">
+                                            {{ message.subject }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if message.user %}
+                                        <span class="badge bg-primary">{{ message.user.username }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Guest</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if message.is_read %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i> Read
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-envelope me-1"></i> Unread
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ message.created_at|date:"M d, Y H:i" }}
+                                        </small>
+                                        {% if message.read_at %}
+                                        <br>
+                                        <small class="text-muted">
+                                            Read: {{ message.read_at|date:"M d, Y H:i" }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="#" class="btn btn-sm btn-outline-primary view-message" 
+                                               data-message-id="{{ message.id }}"
+                                               data-name="{{ message.name }}"
+                                               data-email="{{ message.email }}"
+                                               data-subject="{{ message.subject }}"
+                                               data-message="{{ message.message }}"
+                                               data-user="{{ message.user.username|default:'Guest' }}"
+                                               data-created="{{ message.created_at|date:'M d, Y H:i' }}"
+                                               data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            {% if not message.is_read %}
+                                            <a href="{% url 'admin_interface:mark_message_read' message.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check"></i> Mark Read
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'admin_interface:delete_message' message.id %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Bulk Actions -->
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary bulk-action" data-action="mark-read">
+                                        <i class="fas fa-check-circle me-2"></i> Mark as Read
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning bulk-action" data-action="mark-unread">
+                                        <i class="fas fa-envelope me-2"></i> Mark as Unread
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger bulk-action" data-action="delete">
+                                        <i class="fas fa-trash me-2"></i> Delete Selected
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Pagination -->
+                                {% if messages.has_other_pages %}
+                                <nav aria-label="Messages pagination" class="float-end">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        {% if messages.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ messages.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% for num in messages.paginator.page_range %}
+                                        {% if messages.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                        {% elif num > messages.number|add:'-3' and num < messages.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                        </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if messages.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ messages.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-envelope-open-text fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No contact messages found</h5>
+                        <p class="text-muted">When users submit contact forms, their messages will appear here.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Contact Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Name:</strong>
+                        <p id="modal-name" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Email:</strong>
+                        <p id="modal-email" class="mb-2">
+                            <a href="#" id="modal-email-link"></a>
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Subject:</strong>
+                        <p id="modal-subject" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>User:</strong>
+                        <p id="modal-user" class="mb-2"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Sent:</strong>
+                        <p id="modal-created" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        <span id="modal-status" class="badge"></span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Message:</strong>
+                    <div id="modal-message" class="border p-3 bg-light rounded mt-2" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="modal-reply-link" class="btn btn-primary">
+                    <i class="fas fa-reply me-2"></i> Reply
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="bulkActionForm" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" id="bulkActionInput">
+    <input type="hidden" name="selected_ids" id="selectedIdsInput">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select All functionality
+    const selectAll = document.getElementById('select-all');
+    const selectRows = document.querySelectorAll('.select-row');
+    
+    if (selectAll && selectRows.length > 0) {
+        selectAll.addEventListener('change', function() {
+            selectRows.forEach(row => row.checked = this.checked);
+        });
+        
+        selectRows.forEach(row => {
+            row.addEventListener('change', function() {
+                const allChecked = Array.from(selectRows).every(r => r.checked);
+                selectAll.checked = allChecked;
+            });
+        });
+    }
+    
+    // View Message Modal
+    const viewButtons = document.querySelectorAll('.view-message');
+    const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    const modalName = document.getElementById('modal-name');
+    const modalEmail = document.getElementById('modal-email-link');
+    const modalSubject = document.getElementById('modal-subject');
+    const modalUser = document.getElementById('modal-user');
+    const modalCreated = document.getElementById('modal-created');
+    const modalStatus = document.getElementById('modal-status');
+    const modalMessage = document.getElementById('modal-message');
+    const modalReplyLink = document.getElementById('modal-reply-link');
+    
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            modalName.textContent = this.dataset.name;
+            modalEmail.textContent = this.dataset.email;
+            modalEmail.href = 'mailto:' + this.dataset.email;
+            modalSubject.textContent = this.dataset.subject;
+            modalUser.textContent = this.dataset.user;
+            modalCreated.textContent = this.dataset.created;
+            modalMessage.textContent = this.dataset.message;
+            
+            if (this.dataset.read) {
+                modalStatus.className = 'badge bg-success';
+                modalStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Read';
+            } else {
+                modalStatus.className = 'badge bg-warning';
+                modalStatus.innerHTML = '<i class="fas fa-envelope me-1"></i> Unread';
+            }
+            
+            modalReplyLink.href = 'mailto:' + this.dataset.email + '?subject=Re: ' + encodeURIComponent(this.dataset.subject);
+            
+            modal.show();
+        });
+    });
+    
+    // Bulk Actions
+    const bulkActions = document.querySelectorAll('.bulk-action');
+    const bulkForm = document.getElementById('bulkActionForm');
+    
+    bulkActions.forEach(action => {
+        action.addEventListener('click', function() {
+            const selectedIds = Array.from(selectRows)
+                .filter(row => row.checked)
+                .map(row => row.value);
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one message.');
+                return;
+            }
+            
+            if (this.dataset.action === 'delete') {
+                if (!confirm('Are you sure you want to delete the selected messages?')) {
+                    return;
+                }
+            }
+            
+            document.getElementById('bulkActionInput').value = this.dataset.action;
+            document.getElementById('selectedIdsInput').value = selectedIds.join(',');
+            bulkForm.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

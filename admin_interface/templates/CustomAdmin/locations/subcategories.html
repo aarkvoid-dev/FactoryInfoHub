@@ -1,0 +1,246 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Subcategory Management - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-layer-group"></i>
+                Subcategory Management
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Subcategory Data</h3>
+            <h2>Manage Subcategories</h2>
+            <p>Organize and manage subcategories within categories for more specific factory and worker classification.</p>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="stat-card-trend">
+                <i class="fas fa-exclamation-triangle"></i>
+                Important Notes
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Subcategory Requirements</h3>
+            <h2>Category Dependency</h2>
+            <p>Subcategories must be associated with an existing category. Make sure categories are created first.</p>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-check-circle"></i>
+                Data Integrity
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Validation Rules</h3>
+            <h2>Consistent Data Structure</h2>
+            <p>All subcategories are validated to ensure proper naming and category association.</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Add New Subcategory</h3>
+    </div>
+    
+    <div class="form-container">
+        <form method="post" class="admin-form">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="error-message">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="error-message">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div class="error-message">{{ form.category.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Subcategory</span>
+                </button>
+                <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-secondary">
+                    <i class="fas fa-refresh"></i>
+                    <span>Refresh</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Existing Subcategories</h3>
+        <div class="header-actions">
+            <span class="badge badge-info">
+                <i class="fas fa-list"></i>
+                {{ subcategories.count }} Subcategories
+            </span>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Subcategory Name</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Factories</th>
+                    <th>Workers</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subcategory in subcategories %}
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-tags"></i>
+                            {{ subcategory.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-muted text-muted small">
+                            {{ subcategory.description|truncatewords:10 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary text-muted">
+                            <i class="fas fa-layer-group"></i>
+                            {{ subcategory.category.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary text-muted">
+                            {{ subcategory.factory_set.count }} factories
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary text-muted">
+                            {{ subcategory.worker_set.count }} workers
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-muted small">
+                            {{ subcategory.created_at|date:"M d, Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        <i class="fas fa-tags"></i>
+                        No subcategories found. Add your first subcategory above.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Quick Actions</h3>
+    </div>
+    
+    <div class="admin-main">
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-lightbulb"></i>
+                    Add New Subcategory
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Quick Add</h3>
+                <h2>Use the form above to add new subcategories</h2>
+                <p>Fill in the subcategory name, description, and select the parent category to create new subcategory entries.</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-sitemap"></i>
+                    Hierarchy Management
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Category Hierarchy</h3>
+                <h2>Category → Subcategory</h2>
+                <p>Subcategories provide more specific classification within broader categories.</p>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Dependencies
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Important</h3>
+                <h2>Complete Hierarchy</h2>
+                <p>Always create categories first before adding subcategories.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

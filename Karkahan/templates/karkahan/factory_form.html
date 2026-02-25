@@ -1,330 +1,732 @@
-{% extends 'karkahan/base.html' %}
+{% extends 'home/base.html' %}
 {% load static %}
 
-{% block title %}{% if factory %}Edit Factory{% else %}Add New Factory{% endif %} | FactoryInfoHub{% endblock %}
+{% block title %}{% if factory %}Edit Factory{% else %}Add New Factory{% endif %} - FashionChemistry{% endblock %}
 
-{% block factory_content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <a href="{% url 'karkahan:factory_list' %}" class="text-decoration-none text-primary">
-                                <i class="bi bi-arrow-left me-2"></i>Back to Factories
-                            </a>
-                            <h2 class="mb-1">{% if factory %}Edit Factory{% else %}Add New Factory{% endif %}</h2>
-                            <p class="text-muted mb-0">Fill in the details below to {% if factory %}update{% else %}create{% endif %} a factory</p>
+{% block content %}
+
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">{% if factory %}Edit Factory{% else %}Add New Factory{% endif %}</h1>
+          <p class="hero__text text-light-1 ">Fill in the details below to {% if factory %}update{% else %}create{% endif %} a factory</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-surface">
+    <div class="container">
+        <form method="POST" enctype="multipart/form-data" id="main-editor-form">
+            {% csrf_token %}
+            <div class="row g-4">
+                
+                <div class="col-lg-8">
+                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+                        <div class="canvas-header d-flex align-items-center justify-content-between p-4 border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-box bg-accent-soft text-accent rounded-3 p-2">
+                                    <i class="fas fa-file-invoice fs-5"></i>
+                                </div>
+                                <h5 class="mb-0 fw-bold">Primary Specifications</h5>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill px-3">Phase 01: Core Data</span>
+                        </div>
+
+                        <div class="p-4 p-md-5">
+                            <div class="row g-4 mb-5">
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Official Factory Name</label>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Architecture Type</label>
+                                        {{ form.factory_type }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Conatact Price</label>
+                                        {{ form.price }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Inception Year</label>
+                                        {{ form.established_year }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator-text mb-4"><span>Operational Metrics</span></div>
+
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Production Volume</label>
+                                        {{ form.production_capacity }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Shift Structure (Hours)</label>
+                                        {{ form.working_hours }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Staff Capacity</label>
+                                        {{ form.employee_count }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Annual Revenue Ledger</label>
+                                        {{ form.annual_turnover }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Virtual Tour Link</label>
+                                        {{ form.video_url }}
+                                        {% if form.video_url.help_text %}<small class="text-muted">{{ form.video_url.help_text }}</small>{% endif %}
+                                        <div id="video-preview-container" class="mt-2" style="display: none;">
+                                            <div class="video-preview-card bg-light rounded-3 p-3">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <small class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i>Valid Video URL</small>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="preview-toggle">Preview</button>
+                                                </div>
+                                                <div id="video-preview-iframe" style="display: none; height: 200px;">
+                                                    <div class="ratio ratio-16x9">
+                                                        <iframe id="video-iframe" frameborder="0" allowfullscreen></iframe>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="video-error-container" class="mt-2" style="display: none;">
+                                            <small class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Invalid video URL. Please enter a valid YouTube or Vimeo link.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator-text mb-4"><span>Communication Channels</span></div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Point of Contact</label>
+                                        {{ form.contact_person }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Secure Phone</label>
+                                        {{ form.contact_phone }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Verification Email</label>
+                                        {{ form.contact_email }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Digital Hub (Website)</label>
+                                        {{ form.website }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label class="label-tech">Internal Narrative (Description)</label>
+                                        {{ form.description }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <form method="post" enctype="multipart/form-data" class="row g-4">
-                        {% csrf_token %}
+                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4 overflow-hidden">
+                        <div class="canvas-header p-4 border-bottom bg-light-surface">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-camera-retro text-accent me-2"></i>Visual Assets</h5>
+                        </div>
+                        <div class="p-4 p-md-5">
+                            <div class="upload-area-premium" onclick="document.getElementById('id_images-TOTAL_FORMS').closest('.formset-container').querySelector('input[type=file]').click()">
+                                <div class="upload-icon-pulse"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <h6 class="fw-bold mt-3">Upload Factory Images</h6>
+                                <p class="text-muted small">Drag and drop or click to browse (Multiple images supported)</p>
+                            </div>
+                            
+                            <!-- Image Formset Container -->
+                            <div class="formset-container mt-3">
+                                {{ formset.management_form }}
+                                <div id="image-forms-container">
+                                    {% for image_form in formset %}
+                                        <div class="image-form-row mb-3 p-3 border rounded" id="image-form-{{ forloop.counter0 }}">
+                                            {{ image_form.id }}
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group-custom">
+                                                        <label class="label-tech-sm">Image File</label>
+                                                        {{ image_form.image }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <div class="form-group-custom">
+                                                        <label class="label-tech-sm">Alternative Text</label>
+                                                        {{ image_form.alt_text }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 d-flex align-items-end">
+                                                    <div class="form-group-custom">
+                                                        <div class="form-check">
+                                                            {{ image_form.is_primary }}
+                                                            <label class="form-check-label label-tech-sm" for="{{ image_form.is_primary.id_for_label }}">
+                                                                Set as Primary
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% if image_form.instance.pk %}
+                                                <div class="mt-2">
+                                                    <div class="form-check">
+                                                        {{ image_form.DELETE }}
+                                                        <label class="form-check-label text-danger" for="{{ image_form.DELETE.id_for_label }}">
+                                                            Delete this image
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-image-btn">
+                                    <i class="fas fa-plus"></i> Add Another Image
+                                </button>
+                            </div>
+                            
+                            <!-- Image Preview Gallery -->
+                            <div id="image-preview-gallery" class="mt-3">
+                                {% if factory %}
+                                    <div class="row">
+                                        {% for image in factory.images.all %}
+                                            <div class="col-md-3 mb-3">
+                                                <div class="card h-100">
+                                                    <img src="{{ image.image.url }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                                    <div class="card-body p-2">
+                                                        <small class="text-muted">{{ image.alt_text|default:"No description" }}</small>
+                                                        {% if image.is_primary %}
+                                                            <span class="badge bg-primary ms-2">Primary</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-sidebar">
                         
-                        <!-- Left Column -->
-                        <div class="col-lg-6">
-                            <!-- Basic Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-info-circle me-2 text-primary"></i>
-                                        Basic Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Factory Name *</label>
-                                            {{ form.name }}
-                                            {% if form.name.errors %}
-                                                <div class="text-danger mt-1">{{ form.name.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Category *</label>
-                                            {{ form.category }}
-                                            {% if form.category.errors %}
-                                                <div class="text-danger mt-1">{{ form.category.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Factory Type</label>
-                                            {{ form.factory_type }}
-                                            {% if form.factory_type.errors %}
-                                                <div class="text-danger mt-1">{{ form.factory_type.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Established Year</label>
-                                            {{ form.established_year }}
-                                            {% if form.established_year.errors %}
-                                                <div class="text-danger mt-1">{{ form.established_year.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="sidebar-card-premium mb-4">
+                            <div class="sidebar-card-header border-bottom">
+                                <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Hierarchy</h6>
                             </div>
-
-                            <!-- Location Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-geo-alt me-2 text-success"></i>
-                                        Location Information
-                                    </h5>
+                            <div class="p-4 bg-white">
+                                <div class="mb-3">
+                                    <label class="label-tech-sm">Industry Vertical</label>
+                                    <select name="category" id="id_category" class="select2-searchable">
+                                        <option value="">Select Category</option>
+                                        {% for cat in form.category.field.queryset %}
+                                        <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Address</label>
-                                            {{ form.address }}
-                                            {% if form.address.errors %}
-                                                <div class="text-danger mt-1">{{ form.address.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">City *</label>
-                                            {{ form.city }}
-                                            {% if form.city.errors %}
-                                                <div class="text-danger mt-1">{{ form.city.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">State *</label>
-                                            {{ form.state }}
-                                            {% if form.state.errors %}
-                                                <div class="text-danger mt-1">{{ form.state.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Country *</label>
-                                            {{ form.country }}
-                                            {% if form.country.errors %}
-                                                <div class="text-danger mt-1">{{ form.country.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Pincode</label>
-                                            {{ form.pincode }}
-                                            {% if form.pincode.errors %}
-                                                <div class="text-danger mt-1">{{ form.pincode.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Contact Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-telephone me-2 text-info"></i>
-                                        Contact Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Contact Person</label>
-                                            {{ form.contact_person }}
-                                            {% if form.contact_person.errors %}
-                                                <div class="text-danger mt-1">{{ form.contact_person.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Contact Phone</label>
-                                            {{ form.contact_phone }}
-                                            {% if form.contact_phone.errors %}
-                                                <div class="text-danger mt-1">{{ form.contact_phone.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Contact Email</label>
-                                            {{ form.contact_email }}
-                                            {% if form.contact_email.errors %}
-                                                <div class="text-danger mt-1">{{ form.contact_email.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label class="label-tech-sm">Niche Specification</label>
+                                    <select name="subcategory" id="id_subcategory" class="select2-searchable">
+                                        <option value="">Select Subcategory</option>
+                                        {% for subcat in form.subcategory.field.queryset %}
+                                        <option value="{{ subcat.id }}" {% if form.subcategory.value == subcat.id %}selected{% endif %}>{{ subcat.name }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right Column -->
-                        <div class="col-lg-6">
-                            <!-- Factory Statistics -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-bar-chart me-2 text-primary"></i>
-                                        Factory Statistics
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Employee Count</label>
-                                            {{ form.employee_count }}
-                                            {% if form.employee_count.errors %}
-                                                <div class="text-danger mt-1">{{ form.employee_count.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Annual Turnover</label>
-                                            {{ form.annual_turnover }}
-                                            {% if form.annual_turnover.errors %}
-                                                <div class="text-danger mt-1">{{ form.annual_turnover.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Production Capacity</label>
-                                            {{ form.production_capacity }}
-                                            {% if form.production_capacity.errors %}
-                                                <div class="text-danger mt-1">{{ form.production_capacity.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Working Hours</label>
-                                            {{ form.working_hours }}
-                                            {% if form.working_hours.errors %}
-                                                <div class="text-danger mt-1">{{ form.working_hours.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="sidebar-card-premium mb-4">
+                            <div class="sidebar-card-header border-bottom">
+                                <h6 class="mb-0 fw-800"><i class="fas fa-map-marked-alt me-2"></i>Geo-Location</h6>
                             </div>
-
-                            <!-- Status & Media -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-gear me-2 text-warning"></i>
-                                        Status & Media
-                                    </h5>
+                            <div class="p-4 bg-white d-grid gap-3">
+                                <select name="country" id="id_country" class="select2-searchable">
+                                    <option value="">Country</option>
+                                    {% for c in form.country.field.queryset %}<option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                                </select>
+                                <select name="state" id="id_state" class="select2-searchable">
+                                    <option value="">State</option>
+                                    {% for s in form.state.field.queryset %}<option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                                </select>
+                                <select name="city" id="id_city" class="select2-searchable">
+                                    <option value="">City</option>
+                                    {% for c in form.city.field.queryset %}<option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                                </select>
+                                <select name="district" id="id_district" class="select2-searchable">
+                                    <option value="">District</option>
+                                    {% for d in form.district.field.queryset %}<option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+                                </select>
+                                <select name="region" id="id_region" class="select2-searchable">
+                                    <option value="">Region</option>
+                                    {% for r in form.region.field.queryset %}<option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+                                </select>
+                                <div class="form-group-custom mt-2">
+                                    <label class="label-tech-sm">Street Address</label>
+                                    {{ form.address }}
                                 </div>
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Factory Image</label>
-                                            {{ form.image }}
-                                            {% if form.image.errors %}
-                                                <div class="text-danger mt-1">{{ form.image.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-semibold">Description</label>
-                                            {{ form.description }}
-                                            {% if form.description.errors %}
-                                                <div class="text-danger mt-1">{{ form.description.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <div class="form-check">
-                                                {{ form.is_active }}
-                                                <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
-                                                    Is Active
-                                                </label>
-                                                {% if form.is_active.errors %}
-                                                    <div class="text-danger mt-1">{{ form.is_active.errors.0 }}</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <div class="form-check">
-                                                {{ form.is_verified }}
-                                                <label class="form-check-label fw-semibold" for="{{ form.is_verified.id_for_label }}">
-                                                    Is Verified
-                                                </label>
-                                                {% if form.is_verified.errors %}
-                                                    <div class="text-danger mt-1">{{ form.is_verified.errors.0 }}</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="form-group-custom">
+                                    <label class="label-tech-sm">Postal Index</label>
+                                    {{ form.pincode }}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Form Actions -->
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex gap-3">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-save me-2"></i>
-                                            {% if factory %}Update Factory{% else %}Create Factory{% endif %}
-                                        </button>
-                                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary">
-                                            <i class="bi bi-x-circle me-2"></i>
-                                            Cancel
-                                        </a>
-                                    </div>
+                        <div class="sidebar-card-premium border-accent">
+                            <div class="p-4 bg-white">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <span class="fw-bold small">System Verification</span>
+                                    <div class="form-check form-switch m-0">{{ form.is_verified }}</div>
                                 </div>
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <span class="fw-bold small">Visibility Status</span>
+                                    <div class="form-check form-switch m-0">{{ form.is_active }}</div>
+                                </div>
+                                <button type="submit" class="btn-action-main w-100">
+                                    <span>{% if factory %}Update Node{% else %}Initialize Node{% endif %}</span>
+                                    <i class="fas fa-rocket"></i>
+                                </button>
+                                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-link w-100 text-muted text-decoration-none mt-2 small">Discard Changes</a>
                             </div>
                         </div>
-                    </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</section>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+$('.select2-searchable').select2({tags:true,width:'100%'});
+
+function updateChain(parent, child, url, clear = []) {
+    $('#' + parent).on('change', function() {
+        const val = $(this).val();
+        const childEl = $('#' + child);
+        
+        // Clear children
+        clear.forEach(id => $('#' + id).empty().append('<option value="">---</option>').trigger('change'));
+        
+        if (val && $.isNumeric(val)) {
+            // Only fetch via AJAX if it's a real ID
+            $.getJSON(url.replace('0', val), function(data) {
+                let opt = '<option value="">Select or Type New...</option>';
+                data.forEach(i => opt += '<option value="' + i.id + '">' + i.name + '</option>');
+                childEl.html(opt).trigger('change');
+            });
+        } else if (val) {
+            // If user typed a NEW tag, just clear the child and let them type there too
+            childEl.empty().append('<option value="">Type to add new...</option>').trigger('change');
+        }
+    });
+}
+
+// Initialize the chain updates
+updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
+updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
+updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
+updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
+updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
+
+// Initialize subcategories based on current category selection
+$(document).ready(function() {
+    const currentCategory = $('#id_category').val();
+    if (currentCategory) {
+        updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
+        $('#id_category').trigger('change');
+    }
+    
+    const currentCountry = $('#id_country').val();
+    if (currentCountry) {
+        updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
+        $('#id_country').trigger('change');
+    }
+    
+    const currentState = $('#id_state').val();
+    if (currentState) {
+        updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
+        $('#id_state').trigger('change');
+    }
+    
+    const currentCity = $('#id_city').val();
+    if (currentCity) {
+        updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
+        $('#id_city').trigger('change');
+    }
+    
+    const currentDistrict = $('#id_district').val();
+    if (currentDistrict) {
+        updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
+        $('#id_district').trigger('change');
+    }
+});
+
+// Multi-image upload functionality
+let formCount = {{ formset.total_form_count }};
+
+$('#add-image-btn').on('click', function() {
+    // Get the management form values
+    const totalFormsInput = $('#id_images-TOTAL_FORMS'); // Ensure the ID starts with id_
+    const initialFormsInput = $('#id_images-INITIAL_FORMS');
+    const minFormsInput = $('#id_images-MIN_NUM_FORMS');
+    const maxFormsInput = $('#id_images-MAX_NUM_FORMS');
+    
+    // Update the total forms count
+    const currentTotal = parseInt(totalFormsInput.val());
+    const newTotal = currentTotal + 1;
+    totalFormsInput.val(newTotal);
+    
+    // Create new form using the template
+    const template = $('#image-form-template').html();
+    const newForm = template.replace(/__prefix__/g, currentTotal);
+    
+    // Add the new form to the container
+    $('#image-forms-container').append(newForm);
+    
+    // Update the form count variable
+    formCount = newTotal;
+});
+
+// Handle file input changes for image preview
+$(document).on('change', 'input[type="file"]', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Create preview for new images
+            const previewContainer = $(this).closest('.image-form-row');
+            if (!previewContainer.find('.image-preview').length) {
+                previewContainer.append('<div class="image-preview mt-2"><img src="' + e.target.result + '" class="rounded" style="height: 80px; width: 80px; object-fit: cover;"></div>');
+            } else {
+                previewContainer.find('.image-preview img').attr('src', e.target.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Video URL validation and preview functionality
+const videoUrlInput = document.querySelector('input[data-video-preview]');
+const videoPreviewContainer = document.getElementById('video-preview-container');
+const videoErrorContainer = document.getElementById('video-error-container');
+const videoIframe = document.getElementById('video-iframe');
+const previewToggle = document.getElementById('preview-toggle');
+const videoPreviewIframe = document.getElementById('video-preview-iframe');
+
+function validateVideoUrl(url) {
+    if (!url) return false;
+    
+    // Check if it's a valid URL format
+    try {
+        new URL(url);
+    } catch (e) {
+        return false;
+    }
+    
+    // Check if it's YouTube or Vimeo
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+/;
+    
+    return youtubeRegex.test(url) || vimeoRegex.test(url);
+}
+
+function getEmbedUrl(url) {
+    if (!url) return '';
+    
+    // YouTube URL conversion
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = '';
+        if (url.includes('youtu.be/')) {
+            videoId = url.split('youtu.be/')[1].split('?')[0];
+        } else if (url.includes('v=')) {
+            videoId = url.split('v=')[1].split('&')[0];
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    }
+    
+    // Vimeo URL conversion
+    if (url.includes('vimeo.com')) {
+        const videoId = url.split('vimeo.com/')[1].split('?')[0];
+        return videoId ? `https://player.vimeo.com/video/${videoId}` : '';
+    }
+    
+    return '';
+}
+
+function updateVideoPreview() {
+    const url = videoUrlInput.value.trim();
+    
+    if (!url) {
+        videoPreviewContainer.style.display = 'none';
+        videoErrorContainer.style.display = 'none';
+        return;
+    }
+    
+    if (validateVideoUrl(url)) {
+        videoPreviewContainer.style.display = 'block';
+        videoErrorContainer.style.display = 'none';
+        const embedUrl = getEmbedUrl(url);
+        if (embedUrl) {
+            videoIframe.src = embedUrl;
+        }
+    } else {
+        videoPreviewContainer.style.display = 'none';
+        videoErrorContainer.style.display = 'block';
+    }
+}
+
+// Toggle video preview
+previewToggle.addEventListener('click', function() {
+    if (videoPreviewIframe.style.display === 'none') {
+        videoPreviewIframe.style.display = 'block';
+        previewToggle.textContent = 'Hide Preview';
+        previewToggle.classList.remove('btn-outline-secondary');
+        previewToggle.classList.add('btn-outline-primary');
+    } else {
+        videoPreviewIframe.style.display = 'none';
+        previewToggle.textContent = 'Preview';
+        previewToggle.classList.remove('btn-outline-primary');
+        previewToggle.classList.add('btn-outline-secondary');
+    }
+});
+
+// Form submission validation
+$('#main-editor-form').on('submit', function(e) {
+    // Validate required fields
+    let isValid = true;
+    const requiredFields = ['name', 'category', 'country', 'state', 'city'];
+    
+    requiredFields.forEach(fieldName => {
+        const field = $('#id_' + fieldName);
+        if (!field.val() || field.val().trim() === '') {
+            field.addClass('is-invalid');
+            isValid = false;
+        } else {
+            field.removeClass('is-invalid');
+        }
+    });
+    
+    // Validate at least one image if creating new factory
+    const isEditing = {{ factory.pk|default:"false" }};
+    if (!isEditing) {
+        const hasImages = $('.image-form-row').length > 0 && 
+                         $('.image-form-row').find('input[type="file"]').filter(function() {
+                             return this.files && this.files.length > 0;
+                         }).length > 0;
+        
+        if (!hasImages) {
+            alert('Please upload at least one factory image.');
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = $(this).find('button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.html('<span>Processing...</span><i class="fas fa-spinner fa-spin"></i>');
+    submitBtn.prop('disabled', true);
+    
+    // Reset button after 3 seconds if form doesn't submit
+    setTimeout(() => {
+        submitBtn.html(originalText);
+        submitBtn.prop('disabled', false);
+    }, 3000);
+});
+
+// Real-time validation
+if (videoUrlInput) {
+    videoUrlInput.addEventListener('input', updateVideoPreview);
+    videoUrlInput.addEventListener('blur', updateVideoPreview);
+    
+    // Initial validation if there's a value
+    if (videoUrlInput.value) {
+        updateVideoPreview();
+    }
+}
+</script>
+
+<!-- Template for new image forms -->
+<script type="text/template" id="image-form-template">
+    <div class="image-form-row mb-3 p-3 border rounded">
+        <input type="hidden" name="images-__prefix__-id" id="id_images-__prefix__-id">
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group-custom">
+                    <label class="label-tech-sm">Image File</label>
+                    <input type="file" name="images-__prefix__-image" id="id_images-__prefix__-image" class="form-control-file" accept="image/*">
                 </div>
             </div>
-        </div>
+            </div>
     </div>
-</div>
+</script>
+{% endblock %}
 
+{% block extra_css %}
 <style>
-    /* Custom styles for factory form */
-    .card {
-        border-radius: 12px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');
+
+    :root {
+        --accent: #EB662B;
+        --accent-glow: rgba(235, 102, 43, 0.15);
+        --dark-bg: #111827;
+        --surface: #F9FAFB;
+        --border-soft: #E5E7EB;
+        --text-muted: #6B7280;
     }
-    
-    .card-header {
-        border-bottom: 1px solid #e9ecef;
+
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
+    .font-syne { font-family: 'Syne', sans-serif; }
+    .fw-800 { font-weight: 800; }
+    .bg-light-surface { background-color: var(--surface); }
+
+    /* Hero */
+    .hero-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .hero-visual-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 32px 32px;
     }
+    .text-accent { color: var(--accent); }
+
+    /* Canvas Cards */
+    .editor-main-canvas { border: 1px solid var(--border-soft); }
+    .shadow-soft { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
     
-    .form-label {
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .btn {
-        border-radius: 8px;
+    .label-tech { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+    .label-tech-sm { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; display: block; }
+
+    .separator-text { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .separator-text::before, .separator-text::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
+    .separator-text span { padding: 0 15px; }
+
+    /* Inputs */
+    .form-group-custom input, .form-group-custom textarea, .form-group-custom select {
+        border: 1.5px solid var(--border-soft) !important;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        background: white !important;
         font-weight: 500;
+        transition: 0.2s ease-in-out;
     }
-    
-    .text-danger {
-        font-size: 0.875rem;
+    .form-group-custom input:focus, .form-group-custom textarea:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px var(--accent-glow) !important;
+        outline: none;
     }
-    
-    .form-check-label {
+
+    /* Premium Upload Area */
+    .upload-area-premium {
+        border: 2px dashed var(--border-soft);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        background: var(--surface);
         cursor: pointer;
+        transition: 0.3s;
     }
-    
-    .fw-semibold {
-        font-weight: 600;
+    .upload-area-premium:hover { border-color: var(--accent); background: white; }
+    .upload-icon-pulse { font-size: 30px; color: var(--accent); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
     }
+
+    /* Sidebar Cards */
+    .sidebar-card-premium {
+        background: white; border-radius: 20px;
+        border: 1px solid var(--border-soft); overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    }
+    .sidebar-card-header { background: #fcfcfc; padding: 15px 20px; border-bottom: 1px solid var(--border-soft); }
+    .border-accent { border-top: 4px solid var(--accent) !important; }
+
+    .sticky-sidebar { position: sticky; top: 100px; }
+
+    /* Action Button */
+    .btn-action-main {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-action-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
+
+    /* Select2 High-End Overrides */
+    .select2-container--default .select2-selection--single {
+        border: 1.5px solid var(--border-soft) !important;
+        height: 50px !important;
+        border-radius: 12px !important;
+        padding-top: 10px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { top: 12px !important; }
+
+    @media (max-width: 991px) {
+        .sticky-sidebar { position: static; }
+    }
+
 </style>
 {% endblock %}

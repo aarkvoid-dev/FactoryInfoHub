@@ -1,0 +1,555 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ worker.full_name }} - Worker Profile - Factory Chemistry{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content ">
+          <h1 class="hero__title text-light-1 ">{{ worker.full_name }}</h1>
+          <p class="hero__text text-light-1 ">{{ worker.category }} • {{ worker.subcategory }} • {{ worker.years_of_experience }} years experience</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-surface">
+    <div class="container">
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+                        <div class="canvas-header d-flex align-items-center justify-content-between p-4 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-box bg-accent-soft text-accent rounded-3 p-2">
+                                <i class="fas fa-user-tie fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 fw-bold">Professional Profile</h5>
+                                <p class="text-muted small mb-0">Worker Information & Details</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if worker.is_verified %}
+                                <span class="badge bg-success text-white px-3 py-2">Verified</span>
+                            {% endif %}
+                            {% if worker.is_active %}
+                                <span class="badge bg-primary text-white px-3 py-2">Active</span>
+                            {% endif %}
+                            <a href="{% url 'workers:edit_worker_profile' worker.slug %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="p-4 p-md-5">
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Full Name</label>
+                                    <div class="text-16 fw-600">{{ worker.full_name }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Date of Birth</label>
+                                    <div class="text-16">{{ worker.date_of_birth|date:"M d, Y" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Gender</label>
+                                    <div class="text-16">{{ worker.get_gender_display }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Experience</label>
+                                    <div class="text-16">{{ worker.years_of_experience }} years</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="separator-text mb-4"><span>Professional Details</span></div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Primary Trade</label>
+                                    <div class="text-16 fw-600">{{ worker.category }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Specialization</label>
+                                    <div class="text-16">{{ worker.subcategory }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Expected Daily Rate</label>
+                                    <div class="text-20 fw-700 text-accent">₹{{ worker.expected_daily_wage }}/day</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Availability</label>
+                                    <div class="text-16">{{ worker.get_availability_display }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Core Competencies</label>
+                                    <div class="text-16">{{ worker.skills }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="separator-text mb-4"><span>Contact Information</span></div>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Phone Number</label>
+                                    <div class="text-16">{{ worker.phone_number }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Email Address</label>
+                                    <div class="text-16">{{ worker.email }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4">
+                    <div class="canvas-header p-4 border-bottom bg-light-surface">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-map-marked-alt text-accent me-2"></i>Location Details</h5>
+                    </div>
+                    <div class="p-4 p-md-5">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Country</label>
+                                    <div class="text-16">{{ worker.country }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">State/Province</label>
+                                    <div class="text-16">{{ worker.state }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">City/Municipality</label>
+                                    <div class="text-16">{{ worker.city }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">District/Area</label>
+                                    <div class="text-16">{{ worker.district }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Region</label>
+                                    <div class="text-16">{{ worker.region }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group-custom">
+                                    <label class="label-tech">Complete Address</label>
+                                    <div class="text-16">{{ worker.address }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4">
+                    <div class="canvas-header p-4 border-bottom bg-light-surface">
+                        <div class="d-flex justify-between align-items-center">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-briefcase text-accent me-2"></i>Work Experience</h5>
+                            {% if user.is_authenticated and user == worker.user %}
+                                <a href="{% url 'add_work_experience' %}" class="btn-action-main">
+                                    <span>Add Experience</span>
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="p-4 p-md-5">
+                        {% if experiences.exists %}
+                            <div class="row g-4">
+                                {% for experience in experiences %}
+                                <div class="col-12">
+                                    <div class="card-experience border rounded-3 p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h6 class="fw-bold mb-1">{{ experience.company_name }}</h6>
+                                                <p class="text-muted mb-2">{{ experience.job_title }}</p>
+                                                <div class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                                    {{ experience.start_date|date:"M Y" }} - 
+                                                    {% if experience.end_date %}
+                                                        {{ experience.end_date|date:"M Y" }}
+                                                    {% else %}
+                                                        Present
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if user.is_authenticated and user == worker.user %}
+                                                <div class="d-flex gap-2">
+                                                    <a href="{% url 'edit_work_experience' experience.id %}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <a href="{% url 'delete_work_experience' experience.id %}" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted">{{ experience.description }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-briefcase text-muted fs-1 mb-3"></i>
+                                <p class="text-muted">No work experience added yet.</p>
+                                {% if user.is_authenticated and user == worker.user %}
+                                    <a href="{% url 'add_work_experience' %}" class="btn-action-main mt-3">
+                                        <span>Add Your First Experience</span>
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    
+                    <div class="sidebar-card-premium mb-4">
+                        <div class="sidebar-card-header border-bottom">
+                            <h6 class="mb-0 fw-800"><i class="fas fa-info-circle me-2"></i>Profile Summary</h6>
+                        </div>
+                        <div class="p-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="fw-bold small">Member Since</span>
+                                <span class="text-muted small">{{ worker.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="fw-bold small">Last Updated</span>
+                                <span class="text-muted small">{{ worker.updated_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="fw-bold small">Profile Views</span>
+                                <span class="text-muted small">Private</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold small">Status</span>
+                                <span class="badge {% if worker.is_active %}bg-success{% else %}bg-warning{% endif %} text-white px-3 py-2">
+                                    {% if worker.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card-premium mb-4">
+                        <div class="sidebar-card-header border-bottom">
+                            <h6 class="mb-0 fw-800"><i class="fas fa-tags me-2"></i>Skills & Expertise</h6>
+                        </div>
+                        <div class="p-4 bg-white">
+                            {% for skill in skill_list %}
+                                <span class="badge bg-accent-soft text-accent rounded-pill px-3 py-2 mb-2 me-2">
+                                    {{ skill }}
+                                </span>
+                            {% empty %}
+                                <span class="text-muted small">No skills listed</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="sidebar-card-premium border-accent">
+                        <div class="sidebar-card-header border-bottom">
+                            <h6 class="mb-0 fw-800"><i class="fas fa-envelope me-2"></i>Contact Worker</h6>
+                        </div>
+                        <div class="p-4 bg-white">
+                            <div class="d-grid gap-3">
+                                <div class="form-group-custom">
+                                    <label class="label-tech-sm">Phone</label>
+                                    <div class="text-16 fw-600">{{ worker.phone_number }}</div>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="label-tech-sm">Email</label>
+                                    <div class="text-16">{{ worker.email }}</div>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="label-tech-sm">Location</label>
+                                    <div class="text-16">{{ worker.city }}, {{ worker.state }}</div>
+                                </div>
+                                {% if user.is_authenticated and user != worker.user %}
+                                    <button class="btn-action-main w-100">
+                                        <span>Send Message</span>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');
+
+    :root {
+        --accent: #EB662B;
+        --accent-glow: rgba(235, 102, 43, 0.15);
+        --dark-bg: #111827;
+        --surface: #F9FAFB;
+        --border-soft: #E5E7EB;
+        --text-muted: #6B7280;
+    }
+
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
+    .font-syne { font-family: 'Syne', sans-serif; }
+    .fw-800 { font-weight: 800; }
+    .bg-light-surface { background-color: var(--surface); }
+
+    /* Hero */
+    .hero-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .hero-visual-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 32px 32px;
+    }
+    .text-accent { color: var(--accent); }
+
+    /* Canvas Cards */
+    .editor-main-canvas { 
+        border: 1px solid var(--border-soft); 
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04), 
+                    0 1px 0 rgba(255,255,255,0.05) inset;
+        position: relative;
+        overflow: hidden;
+    }
+    .editor-main-canvas::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        opacity: 0.8;
+    }
+    .shadow-soft { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
+    
+    .label-tech { 
+        font-size: 11px; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        color: #1f2937; 
+        letter-spacing: 0.5px; 
+        margin-bottom: 8px; 
+        display: block; 
+        opacity: 1;
+    }
+    .label-tech-sm { 
+        font-size: 10px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        color: #1f2937; 
+        margin-bottom: 5px; 
+        display: block; 
+        opacity: 1;
+    }
+
+    .separator-text { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .separator-text::before, .separator-text::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
+    .separator-text span { padding: 0 15px; }
+
+    /* Inputs */
+    .form-group-custom input, .form-group-custom textarea, .form-group-custom select {
+        border: 1.5px solid var(--border-soft) !important;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        background: white !important;
+        font-weight: 500;
+        transition: 0.2s ease-in-out;
+    }
+    .form-group-custom input:focus, .form-group-custom textarea:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px var(--accent-glow) !important;
+        outline: none;
+    }
+
+    /* Premium Upload Area */
+    .upload-area-premium {
+        border: 2px dashed var(--border-soft);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        background: var(--surface);
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .upload-area-premium:hover { border-color: var(--accent); background: white; }
+    .upload-icon-pulse { font-size: 30px; color: var(--accent); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Sidebar Cards */
+    .sidebar-card-premium {
+        background: white; border-radius: 20px;
+        border: 1px solid var(--border-soft); overflow: hidden;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.06), 
+                    0 1px 0 rgba(255,255,255,0.05) inset;
+        position: relative;
+    }
+    .sidebar-card-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        opacity: 0.8;
+    }
+    .sidebar-card-header { background: #fcfcfc; padding: 15px 20px; border-bottom: 1px solid var(--border-soft); }
+    .border-accent { border-top: 4px solid var(--accent) !important; }
+
+    .sticky-sidebar { position: sticky; top: 100px; }
+
+    /* Action Button */
+    .btn-action-main {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-action-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
+
+    /* Experience Cards */
+    .card-experience {
+        border: 1px solid var(--border-soft) !important;
+        box-shadow: 0 4px 12px -4px rgba(0,0,0,0.05), 
+                    0 1px 0 rgba(255,255,255,0.05) inset;
+        transition: 0.3s ease;
+        position: relative;
+    }
+    .card-experience::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        opacity: 0.6;
+    }
+    .card-experience:hover {
+        border-color: var(--accent) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -6px rgba(235, 102, 43, 0.15), 
+                    0 1px 0 rgba(255,255,255,0.05) inset;
+    }
+
+    /* Select2 High-End Overrides */
+    .select2-container--default .select2-selection--single {
+        border: 1.5px solid var(--border-soft) !important;
+        height: 50px !important;
+        border-radius: 12px !important;
+        padding-top: 10px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { top: 12px !important; }
+
+    @media (max-width: 991px) {
+        .sticky-sidebar { position: static; }
+    }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.hero__bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    padding: 120px 20px;
+}
+
+/* optional dark overlay for readability */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Add smooth animations for experience cards
+$(document).ready(function() {
+    $('.card-experience').each(function(index) {
+        $(this).css('animation-delay', index * 0.1 + 's');
+    });
+});
+</script>
+{% endblock %}

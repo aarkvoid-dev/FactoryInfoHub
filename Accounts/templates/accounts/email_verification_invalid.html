@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verification Link Invalid - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<!-- Enhanced Header Section -->
+<section class="page-header -type-1 bg-gradient-to-br from-dark-1 via-dark-2 to-dark-3 relative overflow-hidden" style="padding-top: 160px; padding-bottom: 100px; background: radial-gradient(circle at top left,#011d54 100%,transparent 0.5px);">
+    <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at top right, #EB662B 0%, transparent 400px);"></div>
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#EB662B 0.5px, transparent 0.5px); background-size: 30px 30px;"></div>
+    
+    <div class="container relative z-2">
+        <div class="row items-center justify-between">
+            <div class="col-auto">
+                <div class="d-flex items-center x-gap-20 mb-15">
+                    <div class="bg-accent-1" style="width: 50px; height: 2px;"></div>
+                    <span class="text-white opacity-60 text-14 uppercase tracking-widest fw-600">Account Verification</span>
+                </div>
+                <h1 class="text-48 fw-700 text-white tracking-tighter">Verification <span class="text-accent-1">Invalid</span></h1>
+                <p class="text-16 text-white opacity-80 mt-10">The verification link is no longer valid</p>
+            </div>
+            <div class="col-auto">
+                <div class="px-25 py-10 rounded-full border-white-15 bg-white-05 backdrop-blur-10">
+                    <div class="d-flex x-gap-10 text-white text-14 uppercase fw-500">
+                        <a href="{% url 'home' %}" class="hover-text-accent-1 transition">Home</a>
+                        <span class="opacity-30">/</span>
+                        <span class="text-accent-1">Invalid Link</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Error Section -->
+<section class="layout-pt-md layout-pb-lg bg-light-1">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-6 col-lg-7 col-md-8">
+                <!-- Enhanced Error Card -->
+                <div class="bg-white rounded-24 shadow-lg border-light mb-30 overflow-hidden hover-shadow-xl transition-all duration-300">
+                    <div class="px-40 py-30 border-bottom-light bg-gradient-to-r from-light-2 to-light-3 d-flex items-center justify-between">
+                        <div>
+                            <h4 class="text-20 fw-700 mb-5">Verification Link Invalid</h4>
+                            <p class="text-12 text-light-2">The link you clicked is no longer valid</p>
+                        </div>
+                        <div class="size-40 bg-accent-1-05 rounded-full d-flex justify-center items-center">
+                            <i class="fa-solid fa-exclamation-triangle text-accent-1 text-16"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="px-40 py-40">
+                        <div class="error-content">
+                            <div class="alert-box error mb-30">
+                                <div class="alert-icon">
+                                    <i class="fa-solid fa-exclamation-circle"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <h4 class="mb-10">Invalid or Expired Link</h4>
+                                    <p>The email verification link you clicked is either invalid or has expired. This can happen if the link is old or has already been used.</p>
+                                </div>
+                            </div>
+
+                            <div class="solution-box mb-30">
+                                <h5 class="text-16 fw-700 mb-15">What Can You Do?</h5>
+                                <div class="y-gap-10">
+                                    <div class="solution-item d-flex items-center mb-10">
+                                        <div class="size-32 bg-accent-1-05 rounded-10 d-flex justify-center items-center mr-15">
+                                            <i class="fa-solid fa-link text-accent-1"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-14 fw-600 text-dark-1">Check the link format</span>
+                                            <p class="text-12 text-light-2 mt-2">Make sure you copied the entire link correctly</p>
+                                        </div>
+                                    </div>
+                                    <div class="solution-item d-flex items-center mb-10">
+                                        <div class="size-32 bg-accent-1-05 rounded-10 d-flex justify-center items-center mr-15">
+                                            <i class="fa-solid fa-clock text-accent-1"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-14 fw-600 text-dark-1">Link expired</span>
+                                            <p class="text-12 text-light-2 mt-2">Links are valid for 24 hours only</p>
+                                        </div>
+                                    </div>
+                                    <div class="solution-item d-flex items-center mb-10">
+                                        <div class="size-32 bg-accent-1-05 rounded-10 d-flex justify-center items-center mr-15">
+                                            <i class="fa-solid fa-envelope text-accent-1"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-14 fw-600 text-dark-1">Request new verification email</span>
+                                            <p class="text-12 text-light-2 mt-2">You can request a new verification email from your profile</p>
+                                        </div>
+                                    </div>
+                                    <div class="solution-item d-flex items-center mb-10">
+                                        <div class="size-32 bg-accent-1-05 rounded-10 d-flex justify-center items-center mr-15">
+                                            <i class="fa-solid fa-headset text-accent-1"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-14 fw-600 text-dark-1">Contact support</span>
+                                            <p class="text-12 text-light-2 mt-2">If you continue to have issues, contact our support team</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Action Buttons -->
+                            <div class="action-buttons">
+                                <div class="d-flex flex-column flex-md-row gap-15">
+                                    <a href="{% url 'login' %}" class="btn btn-outline-accent rounded-pill px-30 py-15 transition-all active-scale-95 d-flex items-center justify-content-center">
+                                        <i class="fa-solid fa-arrow-left mr-10"></i> 
+                                        <span class="fw-600">BACK TO LOGIN</span>
+                                    </a>
+                                    <a href="{% url 'register' %}" class="btn btn-accent rounded-pill px-40 py-15 shadow-accent transition-all hover-shadow-xl active-scale-95 d-flex items-center justify-content-center">
+                                        <i class="fa-solid fa-user-plus mr-10"></i> 
+                                        <span class="fw-700 tracking-wide">REGISTER AGAIN</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-7 col-md-8">
+                <!-- Support Information Card -->
+                <div class="bg-white rounded-24 shadow-lg border-light overflow-hidden hover-shadow-xl transition-all duration-300">
+                    <div class="px-40 py-30 border-bottom-light bg-gradient-to-r from-light-2 to-light-3">
+                        <div class="d-flex items-center justify-between mb-25 px-5">
+                            <div>
+                                <h5 class="text-18 fw-700 tracking-tighter mb-5">Need Help?</h5>
+                                <p class="text-12 text-light-2">We're here to assist you</p>
+                            </div>
+                            <div class="size-40 bg-accent-1-05 rounded-full d-flex justify-center items-center">
+                                <i class="fa-solid fa-hands-helping text-accent-1 text-16"></i>
+                            </div>
+                        </div>
+
+                        <div class="y-gap-15">
+                            <div class="support-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                <div class="d-flex items-center">
+                                    <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                        <i class="fa-solid fa-envelope text-accent-1"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-15 fw-600 text-dark-1">Email Support</div>
+                                        <p class="text-12 text-light-2">Contact us at support@factoryinfohub.com</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="support-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                <div class="d-flex items-center">
+                                    <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                        <i class="fa-solid fa-clock text-accent-1"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-15 fw-600 text-dark-1">24/7 Availability</div>
+                                        <p class="text-12 text-light-2">Our support team is available around the clock</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="support-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                <div class="d-flex items-center">
+                                    <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                        <i class="fa-solid fa-shield-check text-accent-1"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-15 fw-600 text-dark-1">Secure Assistance</div>
+                                        <p class="text-12 text-light-2">We'll help you verify your account securely</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="support-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                <div class="d-flex items-center">
+                                    <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                        <i class="fa-solid fa-question-circle text-accent-1"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-15 fw-600 text-dark-1">FAQ Section</div>
+                                        <p class="text-12 text-light-2">Find answers to common verification issues</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-20 pt-20 border-top-light px-5">
+                            <div class="d-flex items-center text-12 text-light-2">
+                                <i class="fa-solid fa-circle-info mr-10"></i>
+                                <span>Don't worry, we'll help you get verified and access your account.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced CSS Styles -->
+<style>
+    /* Enhanced Color Scheme */
+    :root {
+        --accent: #EB662B;
+        --accent-gradient: linear-gradient(135deg, #EB662B 0%, #F28555 100%);
+        --glass-bg: rgba(255, 255, 255, 0.8);
+        --input-border: #E2E8F0;
+    }
+
+    /* Glassmorphism Header */
+    .bg-white-05 { 
+        background: rgba(255, 255, 255, 0.05); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+    }
+
+    /* Neumorphic Shadow Depth */
+    .shadow-lg { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.02) !important; }
+    .hover-shadow-xl:hover { 
+        box-shadow: 0 25px 50px -12px rgba(235, 102, 43, 0.15) !important;
+        transform: translateY(-4px);
+    }
+
+    /* Modern Input Styling */
+    .modern-input {
+        background: #F8FAFC;
+        border: 1px solid var(--input-border);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border-radius: 12px !important;
+    }
+
+    .modern-input:focus {
+        background: #FFF;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.1);
+    }
+
+    /* Floating Label Precision */
+    .floating-label-field .floating-label {
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    .floating-input:focus + .floating-label,
+    .floating-input:not(:placeholder-shown) + .floating-label {
+        color: var(--accent);
+        font-weight: 700;
+        background: linear-gradient(to bottom, transparent 40%, white 40%);
+    }
+
+    /* Button Polish */
+    .btn-accent {
+        background: var(--accent-gradient);
+        border-radius: 12px;
+        box-shadow: 0 4px 14px 0 rgba(235, 102, 43, 0.39);
+    }
+
+    .btn-accent:hover {
+        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.5);
+        transform: translateY(-1px);
+    }
+
+    /* Card Section Headers */
+    .section-header-gradient {
+        background: linear-gradient(90deg, #F8FAFC 0%, #FFFFFF 100%);
+        border-left: 4px solid var(--accent);
+    }
+
+    /* Enhanced Alert Boxes */
+    .alert-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid;
+    }
+
+    .alert-box.error {
+        background: #fef2f2;
+        border-color: #ef4444;
+    }
+
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        background: #ef4444;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .alert-content h4 {
+        margin: 0 0 5px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .alert-content p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .solution-box h5 {
+        margin: 0 0 15px 0;
+        color: #1f2937;
+    }
+
+    .solution-item {
+        padding: 10px 15px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 3px solid #e2e8f0;
+    }
+
+    .solution-item:hover {
+        background: #f1f5f9;
+        border-left-color: #EB662B;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        border: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-accent {
+        background: linear-gradient(135deg, #EB662B 0%, #F28555 100%);
+        color: white;
+        border: none;
+    }
+    .btn-outline-accent {
+        border: 2px solid #EB662B;
+        color: #EB662B;
+        background: transparent;
+    }
+    .btn-outline-accent:hover {
+        background: #EB662B;
+        color: white;
+    }
+    
+    /* Enhanced Cards */
+    .card-hover { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .card-hover:hover { transform: translateY(-5px); }
+    
+    /* Divider */
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); }
+    
+    /* Responsive Enhancements */
+    @media (max-width: 768px) {
+        .btn { font-size: 14px; padding: 10px 20px; }
+    }
+    
+    /* Animation Classes */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+    
+    /* Mobile Button Refinements */
+    @media (max-width: 576px) {
+        .active-scale-95:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-accent {
+            font-size: 16px !important;
+            letter-spacing: 1px;
+        }
+    }
+
+    /* Ensure buttons don't have awkward widths on tablets */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .btn {
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            font-size: 13px !important;
+        }
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    .animate-shake {
+        animation: shake 0.2s ease-in-out 0s 2;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Email verification invalid page loaded');
+        
+        // Add hover effects to buttons
+        const buttons = document.querySelectorAll('.btn-accent, .btn-outline-accent');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add click animation to buttons
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    });
+</script>
+{% endblock %}

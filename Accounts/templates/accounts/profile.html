@@ -1,141 +1,919 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
+
+{% block title %}My Profile - Factory Chemistry{% endblock %}
 
 {% block content %}
-<section class="page-header -type-1 bg-dark-1 relative overflow-hidden" style="padding-top: 140px; padding-bottom: 80px;">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#EB662B 0.5px, transparent 0.5px); background-size: 20px 20px;"></div>
+<!-- Enhanced Header Section -->
+<section class="page-header -type-1 bg-gradient-to-br from-dark-1 via-dark-2 to-dark-3 relative overflow-hidden" style="padding-top: 160px; padding-bottom: 100px;">
+    <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at top right, #EB662B 0%, transparent 400px);"></div>
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#EB662B 0.5px, transparent 0.5px); background-size: 30px 30px;"></div>
     
     <div class="container relative z-2">
-        <div class="row justify-between items-end">
+        <div class="row items-center justify-between">
             <div class="col-auto">
-                <div class="bg-accent-1 mb-15" style="width: 40px; height: 3px; border-radius: 2px;"></div>
-                <h1 class="text-40 fw-700 text-white tracking-tighter">My <span class="text-accent-1">Profile</span></h1>
-                <div class="text-white opacity-50 text-15 mt-10">Manage your factory account and preferences</div>
+                <div class="d-flex items-center x-gap-20 mb-15">
+                    <div class="bg-accent-1" style="width: 50px; height: 2px;"></div>
+                    <span class="text-white opacity-60 text-14 uppercase tracking-widest fw-600">User Command Center</span>
+                </div>
+                <h1 class="text-48 fw-700 text-white tracking-tighter">My <span class="text-accent-1">Profile</span></h1>
+                <p class="text-16 text-white opacity-80 mt-10">Manage your account settings and personal information</p>
             </div>
             <div class="col-auto">
-                <div class="d-flex x-gap-10 y-gap-10 text-white opacity-50 text-14 uppercase fw-500 tracking-widest">
-                    <a href="{% url 'home' %}" class="hover-text-accent-1">Home</a>
-                    <span>/</span>
-                    <span class="text-accent-1">Dashboard</span>
+                <div class="px-25 py-10 rounded-full border-white-15 bg-white-05 backdrop-blur-10">
+                    <div class="d-flex x-gap-10 text-white text-14 uppercase fw-500">
+                        <a href="{% url 'home' %}" class="hover-text-accent-1 transition">Home</a>
+                        <span class="opacity-30">/</span>
+                        <span class="text-accent-1">Dashboard</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="layout-pt-md layout-pb-lg">
+<!-- Enhanced Main Content -->
+<section class="layout-pt-md layout-pb-lg bg-light-1">
     <div class="container">
-        <div class="row y-gap-40">
+        <!-- Success/Error Messages -->
+        <div id="message-container" class="mb-30"></div>
+        
+        <form method="post" enctype="multipart/form-data" class="contactForm" id="profile-form">
+            {% csrf_token %}
             
-            <div class="col-xl-3 col-lg-4">
-                <div class="bg-white px-30 py-40 rounded-24 shadow-1 border-light">
-                    <div class="text-center">
-                        <div class="size-100 mx-auto relative">
-                            <div class="absolute inset-0 bg-accent-1 opacity-10 rounded-full"></div>
-                            <div class="size-100 bg-white rounded-full d-flex justify-center items-center border-accent-1 relative z-1">
-                                <i class="icon-person text-40 text-accent-1"></i>
+            <div class="row y-gap-40">
+                <!-- Enhanced Sidebar -->
+                <div class="col-xl-4 col-lg-4">
+                    <div class="sticky-sidebar" style="top: 100px;">
+                        
+                        <!-- Enhanced Avatar Card -->
+                        <div class="bg-white p-40 rounded-24 shadow-lg border-light text-center mb-30 hover-shadow-xl transition-all duration-300" style="padding:20px">
+                            <div class="avatar-upload-container position-relative mb-30">
+                                <div class="avatar-wrapper size-140 mx-auto rounded-full shadow-lg relative overflow-hidden group" 
+                                     style="cursor: pointer; border: 4px solid #fff;" 
+                                     onclick="document.getElementById('id_profile_image').click();"
+                                     ondragover="handleDragOver(event)" 
+                                     ondragleave="handleDragLeave(event)" 
+                                     ondrop="handleDrop(event)">
+    
+                                    <img id="avatar-preview" 
+                                        src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% endif %}" 
+                                        class="img-ratio object-cover transition-all duration-300 group-hover:scale-110 {% if not user.profile.profile_image %}d-none{% endif %}">
+
+                                    <div id="avatar-placeholder" class="size-140 d-flex flex-column justify-center items-center bg-gradient-to-br from-accent-1-05 to-accent-1-10 text-accent-1 transition-all duration-300 {% if user.profile.profile_image %}d-none{% endif %}">
+                                        <i class="fa-solid fa-camera text-30 mb-10"></i>
+                                        <span class="text-12 fw-600 uppercase">Upload Photo</span>
+                                        <span class="text-10 opacity-70 mt-5">Drag & drop or click</span>
+                                    </div>
+
+                                    <div class="avatar-overlay absolute inset-0 d-flex flex-column items-center justify-center bg-dark-1-60 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <i class="fa-solid fa-cloud-arrow-up text-white text-24 mb-5"></i>
+                                        <span id="overlay-text" class="text-white text-12 fw-600 uppercase">
+                                            {% if user.profile.profile_image %}Change Photo{% else %}Upload Photo{% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    <div id="avatar-drag-overlay" class="absolute inset-0 d-flex flex-column items-center justify-center bg-accent-1-20 opacity-0 transition-all duration-200 rounded-full">
+                                        <i class="fa-solid fa-upload text-accent-1 text-24 mb-5"></i>
+                                        <span class="text-accent-1 text-12 fw-600">Drop image here</span>
+                                    </div>
+                                    
+                                    <input type="file" name="profile_image" id="id_profile_image" accept="image/*" class="d-none" onchange="previewImage(this)">
+                                </div>
+
+                                <!-- Enhanced Status Indicators -->
+                                <div class="mt-20">
+                                    <div class="d-flex justify-center x-gap-15">
+                                        <button type="button" class="btn btn-outline-accent rounded-pill px-25 py-10" onclick="document.getElementById('id_profile_image').click();">
+                                            <i class="fa-solid fa-pen-to-square mr-8"></i> Edit
+                                        </button>
+                                        <button type="button" id="remove-btn" class="btn btn-outline-danger rounded-pill px-25 py-10 {% if not user.profile.profile_image %}d-none{% endif %}" onclick="removeImage()">
+                                            <i class="fa-solid fa-trash-can mr-8"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                    <a href="{% url 'change_password' %}" class="btn-password-simple d-inline-flex align-items-center justify-content-between px-25 py-12 rounded-pill border-accent text-accent fw-600 transition-all">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-lock text-16 mr-10"></i>
+                                            <span>Change Password</span>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-10 ml-15 opacity-50"></i>
+                                    </a>
+                            </div>
+
+                            <!-- Enhanced User Info -->
+                            <div class="user-info-section">
+                                <h4 class="text-24 fw-700 tracking-tighter mb-10">{{ user.get_full_name|default:user.username }}</h4>
+                                
+                                <div class="d-flex items-center justify-center mb-20">
+                                    <span class="badge bg-accent-1-10 text-accent-1 text-12 fw-600 px-20 py-8 rounded-pill uppercase tracking-widest border border-accent-1-20">
+                                        <i class="fa-solid fa-user-tag mr-8"></i>{{ user.profile.role|upper }}
+                                    </span>
+                                </div>
+                                
+                                <div class="divider mb-25"></div>
+
+                                {% if user.profile.factory %}
+                                <div class="factory-info bg-light-1 rounded-16 p-20 text-left mb-25 border border-light-3">
+                                    <div class="text-11 fw-600 text-light-2 uppercase mb-10 tracking-wide d-flex align-items-center">
+                                        <i class="fa-solid fa-building mr-10"></i>Primary Factory
+                                    </div>
+                                    <div class="d-flex items-center">
+                                        <div class="size-32 bg-accent-1-05 rounded-10 d-flex justify-center items-center mr-15">
+                                            <i class="fa-solid fa-industry text-accent-1"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-700 text-dark-1">{{ user.profile.factory.name }}</span>
+                                            <div class="text-12 text-light-2 mt-2">
+                                                <i class="fa-solid fa-map-marker-alt mr-5"></i>{{ user.profile.factory.location }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Enhanced Contact Info -->
+                                <div class="contact-info bg-light-1 rounded-16 p-20 text-left mb-25 border border-light-3">
+                                    <div class="text-11 fw-600 text-light-2 uppercase mb-10 tracking-wide">Contact Information</div>
+                                    <div class="d-flex flex-column gap-8">
+                                        <div class="d-flex items-center text-14">
+                                            <i class="fa-solid fa-envelope text-accent-1 mr-10"></i>
+                                            <span>{{ user.email }}</span>
+                                        </div>
+                                        {% if user.profile.phone_number %}
+                                        <div class="d-flex items-center text-14">
+                                            <i class="fa-solid fa-phone text-accent-1 mr-10"></i>
+                                            <span>{{ user.profile.phone_number }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <h4 class="text-20 fw-700 mt-20 tracking-tighter">{{ user.username }}</h4>
-                        <div class="text-14 text-light-3 mt-5">{{ user.email }}</div>
+
+                        <!-- Enhanced Alert Center -->
+                        <div class="bg-white p-30 rounded-24 shadow-lg border-light hover-shadow-xl transition-all duration-300" style="padding:20px">
+                            <div class="d-flex items-center justify-between mb-25 px-5">
+                                <div>
+                                    <h5 class="text-18 fw-700 tracking-tighter mb-5">Alert Center</h5>
+                                    <p class="text-12 text-light-2">Manage your notification preferences</p>
+                                </div>
+                                <div class="size-40 bg-accent-1-05 rounded-full d-flex justify-center items-center">
+                                    <i class="fa-solid fa-bell text-accent-1 text-16"></i>
+                                </div>
+                            </div>
+
+                            <div class="y-gap-15">
+                                <div class="alert-setting-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                    <div class="d-flex items-center justify-between">
+                                        <div class="d-flex items-center">
+                                            <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                                <i class="fa-solid fa-envelope text-accent-1"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-15 fw-600 text-dark-1">Email Notifications</div>
+                                                <p class="text-12 text-light-2">Receive updates via email</p>
+                                            </div>
+                                        </div>
+                                        <div class="modern-toggle">
+                                            <input class="toggle-input" type="checkbox" name="email_notifications" id="id_email_notifications" {% if user.profile.email_notifications %}checked{% endif %}>
+                                            <label class="toggle-label" for="id_email_notifications">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert-setting-item p-15 rounded-16 transition-all duration-300 hover:bg-light-2 border border-transparent hover:border-light-3">
+                                    <div class="d-flex items-center justify-between">
+                                        <div class="d-flex items-center">
+                                            <div class="size-40 bg-light-1 rounded-12 d-flex justify-center items-center mr-15">
+                                                <i class="fa-solid fa-mobile-screen text-accent-1"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-15 fw-600 text-dark-1">Push Notifications</div>
+                                                <p class="text-12 text-light-2">Real-time app notifications</p>
+                                            </div>
+                                        </div>
+                                        <div class="modern-toggle">
+                                            <input class="toggle-input" type="checkbox" name="in_app_notifications" id="id_in_app_notifications" {% if user.profile.in_app_notifications %}checked{% endif %}>
+                                            <label class="toggle-label" for="id_in_app_notifications">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-20 pt-20 border-top-light px-5">
+                                <div class="d-flex items-center text-12 text-light-2">
+                                    <i class="fa-solid fa-circle-info mr-10"></i>
+                                    <span>System updates are mandatory and cannot be disabled.</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="line mt-30 mb-30"></div>
-                    
-                    <div class="y-gap-10">
-                        <a href="#" class="d-flex items-center justify-between px-20 py-15 rounded-16 bg-accent-1-05 text-accent-1 fw-600">
-                            <span class="d-flex items-center"><i class="icon-edit text-18 mr-12"></i> Edit Profile</span>
-                            <i class="icon-chevron-right text-10"></i>
-                        </a>
-                        <a href="{% url 'change_password' %}" class="d-flex items-center justify-between px-20 py-15 rounded-16 text-dark-1 hover-bg-light-2 transition">
-                            <span class="d-flex items-center"><i class="icon-lock text-18 mr-12"></i> Password</span>
-                            <i class="icon-chevron-right text-10"></i>
-                        </a>
-                        <div class="line my-10"></div>
-                        <a href="{% url 'logout' %}" class="d-flex items-center px-20 py-15 text-red-1 fw-500">
-                            <i class="icon-logout text-18 mr-12"></i> Log out
-                        </a>
+                </div>
+
+                <!-- Enhanced Main Content -->
+                <div class="col-xl-8 col-lg-8">
+                    <!-- Account Credentials Section -->
+                    <div class="bg-white rounded-24 shadow-lg border-light mb-30 overflow-hidden hover-shadow-xl transition-all duration-300">
+                        <div class="px-40 py-25 border-bottom-light section-header-gradient d-flex items-center justify-between">
+                            <div>
+                                <h4 class="text-18 fw-700 mb-0">Account Credentials</h4>
+                                <p class="text-12 text-light-2 mb-0">Primary system login details</p>
+                            </div>
+                            <div class="size-36 bg-accent-1-10 rounded-10 d-flex justify-center items-center">
+                                <i class="fa-solid fa-key text-accent-1 text-14"></i>
+                            </div>
+                        </div>
+                        <div class="px-40 py-40">
+                            <div class="row y-gap-25">
+                                <div class="col-md-6">
+                                    <div class="floating-label-field">
+                                        <input type="text" name="username" value="{{ user.username }}" class="modern-input floating-input" id="username-input" required>
+                                        <label for="username-input" class="floating-label">System Username</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="floating-label-field">
+                                        <input type="email" name="email" value="{{ user.email }}" class="modern-input floating-input" id="email-input" required>
+                                        <label for="email-input" class="floating-label">Primary Email Address</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="floating-label-field">
+                                        <input type="text" name="first_name" value="{{ user.first_name }}" class="modern-input floating-input" id="first-name-input">
+                                        <label for="first-name-input" class="floating-label">First Name</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="floating-label-field">
+                                        <input type="text" name="last_name" value="{{ user.last_name }}" class="modern-input floating-input" id="last-name-input">
+                                        <label for="last-name-input" class="floating-label">Last Name</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information Section -->
+                    <div class="bg-white rounded-24 shadow-lg border-light overflow-hidden hover-shadow-xl transition-all duration-300">
+                        <div class="px-40 py-30 border-bottom-light bg-gradient-to-r from-light-2 to-light-3 d-flex items-center justify-between">
+                            <div>
+                                <h4 class="text-20 fw-700 mb-5">Personal Information</h4>
+                                <p class="text-12 text-light-2">Manage your personal details and preferences</p>
+                            </div>
+                            <div class="size-40 bg-accent-1-05 rounded-full d-flex justify-center items-center">
+                                <i class="fa-solid fa-user-circle text-accent-1 text-16"></i>
+                            </div>
+                        </div>
+                        <div class="px-40 py-40">
+                            <div class="row y-gap-25">
+                                <div class="col-md-4">
+                                    <div class="floating-label-field">
+                                        <select name="gender" class="modern-input floating-input" id="gender-input">
+                                            <option value="" disabled {% if not user.profile.gender %}selected{% endif %}>Select Gender</option>
+                                            <option value="Male" {% if user.profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                                            <option value="Female" {% if user.profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                                            <option value="Other" {% if user.profile.gender == 'Other' %}selected{% endif %}>Other</option>
+                                        </select>
+                                        <label for="gender-input" class="floating-label">Gender</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="floating-label-field">
+                                        <input type="date" name="date_of_birth" value="{% if user.profile.date_of_birth %}{{ user.profile.date_of_birth|date:'Y-m-d' }}{% endif %}" class="modern-input floating-input" id="dob-input">
+                                        <label for="dob-input" class="floating-label">Date of Birth</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="floating-label-field">
+                                        <input 
+                                            type="tel" 
+                                            name="phone_number" 
+                                            value="{{ user.profile.phone_number }}" 
+                                            class="modern-input floating-input" 
+                                            id="phone-input" 
+                                            placeholder=" "
+                                            inputmode="numeric"
+                                            pattern="[0-9]{10}"
+                                            maxlength="10"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                        >
+                                        <label for="phone-input" class="floating-label">Phone Number (10 Digits)</label>
+                                        <div id="phone-feedback" class="input-feedback text-12 mt-5"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="floating-label-field">
+                                        <textarea name="address" rows="3" class="modern-input floating-input py-15" id="address-input" placeholder="Enter your full address">{{ user.profile.address }}</textarea>
+                                        <label for="address-input" class="floating-label">Physical Address</label>
+                                        <div class="input-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Action Buttons -->
+                            <div class="mt-40 pt-30 border-top-light">
+                                <div class="d-flex flex-column-reverse flex-md-row justify-between align-items-stretch align-items-md-center gap-20">
+                                    
+                                    <div class="d-flex flex-row gap-10">
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-20 py-12 flex-grow-1 flex-md-grow-0 transition-all active-scale-95" onclick="resetForm()">
+                                            <i class="fa-solid fa-undo mr-8"></i> <span class="d-none d-sm-inline">Reset</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger rounded-pill px-20 py-12 flex-grow-1 flex-md-grow-0 transition-all active-scale-95" onclick="clearForm()">
+                                            <i class="fa-solid fa-trash-can mr-8"></i> <span class="d-none d-sm-inline">Clear</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="d-flex flex-column flex-sm-row gap-10">
+                                        <button type="button" class="btn btn-outline-accent rounded-pill px-25 py-12 transition-all active-scale-95" onclick="validateForm()">
+                                            <i class="fa-solid fa-check-circle mr-8"></i> Validate
+                                        </button>
+                                        <button type="submit" class="btn btn-accent rounded-pill px-40 py-15 shadow-accent transition-all hover-shadow-xl active-scale-95 d-flex items-center justify-center" id="submit-btn">
+                                            <i class="fa-solid fa-save mr-10"></i> 
+                                            <span class="fw-700 tracking-wide">UPDATE PROFILE</span>
+                                            <span id="submit-spinner" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-9 col-lg-8">
-                <div class="bg-white rounded-24 shadow-1 overflow-hidden border-light">
-                    <div class="px-40 py-30 border-bottom-light d-flex items-center justify-between">
-                        <h4 class="text-20 fw-700">General Information</h4>
-                        <i class="icon-gear text-20 text-light-3"></i>
-                    </div>
-
-                    <div class="px-40 py-40">
-                        <form method="post" class="contactForm row y-gap-30">
-                            {% csrf_token %}
-                            
-                            <div class="col-md-6">
-                                <div class="form-input">
-                                    <input type="text" name="username" value="{{ user.username }}" required>
-                                    <label class="lh-1 text-14 text-light-3">Username</label>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-input">
-                                    <input type="email" name="email" value="{{ user.email }}" required>
-                                    <label class="lh-1 text-14 text-light-3">Email Address</label>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-input ">
-                                    <input type="text" name="first_name" value="{{ user.first_name }}">
-                                    <label class="lh-1 text-14 text-light-3">First Name</label>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-input">
-                                    <input type="text" name="last_name" value="{{ user.last_name }}">
-                                    <label class="lh-1 text-14 text-light-3">Last Name</label>
-                                </div>
-                            </div>
-
-                            <div class="col-12 mt-20">
-                                <div class="d-flex items-center justify-end">
-                                    <button type="submit" class="button -md -dark-1 bg-accent-1 text-white rounded-16 px-40 shadow-accent">
-                                        Update Account Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+        </form>
     </div>
 </section>
 
+<!-- Enhanced CSS Styles -->
 <style>
-    /* Direct theme synchronization */
-    .bg-accent-1-05 { background-color: rgba(235, 102, 43, 0.05) !important; }
-    .rounded-24 { border-radius: 24px !important; }
-    .rounded-16 { border-radius: 16px !important; }
-    
-    /* Input Styling to match the 'DM Sans' sleekness */
-    .fancy-field {
-        transition: all 0.2s ease;
-        border: 1px solid #E5E7EB !important;
-        border-radius: 12px !important;
-    }
-    .fancy-field:focus-within {
-        border-color: #EB662B !important;
-        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
-    }
-    
-    .shadow-accent {
-        box-shadow: 0 10px 20px -5px rgba(235, 102, 43, 0.3);
+    /* Enhanced Color Scheme */
+    :root {
+        --accent: #EB662B;
+        --accent-gradient: linear-gradient(135deg, #EB662B 0%, #F28555 100%);
+        --glass-bg: rgba(255, 255, 255, 0.8);
+        --input-border: #E2E8F0;
     }
 
-    .tracking-tighter { letter-spacing: -0.03em; }
-    .tracking-widest { letter-spacing: 0.12em; }
+    /* Glassmorphism Header */
+    .bg-white-05 { 
+        background: rgba(255, 255, 255, 0.05); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+    }
+
+    /* Neumorphic Shadow Depth */
+    .shadow-lg { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.02) !important; }
+    .hover-shadow-xl:hover { 
+        box-shadow: 0 25px 50px -12px rgba(235, 102, 43, 0.15) !important;
+        transform: translateY(-4px);
+    }
+
+    /* Modern Input Styling */
+    .modern-input {
+        background: #F8FAFC;
+        border: 1px solid var(--input-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px !important;
+    }
+
+    .modern-input:focus {
+        background: #FFF;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.1);
+    }
+
+    /* Floating Label Precision */
+    .floating-label-field .floating-label {
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    .floating-input:focus + .floating-label,
+    .floating-input:not(:placeholder-shown) + .floating-label {
+        color: var(--accent);
+        font-weight: 700;
+        background: linear-gradient(to bottom, transparent 40%, white 40%);
+    }
+
+    /* Button Polish */
+    .btn-accent {
+        background: var(--accent-gradient);
+        border-radius: 12px;
+        box-shadow: 0 4px 14px 0 rgba(235, 102, 43, 0.39);
+    }
+
+    .btn-accent:hover {
+        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.5);
+        transform: translateY(-1px);
+    }
+
+    /* Card Section Headers */
+    .section-header-gradient {
+        background: linear-gradient(90deg, #F8FAFC 0%, #FFFFFF 100%);
+        border-left: 4px solid var(--accent);
+    }
+
+    /* Sticky Sidebar refinement */
+    .sticky-sidebar {
+        top: 100px;
+        z-index: 10;
+    }
+
+    .bg-gradient-to-br { background: linear-gradient(135deg, #1a1e22 0%, #2d3748 100%); }
+    .bg-gradient-to-r { background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); }
+    .bg-accent-1-05 { background-color: rgba(235, 102, 43, 0.05); }
+    .bg-accent-1-10 { background-color: rgba(235, 102, 43, 0.10); }
+    .bg-accent-1-20 { background-color: rgba(235, 102, 43, 0.20); }
+    .text-accent-1 { color: #EB662B; }
+    .border-accent-1-20 { border-color: rgba(235, 102, 43, 0.2); }
+    .hover-shadow-xl:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
+    .shadow-lg { box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important; }
+    .shadow-accent { box-shadow: 0 10px 25px rgba(235, 102, 43, 0.3); }
+    
+    /* Enhanced Avatar Styling */
+    .avatar-upload-container { position: relative; }
+    .avatar-wrapper {
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 4px solid #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        width: 120px;
+        height: 120px;
+    }
+    .avatar-wrapper:hover { transform: translateY(-8px) scale(1.02); }
+    .avatar-overlay { backdrop-filter: blur(4px); }
+    .avatar-drag-overlay { border: 2px dashed #EB662B; }
+    
+    /* Enhanced Input Fields */
+    .floating-label-field { position: relative; margin-bottom: 20px; }
+    .floating-input {
+        width: 100%;
+        background: #fcfdfe;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px 20px;
+        font-size: 16px;
+        color: #1a1e22;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        outline: none;
+    }
+    .floating-input:focus {
+        border-color: #EB662B;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.15);
+        transform: translateY(-2px);
+    }
+    .floating-input:not(:placeholder-shown):not(:focus) + .floating-label,
+    .floating-input:focus + .floating-label {
+        top: -10px;
+        left: 15px;
+        font-size: 12px;
+        background: #fff;
+        padding: 0 8px;
+        color: #EB662B;
+        transform: scale(0.9);
+    }
+    .floating-label {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #94a3b8;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        background: transparent;
+        padding: 0;
+    }
+    .input-feedback { height: 20px; font-size: 12px; margin-top: 5px; }
+    
+    /* Enhanced Toggle Switches */
+    .modern-toggle { position: relative; display: inline-block; width: 50px; height: 26px; }
+    .toggle-input { opacity: 0; width: 0; height: 0; }
+    .toggle-label {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .toggle-label:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    .toggle-input:checked + .toggle-label { background-color: #EB662B; }
+    .toggle-input:checked + .toggle-label:before { transform: translateX(24px); }
+    
+    /* Enhanced Buttons */
+    .btn {
+        border: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-accent {
+        background: linear-gradient(135deg, #EB662B 0%, #F28555 100%);
+        color: white;
+        border: none;
+    }
+    .btn-outline-accent {
+        border: 2px solid #EB662B;
+        color: #EB662B;
+        background: transparent;
+    }
+    .btn-outline-accent:hover {
+        background: #EB662B;
+        color: white;
+    }
+    .btn-outline-secondary {
+        border: 2px solid #64748b;
+        color: #64748b;
+        background: transparent;
+    }
+    .btn-outline-danger {
+        border: 2px solid #ef4444;
+        color: #ef4444;
+        background: transparent;
+    }
+    
+    /* Enhanced Cards */
+    .card-hover { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .card-hover:hover { transform: translateY(-5px); }
+    
+    /* Divider */
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); }
+
+
+    .btn-password-simple {
+        background: transparent;
+        border: 2px solid #EB662B; /* Your accent color */
+        color: #EB662B;
+        text-decoration: none;
+        min-width: 220px; /* Ensures a consistent button look */
+    }
+
+    .btn-password-simple:hover {
+        background: #EB662B;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.25);
+        transform: translateY(-1px);
+    }
+
+    .btn-password-simple:hover .opacity-50 {
+        opacity: 1; /* Arrow becomes bright on hover */
+    }
+
+    .mr-10 { margin-right: 10px; }
+    .ml-15 { margin-left: 15px; }
+    
+    /* Responsive Enhancements */
+    @media (max-width: 768px) {
+        .sticky-sidebar { position: static; }
+        .avatar-wrapper { width: 120px; height: 120px; }
+        .floating-input { font-size: 16px; }
+        .btn { font-size: 14px; padding: 10px 20px; }
+    }
+    
+    /* Animation Classes */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+    
+    /* Mobile Button Refinements */
+    @media (max-width: 576px) {
+        .active-scale-95:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-accent {
+            font-size: 16px !important;
+            letter-spacing: 1px;
+        }
+    }
+
+    /* Ensure buttons don't have awkward widths on tablets */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .btn {
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            font-size: 13px !important;
+        }
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    .animate-shake {
+        animation: shake 0.2s ease-in-out 0s 2;
+    }
 </style>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enhanced JavaScript for Profile Management
+    
+    // Avatar Upload Functionality
+    let isDragging = false;
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+        const overlay = document.getElementById('avatar-drag-overlay');
+        const wrapper = document.querySelector('.avatar-wrapper');
+        overlay.style.opacity = '1';
+        wrapper.style.borderColor = '#EB662B';
+        wrapper.style.transform = 'scale(1.05)';
+    }
+    
+    function handleDragLeave(e) {
+        e.preventDefault();
+        const overlay = document.getElementById('avatar-drag-overlay');
+        const wrapper = document.querySelector('.avatar-wrapper');
+        overlay.style.opacity = '0';
+        wrapper.style.borderColor = '#fff';
+        wrapper.style.transform = 'scale(1)';
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        const overlay = document.getElementById('avatar-drag-overlay');
+        const wrapper = document.querySelector('.avatar-wrapper');
+        overlay.style.opacity = '0';
+        wrapper.style.borderColor = '#fff';
+        wrapper.style.transform = 'scale(1)';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const fileInput = document.getElementById('id_profile_image');
+            fileInput.files = files;
+            previewImage(fileInput);
+        }
+    }
+    
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select a valid image file', 'error');
+                return;
+            }
+            
+            // Validate file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image size should be less than 5MB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            const preview = document.getElementById('avatar-preview');
+            const placeholder = document.getElementById('avatar-placeholder');
+            const removeBtn = document.getElementById('remove-btn');
+            const overlayText = document.getElementById('overlay-text');
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                placeholder.classList.add('d-none');
+                removeBtn.classList.remove('d-none');
+                overlayText.innerText = "Change Photo";
+                preview.style.opacity = '0';
+                setTimeout(() => { preview.style.opacity = '1'; }, 50);
+                showToast('Image preview updated', 'success');
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeImage() {
+        const preview = document.getElementById('avatar-preview');
+        const placeholder = document.getElementById('avatar-placeholder');
+        const removeBtn = document.getElementById('remove-btn');
+        const overlayText = document.getElementById('overlay-text');
+        const input = document.getElementById('id_profile_image');
+
+        input.value = ""; 
+        preview.src = "";
+        preview.classList.add('d-none');
+        placeholder.classList.remove('d-none');
+        removeBtn.classList.add('d-none');
+        overlayText.innerText = "Upload Photo";
+        showToast('Profile image removed', 'info');
+    }
+    
+    // Enhanced Form Validation
+    function validateForm() {
+        const form = document.getElementById('profile-form');
+        const inputs = form.querySelectorAll('.floating-input');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            const feedback = input.parentElement.querySelector('.input-feedback');
+            feedback.innerHTML = '';
+            feedback.style.color = '#64748b';
+            
+            if (input.type === 'email' && input.value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(input.value)) {
+                    feedback.innerHTML = '<i class="fa-solid fa-exclamation-circle mr-5"></i> Please enter a valid email address';
+                    feedback.style.color = '#ef4444';
+                    isValid = false;
+                }
+            }
+            
+            if (input.type === 'tel' && input.value) {
+                const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
+                if (!phoneRegex.test(input.value)) {
+                    feedback.innerHTML = '<i class="fa-solid fa-exclamation-circle mr-5"></i> Please enter a valid phone number';
+                    feedback.style.color = '#ef4444';
+                    isValid = false;
+                }
+            }
+        });
+        
+        if (isValid) {
+            showToast('Form validation passed', 'success');
+        } else {
+            showToast('Please fix the validation errors', 'error');
+        }
+        
+        return isValid;
+    }
+    
+    // Form Reset and Clear
+    function resetForm() {
+        document.getElementById('profile-form').reset();
+        // Reset avatar preview
+        removeImage();
+        showToast('Form reset to original values', 'info');
+    }
+    
+    function clearForm() {
+        const inputs = document.querySelectorAll('.floating-input');
+        inputs.forEach(input => {
+            input.value = '';
+            input.parentElement.querySelector('.input-feedback').innerHTML = '';
+        });
+        removeImage();
+        showToast('Form cleared', 'info');
+    }
+    
+    // Enhanced Form Submission
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = document.getElementById('submit-spinner');
+        
+        if (!validateForm()) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-10"></i>Updating Profile...';
+        spinner.classList.remove('d-none');
+        
+        // Simulate API call delay for better UX
+        setTimeout(() => {
+            // Form will submit normally, but we can add success feedback
+            showToast('Profile updated successfully!', 'success');
+        }, 1000);
+    });
+    
+    // Floating Label Animation
+    document.querySelectorAll('.floating-input').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+    });
+    
+    // Toggle Switch Animation
+    document.querySelectorAll('.toggle-input').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            if (this.checked) {
+                label.style.backgroundColor = '#EB662B';
+            } else {
+                label.style.backgroundColor = '#e2e8f0';
+            }
+        });
+    });
+    
+    // Toast Notifications
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('message-container');
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show animate-fade-in`;
+        toast.style.borderRadius = '12px';
+        toast.style.border = 'none';
+        toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 
+                    type === 'error' ? 'fa-exclamation-circle' : 
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+        
+        toast.innerHTML = `
+            <i class="fa-solid ${icon} mr-10"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+    
+    // Initialize tooltips if Bootstrap is available
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof bootstrap !== 'undefined') {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+        const phoneInput = document.getElementById('phone-input');
+        const phoneFeedback = document.getElementById('phone-feedback');
+        const profileForm = document.getElementById('profile-form');
+
+        // 1. Prevent non-numeric characters and limit to 10
+        phoneInput.addEventListener('input', function(e) {
+            // Remove any non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+
+            // Real-time validation feedback
+            if (this.value.length > 0 && this.value.length < 10) {
+                phoneFeedback.innerText = `${10 - this.value.length} more digits required`;
+                phoneFeedback.style.color = '#EB662B'; // Accent color
+                this.style.borderColor = '#EB662B';
+            } else if (this.value.length === 10) {
+                phoneFeedback.innerText = 'Valid phone number';
+                phoneFeedback.style.color = '#10b981'; // Success green
+                this.style.borderColor = '#10b981';
+            } else {
+                phoneFeedback.innerText = '';
+                this.style.borderColor = '#e2e8f0';
+            }
+        });
+
+        // 2. Final Check on Form Submission
+        profileForm.addEventListener('submit', function(e) {
+            if (phoneInput.value.length !== 10) {
+                e.preventDefault(); // Stop submission
+                phoneInput.focus();
+                phoneFeedback.innerText = 'Error: Exactly 10 digits required';
+                phoneFeedback.style.color = '#ef4444'; // Danger red
+                phoneInput.style.borderColor = '#ef4444';
+                
+                // Optional: Shake animation for mobile feedback
+                phoneInput.parentElement.classList.add('animate-shake');
+                setTimeout(() => phoneInput.parentElement.classList.remove('animate-shake'), 500);
+            }
+        });
+    });
+</script>
+{% endblock %}
+

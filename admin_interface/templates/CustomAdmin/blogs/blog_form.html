@@ -1,0 +1,379 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">{{ title }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_blogs' %}">Blog Posts</a></li>
+                            <li class="breadcrumb-item active">{{ title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_blogs' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="blogForm">
+                        {% csrf_token %}
+                        
+                        <!-- Title -->
+                        <div class="mb-3">
+                            {{ form.title.label_tag }}
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Slug -->
+                        <div class="mb-3">
+                            {{ form.slug.label_tag }}
+                            {{ form.slug }}
+                            {% if form.slug.errors %}
+                                <div class="text-danger small">{{ form.slug.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Auto-generated from title, but can be customized.</div>
+                        </div>
+
+                        <!-- Category and Subcategory -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.category.label_tag }}
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.subcategory.label_tag }}
+                                {{ form.subcategory }}
+                                {% if form.subcategory.errors %}
+                                    <div class="text-danger small">{{ form.subcategory.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.country.label_tag }}
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <div class="text-danger small">{{ form.country.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.state.label_tag }}
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <div class="text-danger small">{{ form.state.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.city.label_tag }}
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">{{ form.city.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-3">
+                            {{ form.content.label_tag }}
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger small">{{ form.content.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Use markdown for formatting.</div>
+                        </div>
+
+                        <!-- Excerpt -->
+                        <div class="mb-3">
+                            {{ form.excerpt.label_tag }}
+                            {{ form.excerpt }}
+                            {% if form.excerpt.errors %}
+                                <div class="text-danger small">{{ form.excerpt.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Brief summary that appears in lists.</div>
+                        </div>
+
+                        <!-- Author -->
+                        <div class="mb-3">
+                            {{ form.author.label_tag }}
+                            {{ form.author }}
+                            {% if form.author.errors %}
+                                <div class="text-danger small">{{ form.author.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_published }}
+                                    {{ form.is_published.label_tag }}
+                                    {% if form.is_published.errors %}
+                                        <div class="text-danger small">{{ form.is_published.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Related Factories -->
+                        <div class="mb-3">
+                            {{ form.related_factories.label_tag }}
+                            {{ form.related_factories }}
+                            {% if form.related_factories.errors %}
+                                <div class="text-danger small">{{ form.related_factories.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Select factories related to this blog post.</div>
+                        </div>
+
+                        <!-- Featured Image -->
+                        <div class="mb-3">
+                            {{ form.image.label_tag }}
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Upload a featured image for this blog post.</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Blog Post
+                            </button>
+                            <a href="{% url 'admin_interface:admin_blogs' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Blog Post Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Form Tips</h6>
+                        <ul class="small text-muted">
+                            <li>Title should be descriptive and SEO-friendly</li>
+                            <li>Excerpt appears in blog lists and search results</li>
+                            <li>Featured image should be 1200x630 pixels for best display</li>
+                            <li>Related factories help with content organization</li>
+                            <li>Unpublished posts are saved as drafts</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Content Guidelines</h6>
+                        <ul class="small text-muted">
+                            <li>Use clear, engaging language</li>
+                            <li>Break up long text with headings</li>
+                            <li>Add relevant keywords for SEO</li>
+                            <li>Include calls-to-action where appropriate</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+    
+    // Auto-generate slug from title
+    titleInput.addEventListener('input', function() {
+        const title = this.value;
+        const slug = title.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        slugInput.value = slug;
+    });
+
+    // Form validation
+    const form = document.getElementById('blogForm');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Check required fields
+        const requiredFields = ['{{ form.title.id_for_label }}', '{{ form.content.id_for_label }}', '{{ form.category.id_for_label }}'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+
+    // Category/Subcategory dynamic filtering
+    const categorySelect = document.getElementById('{{ form.category.id_for_label }}');
+    const subcategorySelect = document.getElementById('{{ form.subcategory.id_for_label }}');
+    
+    if (categorySelect && subcategorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            if (categoryId) {
+                // Show loading state
+                subcategorySelect.innerHTML = '<option value="">Loading subcategories...</option>';
+                subcategorySelect.disabled = true;
+                
+                fetch(`{% url 'category:ajax_load_subcategories' 0 %}`.replace('0', categoryId))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load subcategories');
+                        }
+                        return response.json();
+                    })
+                    .then(subcategories => {
+                        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                        subcategories.forEach(subcat => {
+                            const option = document.createElement('option');
+                            option.value = subcat.id;
+                            option.textContent = subcat.name;
+                            subcategorySelect.appendChild(option);
+                        });
+                        subcategorySelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading subcategories:', error);
+                        subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
+                        subcategorySelect.disabled = true;
+                    });
+            } else {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                subcategorySelect.disabled = true;
+            }
+        });
+    }
+
+    // Location Hierarchy Dynamic Filtering (Blog only needs Country → State → City)
+    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
+    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
+    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+
+    // Country → State
+    if (countrySelect && stateSelect) {
+        countrySelect.addEventListener('change', function() {
+            const countryId = this.value;
+            if (countryId) {
+                // Show loading state
+                stateSelect.innerHTML = '<option value="">Loading states...</option>';
+                stateSelect.disabled = true;
+                
+                fetch(`{% url 'location:states_by_country' 0 %}`.replace('0', countryId))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load states');
+                        }
+                        return response.json();
+                    })
+                    .then(states => {
+                        stateSelect.innerHTML = '<option value="">Select State</option>';
+                        states.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                        stateSelect.disabled = false;
+                        
+                        // Reset dependent select
+                        citySelect.innerHTML = '<option value="">Select City</option>';
+                        citySelect.disabled = true;
+                    })
+                    .catch(error => {
+                        console.error('Error loading states:', error);
+                        stateSelect.innerHTML = '<option value="">Error loading states</option>';
+                        stateSelect.disabled = true;
+                    });
+            } else {
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                stateSelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+            }
+        });
+    }
+
+    // State → City
+    if (stateSelect && citySelect) {
+        stateSelect.addEventListener('change', function() {
+            const stateId = this.value;
+            if (stateId) {
+                // Show loading state
+                citySelect.innerHTML = '<option value="">Loading cities...</option>';
+                citySelect.disabled = true;
+                
+                fetch(`{% url 'location:cities_by_state' 0 %}`.replace('0', stateId))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load cities');
+                        }
+                        return response.json();
+                    })
+                    .then(cities => {
+                        citySelect.innerHTML = '<option value="">Select City</option>';
+                        cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                        citySelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading cities:', error);
+                        citySelect.innerHTML = '<option value="">Error loading cities</option>';
+                        citySelect.disabled = true;
+                    });
+            } else {
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

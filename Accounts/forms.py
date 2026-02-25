@@ -10,6 +10,7 @@ Classes:
     CustomPasswordChangeForm: Form for password changes
     CustomPasswordResetForm: Form for password reset requests
     CustomSetPasswordForm: Form for setting new passwords
+    ProfileForm: Form for factory profile association
 """
 
 from django import forms
@@ -17,6 +18,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Password
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from .models import Profile
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -257,3 +259,43 @@ class CustomSetPasswordForm(SetPasswordForm):
         strip=False,
         help_text=_('Enter the same password as before, for verification.')
     )
+
+class ProfileForm(forms.ModelForm):
+    """
+    Form for editing user profile with factory association and comprehensive personal information.
+    
+    This form allows users to select and associate with a factory and provide personal details.
+    """
+    
+    class Meta:
+        model = Profile
+        fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address']
+        widgets = {
+            'factory': forms.Select(attrs={
+                'class': 'form-control',
+                'placeholder': _('Select your factory')
+            }),
+            'profile_image': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
+                'placeholder': _('Upload profile image')
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'placeholder': _('Select your date of birth')
+            }),
+            'gender': forms.Select(attrs={
+                'class': 'form-control',
+                'placeholder': _('Select your gender')
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Enter your phone number')
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': _('Enter your address')
+            }),
+        }

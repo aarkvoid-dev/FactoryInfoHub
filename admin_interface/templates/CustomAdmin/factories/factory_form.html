@@ -1,0 +1,313 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %} 
+<style>
+    /* Mobile-first adjustments */
+    .label-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+    .extra-small { font-size: 12px; }
+    
+    /* Touch-friendly inputs */
+    .form-control, .form-select {
+        padding: 0.6rem 0.8rem;
+        border-radius: 10px;
+        font-size: 16px; /* Prevents iOS auto-zoom on focus (use 16px) */
+    }
+
+    /* Mobile Card Optimizations */
+    @media (max-width: 768px) {
+        .card-body { padding: 1rem; }
+        .container-fluid { padding-left: 10px; padding-right: 10px; }
+        .btn { width: 100%; margin-bottom: 0.5rem; }
+        .d-flex.gap-2 { flex-direction: column; }
+    }
+
+    .card { transition: transform 0.2s; border: none; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+    
+    /* Custom Switch Styling */
+    .form-check.form-switch.custom-switch {
+        padding-left: 3.5em;
+        min-height: 1.5rem;
+    }
+    .custom-switch .form-check-input {
+        width: 3em;
+        height: 1.5rem;
+        margin-left: -3.5em;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pb-5">
+    <div class="row mb-3 mb-md-4">
+        <div class="col-12">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+                <div>
+                    <h1 class="h3 mb-0 fw-bold text-dark">{{ title }}</h1>
+                    <nav aria-label="breadcrumb" class="d-none d-md-block">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">{{ title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="{% url 'admin_interface:admin_factories' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="factoryForm">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-lg-8">
+                
+                <div class="card mb-3 rounded-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Basic Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-md-8 mb-3">
+                                {{ form.name.label_tag }}
+                                {{ form.name }}
+                                {% if form.name.errors %}<div class="text-danger extra-small">{{ form.name.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 col-md-4 mb-3">
+                                {{ form.slug.label_tag }}
+                                {{ form.slug }}
+                                <div class="form-text extra-small">Auto-generated from name.</div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                {{ form.description.label_tag }}
+                                {{ form.description }}
+                            </div>
+                            <div class="col-12 col-sm-6 mb-3">
+                                {{ form.category.label_tag }}
+                                {{ form.category }}
+                            </div>
+                            <div class="col-12 col-sm-6 mb-3">
+                                {{ form.subcategory.label_tag }}
+                                {{ form.subcategory }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 rounded-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Location Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 col-md-3 mb-3">
+                                {{ form.country.label_tag }}
+                                {{ form.country }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                {{ form.state.label_tag }}
+                                {{ form.state }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                {{ form.city.label_tag }}
+                                {{ form.city }}
+                            </div>
+                            <div class="col-6 col-md-3 mb-3">
+                                {{ form.district.label_tag }}
+                                {{ form.district }}
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4 mb-3">
+                                {{ form.region.label_tag }}
+                                {{ form.region }}
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4 mb-3">
+                                {{ form.pincode.label_tag }}
+                                {{ form.pincode }}
+                            </div>
+                            <div class="col-12 col-md-4 mb-3">
+                                {{ form.address.label_tag }}
+                                {{ form.address }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <div class="card rounded-4 h-100">
+                            <div class="card-header bg-white py-3">
+                                <h6 class="card-title mb-0 fw-bold"><i class="fas fa-address-book me-2 text-primary"></i>Contact & Web</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 mb-3">{{ form.contact_person.label_tag }}{{ form.contact_person }}</div>
+                                    <div class="col-12 col-sm-6 mb-3">{{ form.contact_phone.label_tag }}{{ form.contact_phone }}</div>
+                                    <div class="col-12 mb-3">{{ form.contact_email.label_tag }}{{ form.contact_email }}</div>
+                                    <div class="col-12 col-sm-8 mb-3">{{ form.website.label_tag }}{{ form.website }}</div>
+                                    <div class="col-12 col-sm-4 mb-3">{{ form.established_year.label_tag }}{{ form.established_year }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 rounded-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="fas fa-industry me-2 text-primary"></i>Factory Specifications</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">{{ form.factory_type.label_tag }}{{ form.factory_type }}</div>
+                            <div class="col-6 mb-3">{{ form.employee_count.label_tag }}{{ form.employee_count }}</div>
+                            <div class="col-6 mb-3">{{ form.annual_turnover.label_tag }}{{ form.annual_turnover }}</div>
+                            <div class="col-6 mb-3">{{ form.price.label_tag }}{{ form.price }}</div>
+                            <div class="col-12 col-sm-6 mb-3">{{ form.production_capacity.label_tag }}{{ form.production_capacity }}</div>
+                            <div class="col-12 col-sm-6 mb-3">{{ form.working_hours.label_tag }}{{ form.working_hours }}</div>
+                            <div class="col-12 mb-3">{{ form.holidays.label_tag }}{{ form.holidays }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 rounded-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="fas fa-camera me-2 text-primary"></i>Media</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">{{ form.image.label_tag }}{{ form.image }}</div>
+                            <div class="col-12 col-md-6 mb-3">{{ form.video_url.label_tag }}{{ form.video_url }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 rounded-4 border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-sm-6 mb-3">
+                                <div class="form-check form-switch custom-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="form-check form-switch custom-switch">
+                                    {{ form.is_verified }}
+                                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_verified.id_for_label }}">{{ form.is_verified.label }}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-4">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i>Save Factory
+                    </button>
+                    <a href="{% url 'admin_interface:admin_factories' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card rounded-4 sticky-top" style="top: 1rem; z-index: 10;">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold text-muted">Guidance</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="small fw-bold">Status Meanings</h6>
+                            <div class="d-flex flex-column gap-2 mt-2">
+                                <div class="extra-small text-muted"><i class="fas fa-check-circle text-success me-1"></i> <strong>Active:</strong> Publicly searchable.</div>
+                                <div class="extra-small text-muted"><i class="fas fa-certificate text-primary me-1"></i> <strong>Verified:</strong> Verification badge displayed.</div>
+                            </div>
+                        </div>
+                        <hr class="opacity-25">
+                        <div class="mb-0">
+                            <h6 class="small fw-bold">Media Tips</h6>
+                            <ul class="extra-small text-muted ps-3 mb-0">
+                                <li>Use clear images of the facility facade.</li>
+                                <li>YouTube links are preferred for videos.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('id_name');
+    const slugInput = document.getElementById('id_slug');
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    const countrySelect = document.getElementById('id_country');
+    const stateSelect = document.getElementById('id_state');
+    const citySelect = document.getElementById('id_city');
+    const districtSelect = document.getElementById('id_district');
+    const regionSelect = document.getElementById('id_region');
+
+    async function loadData(url, targetElement, placeholderName) {
+        if (!targetElement) return;
+        targetElement.innerHTML = `<option value="">Loading ${placeholderName}...</option>`;
+        targetElement.disabled = true;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            targetElement.innerHTML = `<option value="">Select ${placeholderName}</option>`;
+            data.forEach(item => {
+                const option = new Option(item.name, item.id);
+                targetElement.add(option);
+            });
+            targetElement.disabled = false;
+        } catch (error) {
+            targetElement.innerHTML = `<option value="">Error loading data</option>`;
+        }
+    }
+
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            slugInput.value = slug;
+        });
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            if (this.value) loadData(`/categories/ajax/load-subcategories/${this.value}/`, subcategorySelect, 'Subcategory');
+        });
+    }
+
+    if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+            if (this.value) loadData(`/location/ajax/states-by-country/${this.value}/`, stateSelect, 'State');
+        });
+    }
+
+    if (stateSelect) {
+        stateSelect.addEventListener('change', function() {
+            if (this.value) loadData(`/location/ajax/cities-by-state/${this.value}/`, citySelect, 'City');
+        });
+    }
+
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            if (this.value) loadData(`/location/ajax/districts-by-city/${this.value}/`, districtSelect, 'District');
+        });
+    }
+
+    if (districtSelect) {
+        districtSelect.addEventListener('change', function() {
+            if (this.value) loadData(`/location/ajax/regions-by-district/${this.value}/`, regionSelect, 'Region');
+        });
+    }
+});
+</script>
+{% endblock %}

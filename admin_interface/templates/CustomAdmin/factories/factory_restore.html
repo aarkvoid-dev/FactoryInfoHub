@@ -1,0 +1,81 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="restore-icon mb-3">
+                            <i class="fas fa-undo fa-3x text-success"></i>
+                        </div>
+                        <h4 class="fw-bold">Restore Factory</h4>
+                        <p class="text-muted">Are you sure you want to restore this factory?</p>
+                    </div>
+
+                    <div class="factory-info bg-light rounded-3 p-3 mb-4">
+                        <h6 class="fw-bold mb-2">{{ factory.name }}</h6>
+                        <div class="row small text-muted">
+                            <div class="col-6">Category: {{ factory.category.name }}</div>
+                            <div class="col-6">Subcategory: {{ factory.subcategory.name|default:"General" }}</div>
+                            <div class="col-12 mt-1">Location: {{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}</div>
+                        </div>
+                        {% if factory.deleted_at %}
+                        <div class="row small text-muted mt-2">
+                            <div class="col-12">Deleted: {{ factory.deleted_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Restoring this factory will:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Make the factory visible again in the system</li>
+                            <li>Restore all associated data (images, blog posts, worker associations)</li>
+                            <li>Set the factory status back to active</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'admin_interface:admin_factories' %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i> Cancel
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-undo me-2"></i> Restore Factory
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .restore-icon {
+        background: #ecfdf5;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .factory-info {
+        border: 1px solid #e5e7eb;
+    }
+    
+    .alert-warning {
+        border-color: #f59e0b;
+        background-color: #fffbeb;
+        color: #92400e;
+    }
+</style>
+{% endblock %}

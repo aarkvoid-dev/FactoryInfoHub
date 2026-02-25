@@ -1,424 +1,508 @@
-{% extends 'karkahan/base.html' %}
-{% load static %}
+{% extends 'base.html' %}
+{% load static i18n humanize %}
 
-{% block title %}{{ factory.name }} | FactoryInfoHub{% endblock %}
+{% block title %}{{ factory.name }} | {% trans "Technical Profile" %}{% endblock %}
 
-{% block factory_content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <h2 class="mb-1">{{ factory.name }}</h2>
-                            <p class="text-muted mb-0">Factory Details & Information</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-2"></i>Back to List
-                            </a>
-                            {% if user.is_staff %}
-                            <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-warning">
-                                <i class="bi bi-pencil me-2"></i>Edit
-                            </a>
-                            <a href="{% url 'karkahan:factory_delete' slug=factory.slug %}" class="btn btn-danger">
-                                <i class="bi bi-trash me-2"></i>Delete
-                            </a>
-                            {% endif %}
-                        </div>
+{% block extra_css %}
+<style>
+    :root {
+        --accent: #EB662B;
+        --dark-navy: #1A2B3E;
+        --slate: #64748B;
+        --white: #ffffff;
+    }
+
+    /* 1. Optimized Hero Section */
+    .factory-header-hero {
+        position: relative;
+        padding: 120px 0 60px;
+        background: linear-gradient(135deg, var(--dark-navy) 0%, #0F172A 100%);
+        overflow: hidden;
+    }
+
+    .hero-bg-img {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: cover;
+        opacity: 0.25;
+        z-index: 0;
+    }
+
+    .hero-content-wrapper { position: relative; z-index: 2; }
+
+    .factory-title {
+        font-size: clamp(28px, 5vw, 48px);
+        font-weight: 800;
+        color: var(--white);
+        line-height: 1.1;
+        margin-bottom: 15px;
+    }
+
+    /* Purchase Badge */
+    .purchase-badge {
+        display: inline-block;
+        background: #dcfce7;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-left: 10px;
+        text-color : white;
+    }
+
+    .purchase-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-purchase {
+        background: linear-gradient(135deg, #EB662B 0%, #FF8A50 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-purchase:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #64748B;
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-secondary:hover {
+        background: #475569;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* 2. Responsive Specs Grid */
+    .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .spec-card {
+        background: var(--white);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        transition: transform 0.2s ease;
+    }
+
+    .spec-icon {
+        font-size: 20px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .spec-label { font-size: 11px; text-transform: uppercase; color: var(--slate); font-weight: 700; }
+    .spec-value { font-size: 18px; font-weight: 700; color: #1e293b; }
+
+    /* 3. Mobile Friendly Tabs */
+    .tabs-controls {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: #f8fafc;
+        border-radius: 12px 12px 0 0;
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    
+    .tabs-controls::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
+
+    .tab-button {
+        padding: 15px 25px;
+        border: none;
+        background: transparent;
+        color: var(--slate);
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab-button.is-active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        background: var(--white);
+    }
+
+    /* 4. Professional Sidebar */
+    .contact-sidebar {
+        background: var(--dark-navy);
+        border-radius: 16px;
+        padding: 25px;
+        color: var(--white);
+    }
+
+    .contact-item {
+        display: flex;
+        gap: 15px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.621);
+    }
+
+    .contact-icon { font-size: 18px; color: var(--accent); }
+    .contact-label { font-size: 11px; color: #94A3B8; text-transform: uppercase; }
+    .contact-value { font-size: 15px; font-weight: 500; word-break: break-all; }
+
+    /* Purchase Required Overlay */
+    .purchase-required {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .purchase-required-icon {
+        font-size: 3rem;
+        color: #d97706;
+        margin-bottom: 1rem;
+    }
+
+    /* 5. Mobile Adjustments */
+    @media (max-width: 991px) {
+        .factory-header-hero { padding: 100px 0 40px; }
+        .contact-sidebar { margin-top: 30px; }
+    }
+    body {
+    color: #ffffff;
+    }
+    .text {
+        color: #0F172A;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="factory-header-hero">
+    {% if factory.image %}<img src="{{ factory.image.url }}" class="hero-bg-img" alt="{{ factory.name }}">{% endif %}
+    <div class="container hero-content-wrapper">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-primary px-3 py-2 rounded-pill ">{{ factory.category.name }}</span>
+            {% if factory.is_verified %}
+            <span class="badge bg-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle mr-1"></i> Verified</span>
+            {% endif %}
+            {% if has_purchased %}
+            <span class="purchase-badge">
+                <i class="fas fa-check-circle me-1"></i> Purchased
+            </span>
+            {% endif %}
+        </div>
+        <h1 class="factory-title">{{ factory.name }}</h1>
+        <div class="text-white opacity-75"><i class="fas fa-map-marker-alt text-accent me-2"></i> {{ factory.city.name }}, {{ factory.state.name }}</div>
+        
+        {% if factory.price > 0 %}
+        <div class="purchase-actions">
+            {% if user.is_authenticated %}
+                {% if has_purchased %}
+                    <a href="{% url 'karkahan:purchase_history' %}" class="btn-secondary">
+                        <i class="fas fa-history me-2"></i> View Purchase History
+                    </a>
+                {% else %}
+                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
+                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart - Rs. {{ factory.price|intcomma }}
+                    </a>
+                    <a href="{% url 'karkahan:cart_view' %}" class="btn-secondary">
+                        <i class="fas fa-shopping-bag me-2"></i> View Cart
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase - Rs. {{ factory.price|intcomma }}
+                </a>
+                <a href="{% url 'accounts:register' %}?next={{ request.path }}" class="btn-secondary">
+                    <i class="fas fa-user-plus me-2"></i> Register to Purchase
+                </a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="purchase-actions">
+            <span class="badge bg-secondary px-3 py-2 rounded-pill">Not Available for Purchase</span>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="specs-grid">
+                    <div class="spec-card">
+                        <span class="spec-icon">🏭</span>
+                        <div class="spec-label">Capacity</div>
+                        <div class="spec-value">{{ factory.production_capacity|default:"N/A" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">👥</span>
+                        <div class="spec-label">Staff</div>
+                        <div class="spec-value">{{ factory.employee_count|default:"0" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">💰</span>
+                        <div class="spec-label">Price</div>
+                        <div class="spec-value">Rs. {{ factory.price|intcomma }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">📅</span>
+                        <div class="spec-label">Est. Year</div>
+                        <div class="spec-value">{{ factory.established_year|default:"N/A" }}</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-4 shadow-sm overflow-hidden">
+                    <div class="tabs-controls border-bottom">
+                        <button class="tab-button is-active" onclick="switchTab(event, 'overview')">Overview</button>
+                        <button class="tab-button" onclick="switchTab(event, 'technical')">Technical</button>
+                        {% if factory.video_url %}<button class="tab-button" onclick="switchTab(event, 'video')">Video Tour</button>{% endif %}
+                        <button class="tab-button" onclick="switchTab(event, 'gallery')">Gallery</button>
                     </div>
 
-                    <div class="row">
-                        <!-- Main Factory Information -->
-                        <div class="col-lg-8">
-                            <!-- Factory Image -->
-                            {% if factory.image %}
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-body p-0">
-                                    <img src="{{ factory.image.url }}" alt="{{ factory.name }}" class="img-fluid rounded" style="width: 100%; height: 400px; object-fit: cover;">
+                    <div class="p-4">
+                        <div id="overview" class="tab-panel is-active">
+                            <span class="text text-muted">Name : </span><span class="text fw-bold">{{ factory.name }}</span></br>
+                            <span class="text text-muted">Category : </span><span class="text fw-bold">{{ factory.category }}</span>
+                            <h4 class="fw-bold mb-3">Description</h4>
+                            <div class="lh-lg text-slate">{{ factory.description|linebreaks }}</div>
+                            
+                            {% if has_purchased %}
+                            <h4 class="fw-bold mb-3">Address :</h4>
+                            <div class="lh-lg text-slate"> {{ factory.address|linebreaks }}</div>
+                            {% else %}
+                            <div class="purchase-required">
+                                <div class="purchase-required-icon">
+                                    <i class="fas fa-lock"></i>
                                 </div>
-                            </div>
-                            {% endif %}
-
-                            <!-- Basic Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-info-circle me-2 text-primary"></i>
-                                        Basic Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-4">
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-tags text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Category</h6>
-                                                    <p class="text-muted mb-0">{{ factory.category.name }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if factory.subcategory %}
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-tag text-info"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Subcategory</h6>
-                                                    <p class="text-muted mb-0">{{ factory.subcategory.name }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-gear text-warning"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Factory Type</h6>
-                                                    <p class="text-muted mb-0">{{ factory.factory_type|default:"—" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-calendar text-success"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Established</h6>
-                                                    <p class="text-muted mb-0">{{ factory.established_year|default:"—" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Location Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-geo-alt me-2 text-success"></i>
-                                        Location Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-4">
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-house text-success"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Address</h6>
-                                                    <p class="text-muted mb-0">{{ factory.address|default:"—" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-building text-info"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">City</h6>
-                                                    <p class="text-muted mb-0">{{ factory.city.name }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-map text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">State</h6>
-                                                    <p class="text-muted mb-0">{{ factory.state.name }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-globe text-warning"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Country</h6>
-                                                    <p class="text-muted mb-0">{{ factory.country.name }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            {% if factory.description %}
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-chat-text me-2 text-secondary"></i>
-                                        Description
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <p class="text-muted">{{ factory.description }}</p>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            <!-- Contact Information -->
-                            {% if factory.contact_person or factory.contact_phone or factory.contact_email %}
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-telephone me-2 text-info"></i>
-                                        Contact Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-4">
-                                        {% if factory.contact_person %}
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-person text-info"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Contact Person</h6>
-                                                    <p class="text-muted mb-0">{{ factory.contact_person }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        {% if factory.contact_phone %}
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-telephone text-success"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Phone</h6>
-                                                    <a href="tel:{{ factory.contact_phone }}" class="text-decoration-none text-dark">{{ factory.contact_phone }}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        {% if factory.contact_email %}
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
-                                                    <i class="bi bi-envelope text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">Email</h6>
-                                                    <a href="mailto:{{ factory.contact_email }}" class="text-decoration-none text-dark">{{ factory.contact_email }}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                                <h5 class="fw-bold mb-2">Address Information Locked</h5>
+                                <p class="mb-3">This factory's address details are only available to verified purchasers.</p>
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
+                                        <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                                        <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
+                                    </a>
+                                {% endif %}
                             </div>
                             {% endif %}
                         </div>
 
-                        <!-- Sidebar Information -->
-                        <div class="col-lg-4">
-                            <!-- Status Information -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-info-circle me-2 text-info"></i>
-                                        Status Information
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Verification Status</span>
-                                            {% if factory.is_verified %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Verified
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-warning">
-                                                    <i class="bi bi-x-circle me-1"></i>Not Verified
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Operational Status</span>
-                                            {% if factory.is_active %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Active
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-warning">
-                                                    <i class="bi bi-pause-circle me-1"></i>Inactive
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Deletion Status</span>
-                                            {% if factory.is_deleted %}
-                                                <span class="badge bg-danger">
-                                                    <i class="bi bi-trash me-1"></i>Deleted
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Active
-                                                </span>
-                                            {% endif %}
+                        <div id="technical" class="tab-panel" style="display:none">
+                            <h4 class="fw-bold mb-3">Technical Details</h4>
+                            <ul class="text list-group list-group-flush">
+                                <li class=" list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Type</span><span class="fw-bold">{{ factory.factory_type }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Holidays</span><span class="fw-bold">{{ factory.holidays }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {% if factory.video_url %}
+                            <div id="video-{{ factory.slug }}" class="tab-panel">
+                                <h4 class="text-22 fw-700 mb-20">{% trans "Virtual Tour" %}</h4>
+                                <div class="video-container rounded-16 overflow-hidden bg-dark-1">
+                                    <div class="ratio ratio-16x9">
+                                        <div id="video-player-container" class="w-100 h-100">
+                                            <iframe 
+                                                id="factory-video-iframe"
+                                                src="{{ factory.embed_video_url }}" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                referrerpolicy="strict-origin-when-cross-origin"
+                                                allowfullscreen 
+                                                class="w-100 h-100"
+                                                frameborder="0"
+                                                loading="lazy">
+                                            </iframe>
+                                            
+                                            <div id="video-error-message" style="display: none;" class="bg-light-1 w-100 h-100">
+                                                <div class="text-center py-40">
+                                                    <i class="icon-video text-40 text-light-2 mb-15"></i>
+                                                    <h5 class="text-18 fw-700 mb-10">{% trans "Video Unavailable" %}</h5>
+                                                    <p class="text-14 text-light-2 mb-20">{% trans "This content cannot be embedded or you are offline." %}</p>
+                                                    <button class="contact-button secondary" style="width: auto; margin: 0 auto;" onclick="retryVideo()">
+                                                        <i class="icon-refresh"></i> {% trans "Retry" %}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="mt-15 text-13 text-light-2">
+                                    <i class="icon-info-circle mr-5"></i>
+                                    {% trans "Video plays directly on this page. No external redirects required." %}
                                 </div>
                             </div>
+                        {% endif %}
 
-                            <!-- Factory Statistics -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-bar-chart me-2 text-primary"></i>
-                                        Factory Statistics
-                                    </h5>
+                        <div id="gallery-{{ factory.slug }}" class="tab-panel" style="display:none">
+                            <div class="row g-3">
+                                {% for item in factory.images.all %}
+                                <div class="col-6 col-md-4">
+                                    <img src="{{ item.image.url }}" class="img-fluid rounded-3 shadow-sm" alt="Factory">
                                 </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Employees</span>
-                                            <span class="badge bg-primary">{{ factory.employee_count|default:"—" }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Annual Turnover</span>
-                                            <span class="badge bg-info">{{ factory.annual_turnover|default:"—" }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Production Capacity</span>
-                                            <span class="badge bg-warning">{{ factory.production_capacity|default:"—" }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Working Hours</span>
-                                            <span class="badge bg-success">{{ factory.working_hours|default:"—" }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Quick Actions -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-tools me-2 text-warning"></i>
-                                        Quick Actions
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-column gap-2">
-                                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-warning">
-                                            <i class="bi bi-pencil me-2"></i>Edit Factory
-                                        </a>
-                                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-primary">
-                                            <i class="bi bi-arrow-left me-2"></i>View All Factories
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Factory ID -->
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-card-list me-2 text-secondary"></i>
-                                        Factory Details
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Factory ID</span>
-                                            <span class="badge bg-primary">#{{ factory.id|add:1000 }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Slug</span>
-                                            <code>{{ factory.slug }}</code>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Created</span>
-                                            <span class="text-muted small">{{ factory.created_at|date:"M d, Y" }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Updated</span>
-                                            <span class="text-muted small">{{ factory.updated_at|date:"M d, Y" }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                {% empty %}
+                                <p class="text-center py-5 text-muted">No images available.</p>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-4">
+                {% if has_purchased %}
+                <div class="contact-sidebar shadow-lg">
+                    <h5 class="mb-4 fw-bold text-light-1 ">Contact Details</h5>
+                    <div class="contact-item">
+                        <div class="contact-icon">👤</div>
+                        <div>
+                            <div class="contact-label">Contact Person</div>
+                            <div class="contact-value">{{ factory.contact_person }}</div>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div>
+                            <div class="contact-label">Email</div>
+                            <div class="contact-value">{{ factory.contact_email }}</div>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📱</div>
+                        <div>
+                            <div class="contact-label">Phone</div>
+                            <div class="contact-value">{{ factory.contact_phone }}</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        {% if user.is_staff or factory.created_by == user %}
+                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold">
+                            <i class="fas fa-edit me-2"></i> Edit Factory
+                        </a>
+                        {% endif %}
+                        <div class="bg-white bg-opacity-10 p-3 rounded-3 mt-3 border border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center text-light-2 ">
+                                <div class="fs-3 me-3">🛡️</div>
+                    <div>
+                      <div class="d-flex items-center text-14">
+                        <i class="icon-building mr-10"></i>
+                        {% if factory.price > 0 %}
+                            Rs. {{ factory.price|intcomma }}
+                        {% else %}
+                            <span class="badge bg-success">Free</span>
+                        {% endif %}
+                      </div>        
+                    </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="contact-sidebar shadow-lg">
+                    <h5 class="mb-4 fw-bold text-light-1 ">Contact Details</h5>
+                    <div class="purchase-required">
+                        <div class="purchase-required-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Contact Information Locked</h5>
+                        <p class="mb-3">This factory's contact details are only available to verified purchasers.</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
+                                <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
+                            </a>
+                        {% endif %}
+                        {% if user.is_staff or factory.created_by == user %}
+                        
+                    </div>
+                    <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold">
+                            <i class="fas fa-edit me-2"></i> Edit Factory
+                        </a>
+                        {% endif %}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<style>
-    /* Custom styles for factory detail */
-    .card {
-        border-radius: 12px;
+<script>
+    function switchTab(event, tabName) {
+        const buttons = document.querySelectorAll('.tab-button');
+        const panels = document.querySelectorAll('.tab-panel');
+        
+        buttons.forEach(btn => btn.classList.remove('is-active'));
+        panels.forEach(p => p.style.display = 'none');
+        
+        event.currentTarget.classList.add('is-active');
+        
+        // Handle dynamic IDs with factory slug
+        const factorySlug = '{{ factory.slug }}';
+        const targetId = tabName === 'gallery' ? `gallery-${factorySlug}` : 
+                         tabName === 'video' ? `video-${factorySlug}` : tabName;
+        
+        const targetPanel = document.getElementById(targetId);
+        if (targetPanel) {
+            targetPanel.style.display = 'block';
+        }
+
+        if(tabName === 'video') {
+            const ifr = document.getElementById('factory-video-iframe');
+            ifr.src = ifr.src; // Reload to play
+        }
     }
-    
-    .card-header {
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .badge {
-        font-size: 0.75rem;
-        padding: 4px 8px;
-    }
-    
-    .bg-opacity-10 {
-        background-color: rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    .fs-4 {
-        font-size: 1.5rem;
-    }
-    
-    code {
-        background-color: #f8f9fa;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.875rem;
-    }
-    
-    .text-muted small {
-        font-size: 0.875rem;
-    }
-    
-    .img-fluid {
-        border-radius: 12px;
-    }
-    
-    .btn-group .btn {
-        border-radius: 0;
-    }
-    
-    .btn-group .btn:first-child {
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-    }
-    
-    .btn-group .btn:last-child {
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-    }
-</style>
+
+    // Handle anchor navigation from factory list
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            // Remove leading # and switch to the appropriate tab
+            const tabName = hash.substring(1);
+            const targetButton = document.querySelector(`.tab-button[onclick*="${tabName}"]`);
+            if (targetButton) {
+                // Simulate click to switch tab
+                targetButton.click();
+                
+                // Scroll to the tab content area
+                const tabContent = targetButton.closest('.bg-white');
+                if (tabContent) {
+                    tabContent.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

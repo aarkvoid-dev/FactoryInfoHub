@@ -1,0 +1,292 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-2 p-md-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h4 class="fw-bold mb-0">Worker Registry</h4>
+            <p class="text-muted small mb-0">Manage workforce and location deployments.</p>
+        </div>
+        <div class="d-flex gap-2 w-100 w-md-auto">
+            <button class="btn btn-dark btn-sm rounded-pill px-3 flex-grow-1" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                <i class="fas fa-filter me-1"></i> Filters
+            </button>
+            <a href="{% url 'admin_interface:admin_worker_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1">
+                <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add Worker</span><span class="d-inline d-sm-none">Add</span>
+            </a>
+            <button class="btn btn-outline-secondary btn-sm rounded-circle d-none d-md-inline-block" onclick="exportToCSV()" title="Export CSV">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 d-md-inline-block" onclick="exportToCSV()" title="Export CSV">
+                <i class="fas fa-download me-2"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="collapse {% if request.GET %}show{% endif %} mb-4" id="filterCollapse">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <form method="get" id="filterForm" class="row g-2 g-md-3">
+                
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="small text-muted fw-bold">Category</label>
+                    <select name="category" id="filter_category" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">All Categories</option>
+                        {% for c in categories %}
+                        <option value="{{ c.id }}" {% if filters.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="small text-muted fw-bold">Sub-Category</label>
+                    <select name="subcategory" id="filter_subcategory" data-selected="{{ filters.subcategory }}" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">Select Category First</option>
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label class="small text-muted fw-bold">Availability</label>
+                    <select name="availability" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">Any</option>
+                        {% for code, name in availability_choices %}
+                        <option value="{{ code }}" {% if filters.availability == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="small text-muted fw-bold">Registry</label>
+                    <select name="deleted" class="form-select form-select-sm border-0 bg-light">
+                        <option value="active" {% if filters.deleted == 'active' %}selected{% endif %}>Current</option>
+                        <option value="deleted" {% if filters.deleted == 'deleted' %}selected{% endif %}>Trash</option>
+                        <option value="all" {% if filters.deleted == 'all' %}selected{% endif %}>Show Deleted</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-none d-md-block"><hr class="my-1 opacity-25"></div>
+                
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">Country</label>
+                    <select name="country" id="filter_country" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">Country</option>
+                        {% for c in countries %}<option value="{{ c.id }}" {% if filters.country == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">State</label>
+                    <select name="state" id="filter_state" data-selected="{{ filters.state }}" class="form-select form-select-sm border-0 bg-light"><option value="">State</option></select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">City</label>
+                    <select name="city" id="filter_city" data-selected="{{ filters.city }}" class="form-select form-select-sm border-0 bg-light"><option value="">City</option></select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="small text-muted fw-bold">District</label>
+                    <select name="district" id="filter_district" data-selected="{{ filters.district }}" class="form-select form-select-sm border-0 bg-light"><option value="">District</option></select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="small text-muted fw-bold">Region</label>
+                    <select name="region" id="filter_region" data-selected="{{ filters.region }}" class="form-select form-select-sm border-0 bg-light"><option value="">Region</option></select>
+                </div>
+
+                <div class="col-12 d-none d-md-block"><hr class="my-1 opacity-25"></div>
+
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">Gender</label>
+                    <select name="gender" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">All</option>
+                        {% for code, name in gender_choices %}
+                        <option value="{{ code }}" {% if filters.gender == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">Exp (Min)</label>
+                    <input type="number" name="experience_min" class="form-control form-control-sm border-0 bg-light" placeholder="Min" value="{{ filters.experience_min }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">Exp (Max)</label>
+                    <input type="number" name="experience_max" class="form-control form-control-sm border-0 bg-light" placeholder="Max" value="{{ filters.experience_max }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="small text-muted fw-bold">Status</label>
+                    <select name="status" class="form-select form-select-sm border-0 bg-light">
+                        <option value="">Any</option>
+                        <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 d-flex align-items-end gap-2 mt-2 mt-md-0">
+                    <button type="button" class="btn btn-light btn-sm border-0 w-100 rounded-pill py-2" onclick="resetFilters()">Reset</button>
+                    <button type="submit" class="btn btn-primary btn-sm w-100 rounded-pill py-2 fw-bold">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="small text-uppercase text-muted">
+                        <th class="ps-4">Worker Profile</th>
+                        <th>Role / Skills</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for worker in workers %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle bg-primary-subtle text-primary rounded-circle me-3 fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    {{ worker.full_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0 text-dark">{{ worker.full_name }}</div>
+                                    <span class="text-muted extra-small">ID: #{{ worker.id }} | {{ worker.get_gender_display }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold small">{{ worker.category.name }}</div>
+                            <div class="extra-small text-muted">{{ worker.subcategory.name|default:"General" }}</div>
+                        </td>
+                        <td><div class="small text-truncate" style="max-width: 200px;">{{ worker.get_full_location }}</div></td>
+                        <td>
+                            <span class="badge {% if worker.is_active %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} px-3 py-1 rounded-pill fw-normal">
+                                {{ worker.is_active|yesno:"Active,Inactive" }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                             <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light rounded-pill px-3 border shadow-sm">Edit</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-5 text-muted">No records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-md-none">
+            {% for worker in workers %}
+            <div class="p-3 border-bottom position-relative">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem;">
+                        {{ worker.full_name|slice:":1" }}
+                    </div>
+                    
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="fw-bold mb-0 text-dark">{{ worker.full_name }}</h6>
+                            <span class="badge {% if worker.is_active %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} extra-small rounded-pill">
+                                {{ worker.is_active|yesno:"Active,Inactive" }}
+                            </span>
+                        </div>
+                        <p class="text-primary small fw-bold mb-1">{{ worker.category.name }}</p>
+                        
+                        <div class="d-flex align-items-center text-muted extra-small mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            <span class="text-truncate">{{ worker.get_full_location }}</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light border w-100 rounded-pill extra-small py-2 fw-bold">
+                                <i class="fas fa-edit me-1"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-5 text-center text-muted">No records found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    
+    async function updateOptions(sourceId, targetId, endpoint, placeholder, selectedValue) {
+        const source = document.getElementById(sourceId);
+        const target = document.getElementById(targetId);
+        if (!source || !target || !source.value) {
+            if(target) target.innerHTML = `<option value="">${placeholder}</option>`;
+            return false;
+        }
+        target.innerHTML = `<option value="">Loading...</option>`;
+        try {
+            const url = endpoint.endsWith('/') ? `${endpoint}${source.value}/` : `${endpoint}/${source.value}/`;
+            const res = await fetch(url);
+            const data = await res.json();
+            target.innerHTML = `<option value="">${placeholder}</option>`;
+            data.forEach(item => {
+                const opt = new Option(item.name, item.id);
+                if (selectedValue && item.id.toString() === selectedValue.toString()) opt.selected = true;
+                target.add(opt);
+            });
+            return true;
+        } catch (e) {
+            target.innerHTML = `<option value="">Error</option>`;
+            return false;
+        }
+    }
+
+    function bindChangeListener(sourceId, targetId, endpoint, placeholder, deeperChildren) {
+        const source = document.getElementById(sourceId);
+        if (!source) return;
+        source.addEventListener('change', async function() {
+            deeperChildren.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<option value="">---</option>`;
+            });
+            await updateOptions(sourceId, targetId, endpoint, placeholder, null);
+        });
+    }
+
+    const chains = [
+        { src: 'filter_category', tgt: 'filter_subcategory', url: '/categories/ajax/load-subcategories/', label: 'Sub-Category', children: [] },
+        { src: 'filter_country', tgt: 'filter_state', url: '/location/ajax/states-by-country/', label: 'State', children: ['filter_city', 'filter_district', 'filter_region'] },
+        { src: 'filter_state', tgt: 'filter_city', url: '/location/ajax/cities-by-state/', label: 'City', children: ['filter_district', 'filter_region'] },
+        { src: 'filter_city', tgt: 'filter_district', url: '/location/ajax/districts-by-city/', label: 'District', children: ['filter_region'] },
+        { src: 'filter_district', tgt: 'filter_region', url: '/location/ajax/regions-by-district/', label: 'Region', children: [] }
+    ];
+
+    chains.forEach(c => bindChangeListener(c.src, c.tgt, c.url, c.label, c.children));
+
+    // Sticky Initial Load
+    for (const link of chains) {
+        const sourceEl = document.getElementById(link.src);
+        const targetEl = document.getElementById(link.tgt);
+        if (sourceEl && sourceEl.value) {
+            const preSelected = targetEl.getAttribute('data-selected');
+            await updateOptions(link.src, link.tgt, link.url, link.label, preSelected);
+        }
+    }
+});
+
+function resetFilters() { window.location.href = window.location.pathname; }
+function exportToCSV() { 
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('download', '1');
+    window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
+</script>
+
+<style>
+    .extra-small { font-size: 11px; }
+    .form-select-sm, .form-control-sm { border-radius: 10px; font-size: 0.85rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .avatar-circle { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .card { border-radius: 20px !important; }
+    /* Improved touch targets for mobile */
+    @media (max-width: 768px) {
+        .btn-sm { padding: 0.6rem 1rem; }
+        label { margin-bottom: 2px; margin-left: 4px; }
+    }
+</style>
+{% endblock %}

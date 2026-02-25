@@ -1,0 +1,236 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}State Management - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-map-marked-alt"></i>
+                State Management
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>State Data</h3>
+            <h2>Manage States</h2>
+            <p>Organize and manage state data within countries for your factory and worker locations.</p>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="stat-card-trend">
+                <i class="fas fa-exclamation-triangle"></i>
+                Important Notes
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>State Requirements</h3>
+            <h2>Country Dependency</h2>
+            <p>States must be associated with an existing country. Make sure countries are created first.</p>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="stat-card-trend positive">
+                <i class="fas fa-check-circle"></i>
+                Data Integrity
+            </div>
+        </div>
+        <div class="stat-card-content">
+            <h3>Validation Rules</h3>
+            <h2>Consistent Data Structure</h2>
+            <p>All states are validated to ensure proper naming and country association.</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Add New State</h3>
+    </div>
+    
+    <div class="form-container">
+        <form method="post" class="admin-form">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="error-message">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                        <div class="error-message">{{ form.code.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+                    {{ form.country }}
+                    {% if form.country.errors %}
+                        <div class="error-message">{{ form.country.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span>Add State</span>
+                </button>
+                <a href="{% url 'admin_interface:admin_locations' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Locations</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Existing States</h3>
+        <div class="header-actions">
+            <span class="badge badge-info">
+                <i class="fas fa-list"></i>
+                {{ states.count }} States
+            </span>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>State Name</th>
+                    <th>Code</th>
+                    <th>Country</th>
+                    <th>Cities</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for state in states %}
+                <tr>
+                    <td>
+                        <span class="badge badge-primary">
+                            <i class="fas fa-landmark"></i>
+                            {{ state.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="code-badge">{{ state.code|upper }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">
+                            <i class="fas fa-flag"></i>
+                            {{ state.country.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">
+                            {{ state.city_set.count }} cities
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-muted small">
+                            {{ state.created_at|date:"M d, Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i>
+                            Active
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        <i class="fas fa-landmark"></i>
+                        No states found. Add your first state above.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h3>Quick Actions</h3>
+    </div>
+    
+    <div class="admin-main">
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-lightbulb"></i>
+                    Add New State
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Quick Add</h3>
+                <h2>Use the form above to add new states</h2>
+                <p>Fill in the state name, code, and select the parent country to create new state entries.</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-layer-group"></i>
+                    Hierarchy Management
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Location Hierarchy</h3>
+                <h2>Country → State → City → District → Region</h2>
+                <p>Each level builds upon the previous one to create a complete geographic hierarchy.</p>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <div class="stat-card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-card-trend">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Dependencies
+                </div>
+            </div>
+            <div class="stat-card-content">
+                <h3>Important</h3>
+                <h2>Cities require states</h2>
+                <p>Always create states first before adding cities, districts, or other location types.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-wrapper p-4 slide-up">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="fw-bold mb-1">{{ title }}</h3>
+            <p class="text-muted small">Update user account details and permissions.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <form method="post" class="admin-form">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" name="username" value="{{ user_obj.username }}" class="form-control rounded-3 border-0 bg-light" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" value="{{ user_obj.email }}" class="form-control rounded-3 border-0 bg-light" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">First Name</label>
+                            <input type="text" name="first_name" value="{{ user_obj.first_name }}" class="form-control rounded-3 border-0 bg-light">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Last Name</label>
+                            <input type="text" name="last_name" value="{{ user_obj.last_name }}" class="form-control rounded-3 border-0 bg-light">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Account Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if user_obj.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    Active Account
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">User Role</label>
+                            <select name="role" class="form-select rounded-3 border-0 bg-light">
+                                <option value="user" {% if user_obj.profile.role == 'user' %}selected{% endif %}>User</option>
+                                <option value="staff" {% if user_obj.profile.role == 'staff' %}selected{% endif %}>Staff</option>
+                                <option value="admin" {% if user_obj.profile.role == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Member Since</label>
+                            <div class="text-muted small">
+                                {{ user_obj.date_joined|date:"M d, Y" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info bg-soft-info border-0 rounded-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle text-info me-2"></i>
+                                    <div>
+                                        <strong>Role Permissions:</strong><br>
+                                        <span class="small">User: Basic access • Staff: Limited admin • Admin: Full access</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-12">
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">
+                                    <i class="fas fa-save me-2"></i> Save Changes
+                                </button>
+                                <a href="{% url 'admin_interface:admin_users' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                    <i class="fas fa-arrow-left me-2"></i> Back to Users
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h6 class="fw-bold mb-3">User Information</h6>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div class="avatar-lg rounded-circle me-3 bg-soft-{{ user_obj.profile.role|default:'primary' }} text-{{ user_obj.profile.role|default:'primary' }} fw-bold d-flex align-items-center justify-content-center">
+                        {{ user_obj.first_name|slice:":1"|upper }}{{ user_obj.last_name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ user_obj.get_full_name|default:user_obj.username }}</h6>
+                        <span class="text-muted small">{{ user_obj.username }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Email</span>
+                        <span class="small">{{ user_obj.email }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Role</span>
+                        <span class="badge bg-soft-{{ user_obj.profile.role|default:'primary' }} text-{{ user_obj.profile.role|default:'primary' }} small">{{ user_obj.profile.role|title }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Status</span>
+                        {% if user_obj.is_active %}
+                            <span class="badge bg-success small">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary small">Suspended</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Staff Status</span>
+                        {% if user_obj.is_staff %}
+                            <span class="badge bg-info small">Staff Member</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark small">Regular User</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Superuser</span>
+                        {% if user_obj.is_superuser %}
+                            <span class="badge bg-danger small">System Admin</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark small">Limited Access</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Member Since</span>
+                        <span class="small">{{ user_obj.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning bg-soft-warning border-0 rounded-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <div>
+                            <strong>Warning:</strong><br>
+                            <span class="small">Changing user roles affects system access levels.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* User Edit Specific Styling */
+    .avatar-lg {
+        width: 60px;
+        height: 60px;
+        font-size: 18px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .bg-soft-primary { background-color: #e0f2fe; color: #0284c7; }
+    .bg-soft-staff { background-color: #fef3c7; color: #d97706; }
+    .bg-soft-admin { background-color: #fee2e2; color: #dc2626; }
+    .bg-soft-info { background-color: #e0f2fe; color: #0284c7; }
+    .bg-soft-warning { background-color: #fffbeb; color: #d97706; }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        border-color: #0284c7;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+</style>
+{% endblock %}
