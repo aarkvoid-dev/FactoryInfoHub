@@ -46,4 +46,7 @@ urlpatterns = [
     
     # Email Testing
     path('test-email/', views.test_email, name='test_email'),
+    
+    # Bulk Email Actions
+    path('send-selected-emails/', views.send_selected_emails, name='send_selected_emails'),
 ]
