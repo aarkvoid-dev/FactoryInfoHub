@@ -46,6 +46,7 @@ from .mixins import (
 )
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
+from Karkahan.views import process_hierarchical_fields
 
 
 class BlogPostListView(ListView):
@@ -288,34 +289,36 @@ def create_blog_post(request):
 @login_required
 def create_blog_post_form(request):
     if request.method == 'POST':
-        form = BlogPostForm(request.POST, request.FILES)
+        data = request.POST.copy()                 # make mutable copy
+        process_hierarchical_fields(data)           # convert new names to IDs
+        form = BlogPostForm(data, request.FILES)    # use the modified data
         if form.is_valid():
             try:
                 blog = form.save(commit=False, author=request.user)
                 blog.save()
-                
-                # Handle multiple images - check for multiple files with same name
+                form.save_m2m()                     # save many-to-many (related_factories)
+
+                # Handle multiple images
                 images = request.FILES.getlist('images')
-                if images and any(images):  # Only process if images exist
+                if images and any(images):
                     for i, image in enumerate(images):
                         BlogImage.objects.create(
                             blog_post=blog,
                             image=image,
                             order=i,
-                            is_featured=(i == 0)  # First image is featured by default
+                            is_featured=(i == 0)
                         )
-                
+
                 messages.success(request, _('Blog post created successfully!'))
                 return redirect('blog:post_list')
             except Exception as e:
                 form.add_error(None, _('An error occurred while saving the blog post. Please try again.'))
-                print(f"Error saving blog post: {e}")  # For debugging
+                print(f"Error saving blog post: {e}")
         else:
-            # Form validation errors
-            print(f"Form errors: {form.errors}")  # For debugging
+            print(f"Form errors: {form.errors}")
     else:
         form = BlogPostForm()
-    
+
     context = {
         'form': form,
         'categories': Category.objects.all(),
@@ -343,27 +346,33 @@ def blog_author_or_admin_required(view_func):
 @blog_author_or_admin_required
 def edit_blog_post(request, slug):
     blog = get_object_or_404(BlogPost, slug=slug)
-    
+
     if request.method == 'POST':
-        form = BlogPostForm(request.POST, request.FILES, instance=blog)
+        data = request.POST.copy()
+        process_hierarchical_fields(data)
+        form = BlogPostForm(data, request.FILES, instance=blog)
         if form.is_valid():
-            blog = form.save()
-            
-            # Handle multiple images - check for multiple files with same name
+            blog = form.save(commit=False)          # don't commit yet to control images manually
+            blog.save()
+            form.save_m2m()                         # save many-to-many
+
+            # Handle multiple images manually (consistent with create view)
             images = request.FILES.getlist('images')
-            if images and any(images):  # Only process if images exist
+            if images and any(images):
+                # Optional: decide whether to delete old images or just add new ones
+                # Here we just add new ones (no deletion)
                 for i, image in enumerate(images):
                     BlogImage.objects.create(
                         blog_post=blog,
                         image=image,
                         order=i,
-                        is_featured=(i == 0)  # First image is featured by default
+                        is_featured=(i == 0)
                     )
-            
+
             return redirect('blog:post_detail', slug=blog.slug)
     else:
         form = BlogPostForm(instance=blog)
-    
+
     context = {
         'form': form,
         'blog': blog,

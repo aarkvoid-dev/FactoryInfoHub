@@ -1,0 +1,268 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block header %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ title }}</h5>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'admin_interface:admin_homepage_video_edit' video.id %}" 
+                           class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        {% if video.is_deleted %}
+                            <a href="{% url 'admin_interface:admin_homepage_video_restore' video.id %}" 
+                               class="btn btn-info">
+                                <i class="fas fa-undo"></i> Restore
+                            </a>
+                            <a href="{% url 'admin_interface:admin_homepage_video_permanent_delete' video.id %}" 
+                               class="btn btn-danger">
+                                <i class="fas fa-trash-alt"></i> Permanent Delete
+                            </a>
+                        {% else %}
+                            <a href="{% url 'admin_interface:admin_homepage_video_delete' video.id %}" 
+                               class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Title:</label>
+                                <p class="form-control-plaintext">{{ video.title }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status:</label>
+                                {% if video.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-pause-circle"></i> Inactive
+                                    </span>
+                                {% endif %}
+                                {% if video.is_deleted %}
+                                    <span class="badge bg-danger ms-2">
+                                        <i class="fas fa-trash"></i> Deleted
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Created At:</label>
+                                <p class="form-control-plaintext">{{ video.created_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Updated At:</label>
+                                <p class="form-control-plaintext">{{ video.updated_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Video File:</label>
+                                {% if video.video %}
+                                    <div class="video-preview">
+                                        <video controls style="max-width: 100%; height: auto;">
+                                            <source src="{{ video.video.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        <div class="mt-2">
+                                            <a href="{{ video.video.url }}" download class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download"></i> Download Video
+                                            </a>
+                                            <span class="text-muted ms-2">File: {{ video.video.name }}</span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No video file uploaded</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Video Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Video Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>ID:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {{ video.id }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Active:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {% if video.is_active %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Deleted:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {% if video.is_deleted %}
+                                <span class="badge bg-danger">Yes</span>
+                            {% else %}
+                                <span class="badge bg-success">No</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if video.deleted_at %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Deleted At:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {{ video.deleted_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Constraints -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Active Video Constraints</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Constraint Rules</h6>
+                        <ul class="mb-0 mt-2">
+                            <li>Only one video can be active at any time</li>
+                            <li>At least one video must always be active</li>
+                            <li>Activating this video will deactivate others</li>
+                            <li>Cannot permanently delete the last active video</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if not video.is_deleted %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if not video.is_active %}
+                            <form method="post" action="{% url 'admin_interface:admin_homepage_video_edit' video.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="is_active" value="true">
+                                <button type="submit" class="btn btn-success w-100 mb-2">
+                                    <i class="fas fa-play"></i> Activate Video
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> This video is currently active
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'admin_interface:admin_homepage_videos' %}" class="btn btn-secondary w-100">
+                            <i class="fas fa-arrow-left"></i> Back to Videos
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .form-control-plaintext {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .video-preview video {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background-color: #000;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    
+    .alert {
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for activating video
+    const activateButton = document.querySelector('button[type="submit"]');
+    if (activateButton) {
+        activateButton.addEventListener('click', function(e) {
+            if (!confirm('Activating this video will automatically deactivate all other active videos. Continue?')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

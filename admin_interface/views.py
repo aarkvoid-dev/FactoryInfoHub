@@ -13,8 +13,8 @@ from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from blog.models import BlogPost, BlogImage
 from Accounts.models import Profile
-from Home.models import ContactMessage
-from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm
+from Home.models import ContactMessage, HomePageVideo
+from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm
 from faq.models import FAQQuestion
 
 @login_required
@@ -1581,6 +1581,230 @@ def export_contact_messages_to_csv(messages):
             'Read' if message.is_read else 'Unread',
             message.created_at,
             message.read_at if message.read_at else '',
+        ])
+
+    return response
+
+# Home Page Videos Views
+@login_required
+def admin_homepage_videos(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    # 1. Capture Filter Parameters
+    f_status = request.GET.get('status')
+    f_search = request.GET.get('search', '')
+    f_deleted = request.GET.get('deleted', 'active')  # 'active', 'deleted', 'all'
+
+    # 2. Build Queryset
+    videos = HomePageVideo.objects.all_with_deleted().select_related()
+
+    if f_search: videos = videos.filter(title__icontains=f_search)
+    
+    if f_status == 'active':
+        videos = videos.filter(is_active=True)
+    elif f_status == 'inactive':
+        videos = videos.filter(is_active=False)
+
+    # Filter by deleted status
+    if f_deleted == 'deleted':
+        videos = videos.filter(is_deleted=True)
+    elif f_deleted == 'active':
+        videos = videos.filter(is_deleted=False)
+
+    # 3. CSV Export
+    if 'download' in request.GET:
+        return export_homepage_videos_to_csv(videos)
+
+    # 4. Calculate Summary Statistics
+    total_count = videos.count()
+    active_count = videos.filter(is_active=True).count()
+    inactive_count = videos.filter(is_active=False).count()
+    deleted_count = videos.filter(is_deleted=True).count()
+
+    context = {
+        'videos': videos,
+        'total_count': total_count,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
+        'deleted_count': deleted_count,
+        'filters': {
+            'status': f_status,
+            'search': f_search,
+            'deleted': f_deleted,
+        }
+    }
+    return render(request, 'CustomAdmin/videos/videos.html', context)
+
+@login_required
+def admin_homepage_video_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    if request.method == 'POST':
+        form = AdminHomePageVideoForm(request.POST, request.FILES)
+        if form.is_valid():
+            video = form.save()
+            
+            # Handle constraint: if this video is active, deactivate others
+            if video.is_active:
+                HomePageVideo.objects.filter(is_active=True).exclude(id=video.id).update(is_active=False)
+            
+            messages.success(request, f'Home page video "{video.title}" created successfully!')
+            return redirect('admin_interface:admin_homepage_videos')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminHomePageVideoForm()
+
+    context = {
+        'form': form,
+        'action': 'create',
+        'title': 'Create New Home Page Video'
+    }
+    return render(request, 'CustomAdmin/videos/video_form.html', context)
+
+@login_required
+def admin_homepage_video_edit(request, video_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    video = get_object_or_404(HomePageVideo, id=video_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminHomePageVideoForm(request.POST, request.FILES, instance=video)
+        if form.is_valid():
+            video = form.save()
+            
+            # Handle constraint: if this video is active, deactivate others
+            if video.is_active:
+                HomePageVideo.objects.filter(is_active=True).exclude(id=video.id).update(is_active=False)
+            
+            messages.success(request, f'Home page video "{video.title}" updated successfully!')
+            return redirect('admin_interface:admin_homepage_videos')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminHomePageVideoForm(instance=video)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Home Page Video: {video.title}',
+        'video': video
+    }
+    return render(request, 'CustomAdmin/videos/video_form.html', context)
+
+@login_required
+def admin_homepage_video_delete(request, video_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    video = get_object_or_404(HomePageVideo, id=video_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        video_title = video.title
+        video.delete()
+        messages.success(request, f'Home page video "{video_title}" deleted successfully!')
+        return redirect('admin_interface:admin_homepage_videos')
+
+    context = {
+        'video': video,
+        'title': f'Delete Home Page Video: {video.title}'
+    }
+    return render(request, 'CustomAdmin/videos/video_delete.html', context)
+
+@login_required
+def admin_homepage_video_restore(request, video_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    video = get_object_or_404(HomePageVideo.objects.all_with_deleted(), id=video_id)
+    
+    if request.method == 'POST':
+        video_title = video.title
+        video.restore()
+        messages.success(request, f'Home page video "{video_title}" restored successfully!')
+        return redirect('admin_interface:admin_homepage_videos')
+
+    context = {
+        'video': video,
+        'title': f'Restore Home Page Video: {video.title}'
+    }
+    return render(request, 'CustomAdmin/videos/video_restore.html', context)
+
+@login_required
+def admin_homepage_video_permanent_delete(request, video_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    video = get_object_or_404(HomePageVideo.objects.all_with_deleted(), id=video_id)
+    
+    # Check if this is the last active video
+    if video.is_active and HomePageVideo.objects.filter(is_active=True).count() <= 1:
+        messages.error(request, 'Cannot permanently delete the last active video. Please activate another video first.')
+        return redirect('admin_interface:admin_homepage_video_detail', video_id=video_id)
+    
+    if request.method == 'POST':
+        video_title = video.title
+        video.hard_delete()
+        messages.success(request, f'Home page video "{video_title}" permanently deleted!')
+        return redirect('admin_interface:admin_homepage_videos')
+
+    context = {
+        'video': video,
+        'title': f'Permanently Delete Home Page Video: {video.title}'
+    }
+    return render(request, 'CustomAdmin/videos/video_permanent_delete.html', context)
+
+@login_required
+def admin_homepage_video_detail(request, video_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    video = get_object_or_404(HomePageVideo, id=video_id, is_deleted=False)
+
+    context = {
+        'video': video,
+        'title': f'Home Page Video Details: {video.title}'
+    }
+    return render(request, 'CustomAdmin/videos/video_detail.html', context)
+
+def export_homepage_videos_to_csv(videos):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="homepage_videos.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Title', 'Status', 'Created At', 'Updated At'])
+
+    for video in videos:
+        writer.writerow([
+            video.id,
+            video.title,
+            'Active' if video.is_active else 'Inactive',
+            video.created_at,
+            video.updated_at,
         ])
 
     return response

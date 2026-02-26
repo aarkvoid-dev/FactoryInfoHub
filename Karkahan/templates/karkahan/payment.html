@@ -12,10 +12,10 @@
     }
     
     .payment-header {
-        background: linear-gradient(135deg, #1A2B3E 0%, #0F172A 100%);
+        background: linear-gradient(135deg, #f99a9a 0%, #002374 100%);
         color: white;
         padding: 2rem;
-        border-radius: 16px;
+        padding-top: 7rem;
         margin-bottom: 2rem;
         text-align: center;
     }
@@ -110,11 +110,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="payment-container">
-    <div class="payment-header">
+<div class="payment-header">
         <h1 class="mb-0">Complete Your Payment</h1>
         <p class="mb-0 opacity-75">Secure proxy payment for demonstration</p>
     </div>
+<div class="payment-container">
 
     <div class="proxy-notice">
         <div class="d-flex align-items-center gap-3">
@@ -162,7 +162,7 @@
         <div class="mt-4">
             <form method="post" action="{% url 'karkahan:process_payment' %}">
                 {% csrf_token %}
-                <input type="hidden" name="amount" value="{{ amount }}">
+                <input type="hidden" name="amount" value="{{ amount|stringformat:'s' }}">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-lock"></i> Complete Payment
                 </button>

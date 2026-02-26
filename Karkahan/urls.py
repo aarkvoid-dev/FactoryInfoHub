@@ -28,7 +28,7 @@ urlpatterns = [
     # Checkout and Purchase
     path('checkout/', views.checkout, name='checkout'),
     path('checkout/process/', views.process_purchase, name='process_purchase'),
-    path('payment/<int:purchase_amount>/', views.payment_page, name='payment_page'),
+    path('payment/<str:purchase_amount>/', views.payment_page, name='payment_page'),
     path('payment/process/', views.process_payment, name='process_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/failure/', views.payment_failure, name='payment_failure'),

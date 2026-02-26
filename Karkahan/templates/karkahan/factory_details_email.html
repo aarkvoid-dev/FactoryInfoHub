@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Details - Factory InfoHub</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        
+        .factory-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .factory-card:hover {
+            background-color: #eef2ff;
+            transform: translateX(5px);
+        }
+        
+        .factory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .factory-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .factory-category {
+            background-color: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .factory-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .contact-section {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .contact-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-icon {
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .contact-item i {
+            color: #667eea;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .address-section {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .address-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .address-icon {
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .address-value {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #495057;
+        }
+        
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .footer-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .disclaimer {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 25px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .factory-details, .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .factory-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏭 Factory Details</h1>
+            <p>Thank you for your purchase! Here are the factory details you requested.</p>
+        </div>
+
+        <div class="content">
+            <!-- Greeting -->
+            <div class="greeting">
+                Dear {{ user.username }},
+            </div>
+
+            <!-- Factory Cards -->
+            {% for factory in factories %}
+            <div class="factory-card">
+                <!-- Factory Header -->
+                <div class="factory-header">
+                    <h2 class="factory-name">{{ factory.name }}</h2>
+                    <span class="factory-category">{{ factory.category.name }}</span>
+                </div>
+
+                <!-- Factory Details -->
+                <div class="factory-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Factory Type</div>
+                        <div class="detail-value">{{ factory.factory_type|default:"Not specified" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Production Capacity</div>
+                        <div class="detail-value">{{ factory.production_capacity|default:"Not specified" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Employee Count</div>
+                        <div class="detail-value">{{ factory.employee_count|default:"Not specified" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Established</div>
+                        <div class="detail-value">{{ factory.established_year|default:"Not specified" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Annual Turnover</div>
+                        <div class="detail-value">{{ factory.annual_turnover|default:"Not specified" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Location</div>
+                        <div class="detail-value">{{ factory.full_address }}</div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="contact-section">
+                    <div class="contact-header">
+                        <i class="fas fa-address-card contact-icon"></i>
+                        Contact Information
+                    </div>
+                    <div class="contact-grid">
+                        <div class="contact-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <div style="font-weight: 600;">Contact Person</div>
+                                <div style="color: #6c757d;">{{ factory.contact_person|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <div style="font-weight: 600;">Phone</div>
+                                <div style="color: #6c757d;">{{ factory.contact_phone|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <div style="font-weight: 600;">Email</div>
+                                <div style="color: #6c757d;">{{ factory.contact_email|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-globe"></i>
+                            <div>
+                                <div style="font-weight: 600;">Website</div>
+                                <div style="color: #6c757d;">{{ factory.website|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="address-section">
+                    <div class="address-header">
+                        <i class="fas fa-map-marker-alt address-icon"></i>
+                        Factory Address
+                    </div>
+                    <div class="address-value">
+                        {{ factory.address }}<br>
+                        {{ factory.city.name }}, {{ factory.state.name }} - {{ factory.pincode }}<br>
+                        {{ factory.country.name }}
+                    </div>
+                </div>
+            </div>
+
+            {% if not forloop.last %}
+            <div class="divider"></div>
+            {% endif %}
+            {% endfor %}
+
+            <!-- Summary -->
+            {% if factories|length > 1 %}
+            <div style="background-color: #e8f4fd; border-left: 4px solid #28a745; padding: 20px; border-radius: 0 8px 8px 0; margin-top: 25px;">
+                <h3 style="margin: 0 0 10px 0; color: #155724;">📋 Summary</h3>
+                <p style="margin: 0; color: #155724;">
+                    You have purchased details for <strong>{{ factories|length }}</strong> factory(ies).
+                    All contact information and factory details are provided above.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-logo">Factory InfoHub</div>
+            <p>Connecting businesses with verified factory information</p>
+            <div class="disclaimer">
+                This information is confidential and intended solely for your use.<br>
+                Unauthorized distribution or use of this information is strictly prohibited.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

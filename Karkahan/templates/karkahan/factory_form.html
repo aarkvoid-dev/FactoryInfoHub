@@ -250,26 +250,24 @@
                             <div class="sidebar-card-header border-bottom">
                                 <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Hierarchy</h6>
                             </div>
-                            <div class="p-4 bg-white">
-                                <div class="mb-3">
-                                    <label class="label-tech-sm">Industry Vertical</label>
-                                    <select name="category" id="id_category" class="select2-searchable">
-                                        <option value="">Select Category</option>
-                                        {% for cat in form.category.field.queryset %}
-                                        <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="label-tech-sm">Niche Specification</label>
-                                    <select name="subcategory" id="id_subcategory" class="select2-searchable">
-                                        <option value="">Select Subcategory</option>
-                                        {% for subcat in form.subcategory.field.queryset %}
-                                        <option value="{{ subcat.id }}" {% if form.subcategory.value == subcat.id %}selected{% endif %}>{{ subcat.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                        <div class="p-4 bg-white">
+                            <div class="mb-3">
+                                <label class="label-tech-sm">Industry Vertical</label>
+                                <select name="category" id="id_category" class="select2-searchable">
+                                    {% for cat in form.category.field.queryset %}
+                                    <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
+                            <div>
+                                <label class="label-tech-sm">Niche Specification</label>
+                                <select name="subcategory" id="id_subcategory" class="select2-searchable">
+                                    {% for subcat in form.subcategory.field.queryset %}
+                                    <option value="{{ subcat.id }}" {% if form.subcategory.value == subcat.id %}selected{% endif %}>{{ subcat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="sidebar-card-premium mb-4">
@@ -278,24 +276,34 @@
                             </div>
                             <div class="p-4 bg-white d-grid gap-3">
                                 <select name="country" id="id_country" class="select2-searchable">
-                                    <option value="">Country</option>
-                                    {% for c in form.country.field.queryset %}<option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                        
+                                    {% for c in form.country.field.queryset %}
+                                    <option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
                                 </select>
                                 <select name="state" id="id_state" class="select2-searchable">
-                                    <option value="">State</option>
-                                    {% for s in form.state.field.queryset %}<option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                        
+                                    {% for s in form.state.field.queryset %}
+                                    <option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>
+                                    {% endfor %}
                                 </select>
                                 <select name="city" id="id_city" class="select2-searchable">
-                                    <option value="">City</option>
-                                    {% for c in form.city.field.queryset %}<option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                         
+                                    {% for c in form.city.field.queryset %}
+                                    <option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
                                 </select>
                                 <select name="district" id="id_district" class="select2-searchable">
-                                    <option value="">District</option>
-                                    {% for d in form.district.field.queryset %}<option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+                           
+                                    {% for d in form.district.field.queryset %}
+                                    <option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>
+                                    {% endfor %}
                                 </select>
                                 <select name="region" id="id_region" class="select2-searchable">
-                                    <option value="">Region</option>
-                                    {% for r in form.region.field.queryset %}<option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+                    
+                                    {% for r in form.region.field.queryset %}
+                                    <option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                    {% endfor %}
                                 </select>
                                 <div class="form-group-custom mt-2">
                                     <label class="label-tech-sm">Street Address</label>
@@ -342,68 +350,114 @@
 
 {% block extra_js %}
 <script>
-$('.select2-searchable').select2({tags:true,width:'100%'});
+$(document).ready(function() {
+    // Initialize Select2 once (will be re-triggered after dynamic updates)
+    $('.select2-searchable').select2({ tags: true, width: '100%' });
+});
 
-function updateChain(parent, child, url, clear = []) {
+function updateChain(parent, child, url, clear = [], initialize = false, currentChildValue = null) {
     $('#' + parent).on('change', function() {
-        const val = $(this).val();
+        const parentVal = $(this).val();
         const childEl = $('#' + child);
-        
-        // Clear children
-        clear.forEach(id => $('#' + id).empty().append('<option value="">---</option>').trigger('change'));
-        
-        if (val && $.isNumeric(val)) {
-            // Only fetch via AJAX if it's a real ID
-            $.getJSON(url.replace('0', val), function(data) {
-                let opt = '<option value="">Select or Type New...</option>';
-                data.forEach(i => opt += '<option value="' + i.id + '">' + i.name + '</option>');
-                childEl.html(opt).trigger('change');
+
+        // Clear dependent children
+        clear.forEach(id => {
+            $('#' + id).empty().append('<option value="">---</option>').trigger('change');
+        });
+
+        if (parentVal && !isNaN(parentVal)) {
+            $.getJSON(url.replace('0', parentVal), function(data) {
+                let options = '<option value="">Select or Type New...</option>';
+                data.forEach(i => {
+                    // Use the stored currentChildValue to mark selected
+                    const selected = (String(i.id) === String(currentChildValue)) ? 'selected' : '';
+                    options += `<option value="${i.id}" ${selected}>${i.name}</option>`;
+                });
+                childEl.html(options).trigger('change');
             });
-        } else if (val) {
-            // If user typed a NEW tag, just clear the child and let them type there too
+        } else if (parentVal) {
+            // User typed a new parent value – allow tagging in child
             childEl.empty().append('<option value="">Type to add new...</option>').trigger('change');
         }
     });
+
+    // Initialize chain on page load
+    if (initialize) {
+        const parentEl = $('#' + parent);
+        const parentVal = parentEl.val();  // Use parent's actual value
+        if (parentVal && !isNaN(parentVal)) {
+            $.getJSON(url.replace('0', parentVal), function(data) {
+                let options = '<option value="">Select or Type New...</option>';
+                data.forEach(i => {
+                    const selected = (String(i.id) === String(currentChildValue)) ? 'selected' : '';
+                    options += `<option value="${i.id}" ${selected}>${i.name}</option>`;
+                });
+                $('#' + child).html(options).trigger('change');
+            });
+        }
+    }
 }
 
-// Initialize the chain updates
-updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
-updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
-updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
-updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
-updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
+// Initialize chain updates with the correct current values
+updateChain(
+    'id_category',
+    'id_subcategory',
+    "{% url 'category:ajax_load_subcategories' 0 %}",
+    [],
+    true,
+    $('#id_subcategory').val()   // FIXED: use subcategory's current value
+);
+
+updateChain(
+    'id_country',
+    'id_state',
+    "{% url 'location:states_by_country' 0 %}",
+    ['id_city', 'id_district', 'id_region'],
+    true,
+    $('#id_state').val()
+);
+
+updateChain(
+    'id_state',
+    'id_city',
+    "{% url 'location:cities_by_state' 0 %}",
+    ['id_district', 'id_region'],
+    true,
+    $('#id_city').val()
+);
+
+updateChain(
+    'id_city',
+    'id_district',
+    "{% url 'location:districts_by_city' 0 %}",
+    ['id_region'],
+    true,
+    $('#id_district').val()
+);
+
+updateChain(
+    'id_district',
+    'id_region',
+    "{% url 'location:regions_by_district' 0 %}",
+    [],
+    true,
+    $('#id_region').val()
+);
 
 // Initialize subcategories based on current category selection
 $(document).ready(function() {
-    const currentCategory = $('#id_category').val();
-    if (currentCategory) {
-        updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}");
-        $('#id_category').trigger('change');
-    }
-    
-    const currentCountry = $('#id_country').val();
-    if (currentCountry) {
-        updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region']);
-        $('#id_country').trigger('change');
-    }
-    
-    const currentState = $('#id_state').val();
-    if (currentState) {
-        updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region']);
-        $('#id_state').trigger('change');
-    }
-    
-    const currentCity = $('#id_city').val();
-    if (currentCity) {
-        updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region']);
-        $('#id_city').trigger('change');
-    }
-    
-    const currentDistrict = $('#id_district').val();
-    if (currentDistrict) {
-        updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}");
-        $('#id_district').trigger('change');
-    }
+    // Initialize select2 with current values
+    $('.select2-searchable').each(function() {
+        const $select = $(this);
+        const currentValue = $select.val();
+        if (currentValue) {
+            // For existing values, ensure they are properly selected
+            $select.find('option[value="' + currentValue + '"]').prop('selected', true);
+        }
+    });
+
+    // Re-initialize select2 to reflect current selections
+    $('.select2-searchable').select2({tags:true,width:'100%'});
 });
 
 // Multi-image upload functionality
@@ -596,21 +650,6 @@ if (videoUrlInput) {
 }
 </script>
 
-<!-- Template for new image forms -->
-<script type="text/template" id="image-form-template">
-    <div class="image-form-row mb-3 p-3 border rounded">
-        <input type="hidden" name="images-__prefix__-id" id="id_images-__prefix__-id">
-        
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group-custom">
-                    <label class="label-tech-sm">Image File</label>
-                    <input type="file" name="images-__prefix__-image" id="id_images-__prefix__-image" class="form-control-file" accept="image/*">
-                </div>
-            </div>
-            </div>
-    </div>
-</script>
 {% endblock %}
 
 {% block extra_css %}

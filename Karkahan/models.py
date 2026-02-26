@@ -291,65 +291,81 @@ class FactoryPurchase(models.Model):
         if self.email_sent:
             return
 
-        subject = f"Factory Details: {self.factory.name}"
-        message = f"""
-        Dear {self.user.username},
-
-        Thank you for your purchase! Here are the details for the factory you requested:
-
-        Factory Name: {self.factory.name}
-        Category: {self.factory.category.name}
-        Location: {self.factory.full_address}
-        Type: {self.factory.factory_type}
-        Production Capacity: {self.factory.production_capacity}
-        Employee Count: {self.factory.employee_count}
-        Established: {self.factory.established_year}
-        Annual Turnover: {self.factory.annual_turnover}
-
-        Contact Information:
-        Contact Person: {self.factory.contact_person}
-        Phone: {self.factory.contact_phone}
-        Email: {self.factory.contact_email}
-        Website: {self.factory.website}
-
-        Address: {self.factory.address}
-        {self.factory.city.name}, {self.factory.state.name} - {self.factory.pincode}
-        {self.factory.country.name}
-
-        This information is confidential and intended solely for your use.
-
-        Best regards,
-        Factory InfoHub Team
-        """
-
         try:
-            # Create message
+            # Create email content using template
+            from django.template.loader import render_to_string
+
+            # Prepare context for template
+            context = {
+                'user': self.user,
+                'factories': [self.factory],  # Single factory in list for template compatibility
+            }
+
+            # Render HTML email template
+            html_content = render_to_string('karkahan/factory_details_email.html', context)
+
+            # Create plain text version (fallback)
+            text_content = f"""
+            Dear {self.user.username},
+
+            Thank you for your purchase! Here are the details for the factory you requested:
+
+            Factory Name: {self.factory.name}
+            Category: {self.factory.category.name}
+            Location: {self.factory.full_address}
+            Type: {self.factory.factory_type}
+            Production Capacity: {self.factory.production_capacity}
+            Employee Count: {self.factory.employee_count}
+            Established: {self.factory.established_year}
+            Annual Turnover: {self.factory.annual_turnover}
+
+            Contact Information:
+            Contact Person: {self.factory.contact_person}
+            Phone: {self.factory.contact_phone}
+            Email: {self.factory.contact_email}
+            Website: {self.factory.website}
+
+            Address: {self.factory.address}
+            {self.factory.city.name}, {self.factory.state.name} - {self.factory.pincode}
+            {self.factory.country.name}
+
+            This information is confidential and intended solely for your use.
+
+            Best regards,
+            Factory InfoHub Team
+            """
+
+            # Send email with SSL context that bypasses certificate verification
             msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
+            msg['Subject'] = f"Factory Details: {self.factory.name}"
             msg['From'] = settings.DEFAULT_FROM_EMAIL
             msg['To'] = self.user.email
-            
-            # Add text content
-            text_part = MIMEText(message, 'plain')
+
+            # Add text content (for email clients that don't support HTML)
+            text_part = MIMEText(text_content, 'plain')
             msg.attach(text_part)
-            
+
+            # Add HTML content
+            html_part = MIMEText(html_content, 'html')
+            msg.attach(html_part)
+
             # Send email with SSL context that bypasses certificate verification
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+
             with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
                 if settings.EMAIL_USE_TLS:
-                    server.starttls(context=context)
+                    server.starttls(context=ssl_context)
                 if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
                     server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
                 server.send_message(msg)
-            
+
             # Update FactoryPurchase record
             self.email_sent = True
             self.email_sent_at = timezone.now()
             self.save()
-            
+
             # Update corresponding PurchaseHistory record
             try:
                 purchase_history = PurchaseHistory.objects.filter(
@@ -357,24 +373,22 @@ class FactoryPurchase(models.Model):
                     factory_slug=self.factory.slug,
                     purchase_date=self.purchased_at
                 ).first()
-                
+
                 if purchase_history:
                     purchase_history.email_delivered = True
                     purchase_history.email_delivered_at = self.email_sent_at
                     purchase_history.save()
-                    print(f"✅ Updated PurchaseHistory record for purchase {self.id}")
             except Exception as history_error:
                 print(f"⚠️  Warning: Could not update PurchaseHistory record: {history_error}")
-            
+
             print(f"✅ Email sent successfully to {self.user.email} for purchase {self.id}")
         except Exception as e:
-            # Log detailed error information
             import traceback
             error_msg = f"❌ Failed to send email for purchase {self.id}: {str(e)}"
             error_details = f"Error details: {traceback.format_exc()}"
             print(error_msg)
             print(error_details)
-            
+
             # Also log to Django's logging system
             import logging
             logger = logging.getLogger(__name__)

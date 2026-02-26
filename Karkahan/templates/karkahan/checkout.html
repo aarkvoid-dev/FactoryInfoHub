@@ -12,10 +12,10 @@
     }
     
     .checkout-header {
-        background: linear-gradient(135deg, #1A2B3E 0%, #0F172A 100%);
+        background: linear-gradient(135deg, #9ec4f0 0%, #001c5e 100%);
         color: white;
         padding: 2rem;
-        border-radius: 16px;
+        padding-top: 7rem;
         margin-bottom: 2rem;
     }
     
@@ -126,20 +126,20 @@
 {% endblock %}
 
 {% block content %}
-<div class="checkout-container">
-    <div class="checkout-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="mb-0">Checkout</h1>
-                <p class="mb-0 opacity-75">Review your order and complete the purchase</p>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <span class="badge bg-light text-dark fs-5 px-3 py-2">
-                    {{ cart_items.count }} item{{ cart_items.count|pluralize }}
-                </span>
-            </div>
+<div class="checkout-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-0">Checkout</h1>
+            <p class="mb-0 opacity-75">Review your order and complete the purchase</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <span class="badge bg-light text-dark fs-5 px-3 py-2">
+                {{ cart_items.count }} item{{ cart_items.count|pluralize }}
+            </span>
         </div>
     </div>
+</div>
+<div class="checkout-container">
 
     <div class="checkout-steps">
         <div class="step active">

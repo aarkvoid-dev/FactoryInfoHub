@@ -6,29 +6,8 @@ from location.models import Country, State, City, District, Region
 
 
 class FactoryForm(ModelForm):
-    # Add dynamic category creation fields
-    new_category = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Create new category...',
-            'style': 'display: none;'
-        }),
-        label='New Category'
-    )
+    """Simplified FactoryForm without dynamic category creation"""
     
-    new_subcategory = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Create new subcategory...',
-            'style': 'display: none;'
-        }),
-        label='New Subcategory'
-    )
-
     class Meta:
         model = Factory
         fields = [
@@ -36,7 +15,7 @@ class FactoryForm(ModelForm):
             'country', 'state', 'city', 'district', 'region',
             'address', 'pincode', 'contact_person', 'contact_phone',
             'contact_email', 'website', 'video_url', 'established_year',
-            'employee_count', 'annual_turnover', 'factory_type','price',
+            'employee_count', 'annual_turnover', 'factory_type', 'price',
             'production_capacity', 'working_hours', 'holidays',
             'is_active', 'is_verified'
         ]
@@ -92,7 +71,7 @@ class FactoryForm(ModelForm):
             'holidays': 'Holidays',
             'is_active': 'Is Active',
             'is_verified': 'Is Verified',
-            'price' :'Amount'
+            'price': 'Amount'
         }
         help_texts = {
             'factory_type': 'e.g., Manufacturing, Assembly, Processing',
@@ -117,7 +96,7 @@ class FactoryForm(ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.category:
             # If editing existing factory, show subcategories for its current category
             self.fields['subcategory'].queryset = self.instance.category.subcategories.filter(
                 is_active=True
@@ -134,7 +113,7 @@ class FactoryForm(ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.country:
             self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
         else:
             self.fields['state'].queryset = State.objects.none()
@@ -148,7 +127,7 @@ class FactoryForm(ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.state:
             self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
         else:
             self.fields['city'].queryset = City.objects.none()
@@ -181,37 +160,134 @@ class FactoryForm(ModelForm):
         else:
             self.fields['region'].queryset = Region.objects.none()
 
-    def clean(self):
-        cleaned_data = super().clean()
-        category = cleaned_data.get('category')
-        new_category = cleaned_data.get('new_category')
-        subcategory = cleaned_data.get('subcategory')
-        new_subcategory = cleaned_data.get('new_subcategory')
+        # Ensure proper initial values for select2 widgets
+        if self.instance.pk:
+            # Set initial values for select2 to show current selections
+            if self.instance.category:
+                self.fields['category'].initial = self.instance.category
+            if self.instance.subcategory:
+                self.fields['subcategory'].initial = self.instance.subcategory
+            if self.instance.country:
+                self.fields['country'].initial = self.instance.country
+            if self.instance.state:
+                self.fields['state'].initial = self.instance.state
+            if self.instance.city:
+                self.fields['city'].initial = self.instance.city
+            if self.instance.district:
+                self.fields['district'].initial = self.instance.district
+            if self.instance.region:
+                self.fields['region'].initial = self.instance.region
 
-        # Handle dynamic category creation
-        if new_category and not category:
-            # Create new category
-            category, created = Category.objects.get_or_create(
-                name=new_category.strip(),
-                defaults={'description': f'Auto-created category: {new_category.strip()}'}
-            )
-            cleaned_data['category'] = category
 
-        # Handle dynamic subcategory creation
-        if new_subcategory and not subcategory:
-            parent_category = cleaned_data.get('category')
-            if not parent_category:
-                self.add_error('new_subcategory', 'Please select or create a category first.')
-            else:
-                # Create new subcategory
-                subcategory, created = SubCategory.objects.get_or_create(
-                    name=new_subcategory.strip(),
-                    category=parent_category,
-                    defaults={'description': f'Auto-created subcategory: {new_subcategory.strip()}'}
-                )
-                cleaned_data['subcategory'] = subcategory
+class CategoryForm(forms.ModelForm):
+    """Form for creating new categories"""
+    
+    class Meta:
+        model = Category
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Category Name'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Category Description'}),
+        }
+        labels = {
+            'name': 'Category Name',
+            'description': 'Description',
+        }
 
-        return cleaned_data
+
+class SubCategoryForm(forms.ModelForm):
+    """Form for creating new subcategories"""
+    
+    class Meta:
+        model = SubCategory
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Subcategory Name'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Subcategory Description'}),
+        }
+        labels = {
+            'name': 'Subcategory Name',
+            'description': 'Description',
+        }
+
+
+class LocationForm(forms.ModelForm):
+    """Base form for location creation"""
+    
+    class Meta:
+        model = None  # Will be set in subclasses
+        fields = ['name', 'code']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class CountryForm(LocationForm):
+    """Form for creating countries"""
+    
+    class Meta(LocationForm.Meta):
+        model = Country
+        fields = ['name', 'code']
+
+
+class StateForm(LocationForm):
+    """Form for creating states"""
+    
+    class Meta(LocationForm.Meta):
+        model = State
+        fields = ['name', 'code', 'country']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class CityForm(LocationForm):
+    """Form for creating cities"""
+    
+    class Meta(LocationForm.Meta):
+        model = City
+        fields = ['name', 'code', 'state', 'is_capital', 'population', 'area', 'latitude', 'longitude']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.Select(attrs={'class': 'form-control'}),
+            'is_capital': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'population': forms.NumberInput(attrs={'class': 'form-control'}),
+            'area': forms.NumberInput(attrs={'class': 'form-control'}),
+            'latitude': forms.NumberInput(attrs={'class': 'form-control'}),
+            'longitude': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+class DistrictForm(LocationForm):
+    """Form for creating districts"""
+    
+    class Meta(LocationForm.Meta):
+        model = District
+        fields = ['name', 'code', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class RegionForm(LocationForm):
+    """Form for creating regions"""
+    
+    class Meta(LocationForm.Meta):
+        model = Region
+        fields = ['name', 'code', 'district', 'description', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
+            'district': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 class FactoryImageForm(ModelForm):

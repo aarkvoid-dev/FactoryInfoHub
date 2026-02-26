@@ -12,10 +12,10 @@
     }
     
     .cart-header {
-        background: linear-gradient(135deg, #1A2B3E 0%, #0F172A 100%);
+        background: linear-gradient(135deg, #84b0e2 0%, #01216b 100%);
         color: white;
         padding: 2rem;
-        border-radius: 16px;
+        padding-top: 7rem;
         margin-bottom: 2rem;
     }
     
@@ -118,20 +118,21 @@
 {% endblock %}
 
 {% block content %}
-<div class="cart-container">
-    <div class="cart-header">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="mb-0">Shopping Cart</h1>
-                <p class="mb-0 opacity-75">Review your factory selections before checkout</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <span class="badge bg-light text-dark fs-5 px-3 py-2">
-                    {{ cart_count }} item{{ cart_count|pluralize }}
-                </span>
-            </div>
+<div class="cart-header">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="mb-0">Shopping Cart</h1>
+            <p class="mb-0 opacity-75">Review your factory selections before checkout</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <span class="badge bg-light text-dark fs-5 px-3 py-2">
+                {{ cart_count }} item{{ cart_count|pluralize }}
+            </span>
         </div>
     </div>
+</div>
+<div class="cart-container">
+    
 
     {% if cart_items %}
         {% for item in cart_items %}

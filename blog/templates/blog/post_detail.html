@@ -126,13 +126,22 @@
                 <div class="related-factory-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
                   <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
                     <div class="position-relative">
-                      {% if factory.get_primary_image %}
+                      <!-- {% if factory.get_primary_image %}
                         <img src="{{ factory.get_primary_image.image.url }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
                       {% else %}
                         <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
                           <i class="icon-building text-40 text-muted"></i>
                         </div>
-                      {% endif %}
+                      {% endif %} -->
+                      {% with primary_image=factory.get_primary_image %}
+                        {% if primary_image %}
+                          <img src="{{ primary_image }}"  alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                        {% else %}
+                          <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                            <i class="icon-building text-40 text-muted"></i>
+                          </div>
+                        {% endif %}
+                      {% endwith %}
                     </div>
                     <div class="card-body p-3">
                       <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">

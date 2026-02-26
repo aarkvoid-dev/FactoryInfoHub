@@ -62,4 +62,13 @@ urlpatterns = [
     path('contacts/mark-read/<int:message_id>/', views.mark_message_read, name='mark_message_read'),
     path('contacts/delete/<int:message_id>/', views.delete_message, name='delete_message'),
     path('contacts/bulk-actions/', views.bulk_actions, name='bulk_actions'),
+    
+    # Home Page Videos URLs
+    path('videos/', views.admin_homepage_videos, name='admin_homepage_videos'),
+    path('videos/create/', views.admin_homepage_video_create, name='admin_homepage_video_create'),
+    path('videos/edit/<int:video_id>/', views.admin_homepage_video_edit, name='admin_homepage_video_edit'),
+    path('videos/delete/<int:video_id>/', views.admin_homepage_video_delete, name='admin_homepage_video_delete'),
+    path('videos/restore/<int:video_id>/', views.admin_homepage_video_restore, name='admin_homepage_video_restore'),
+    path('videos/permanent-delete/<int:video_id>/', views.admin_homepage_video_permanent_delete, name='admin_homepage_video_permanent_delete'),
+    path('videos/detail/<int:video_id>/', views.admin_homepage_video_detail, name='admin_homepage_video_detail'),
 ]

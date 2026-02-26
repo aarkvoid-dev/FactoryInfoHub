@@ -1,0 +1,252 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block header %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">
+                                        {{ form.title.label }}
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger mt-1">
+                                            {{ form.title.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.title.help_text|default:"Enter a descriptive title for the video" }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.video.id_for_label }}" class="form-label">
+                                        {{ form.video.label }}
+                                    </label>
+                                    {{ form.video }}
+                                    {% if form.video.errors %}
+                                        <div class="text-danger mt-1">
+                                            {{ form.video.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.video.help_text|default:"Upload the video file for the home page" }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            {{ form.is_active.label }}
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="text-danger mt-1">
+                                            {{ form.is_active.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.is_active.help_text|default:"Check to make this video active. Only one video can be active at a time." }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Video
+                                    </button>
+                                    <a href="{% url 'admin_interface:admin_homepage_videos' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Video Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Video Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Video Guidelines</h6>
+                        <ul class="mb-0 mt-2">
+                            <li>Video should be optimized for web playback</li>
+                            <li>Recommended format: MP4 with H.264 codec</li>
+                            <li>Keep file size reasonable for fast loading</li>
+                            <li>Title should be descriptive and concise</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Video Constraint -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Active Video Constraint</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Important</h6>
+                        <p class="mb-2">When you activate this video:</p>
+                        <ul class="mb-0">
+                            <li>All other active videos will be automatically deactivated</li>
+                            <li>At least one video must always remain active</li>
+                            <li>This ensures only one video plays on the home page at a time</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Active Video -->
+            {% if action == 'edit' and video.is_active %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Current Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle"></i> This video is currently active</h6>
+                            <p class="mb-0">This video is currently displayed on the home page.</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <h6>Form Errors:</h6>
+                    {{ form.non_field_errors }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    .alert {
+        border: none;
+        border-radius: 8px;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    
+    .text-danger {
+        font-size: 0.875rem;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isActiveCheckbox = document.getElementById('{{ form.is_active.id_for_label }}');
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    const videoInput = document.getElementById('{{ form.video.id_for_label }}');
+    
+    // Add visual feedback for required fields
+    if (titleInput) {
+        titleInput.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+    
+    // Add file size validation for video upload
+    if (videoInput) {
+        videoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Check file size (limit to 100MB)
+                const maxSize = 100 * 1024 * 1024; // 100MB
+                if (file.size > maxSize) {
+                    alert('Video file size must be less than 100MB for optimal performance.');
+                    this.value = '';
+                }
+            }
+        });
+    }
+    
+    // Add confirmation for deactivating the only active video
+    if (isActiveCheckbox) {
+        isActiveCheckbox.addEventListener('change', function() {
+            if (!this.checked) {
+                // This would deactivate the video
+                // In a real implementation, you might want to check if this is the only active video
+                // and show a warning
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

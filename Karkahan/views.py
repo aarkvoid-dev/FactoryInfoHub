@@ -6,20 +6,29 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import login
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from django.forms import inlineformset_factory
 from .models import Factory, ShoppingCart, FactoryPurchase, PurchaseHistory
-from .forms import FactoryForm, FactoryFilterForm, FactoryImageFormSet
+from .forms import FactoryForm, FactoryFilterForm, FactoryImageFormSet, CategoryForm, SubCategoryForm, CountryForm, StateForm, CityForm, DistrictForm, RegionForm
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 
 def factory_list(request):
     """List all factories with filtering and search"""
-    factories = Factory.objects.filter(is_active=True, is_deleted=False).select_related(
+    factories = Factory.objects.filter(is_active=True, is_deleted=False,is_verified=True).select_related(
         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
     )
     
@@ -138,32 +147,105 @@ def factory_list(request):
     }
     return render(request, 'karkahan/factory_list.html', context)
 
+def process_hierarchical_fields(data):
+    """
+    Takes a mutable QueryDict (POST copy) and replaces any new names
+    with existing or newly created object IDs for hierarchical fields.
+    Modifies the dictionary in place and returns it.
+    """
+    # --- Category ---
+    cat_val = data.get('category')
+    if cat_val and not cat_val.isdigit():
+        cat = Category.objects.filter(name__iexact=cat_val).first()
+        if not cat:
+            cat = Category.objects.create(name=cat_val, is_active=True)
+        data['category'] = str(cat.id)
+
+    # --- Subcategory (depends on category) ---
+    sub_val = data.get('subcategory')
+    if sub_val and not sub_val.isdigit():
+        cat_id = data.get('category')
+        if cat_id and cat_id.isdigit():
+            sub = SubCategory.objects.filter(name__iexact=sub_val, category_id=cat_id).first()
+            if not sub:
+                sub = SubCategory.objects.create(name=sub_val, category_id=cat_id, is_active=True)
+            data['subcategory'] = str(sub.id)
+
+    # --- Country ---
+    country_val = data.get('country')
+    if country_val and not country_val.isdigit():
+        country = Country.objects.filter(name__iexact=country_val).first()
+        if not country:
+            country = Country.objects.create(name=country_val)
+        data['country'] = str(country.id)
+
+    # --- State (depends on country) ---
+    state_val = data.get('state')
+    if state_val and not state_val.isdigit():
+        country_id = data.get('country')
+        if country_id and country_id.isdigit():
+            state = State.objects.filter(name__iexact=state_val, country_id=country_id).first()
+            if not state:
+                state = State.objects.create(name=state_val, country_id=country_id)
+            data['state'] = str(state.id)
+
+    # --- City (depends on state) ---
+    city_val = data.get('city')
+    if city_val and not city_val.isdigit():
+        state_id = data.get('state')
+        if state_id and state_id.isdigit():
+            city = City.objects.filter(name__iexact=city_val, state_id=state_id).first()
+            if not city:
+                city = City.objects.create(name=city_val, state_id=state_id)
+            data['city'] = str(city.id)
+
+    # --- District (depends on city) ---
+    district_val = data.get('district')
+    if district_val and not district_val.isdigit():
+        city_id = data.get('city')
+        if city_id and city_id.isdigit():
+            district = District.objects.filter(name__iexact=district_val, city_id=city_id).first()
+            if not district:
+                district = District.objects.create(name=district_val, city_id=city_id)
+            data['district'] = str(district.id)
+
+    # --- Region (depends on district) ---
+    region_val = data.get('region')
+    if region_val and not region_val.isdigit():
+        district_id = data.get('district')
+        if district_id and district_id.isdigit():
+            region = Region.objects.filter(name__iexact=region_val, district_id=district_id).first()
+            if not region:
+                region = Region.objects.create(name=region_val, district_id=district_id)
+            data['region'] = str(region.id)
+
+    return data
 
 @login_required
 def factory_create(request):
-    """Create a new factory"""
+    """Create a new factory with dynamic category/location creation"""
     if request.method == 'POST':
-        form = FactoryForm(request.POST)
-        formset = FactoryImageFormSet(request.POST, request.FILES)
-        
+        # Create a mutable copy of POST and process new names
+        post_data = request.POST.copy()
+        post_data = process_hierarchical_fields(post_data)
+
+        form = FactoryForm(post_data)
+        formset = FactoryImageFormSet(request.POST, request.FILES)  # original POST for images
+
         if form.is_valid() and formset.is_valid():
             from django.db import transaction
-            
             try:
                 with transaction.atomic():
-                    # 1. Save factory details
                     factory = form.save()
-                    
-                    # 2. Link and save images
                     formset.instance = factory
                     formset.save()
-                    
-                    # 3. Logic to set default primary image
+
+                    # Set a default primary image if none exists
                     if factory.images.exists() and not factory.images.filter(is_primary=True).exists():
                         first_image = factory.images.first()
                         first_image.is_primary = True
                         first_image.save()
-                        
+
                 messages.success(request, f'Factory "{factory.name}" has been created successfully!')
                 return redirect('karkahan:factory_detail', slug=factory.slug)
             except Exception as e:
@@ -198,36 +280,36 @@ def factory_creator_or_admin_required(view_func):
 @factory_creator_or_admin_required
 def factory_edit(request, slug):
     factory = get_object_or_404(Factory, slug=slug, is_deleted=False)
-    
+
     if request.method == 'POST':
-        form = FactoryForm(request.POST, instance=factory)
-        # Add prefix='images' here!
+        # Create a mutable copy of POST and process new names
+        post_data = request.POST.copy()
+        post_data = process_hierarchical_fields(post_data)
+
+        form = FactoryForm(post_data, instance=factory)
         formset = FactoryImageFormSet(request.POST, request.FILES, instance=factory, prefix='images')
-        print("FactoryForm : ",form.errors,"formset :",formset.errors)
+
         if form.is_valid() and formset.is_valid():
             factory = form.save()
             formset.save()
-            
-            # Ensure only one image is primary
+
+            # Ensure only one primary image
             primary_count = factory.images.filter(is_primary=True).count()
             if primary_count == 0 and factory.images.exists():
-                # Set first image as primary if none is set
                 first_image = factory.images.first()
                 first_image.is_primary = True
                 first_image.save()
             elif primary_count > 1:
-                # If multiple images are marked as primary, keep only the first one
                 primary_images = factory.images.filter(is_primary=True)
                 first_primary = primary_images.first()
                 primary_images.exclude(pk=first_primary.pk).update(is_primary=False)
-            
+
             messages.success(request, f'Factory "{factory.name}" updated!')
             return redirect('karkahan:factory_detail', slug=factory.slug)
     else:
         form = FactoryForm(instance=factory)
-        # Add prefix='images' here too!
         formset = FactoryImageFormSet(instance=factory, prefix='images')
-    
+
     context = {
         'form': form,
         'formset': formset,
@@ -235,7 +317,6 @@ def factory_edit(request, slug):
         'title': 'Edit Factory',
     }
     return render(request, 'karkahan/factory_form.html', context)
-
 
 @login_required
 @factory_creator_or_admin_required
@@ -480,10 +561,10 @@ def process_purchase(request):
         # Clear the cart
         cart_items.delete()
         
-        # Redirect to payment page - convert Decimal to int for URL
-        purchase_amount_int = int(total_amount)
+        # Redirect to payment page - convert Decimal to string for URL to preserve precision
+        purchase_amount_str = str(total_amount)
         messages.success(request, f"Purchase created successfully! Total amount: Rs. {total_amount}")
-        return redirect('karkahan:payment_page', purchase_amount=purchase_amount_int)
+        return redirect('karkahan:payment_page', purchase_amount=purchase_amount_str)
     
     return redirect('karkahan:checkout')
 
@@ -491,9 +572,20 @@ def process_purchase(request):
 @login_required
 def payment_page(request, purchase_amount):
     """Proxy payment page for demonstration"""
+    from decimal import Decimal, InvalidOperation
+    
+    # Convert string amount to Decimal for proper formatting
+    try:
+        amount_decimal = Decimal(purchase_amount)
+        formatted_amount = f"Rs. {amount_decimal:,.2f}"
+    except (ValueError, TypeError, InvalidOperation):
+        # Fallback to string if conversion fails
+        amount_decimal = purchase_amount
+        formatted_amount = f"Rs. {purchase_amount}"
+    
     context = {
-        'amount': purchase_amount,
-        'formatted_amount': f"Rs. {purchase_amount:,}",
+        'amount': amount_decimal,
+        'formatted_amount': formatted_amount,
     }
     return render(request, 'karkahan/payment.html', context)
 
@@ -502,13 +594,16 @@ def payment_page(request, purchase_amount):
 def process_payment(request):
     """Process the proxy payment"""
     if request.method == 'POST':
-        # Simulate payment processing
-        amount = request.POST.get('amount', '0')
+        # Get the amount from form submission
+        amount_str = request.POST.get('amount', '0')
         
         try:
-            amount = float(amount.replace(',', '').replace('Rs.', '').strip())
-        except ValueError:
-            messages.error(request, "Invalid amount.")
+            # Handle the amount properly - it might be a string representation of a decimal
+            # Remove currency symbols and commas, then convert to float
+            cleaned_amount = str(amount_str).replace(',', '').replace('Rs.', '').replace('Rs', '').strip()
+            submitted_amount = float(cleaned_amount)
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid amount format. Please enter a valid number.")
             return redirect('karkahan:payment_page', purchase_amount=0)
         
         # Get pending purchases for this user
@@ -524,10 +619,16 @@ def process_payment(request):
         # Calculate total amount from purchases to verify
         total_amount = sum(purchase.total_amount for purchase in pending_purchases)
         
-        # Verify amount matches
-        if abs(float(amount) - float(total_amount)) > 0.01:  # Small tolerance for floating point
-            messages.error(request, f"Amount mismatch. Expected: Rs. {total_amount}, Got: Rs. {amount}")
-            return redirect('karkahan:payment_page', purchase_amount=int(total_amount))
+        # Verify amount matches with proper decimal comparison
+        try:
+            # Convert both to float for comparison
+            expected_amount = float(total_amount)
+            if abs(submitted_amount - expected_amount) > 0.01:  # Small tolerance for floating point
+                messages.error(request, f"Amount mismatch. Expected: Rs. {expected_amount:.2f}, Got: Rs. {submitted_amount:.2f}")
+                return redirect('karkahan:payment_page', purchase_amount=str(expected_amount))
+        except (ValueError, TypeError):
+            messages.error(request, "Error processing payment amount. Please try again.")
+            return redirect('karkahan:payment_page', purchase_amount=0)
         
         # Mark purchases as completed in a transaction
         try:
@@ -539,6 +640,11 @@ def process_payment(request):
             return redirect('karkahan:payment_success')
             
         except Exception as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Payment processing failed for user {request.user.username}: {str(e)}")
+            
             messages.error(request, f"Payment processing failed: {str(e)}")
             return redirect('karkahan:payment_failure')
     
@@ -642,9 +748,21 @@ def send_selected_emails(request):
         # Send emails for multiple factories
         sent_count = 0
         try:
-            # Create a combined email for multiple factories
-            subject = f"Factory Details - {unsent_purchases.count()} Factory(ies)"
-            message = f"""
+            # Create a combined email for multiple factories using template
+            from django.template.loader import render_to_string
+            
+            # Prepare context for template with multiple factories
+            factories = [purchase.factory for purchase in unsent_purchases]
+            context = {
+                'user': request.user,
+                'factories': factories,
+            }
+
+            # Render HTML email template
+            html_content = render_to_string('karkahan/factory_details_email.html', context)
+
+            # Create plain text version (fallback)
+            text_content = f"""
             Dear {request.user.username},
 
             Thank you for your purchases! Here are the details for the factories you requested:
@@ -654,7 +772,7 @@ def send_selected_emails(request):
             # Add details for each factory
             for i, purchase in enumerate(unsent_purchases, 1):
                 factory = purchase.factory
-                message += f"""
+                text_content += f"""
             ---
             Factory {i}: {factory.name}
             Category: {factory.category.name}
@@ -677,7 +795,7 @@ def send_selected_emails(request):
 
             """
             
-            message += """
+            text_content += """
             This information is confidential and intended solely for your use.
 
             Best regards,
@@ -685,30 +803,27 @@ def send_selected_emails(request):
             """
 
             # Send email with SSL context that bypasses certificate verification
-            import ssl
-            import smtplib
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart
-            from django.conf import settings
-            from django.utils import timezone
-            
             msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
+            msg['Subject'] = f"Factory Details - {unsent_purchases.count()} Factory(ies)"
             msg['From'] = settings.DEFAULT_FROM_EMAIL
             msg['To'] = request.user.email
             
-            # Add text content
-            text_part = MIMEText(message, 'plain')
+            # Add text content (for email clients that don't support HTML)
+            text_part = MIMEText(text_content, 'plain')
             msg.attach(text_part)
             
+            # Add HTML content
+            html_part = MIMEText(html_content, 'html')
+            msg.attach(html_part)
+            
             # Send email with SSL context that bypasses certificate verification
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
             
             with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
                 if settings.EMAIL_USE_TLS:
-                    server.starttls(context=context)
+                    server.starttls(context=ssl_context)
                 if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
                     server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
                 server.send_message(msg)

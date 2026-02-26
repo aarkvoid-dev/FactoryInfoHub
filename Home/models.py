@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 
 class SoftDeleteManager(models.Manager):
@@ -107,6 +108,38 @@ class HomePageVideo(SoftDeleteModel):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        # Enforce constraint: only one active video at a time
+        if self.is_active:
+            # Deactivate all other active videos
+            HomePageVideo.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+        
+        # Ensure at least one video is active after save
+        super().save(*args, **kwargs)
+        
+        # Check if this is the only active video and we're deactivating it
+        if not self.is_active and not HomePageVideo.objects.filter(is_active=True, is_deleted=False).exists():
+            # Reactivate this video to maintain constraint
+            self.is_active = True
+            super().save(update_fields=['is_active'])
+
+    def clean(self):
+        # Additional validation to prevent constraint violations
+        if not self.is_active:
+            # Check if deactivating this video would leave no active videos
+            active_videos = HomePageVideo.objects.filter(is_active=True, is_deleted=False)
+            if self.pk:
+                active_videos = active_videos.exclude(pk=self.pk)
+            
+            if not active_videos.exists():
+                raise ValidationError('Cannot deactivate the only active video. Activate another video first.')
+    
+    def delete(self, using=None, keep_parents=False):
+        # Check constraint before soft delete
+        if self.is_active and HomePageVideo.objects.filter(is_active=True, is_deleted=False).count() <= 1:
+            raise ValidationError('Cannot delete the only active video. Activate another video first.')
+        super().delete(using, keep_parents)
 
     class Meta:
         ordering = ['-created_at']

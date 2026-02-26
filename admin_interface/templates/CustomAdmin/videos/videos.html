@@ -1,0 +1,294 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Home Page Videos - Admin{% endblock %}
+
+{% block header %}Home Page Videos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Total Videos</h6>
+                            <h3 class="mb-0">{{ total_count }}</h3>
+                        </div>
+                        <div class="icon-box bg-primary text-white">
+                            <i class="fas fa-video"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Active Videos</h6>
+                            <h3 class="mb-0 text-success">{{ active_count }}</h3>
+                        </div>
+                        <div class="icon-box bg-success text-white">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Inactive Videos</h6>
+                            <h3 class="mb-0 text-warning">{{ inactive_count }}</h3>
+                        </div>
+                        <div class="icon-box bg-warning text-white">
+                            <i class="fas fa-pause"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Deleted Videos</h6>
+                            <h3 class="mb-0 text-danger">{{ deleted_count }}</h3>
+                        </div>
+                        <div class="icon-box bg-danger text-white">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filter Videos</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ filters.search }}" placeholder="Search by title...">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Videos</option>
+                        <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="deleted" class="form-label">Deleted Status</label>
+                    <select class="form-select" id="deleted" name="deleted">
+                        <option value="active" {% if filters.deleted == 'active' %}selected{% endif %}>Active Only</option>
+                        <option value="deleted" {% if filters.deleted == 'deleted' %}selected{% endif %}>Deleted Only</option>
+                        <option value="all" {% if filters.deleted == 'all' %}selected{% endif %}>All Videos</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a href="{% url 'admin_interface:admin_homepage_videos' %}" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
+                        <a href="{% url 'admin_interface:admin_homepage_videos' %}?download=1" class="btn btn-success">
+                            <i class="fas fa-download"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Videos Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Video Management</h5>
+            <a href="{% url 'admin_interface:admin_homepage_video_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Video
+            </a>
+        </div>
+        <div class="card-body">
+            {% if videos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Updated At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for video in videos %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-video text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ video.title }}</h6>
+                                            {% if video.is_deleted %}
+                                                <small class="text-danger">Deleted</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if video.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-pause-circle"></i> Inactive
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ video.created_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ video.updated_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'admin_interface:admin_homepage_video_detail' video.id %}" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'admin_interface:admin_homepage_video_edit' video.id %}" 
+                                           class="btn btn-sm btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if video.is_deleted %}
+                                            <a href="{% url 'admin_interface:admin_homepage_video_restore' video.id %}" 
+                                               class="btn btn-sm btn-outline-info" title="Restore">
+                                                <i class="fas fa-undo"></i>
+                                            </a>
+                                            <a href="{% url 'admin_interface:admin_homepage_video_permanent_delete' video.id %}" 
+                                               class="btn btn-sm btn-outline-danger" title="Permanent Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'admin_interface:admin_homepage_video_delete' video.id %}" 
+                                               class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No videos found</h5>
+                    <p class="text-muted">Create your first home page video to get started.</p>
+                    <a href="{% url 'admin_interface:admin_homepage_video_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Video
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Constraint Information -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6 class="mb-0">Video Constraints</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Active Video Rules:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success"></i> Only one video can be active at any time</li>
+                        <li><i class="fas fa-check-circle text-success"></i> At least one video must always be active</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Activating a video automatically deactivates others</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>Deletion Rules:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success"></i> Videos are soft-deleted by default</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Soft-deleted videos can be restored</li>
+                        <li><i class="fas fa-exclamation-triangle text-warning"></i> Permanent deletion requires at least one active video</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+</style>
+{% endblock %}
