@@ -690,7 +690,7 @@
                                     </a>
                                 {% endif %}
                             {% else %}
-                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                                <a href="{% url 'login' %}?next={{ request.path }}" 
                                    class="button -md bg-accent-1 text-white btn-sm">
                                     <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
                                     {% if factory.price > 0 %}

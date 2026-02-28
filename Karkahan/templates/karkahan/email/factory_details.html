@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Details</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #EB662B 0%, #FF8A50 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        .content {
+            padding: 30px;
+        }
+        .order-info {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .order-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            color: #1A2B3E;
+        }
+        .order-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .order-detail-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .order-detail-item strong {
+            display: block;
+            color: #64748B;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+        .order-detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A2B3E;
+        }
+        .factories-section {
+            margin-bottom: 30px;
+        }
+        .factory-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .factory-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3rem;
+            color: #1A2B3E;
+            border-bottom: 2px solid #EB662B;
+            padding-bottom: 10px;
+        }
+        .factory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .factory-table th {
+            background: #EB662B;
+            color: white;
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .factory-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        .factory-table tr:last-child td {
+            border-bottom: none;
+        }
+        .factory-table tr:hover {
+            background-color: #f1f5f9;
+        }
+        .contact-section {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .contact-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            color: #1A2B3E;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .contact-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #EB662B;
+        }
+        .contact-item h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.875rem;
+            color: #64748B;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .contact-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1A2B3E;
+        }
+        .address-section {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .address-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            color: #1A2B3E;
+        }
+        .address-value {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #1A2B3E;
+            font-weight: 500;
+        }
+        .footer {
+            background: #1A2B3E;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .footer p {
+            margin: 0 0 10px 0;
+            opacity: 0.8;
+        }
+        .confidential-badge {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 600px) {
+            .order-details {
+                flex-direction: column;
+            }
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            .factory-table {
+                font-size: 0.85rem;
+            }
+            .factory-table th,
+            .factory-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Factory Details</h1>
+            <p>Thank you for your purchase!</p>
+        </div>
+        
+        <div class="content">
+            {% if order_number %}
+            <div class="order-info">
+                <h3>Order Information</h3>
+                <div class="order-details">
+                    <div class="order-detail-item">
+                        <strong>Order Number</strong>
+                        <div class="order-detail-value">{{ order_number }}</div>
+                    </div>
+                    <div class="order-detail-item">
+                        <strong>Total Factories</strong>
+                        <div class="order-detail-value">{{ total_factories }}</div>
+                    </div>
+                    <div class="order-detail-item">
+                        <strong>Email Sent</strong>
+                        <div class="order-detail-value">{{ email_sent_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="factories-section">
+                {% for factory in factories %}
+                <div class="factory-card">
+                    <h3>{{ factory.name }}</h3>
+                    
+                    <table class="factory-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Production Capacity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ factory.category }}</td>
+                                <td>{{ factory.location }}</td>
+                                <td>{{ factory.factory_type }}</td>
+                                <td>{{ factory.production_capacity }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <table class="factory-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Count</th>
+                                <th>Established</th>
+                                <th>Annual Turnover</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ factory.employee_count }}</td>
+                                <td>{{ factory.established_year }}</td>
+                                <td>{{ factory.annual_turnover }}</td>
+                                <td>Rs. {{ factory.price|default:"Not specified" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="contact-section">
+                        <h3><i class="fas fa-address-book"></i> Contact Information</h3>
+                        <div class="contact-grid">
+                            <div class="contact-item">
+                                <h4>Contact Person</h4>
+                                <div class="value">{{ factory.contact_person }}</div>
+                            </div>
+                            <div class="contact-item">
+                                <h4>Phone</h4>
+                                <div class="value">{{ factory.contact_phone }}</div>
+                            </div>
+                            <div class="contact-item">
+                                <h4>Email</h4>
+                                <div class="value">{{ factory.contact_email }}</div>
+                            </div>
+                            <div class="contact-item">
+                                <h4>Website</h4>
+                                <div class="value">{{ factory.website }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="address-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Factory Location</h3>
+                        <div class="address-value">
+                            {{ factory.address|default:"" }}<br>
+                            {{ factory.city|default:"" }}{% if factory.city and factory.state %}, {% endif %}{{ factory.state|default:"" }}{% if factory.pincode %} - {{ factory.pincode }}{% endif %}<br>
+                            {{ factory.country|default:"" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span class="confidential-badge">Confidential Information</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This information is confidential and intended solely for your use.</p>
+            <p style="margin: 0; font-size: 0.9rem;">Best regards,<br><strong>Factory InfoHub Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

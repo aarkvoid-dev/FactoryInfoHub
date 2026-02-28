@@ -235,10 +235,10 @@
                     </a>
                 {% endif %}
             {% else %}
-                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                     <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase - Rs. {{ factory.price|intcomma }}
                 </a>
-                <a href="{% url 'accounts:register' %}?next={{ request.path }}" class="btn-secondary">
+                <a href="{% url 'register' %}?next={{ request.path }}" class="btn-secondary">
                     <i class="fas fa-user-plus me-2"></i> Register to Purchase
                 </a>
             {% endif %}
@@ -308,7 +308,7 @@
                                         <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                                         <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
                                     </a>
                                 {% endif %}
@@ -441,7 +441,7 @@
                                 <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
                             </a>
                         {% else %}
-                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn-purchase">
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                                 <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
                             </a>
                         {% endif %}

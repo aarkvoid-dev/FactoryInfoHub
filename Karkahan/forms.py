@@ -1,8 +1,10 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import Factory, FactoryImage
+from .models import Factory, FactoryImage, ShoppingCart, Order, OrderItem, Payment
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 
 class FactoryForm(ModelForm):
@@ -458,3 +460,215 @@ class FactoryFilterForm(forms.Form):
                 ).order_by('name')
             except AttributeError:
                 pass
+
+
+# NEW FORMS FOR ENHANCED CART AND PAYMENT SYSTEM
+
+class ShoppingCartForm(forms.ModelForm):
+    """Form for managing shopping cart items"""
+    class Meta:
+        model = ShoppingCart
+        fields = ['quantity']
+        widgets = {
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'max': '10',
+                'step': '1'
+            })
+        }
+        labels = {
+            'quantity': 'Quantity'
+        }
+        help_texts = {
+            'quantity': 'Select quantity (1-10)'
+        }
+
+    def clean_quantity(self):
+        """Validate quantity"""
+        quantity = self.cleaned_data.get('quantity')
+        if quantity < 1:
+            raise ValidationError('Quantity must be at least 1')
+        if quantity > 10:
+            raise ValidationError('Maximum quantity per item is 10')
+        return quantity
+
+
+class CheckoutForm(forms.Form):
+    """Form for checkout process"""
+    customer_name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your full name'
+        }),
+        label='Full Name'
+    )
+    customer_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email address'
+        }),
+        label='Email Address'
+    )
+    customer_phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your phone number (optional)'
+        }),
+        label='Phone Number'
+    )
+    payment_method = forms.ChoiceField(
+        choices=Payment.PAYMENT_METHOD_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        }),
+        label='Payment Method'
+    )
+    accept_terms = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        label='I accept the terms and conditions',
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user and user.is_authenticated:
+            # Pre-fill fields if user is authenticated
+            if hasattr(user, 'profile') and user.profile:
+                self.fields['customer_name'].initial = user.get_full_name() or user.username
+                self.fields['customer_email'].initial = user.email
+                if user.profile.phone_number:
+                    self.fields['customer_phone'].initial = user.profile.phone_number
+
+
+class OrderForm(forms.ModelForm):
+    """Form for creating orders"""
+    class Meta:
+        model = Order
+        fields = ['customer_name', 'customer_email', 'customer_phone', 'payment_method', 'notes']
+        widgets = {
+            'customer_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your full name'
+            }),
+            'customer_email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your email address'
+            }),
+            'customer_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your phone number (optional)'
+            }),
+            'payment_method': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Any special instructions or notes...'
+            })
+        }
+        labels = {
+            'customer_name': 'Full Name',
+            'customer_email': 'Email Address',
+            'customer_phone': 'Phone Number',
+            'payment_method': 'Payment Method',
+            'notes': 'Additional Notes'
+        }
+
+
+class PaymentForm(forms.ModelForm):
+    """Form for payment processing"""
+    class Meta:
+        model = Payment
+        fields = ['payment_method', 'amount']
+        widgets = {
+            'payment_method': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly',
+                'step': '0.01'
+            })
+        }
+        labels = {
+            'payment_method': 'Payment Method',
+            'amount': 'Amount to Pay'
+        }
+
+    def __init__(self, *args, **kwargs):
+        order_total = kwargs.pop('order_total', None)
+        super().__init__(*args, **kwargs)
+        
+        if order_total:
+            self.fields['amount'].initial = order_total
+            self.fields['amount'].widget.attrs['readonly'] = 'readonly'
+
+
+class OrderStatusForm(forms.ModelForm):
+    """Form for updating order status (Admin use)"""
+    class Meta:
+        model = Order
+        fields = ['status', 'payment_status', 'notes', 'tracking_number']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'payment_status': forms.Select(attrs={'class': 'form-select'}),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3
+            }),
+            'tracking_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter tracking number (if applicable)'
+            })
+        }
+        labels = {
+            'status': 'Order Status',
+            'payment_status': 'Payment Status',
+            'notes': 'Internal Notes',
+            'tracking_number': 'Tracking Number'
+        }
+
+
+class RefundForm(forms.Form):
+    """Form for processing refunds"""
+    refund_amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01'
+        }),
+        label='Refund Amount'
+    )
+    refund_reason = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Please provide reason for refund...'
+        }),
+        label='Refund Reason'
+    )
+    confirm_refund = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        label='I confirm this refund is authorized',
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        max_refund_amount = kwargs.pop('max_refund_amount', None)
+        super().__init__(*args, **kwargs)
+        
+        if max_refund_amount:
+            self.fields['refund_amount'].initial = max_refund_amount
+            self.fields['refund_amount'].widget.attrs['max'] = str(max_refund_amount)

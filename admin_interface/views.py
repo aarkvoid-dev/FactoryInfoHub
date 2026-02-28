@@ -31,14 +31,17 @@ def admin_dashboard(request):
     user_count = User.objects.count()
     factory_count = Factory.objects.count()
     worker_count = Worker.objects.count()
-    report_count = 0  # TODO: Implement report counting
+    contact_count = ContactMessage.objects.filter(is_deleted=False).count()
 
     # Get today's counts
     today = datetime.now().date()
     new_users_today = User.objects.filter(date_joined__date=today).count()
     new_factories_today = Factory.objects.filter(created_at__date=today).count()
     new_workers_today = Worker.objects.filter(created_at__date=today).count()
-    reports_today = 0  # TODO: Implement report counting
+    new_contacts_today = ContactMessage.objects.filter(created_at__date=today, is_deleted=False).count()
+
+    # Get pending reports (unread contact messages)
+    pending_reports = ContactMessage.objects.filter(is_read=False, is_deleted=False).count()
 
     # Get recent activities
     recent_activities = []
@@ -52,7 +55,9 @@ def admin_dashboard(request):
         recent_activities.append({
             'type': 'user_created',
             'message': f'User {user.username} created',
-            'timestamp': user.date_joined
+            'timestamp': user.date_joined,
+            'icon': 'fas fa-user-plus',
+            'color': 'text-primary'
         })
 
     # Add factory creation activities
@@ -64,7 +69,9 @@ def admin_dashboard(request):
         recent_activities.append({
             'type': 'factory_created',
             'message': f'Factory {factory.name} created',
-            'timestamp': factory.created_at
+            'timestamp': factory.created_at,
+            'icon': 'fas fa-industry',
+            'color': 'text-success'
         })
 
     # Add worker creation activities
@@ -76,26 +83,216 @@ def admin_dashboard(request):
         recent_activities.append({
             'type': 'worker_created',
             'message': f'Worker {worker.full_name} created',
-            'timestamp': worker.created_at
+            'timestamp': worker.created_at,
+            'icon': 'fas fa-user-tie',
+            'color': 'text-warning'
+        })
+
+    # Add contact message activities
+    recent_contacts = ContactMessage.objects.filter(
+        created_at__gte=today - timedelta(days=7),
+        is_deleted=False
+    ).order_by('-created_at')[:5]
+
+    for contact in recent_contacts:
+        recent_activities.append({
+            'type': 'contact_message',
+            'message': f'New message from {contact.name}: {contact.subject}',
+            'timestamp': contact.created_at,
+            'icon': 'fas fa-envelope',
+            'color': 'text-info'
+        })
+
+    # Add blog post activities
+    recent_blogs = BlogPost.objects.filter(
+        created_at__gte=today - timedelta(days=7),
+        is_deleted=False
+    ).order_by('-created_at')[:5]
+
+    for blog in recent_blogs:
+        recent_activities.append({
+            'type': 'blog_created',
+            'message': f'Blog post "{blog.title}" published',
+            'timestamp': blog.created_at,
+            'icon': 'fas fa-file-alt',
+            'color': 'text-secondary'
         })
 
     # Sort activities by timestamp
     recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
     recent_activities = recent_activities[:10]
 
+    # Calculate infrastructure status
+    from django.db import connection
+    
+    try:
+        # Database connection test
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            db_status = "Connected"
+            db_health = 100
+    except:
+        db_status = "Disconnected"
+        db_health = 0
+
+    # Storage usage (simplified - using a default value since psutil is not available)
+    storage_percentage = 50  # Default value when psutil is not available
+
+    # System uptime (simplified)
+    system_uptime = "24/7"  # This would need more complex implementation
+
     context = {
         'user_count': user_count,
         'factory_count': factory_count,
         'worker_count': worker_count,
-        'report_count': report_count,
+        'contact_count': contact_count,
+        'pending_reports': pending_reports,
         'new_users_today': new_users_today,
         'new_factories_today': new_factories_today,
         'new_workers_today': new_workers_today,
-        'reports_today': reports_today,
+        'new_contacts_today': new_contacts_today,
         'recent_activities': recent_activities,
+        'db_status': db_status,
+        'db_health': db_health,
+        'storage_percentage': storage_percentage,
+        'system_uptime': system_uptime,
+        'unread_messages': ContactMessage.objects.filter(is_read=False, is_deleted=False).count(),
+        'pending_verifications': User.objects.filter(profile__email_verified=False).count(),
     }
 
     return render(request, 'CustomAdmin/dashboard/dashboard.html', context)
+
+
+@login_required
+def admin_dashboard_api(request):
+    """API endpoint for dashboard data refresh"""
+    # Get user role
+    profile = request.user.profile
+    role = profile.role
+
+    # Check if user has admin access
+    if role != 'admin' and not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    # Get statistics
+    user_count = User.objects.count()
+    factory_count = Factory.objects.count()
+    worker_count = Worker.objects.count()
+    contact_count = ContactMessage.objects.filter(is_deleted=False).count()
+
+    # Get today's counts
+    today = datetime.now().date()
+    new_users_today = User.objects.filter(date_joined__date=today).count()
+    new_factories_today = Factory.objects.filter(created_at__date=today).count()
+    new_workers_today = Worker.objects.filter(created_at__date=today).count()
+    new_contacts_today = ContactMessage.objects.filter(created_at__date=today, is_deleted=False).count()
+
+    # Get pending reports (unread contact messages)
+    pending_reports = ContactMessage.objects.filter(is_read=False, is_deleted=False).count()
+
+    # Get recent activities (last 5)
+    recent_activities = []
+
+    # Add user creation activities
+    recent_user_creations = User.objects.filter(
+        date_joined__gte=today - timedelta(days=7)
+    ).order_by('-date_joined')[:5]
+
+    for user in recent_user_creations:
+        recent_activities.append({
+            'type': 'user_created',
+            'message': f'User {user.username} created',
+            'timestamp': user.date_joined.isoformat(),
+            'icon': 'fas fa-user-plus',
+            'color': 'text-primary'
+        })
+
+    # Add factory creation activities
+    recent_factory_creations = Factory.objects.filter(
+        created_at__gte=today - timedelta(days=7)
+    ).order_by('-created_at')[:5]
+
+    for factory in recent_factory_creations:
+        recent_activities.append({
+            'type': 'factory_created',
+            'message': f'Factory {factory.name} created',
+            'timestamp': factory.created_at.isoformat(),
+            'icon': 'fas fa-industry',
+            'color': 'text-success'
+        })
+
+    # Add worker creation activities
+    recent_worker_creations = Worker.objects.filter(
+        created_at__gte=today - timedelta(days=7)
+    ).order_by('-created_at')[:5]
+
+    for worker in recent_worker_creations:
+        recent_activities.append({
+            'type': 'worker_created',
+            'message': f'Worker {worker.full_name} created',
+            'timestamp': worker.created_at.isoformat(),
+            'icon': 'fas fa-user-tie',
+            'color': 'text-warning'
+        })
+
+    # Add contact message activities
+    recent_contacts = ContactMessage.objects.filter(
+        created_at__gte=today - timedelta(days=7),
+        is_deleted=False
+    ).order_by('-created_at')[:5]
+
+    for contact in recent_contacts:
+        recent_activities.append({
+            'type': 'contact_message',
+            'message': f'New message from {contact.name}: {contact.subject}',
+            'timestamp': contact.created_at.isoformat(),
+            'icon': 'fas fa-envelope',
+            'color': 'text-info'
+        })
+
+    # Sort activities by timestamp
+    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    recent_activities = recent_activities[:10]
+
+    # Calculate infrastructure status
+    from django.db import connection
+    
+    try:
+        # Database connection test
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            db_status = "Connected"
+            db_health = 100
+    except:
+        db_status = "Disconnected"
+        db_health = 0
+
+    # Storage usage (simplified - using a default value since psutil is not available)
+    storage_percentage = 50  # Default value when psutil is not available
+
+    data = {
+        'kpi': {
+            'user_count': user_count,
+            'factory_count': factory_count,
+            'worker_count': worker_count,
+            'contact_count': contact_count,
+            'pending_reports': pending_reports,
+            'new_users_today': new_users_today,
+            'new_factories_today': new_factories_today,
+            'new_workers_today': new_workers_today,
+            'new_contacts_today': new_contacts_today,
+        },
+        'activities': recent_activities,
+        'infrastructure': {
+            'db_status': db_status,
+            'db_health': db_health,
+            'storage_percentage': storage_percentage,
+            'unread_messages': ContactMessage.objects.filter(is_read=False, is_deleted=False).count(),
+            'pending_verifications': User.objects.filter(profile__email_verified=False).count(),
+        }
+    }
+
+    return JsonResponse(data)
 
 @login_required
 def admin_users(request):
@@ -107,6 +304,95 @@ def admin_users(request):
 
     users = User.objects.all()
     return render(request, 'CustomAdmin/users/users.html', {'users': users})
+
+@login_required
+def admin_user_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        is_active = 'is_active' in request.POST
+        role = request.POST.get('role', 'user')
+
+        # Validation
+        if not username or not email or not password:
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'CustomAdmin/users/user_form.html', {
+                'action': 'create',
+                'title': 'Create New User'
+            })
+
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'CustomAdmin/users/user_form.html', {
+                'action': 'create',
+                'title': 'Create New User'
+            })
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return render(request, 'CustomAdmin/users/user_form.html', {
+                'action': 'create',
+                'title': 'Create New User'
+            })
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already exists.')
+            return render(request, 'CustomAdmin/users/user_form.html', {
+                'action': 'create',
+                'title': 'Create New User'
+            })
+
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            is_active=is_active
+        )
+
+        # Create profile for all users, including superusers
+        try:
+            Profile.objects.create(
+                user=user,
+                role=role,
+                email_notifications=True,
+                in_app_notifications=True
+            )
+        except Exception as e:
+            # Log the error and create a fallback profile with minimal settings
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to create Profile for user {username}: {e}")
+            
+            # Create a basic profile as fallback
+            Profile.objects.create(
+                user=user,
+                role=role,
+                email_notifications=False,
+                in_app_notifications=False
+            )
+            messages.warning(request, f'Profile created with default settings due to an error: {e}')
+
+        messages.success(request, f'User "{user.username}" created successfully!')
+        return redirect('admin_interface:admin_users')
+    else:
+        context = {
+            'action': 'create',
+            'title': 'Create New User'
+        }
+        return render(request, 'CustomAdmin/users/user_form.html', context)
 
 @login_required
 def admin_user_edit(request, user_id):

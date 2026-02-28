@@ -5,7 +5,9 @@ app_name = 'admin_interface'
 
 urlpatterns = [
     path('', views.admin_dashboard, name='admin_dashboard'),
+    path('api/', views.admin_dashboard_api, name='admin_dashboard_api'),
     path('users/', views.admin_users, name='admin_users'),
+    path('users/create/', views.admin_user_create, name='admin_user_create'),
     path('users/edit/<int:user_id>/', views.admin_user_edit, name='admin_user_edit'),
     path('users/delete/<int:user_id>/', views.admin_user_delete, name='admin_user_delete'),
     path('factories/', views.admin_factories, name='admin_factories'),

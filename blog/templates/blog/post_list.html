@@ -248,15 +248,18 @@
     <div class="row x-gap-30 y-gap-30 justify-center">
       {% if related_factories %}
         {% for factory in related_factories %}
+
           <div class="col-xl-2 col-lg-3 col-md-4 col-6">
             <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="factory-circle-card">
+               {% with primary_image=factory.get_primary_image %}
               <div class="factory-circle-card__image-wrap">
-                {% if factory.image %}
-                  <img src="{{ factory.image.url }}" alt="{{ factory.name }}">
+                {% if primary_image %}
+                  <img src="{{ primary_image }}" alt="{{ factory.name }}">
                 {% else %}
                   <div class="placeholder center"><i class="fas fa-industry"></i></div>
                 {% endif %}
               </div>
+              {% endwith %}
               <h4 class="factory-circle-card__name">{{ factory.name }}</h4>
             </a>
           </div>
@@ -440,6 +443,8 @@
         letter-spacing: 0.5px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         transition: all 0.3s ease;
+        width: 70%;
+        height: 20%;
     }
     
     .blogCard__overlay {

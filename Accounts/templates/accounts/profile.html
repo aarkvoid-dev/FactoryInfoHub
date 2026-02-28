@@ -148,6 +148,44 @@
                                         </div>
                                         {% endif %}
                                     </div>
+                                    
+                                    <!-- Email Verification Status -->
+                                    {% if not user.profile.email_verified %}
+                                    <div class="mt-20 pt-20 border-top-light">
+                                        <div class="d-flex items-center justify-between">
+                                            <div class="d-flex items-center">
+                                                <div class="size-32 bg-warning-05 rounded-full d-flex justify-center items-center mr-15">
+                                                    <i class="fa-solid fa-envelope text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="text-14 fw-600 text-dark-1">Email Verification Required</div>
+                                                    <p class="text-12 text-light-2">Verify your email to unlock full account features</p>
+                                                </div>
+                                            </div>
+                                            <button type="button" 
+                                                    id="resend-verification-btn" 
+                                                    class="btn btn-outline-warning rounded-pill px-20 py-10 transition-all active-scale-95"
+                                                    onclick="resendVerificationEmail()">
+                                                <i class="fa-solid fa-paper-plane mr-8"></i> 
+                                                <span id="resend-btn-text">Resend Verification</span>
+                                                <span id="resend-spinner" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                            </button>
+                                        </div>
+                                        <div id="verification-message" class="mt-15"></div>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-20 pt-20 border-top-light">
+                                        <div class="d-flex items-center">
+                                            <div class="size-32 bg-success-05 rounded-full d-flex justify-center items-center mr-15">
+                                                <i class="fa-solid fa-check-circle text-success"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-14 fw-600 text-dark-1">Email Verified</div>
+                                                <p class="text-12 text-light-2">Your email address has been verified</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -831,6 +869,94 @@
             }
         });
     });
+    
+    // Resend Verification Email Function
+    async function resendVerificationEmail() {
+        const btn = document.getElementById('resend-verification-btn');
+        const text = document.getElementById('resend-btn-text');
+        const spinner = document.getElementById('resend-spinner');
+        const messageContainer = document.getElementById('verification-message');
+        
+        // Show loading state
+        btn.disabled = true;
+        text.innerText = 'Sending...';
+        spinner.classList.remove('d-none');
+        
+        try {
+            const response = await fetch('{% url "resend_verification_email" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            });
+            
+            const data = await response.json();
+            
+            // Reset button state
+            btn.disabled = false;
+            text.innerText = 'Resend Verification';
+            spinner.classList.add('d-none');
+            
+            // Show message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show animate-fade-in`;
+            messageDiv.style.borderRadius = '12px';
+            messageDiv.style.border = 'none';
+            messageDiv.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+            
+            const icon = data.success ? 'fa-check-circle' : 'fa-exclamation-circle';
+            messageDiv.innerHTML = `
+                <i class="fa-solid ${icon} mr-10"></i>
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+            
+            // Auto remove after 5 seconds for success, 8 seconds for error
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
+                        }
+                    }, 300);
+                }
+            }, data.success ? 5000 : 8000);
+            
+            // If email is now verified, refresh the page to update UI
+            if (data.success && data.message.includes('verified')) {
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+            
+        } catch (error) {
+            // Reset button state on error
+            btn.disabled = false;
+            text.innerText = 'Resend Verification';
+            spinner.classList.add('d-none');
+            
+            // Show error message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'alert alert-danger alert-dismissible fade show animate-fade-in';
+            messageDiv.style.borderRadius = '12px';
+            messageDiv.style.border = 'none';
+            messageDiv.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+            messageDiv.innerHTML = `
+                <i class="fa-solid fa-exclamation-circle mr-10"></i>
+                An unexpected error occurred. Please try again later.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+        }
+    }
     
     // Toast Notifications
     function showToast(message, type = 'info') {

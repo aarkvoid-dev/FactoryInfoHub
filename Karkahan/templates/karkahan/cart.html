@@ -26,20 +26,35 @@
         padding: 1.5rem;
         margin-bottom: 1rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .cart-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
     }
     
     .cart-item-image {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         object-fit: cover;
-        border-radius: 8px;
+        border-radius: 12px;
         border: 1px solid #e2e8f0;
+        transition: transform 0.3s ease;
+    }
+    
+    .cart-item:hover .cart-item-image {
+        transform: scale(1.05);
     }
     
     .quantity-controls {
         display: flex;
         align-items: center;
         gap: 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px;
     }
     
     .quantity-btn {
@@ -53,15 +68,27 @@
         align-items: center;
         justify-content: center;
         font-weight: bold;
+        transition: all 0.2s ease;
+    }
+    
+    .quantity-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+    
+    .quantity-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
     
     .quantity-input {
         width: 60px;
         text-align: center;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        padding: 8px;
+        border: none;
+        background: transparent;
         font-weight: 600;
+        font-size: 1.1rem;
+        outline: none;
     }
     
     .price-tag {
@@ -76,6 +103,23 @@
         border-radius: 12px;
         padding: 2rem;
         margin-top: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .summary-row:last-child {
+        border-bottom: none;
+        padding-top: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1A2B3E;
     }
     
     .btn-primary {
@@ -85,6 +129,7 @@
         font-weight: 700;
         border-radius: 8px;
         transition: transform 0.2s ease;
+        width: 100%;
     }
     
     .btn-primary:hover {
@@ -96,11 +141,13 @@
         border-color: #ef4444;
         color: #ef4444;
         background: transparent;
+        transition: all 0.2s ease;
     }
     
     .btn-outline-danger:hover {
         background: #ef4444;
         color: white;
+        transform: translateY(-1px);
     }
     
     .empty-cart {
@@ -113,11 +160,74 @@
         font-size: 4rem;
         margin-bottom: 1rem;
         opacity: 0.5;
+        color: #e2e8f0;
+    }
+    
+    .cart-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .badge-new {
+        background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .alert-info {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border: 1px solid #93c5fd;
+        color: #1e40af;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-info .alert-icon {
+        color: #2563eb;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+    
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #EB662B;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
 <div class="cart-header">
     <div class="row align-items-center">
         <div class="col-md-6">
@@ -131,12 +241,27 @@
         </div>
     </div>
 </div>
+
+<div class="alert-info">
+    <div class="d-flex align-items-center">
+        <div class="alert-icon">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div>
+            <strong>Enhanced Cart Features:</strong><br>
+            • Real-time quantity updates<br>
+            • Maximum 10 items per factory<br>
+            • Secure checkout process
+        </div>
+    </div>
+</div>
+
 <div class="cart-container">
     
 
     {% if cart_items %}
         {% for item in cart_items %}
-        <div class="cart-item">
+        <div class="cart-item" data-item-id="{{ item.id }}">
             <div class="row align-items-center">
                 <div class="col-md-2">
                     {% if item.factory.get_primary_image %}
@@ -148,46 +273,80 @@
                     {% endif %}
                 </div>
                 
-                <div class="col-md-6">
-                    <h5 class="mb-1">{{ item.factory.name }}</h5>
-                    <p class="mb-1 text-muted">{{ item.factory.category.name }} • {{ item.factory.city.name }}, {{ item.factory.state.name }}</p>
-                    <p class="mb-0 text-success fw-bold">Price: Rs. {{ item.factory.price|intcomma }} per unit</p>
+                <div class="col-md-5">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <h5 class="mb-1">{{ item.factory.name }}</h5>
+                            <p class="mb-1 text-muted">{{ item.factory.category.name }} • {{ item.factory.city.name }}, {{ item.factory.state.name }}</p>
+                            <p class="mb-0 text-success fw-bold">Price: Rs. {{ item.factory.price|intcomma }} per unit</p>
+                            {% if item.factory.has_user_purchased.user %}
+                                <span class="badge badge-new mt-2">Already Purchased</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-md-none mt-2">
+                            <div class="price-tag">Rs. {{ item.total_price|intcomma }}</div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="col-md-2">
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-primary">1 Item</span>
+                <div class="col-md-3">
+                    <div class="quantity-controls">
+                        <button class="quantity-btn decrease-qty" data-item-id="{{ item.id }}" {% if item.quantity <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="10" data-item-id="{{ item.id }}">
+                        <button class="quantity-btn increase-qty" data-item-id="{{ item.id }}" {% if item.quantity >= 10 %}disabled{% endif %}>
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
+                    <small class="text-muted mt-2 d-block">Maximum 10 per factory</small>
                 </div>
                 
                 <div class="col-md-2 text-end">
                     <div class="price-tag">Rs. {{ item.total_price|intcomma }}</div>
-                    <button class="btn btn-outline-danger btn-sm mt-2" onclick="removeItem({{ item.id }})">
-                        <i class="fas fa-trash"></i> Remove
-                    </button>
+                    <div class="mt-2">
+                        <button class="btn btn-outline-danger btn-sm remove-item" data-item-id="{{ item.id }}">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
 
         <div class="cart-summary">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-0">Order Summary</h4>
-                    <p class="text-muted mb-0">{{ cart_count }} item{{ cart_count|pluralize }} in cart</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="d-flex justify-content-md-end align-items-center gap-3">
-                        <span class="text-muted">Total:</span>
-                        <span class="price-tag fs-3">Rs. {{ total_price|intcomma }}</span>
+            <div class="row">
+                <div class="col-lg-8">
+                    <h4 class="mb-3">Order Summary</h4>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal ({{ cart_count }} items)</span>
+                        <span>Rs. {{ total_price|intcomma }}</span>
                     </div>
-                    <div class="mt-3">
-                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary me-2">
+                    <div class="summary-row">
+                        <span>Tax (18%)</span>
+                        <span>Rs. {{ tax_amount|intcomma }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Service Fee</span>
+                        <span>Rs. 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="fw-bold">Total Amount</span>
+                        <span class="fw-bold fs-4">Rs. {{ total_amount|intcomma }}</span>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Continue Shopping
                         </a>
                         <a href="{% url 'karkahan:checkout' %}" class="btn btn-primary">
                             <i class="fas fa-shopping-cart"></i> Proceed to Checkout
                         </a>
+                        <button class="btn btn-outline-danger" onclick="clearCart()">
+                            <i class="fas fa-trash"></i> Clear Cart
+                        </button>
                     </div>
                 </div>
             </div>
@@ -200,25 +359,130 @@
             </div>
             <h3>Your cart is empty</h3>
             <p class="text-muted">Add some factories to your cart to get started</p>
-            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-search"></i> Browse Factories
-            </a>
+            <div class="cart-actions">
+                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Browse Factories
+                </a>
+                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-plus"></i> Add Factory
+                </a>
+            </div>
         </div>
     {% endif %}
 </div>
 
 <script>
+// Show loading overlay
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+// Hide loading overlay
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// Update quantity via AJAX
+function updateQuantity(itemId, newQuantity) {
+    showLoading();
+    
+    fetch('{% url "karkahan:update_cart_quantity" 0 %}'.replace('0', itemId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: `quantity=${newQuantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            // Update UI
+            const itemRow = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+            if (itemRow) {
+                // Update quantity input
+                const qtyInput = itemRow.querySelector('.quantity-input');
+                if (qtyInput) qtyInput.value = data.new_quantity;
+                
+                // Update price
+                // Note: Price update would require server-side calculation
+                location.reload(); // Simple reload for now
+            }
+        } else {
+            alert(data.error || 'Failed to update quantity');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('An error occurred while updating quantity');
+    });
+}
+
+// Remove item
 function removeItem(itemId) {
     if (confirm('Are you sure you want to remove this item from your cart?')) {
+        showLoading();
         window.location.href = '{% url "karkahan:remove_from_cart" 0 %}'.replace('0', itemId);
     }
 }
 
-// Clear cart confirmation
+// Clear cart
 function clearCart() {
     if (confirm('Are you sure you want to clear your entire cart?')) {
+        showLoading();
         window.location.href = '{% url "karkahan:clear_cart" %}';
     }
 }
+
+// Quantity input event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Increase quantity
+    document.querySelectorAll('.increase-qty').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+            let qty = parseInt(input.value);
+            if (qty < 10) {
+                qty++;
+                updateQuantity(itemId, qty);
+            }
+        });
+    });
+
+    // Decrease quantity
+    document.querySelectorAll('.decrease-qty').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+            let qty = parseInt(input.value);
+            if (qty > 1) {
+                qty--;
+                updateQuantity(itemId, qty);
+            }
+        });
+    });
+
+    // Direct input change
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const itemId = this.getAttribute('data-item-id');
+            let qty = parseInt(this.value);
+            if (qty < 1) qty = 1;
+            if (qty > 10) qty = 10;
+            this.value = qty;
+            updateQuantity(itemId, qty);
+        });
+    });
+
+    // Remove item buttons
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            removeItem(itemId);
+        });
+    });
+});
 </script>
 {% endblock %}

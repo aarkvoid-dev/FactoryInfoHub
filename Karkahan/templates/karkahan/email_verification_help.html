@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verification Help - Factory InfoHub{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Email Verification Help</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Current Status -->
+                    <div class="alert {% if is_verified %}alert-success{% else %}alert-warning{% endif %}" role="alert">
+                        <h4 class="alert-heading">Current Status</h4>
+                        <p class="mb-0">{{ verification_status }}</p>
+                    </div>
+
+                    <!-- Verification Instructions -->
+                    <div class="mb-4">
+                        <h4>How to Verify Your Email Address</h4>
+                        <ol>
+                            <li><strong>Check Your Inbox:</strong> Look for an email from Factory InfoHub with the subject "Verify Your Email Address"</li>
+                            <li><strong>Click the Verification Link:</strong> Open the email and click the verification link provided</li>
+                            <li><strong>Confirmation:</strong> You will be redirected to a confirmation page</li>
+                            <li><strong>Start Shopping:</strong> Once verified, you can add items to cart and make purchases</li>
+                        </ol>
+                    </div>
+
+                    <!-- Troubleshooting -->
+                    <div class="mb-4">
+                        <h4>Didn't Receive the Email?</h4>
+                        <ul>
+                            <li>Check your spam/junk folder</li>
+                            <li>Make sure you're checking the email address: <strong>{{ user_email }}</strong></li>
+                            <li>Wait a few minutes - emails may take some time to arrive</li>
+                            <li>Contact support if you still haven't received it</li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact Support -->
+                    <div class="mb-4">
+                        <h4>Need Help?</h4>
+                        <p>If you're having trouble with email verification, please contact our support team at <a href="mailto:support@factoryinfohub.com">support@factoryinfohub.com</a></p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary btn-lg w-100 mb-2">
+                                <i class="fas fa-factory me-2"></i>Browse Factories
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'karkahan:test_email' %}" class="btn btn-secondary btn-lg w-100 mb-2">
+                                <i class="fas fa-envelope me-2"></i>Test Email
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Email Address Info -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6>Your Registered Email Address:</h6>
+                        <p class="mb-0"><strong>{{ user_email }}</strong></p>
+                        <small class="text-muted">Make sure to check this email address for verification messages.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

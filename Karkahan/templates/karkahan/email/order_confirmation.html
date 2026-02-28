@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        .content {
+            padding: 30px;
+        }
+        .order-summary {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .order-summary h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            color: #1A2B3E;
+        }
+        .order-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .meta-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #22c55e;
+        }
+        .meta-item strong {
+            display: block;
+            color: #64748B;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+        .meta-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A2B3E;
+        }
+        .items-section {
+            margin-bottom: 25px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .items-table th {
+            background: #22c55e;
+            color: white;
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .items-table tr:hover {
+            background-color: #f1f5f9;
+        }
+        .total-section {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .total-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            color: #1A2B3E;
+        }
+        .total-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .total-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #22c55e;
+        }
+        .total-item h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.875rem;
+            color: #64748B;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .total-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A2B3E;
+        }
+        .total-grand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #16a34a;
+        }
+        .status-section {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #22c55e;
+        }
+        .status-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            color: #166534;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .status-item h4 {
+            margin: 0 0 5px 0;
+            font-size: 0.875rem;
+            color: #64748B;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #166534;
+        }
+        .next-steps {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f59e0b;
+        }
+        .next-steps h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            color: #92400e;
+        }
+        .next-steps ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 8px;
+            color: #92400e;
+        }
+        .footer {
+            background: #1A2B3E;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .footer p {
+            margin: 0 0 10px 0;
+            opacity: 0.8;
+        }
+        .thank-you-badge {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 600px) {
+            .order-meta,
+            .total-grid,
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            .items-table {
+                font-size: 0.85rem;
+            }
+            .items-table th,
+            .items-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Confirmed</h1>
+            <p>Thank you for your purchase!</p>
+        </div>
+        
+        <div class="content">
+            <div class="thank-you-badge">Thank You!</div>
+            
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+                <div class="order-meta">
+                    <div class="meta-item">
+                        <strong>Order Number</strong>
+                        <div class="meta-value">{{ order.order_number }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <strong>Order Date</strong>
+                        <div class="meta-value">{{ order.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <strong>Customer</strong>
+                        <div class="meta-value">{{ user_name }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <strong>Email</strong>
+                        <div class="meta-value">{{ order.customer_email }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="items-section">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.3rem; color: #1A2B3E;">Items Ordered</h3>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Factory</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.factory.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>Rs. {{ item.price_at_purchase }}</td>
+                            <td>Rs. {{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="total-section">
+                <h3>Payment Summary</h3>
+                <div class="total-grid">
+                    <div class="total-item">
+                        <h4>Subtotal</h4>
+                        <div class="total-value">Rs. {{ order.subtotal }}</div>
+                    </div>
+                    <div class="total-item">
+                        <h4>Tax (18%)</h4>
+                        <div class="total-value">Rs. {{ order.tax_amount }}</div>
+                    </div>
+                    <div class="total-item">
+                        <h4>Service Fee</h4>
+                        <div class="total-value">Rs. {{ order.service_fee }}</div>
+                    </div>
+                    <div class="total-item">
+                        <h4 class="total-grand">Total Amount</h4>
+                        <div class="total-value total-grand">Rs. {{ order.total_amount }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-section">
+                <h3>Order Status</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <h4>Payment Status</h4>
+                        <div class="status-value">{{ order.payment_status|title }}</div>
+                    </div>
+                    <div class="status-item">
+                        <h4>Order Status</h4>
+                        <div class="status-value">{{ order.status|title }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>What's Next?</h3>
+                <ul>
+                    <li>Factory details will be sent to your email shortly</li>
+                    <li>You can view your order status in your account dashboard</li>
+                    < <li>For any questions, please contact our support team</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Best regards,<br><strong>Factory InfoHub Team</strong></p>
+        </div>
+    </div>
+</body>
+</html>

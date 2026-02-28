@@ -15,9 +15,9 @@
                     <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     <input type="text" class="form-control rounded-pill ps-5 bg-white border-0 shadow-sm" placeholder="Search users...">
                 </div>
-                <button class="btn btn-primary rounded-pill px-4 shadow-sm" disabled>
+                <a href="{% url 'admin_interface:admin_user_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
                     <i class="fas fa-user-plus me-2"></i> Add User
-                </button>
+                </a>
             </div>
         </div>
     </div>

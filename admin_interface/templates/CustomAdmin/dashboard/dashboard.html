@@ -5,49 +5,51 @@
 <div class="dashboard-wrapper p-4 slide-up">
     
     <div class="row g-4 mb-4">
-        {% for card in stats %}
-        {% endfor %}
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center" id="user-card">
                 <div class="icon-box bg-soft-primary text-primary me-3">
                     <i class="fas fa-users"></i>
                 </div>
                 <div>
                     <p class="text-muted mb-0 small fw-bold">TOTAL USERS</p>
-                    <h4 class="mb-0 fw-bold">{{ total_users|default:"1,234" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 12%</span></h4>
+                    <h4 class="mb-0 fw-bold" id="user-count">{{ user_count|default:"0" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 12%</span></h4>
+                    <small class="text-muted">+{{ new_users_today|default:"0" }} today</small>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center" id="factory-card">
                 <div class="icon-box bg-soft-success text-success me-3">
                     <i class="fas fa-industry"></i>
                 </div>
                 <div>
                     <p class="text-muted mb-0 small fw-bold">FACTORIES</p>
-                    <h4 class="mb-0 fw-bold">{{ total_factories|default:"567" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 8%</span></h4>
+                    <h4 class="mb-0 fw-bold" id="factory-count">{{ factory_count|default:"0" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 8%</span></h4>
+                    <small class="text-muted">+{{ new_factories_today|default:"0" }} today</small>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center" id="worker-card">
                 <div class="icon-box bg-soft-warning text-warning me-3">
                     <i class="fas fa-user-tie"></i>
                 </div>
                 <div>
                     <p class="text-muted mb-0 small fw-bold">WORKERS</p>
-                    <h4 class="mb-0 fw-bold">{{ total_workers|default:"2,345" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 15%</span></h4>
+                    <h4 class="mb-0 fw-bold" id="worker-count">{{ worker_count|default:"0" }} <span class="badge text-success small"><i class="fas fa-caret-up"></i> 15%</span></h4>
+                    <small class="text-muted">+{{ new_workers_today|default:"0" }} today</small>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center">
+            <div class="kpi-card shadow-sm border-0 rounded-4 p-3 bg-white d-flex align-items-center" id="report-card">
                 <div class="icon-box bg-soft-danger text-danger me-3">
                     <i class="fas fa-exclamation-circle"></i>
                 </div>
                 <div>
                     <p class="text-muted mb-0 small fw-bold">PENDING REPORTS</p>
-                    <h4 class="mb-0 fw-bold">{{ pending_reports|default:"23" }}</h4>
+                    <h4 class="mb-0 fw-bold" id="report-count">{{ pending_reports|default:"0" }}</h4>
+                    <small class="text-muted">+{{ new_contacts_today|default:"0" }} today</small>
                 </div>
             </div>
         </div>
@@ -58,34 +60,48 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold mb-0">Live Activity Feed</h5>
-                    <button class="btn btn-light btn-sm rounded-pill px-3">View Full Log</button>
+                    <button class="btn btn-light btn-sm rounded-pill px-3" id="refresh-activity-btn">
+                        <i class="fas fa-refresh me-2"></i>Refresh
+                    </button>
                 </div>
                 <div class="card-body px-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle custom-table">
                             <thead class="bg-light">
                                 <tr>
-                                    <th class="ps-4">Timestamp</th>
+                                    <th class="ps-4">Time</th>
                                     <th>Activity</th>
-                                    <th>Admin/User</th>
                                     <th>Status</th>
-                                    <th class="text-end pe-4">Manage</th>
+                                    <th class="text-end pe-4">Details</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="activity-tbody">
+                                {% for activity in recent_activities %}
                                 <tr>
-                                    <td class="ps-4"><span class="text-muted small">2m ago</span></td>
-                                    <td><span class="fw-medium">New User Joined</span></td>
+                                    <td class="ps-4">
+                                        <span class="text-muted small">{{ activity.timestamp|date:"M d, Y H:i" }}</span>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-primary rounded-circle me-2">JD</div>
-                                            <span class="small">john_doe</span>
+                                            <i class="{{ activity.icon }} {{ activity.color }} me-2"></i>
+                                            <span class="fw-medium">{{ activity.message }}</span>
                                         </div>
                                     </td>
-                                    <td><span class="status-dot bg-success"></span> <span class="small">Success</span></td>
-                                    <td class="text-end pe-4"><i class="fas fa-chevron-right text-muted clickable"></i></td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ activity.type|title }}</span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <i class="fas fa-chevron-right text-muted clickable"></i>
+                                    </td>
                                 </tr>
-                                </tbody>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        <i class="fas fa-clock me-2"></i>No recent activities
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -94,9 +110,10 @@
             <div class="card border-0 shadow-sm rounded-4 p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Operational Efficiency</h5>
-                    <select class="form-select border-0 bg-light w-auto fw-bold small">
-                        <option>This Week</option>
-                        <option>Last Month</option>
+                    <select class="form-select border-0 bg-light w-auto fw-bold small" id="time-period-select">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
                     </select>
                 </div>
                 <div class="chart-area bg-light rounded-4 d-flex align-items-center justify-center" style="height: 280px;">
@@ -113,25 +130,25 @@
                 <h6 class="fw-bold mb-3 text-uppercase small text-secondary">Quick Shortcuts</h6>
                 <div class="row g-2">
                     <div class="col-6">
-                        <a href="#" class="action-btn">
+                        <a href="{% url 'admin_interface:admin_users' %}" class="action-btn">
                             <i class="fas fa-user-plus d-block mb-2"></i>
                             User
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="#" class="action-btn bg-success">
+                        <a href="{% url 'admin_interface:admin_factories' %}" class="action-btn bg-success">
                             <i class="fas fa-industry d-block mb-2"></i>
                             Factory
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="#" class="action-btn bg-warning">
+                        <a href="{% url 'admin_interface:admin_reports' %}" class="action-btn bg-warning">
                             <i class="fas fa-file-pdf d-block mb-2"></i>
                             Report
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="#" class="action-btn bg-info">
+                        <a href="{% url 'admin_interface:admin_notifications' %}" class="action-btn bg-info">
                             <i class="fas fa-paper-plane d-block mb-2"></i>
                             Alert
                         </a>
@@ -145,20 +162,20 @@
                 <div class="health-item mb-4">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small fw-bold">Database Server</span>
-                        <span class="badge bg-soft-success text-success">98.2%</span>
+                        <span class="badge bg-soft-success text-success" id="db-status">{{ db_status|default:"Connected" }}</span>
                     </div>
                     <div class="progress rounded-pill" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 98%"></div>
+                        <div class="progress-bar bg-success" id="db-health-bar" style="width: {{ db_health|default:100 }}%"></div>
                     </div>
                 </div>
 
                 <div class="health-item mb-4">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small fw-bold">Cloud Storage</span>
-                        <span class="badge bg-soft-primary text-primary">72% Full</span>
+                        <span class="badge bg-soft-primary text-primary">{{ storage_percentage|default:50 }}% Full</span>
                     </div>
                     <div class="progress rounded-pill" style="height: 6px;">
-                        <div class="progress-bar bg-primary" style="width: 72%"></div>
+                        <div class="progress-bar bg-primary" id="storage-bar" style="width: {{ storage_percentage|default:50 }}%"></div>
                     </div>
                 </div>
 
@@ -166,9 +183,19 @@
 
                 <h6 class="fw-bold mb-3">Pending Tasks</h6>
                 <div class="task-item d-flex align-items-center p-2 mb-2 bg-light rounded-3">
-                    <i class="fas fa-circle-check text-muted me-3"></i>
-                    <span class="small">Approve Worker Licenses</span>
-                    <span class="ms-auto badge bg-danger rounded-circle">4</span>
+                    <i class="fas fa-envelope text-info me-3"></i>
+                    <span class="small">Unread Messages</span>
+                    <span class="ms-auto badge bg-danger rounded-circle">{{ unread_messages|default:0 }}</span>
+                </div>
+                <div class="task-item d-flex align-items-center p-2 mb-2 bg-light rounded-3">
+                    <i class="fas fa-user-check text-warning me-3"></i>
+                    <span class="small">Pending Verifications</span>
+                    <span class="ms-auto badge bg-warning rounded-circle">{{ pending_verifications|default:0 }}</span>
+                </div>
+                <div class="task-item d-flex align-items-center p-2 mb-2 bg-light rounded-3">
+                    <i class="fas fa-exclamation-triangle text-danger me-3"></i>
+                    <span class="small">System Alerts</span>
+                    <span class="ms-auto badge bg-danger rounded-circle">0</span>
                 </div>
             </div>
         </div>
@@ -179,9 +206,11 @@
     /* Dashboard-specific responsive styles */
     .kpi-card {
         transition: transform 0.2s ease;
+        cursor: pointer;
     }
     .kpi-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
     }
 
     .custom-table thead th {
@@ -231,6 +260,19 @@
         transform: scale(1.05);
     }
 
+    .health-item {
+        transition: all 0.3s ease;
+    }
+    
+    .task-item {
+        transition: all 0.3s ease;
+    }
+    
+    .task-item:hover {
+        background-color: #f8fafc !important;
+        transform: translateX(5px);
+    }
+
     /* Mobile-specific overrides */
     @media (max-width: 768px) {
         .kpi-card {
@@ -247,11 +289,63 @@
             font-size: 12px;
         }
     }
+    
+    /* Loading animation */
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .loading {
+        animation: pulse 1.5s infinite;
+    }
 </style>
 
 <script>
-    // Subtle entry animations
+    // Dashboard JavaScript for real-time updates
     document.addEventListener("DOMContentLoaded", function() {
+        // Initialize dashboard
+        initializeDashboard();
+        
+        // Set up auto-refresh every 30 seconds
+        setInterval(refreshDashboardData, 30000);
+        
+        // Manual refresh button
+        document.getElementById('refresh-activity-btn').addEventListener('click', function() {
+            refreshActivityFeed();
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-refresh me-2"></i>Refresh';
+            }, 2000);
+        });
+        
+        // Time period selector
+        document.getElementById('time-period-select').addEventListener('change', function() {
+            // This would trigger chart updates based on selected period
+            console.log('Time period changed to:', this.value);
+        });
+    });
+
+    function initializeDashboard() {
+        // Add click events to KPI cards
+        document.getElementById('user-card').addEventListener('click', function() {
+            window.location.href = "{% url 'admin_interface:admin_users' %}";
+        });
+        
+        document.getElementById('factory-card').addEventListener('click', function() {
+            window.location.href = "{% url 'admin_interface:admin_factories' %}";
+        });
+        
+        document.getElementById('worker-card').addEventListener('click', function() {
+            window.location.href = "{% url 'admin_interface:admin_workers' %}";
+        });
+        
+        document.getElementById('report-card').addEventListener('click', function() {
+            window.location.href = "{% url 'admin_interface:admin_contacts' %}";
+        });
+        
+        // Initial animations
         const cards = document.querySelectorAll('.card, .kpi-card');
         cards.forEach((card, index) => {
             card.style.opacity = "0";
@@ -262,6 +356,118 @@
                 card.style.transform = "translateY(0)";
             }, index * 100);
         });
-    });
+    }
+
+    async function refreshDashboardData() {
+        try {
+            const response = await fetch('{% url "admin_interface:admin_dashboard_api" %}');
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            
+            // Update KPI cards with smooth transitions
+            updateKPI('user-count', data.kpi.user_count);
+            updateKPI('factory-count', data.kpi.factory_count);
+            updateKPI('worker-count', data.kpi.worker_count);
+            updateKPI('report-count', data.kpi.pending_reports);
+            
+            // Update infrastructure status
+            updateInfrastructure(data.infrastructure);
+            
+            // Update activity feed
+            updateActivityFeed(data.activities);
+            
+        } catch (error) {
+            console.error('Error refreshing dashboard:', error);
+            // Optional: Show error message to user
+        }
+    }
+
+    function updateKPI(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        const currentValue = parseInt(element.textContent);
+        const targetValue = newValue;
+        
+        // Add loading animation
+        element.classList.add('loading');
+        
+        // Animate number change
+        let start = 0;
+        const duration = 1000; // 1 second
+        const increment = targetValue / (duration / 16); // 60fps
+        
+        const timer = setInterval(() => {
+            start += increment;
+            if (start >= targetValue) {
+                start = targetValue;
+                clearInterval(timer);
+                element.classList.remove('loading');
+            }
+            element.textContent = Math.floor(start);
+        }, 16);
+    }
+
+    function updateInfrastructure(data) {
+        // Update database status
+        const dbStatus = document.getElementById('db-status');
+        const dbHealthBar = document.getElementById('db-health-bar');
+        
+        dbStatus.textContent = data.db_status;
+        dbHealthBar.style.width = data.db_health + '%';
+        
+        if (data.db_status === 'Connected') {
+            dbStatus.className = 'badge bg-soft-success text-success';
+            dbHealthBar.className = 'progress-bar bg-success';
+        } else {
+            dbStatus.className = 'badge bg-soft-danger text-danger';
+            dbHealthBar.className = 'progress-bar bg-danger';
+        }
+        
+        // Update storage usage
+        const storageBar = document.getElementById('storage-bar');
+        storageBar.style.width = data.storage_percentage + '%';
+    }
+
+    function updateActivityFeed(activities) {
+        const tbody = document.getElementById('activity-tbody');
+        tbody.innerHTML = '';
+        
+        if (activities.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        <i class="fas fa-clock me-2"></i>No recent activities
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        activities.forEach(activity => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="ps-4">
+                    <span class="text-muted small">${new Date(activity.timestamp).toLocaleString()}</span>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="${activity.icon} ${activity.color} me-2"></i>
+                        <span class="fw-medium">${activity.message}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-light text-dark">${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                </td>
+                <td class="text-end pe-4">
+                    <i class="fas fa-chevron-right text-muted clickable"></i>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function refreshActivityFeed() {
+        refreshDashboardData();
+    }
 </script>
 {% endblock %}

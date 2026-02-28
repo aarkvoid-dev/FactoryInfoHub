@@ -180,7 +180,7 @@ class BlogPostListView(ListView):
 
         # 3. Execute Query
         # We use .distinct() in case of complex joins, and limit to 8
-        factories = Factory.objects.filter(**factory_filters).select_related('city', 'country', 'category')
+        factories = Factory.objects.filter(**factory_filters).filter(is_active=True,is_verified=True).select_related('city', 'country', 'category')
         
         if not factory_filters:
             # If no filters, show featured/latest

@@ -5,15 +5,12 @@ from Home.models import SoftDeleteModel
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from django.utils.safestring import mark_safe
-from django.core.mail import send_mail
-from django.conf import settings
+from .email_service import FactoryEmailService
 from django.urls import reverse
 from decimal import Decimal
 from django.utils import timezone
-import ssl
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from django.core.validators import MinValueValidator, MaxValueValidator
+import uuid
 
 
 class Factory(SoftDeleteModel):
@@ -215,17 +212,21 @@ class FactoryImage(models.Model):
     image_tag.allow_tags = True
 
 
+# NEW MODELS FOR IMPROVED CART AND PAYMENT SYSTEM
+
 class ShoppingCart(models.Model):
-    """Shopping cart for factory purchases"""
+    """Enhanced shopping cart for factory purchases"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_cart')
     factory = models.ForeignKey(Factory, on_delete=models.CASCADE, related_name='cart_items')
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     added_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ['user', 'factory']
         verbose_name = 'Shopping Cart Item'
         verbose_name_plural = 'Shopping Cart Items'
+        ordering = ['-updated_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.factory.name} x{self.quantity}"
@@ -247,9 +248,244 @@ class ShoppingCart(models.Model):
         cart_items = cls.objects.filter(user=user)
         return sum(item.quantity for item in cart_items)
 
+    def clean(self):
+        """Validate cart item"""
+        if self.quantity < 1:
+            raise ValidationError('Quantity must be at least 1')
+        if self.quantity > 10:
+            raise ValidationError('Maximum quantity per item is 10')
+        if self.factory.price <= 0:
+            raise ValidationError('Factory price must be greater than 0')
+
+
+class Order(models.Model):
+    """Complete order management"""
+    ORDER_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('upi', 'UPI'),
+        ('net_banking', 'Net Banking'),
+        ('wallet', 'Digital Wallet'),
+        ('cod', 'Cash on Delivery'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    order_number = models.CharField(max_length=50, unique=True, editable=False)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, blank=True)
+    
+    # Order totals
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    service_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    # Customer information
+    customer_name = models.CharField(max_length=200)
+    customer_email = models.EmailField()
+    customer_phone = models.CharField(max_length=20, blank=True)
+    
+    # Order timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    
+    # Additional fields
+    notes = models.TextField(blank=True, help_text="Internal notes for order processing")
+    tracking_number = models.CharField(max_length=100, blank=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Order'
+        verbose_name_plural = 'Orders'
+
+    def __str__(self):
+        return f"Order {self.order_number} - {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        super().save(*args, **kwargs)
+
+    def generate_order_number(self):
+        """Generate unique order number"""
+        year = timezone.now().year
+        month = timezone.now().month
+        day = timezone.now().day
+        sequence = Order.objects.filter(
+            created_at__year=year,
+            created_at__month=month,
+            created_at__day=day
+        ).count() + 1
+        return f"ORD-{year}{month:02d}{day:02d}-{sequence:04d}"
+
+    @property
+    def is_completed(self):
+        """Check if order is completed"""
+        return self.status == 'completed' and self.payment_status == 'completed'
+
+    def calculate_totals(self):
+        """Calculate order totals"""
+        self.subtotal = sum(item.total_price for item in self.items.all())
+        self.tax_amount = self.subtotal * Decimal('0.18')  # 18% GST
+        self.service_fee = Decimal('0.0')  # No service fee for now
+        self.total_amount = self.subtotal + self.tax_amount + self.service_fee
+        return self.total_amount
+
+    def mark_as_completed(self):
+        """Mark order as completed"""
+        self.status = 'completed'
+        self.payment_status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+
+    def mark_as_cancelled(self):
+        """Mark order as cancelled"""
+        self.status = 'cancelled'
+        self.payment_status = 'cancelled'
+        self.save()
+
+
+class OrderItem(models.Model):
+    """Individual items in an order"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    factory = models.ForeignKey(Factory, on_delete=models.CASCADE, related_name='order_items')
+    quantity = models.PositiveIntegerField(default=1)
+    price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        verbose_name = 'Order Item'
+        verbose_name_plural = 'Order Items'
+
+    def __str__(self):
+        return f"{self.factory.name} x{self.quantity}"
+
+    @property
+    def total_price(self):
+        """Calculate total price for this order item"""
+        return self.price_at_purchase * self.quantity
+
+
+class Payment(models.Model):
+    """Payment transaction management"""
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
+        ('chargeback', 'Chargeback'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('upi', 'UPI'),
+        ('net_banking', 'Net Banking'),
+        ('wallet', 'Digital Wallet'),
+        ('cod', 'Cash on Delivery'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=3, default='INR')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    
+    # Payment gateway information
+    transaction_id = models.CharField(max_length=100, blank=True, unique=True)
+    gateway_response = models.JSONField(blank=True, null=True)
+    gateway_error = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    
+    # Refund information
+    refunded_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    refund_reason = models.TextField(blank=True)
+    refunded_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Payment'
+        verbose_name_plural = 'Payments'
+
+    def __str__(self):
+        return f"Payment {self.transaction_id} - {self.amount}"
+
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            self.transaction_id = self.generate_transaction_id()
+        super().save(*args, **kwargs)
+
+    def generate_transaction_id(self):
+        """Generate unique transaction ID"""
+        import random
+        import string
+        prefix = timezone.now().strftime('%Y%m%d')
+        suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        return f"{prefix}-{suffix}"
+
+    def mark_as_completed(self, gateway_response=None):
+        """Mark payment as completed"""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        if gateway_response:
+            self.gateway_response = gateway_response
+        self.save()
+
+    def mark_as_failed(self, error_message, gateway_response=None):
+        """Mark payment as failed"""
+        self.status = 'failed'
+        self.gateway_error = error_message
+        if gateway_response:
+            self.gateway_response = gateway_response
+        self.save()
+
+    def process_refund(self, amount=None, reason=""):
+        """Process refund for this payment"""
+        if amount is None:
+            amount = self.amount
+        
+        if amount > (self.amount - self.refunded_amount):
+            raise ValueError("Refund amount exceeds available balance")
+        
+        self.refunded_amount += amount
+        self.refund_reason = reason
+        self.refunded_at = timezone.now()
+        
+        if self.refunded_amount >= self.amount:
+            self.status = 'refunded'
+        
+        self.save()
+
 
 class FactoryPurchase(models.Model):
-    """Track individual factory purchases"""
+    """Track individual factory purchases (Legacy compatibility)"""
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('completed', 'Completed'),
@@ -287,108 +523,52 @@ class FactoryPurchase(models.Model):
         self.send_factory_details_email()
 
     def send_factory_details_email(self):
-        """Send factory details to user via email"""
+        """Send factory details to user via centralized email service"""
         if self.email_sent:
             return
 
         try:
-            # Create email content using template
-            from django.template.loader import render_to_string
-
-            # Prepare context for template
-            context = {
-                'user': self.user,
-                'factories': [self.factory],  # Single factory in list for template compatibility
-            }
-
-            # Render HTML email template
-            html_content = render_to_string('karkahan/factory_details_email.html', context)
-
-            # Create plain text version (fallback)
-            text_content = f"""
-            Dear {self.user.username},
-
-            Thank you for your purchase! Here are the details for the factory you requested:
-
-            Factory Name: {self.factory.name}
-            Category: {self.factory.category.name}
-            Location: {self.factory.full_address}
-            Type: {self.factory.factory_type}
-            Production Capacity: {self.factory.production_capacity}
-            Employee Count: {self.factory.employee_count}
-            Established: {self.factory.established_year}
-            Annual Turnover: {self.factory.annual_turnover}
-
-            Contact Information:
-            Contact Person: {self.factory.contact_person}
-            Phone: {self.factory.contact_phone}
-            Email: {self.factory.contact_email}
-            Website: {self.factory.website}
-
-            Address: {self.factory.address}
-            {self.factory.city.name}, {self.factory.state.name} - {self.factory.pincode}
-            {self.factory.country.name}
-
-            This information is confidential and intended solely for your use.
-
-            Best regards,
-            Factory InfoHub Team
-            """
-
-            # Send email with SSL context that bypasses certificate verification
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = f"Factory Details: {self.factory.name}"
-            msg['From'] = settings.DEFAULT_FROM_EMAIL
-            msg['To'] = self.user.email
-
-            # Add text content (for email clients that don't support HTML)
-            text_part = MIMEText(text_content, 'plain')
-            msg.attach(text_part)
-
-            # Add HTML content
-            html_part = MIMEText(html_content, 'html')
-            msg.attach(html_part)
-
-            # Send email with SSL context that bypasses certificate verification
-            ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
-
-            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-                if settings.EMAIL_USE_TLS:
-                    server.starttls(context=ssl_context)
-                if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
-                    server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-                server.send_message(msg)
-
-            # Update FactoryPurchase record
-            self.email_sent = True
-            self.email_sent_at = timezone.now()
-            self.save()
-
-            # Update corresponding PurchaseHistory record
-            try:
-                purchase_history = PurchaseHistory.objects.filter(
-                    user=self.user,
-                    factory_slug=self.factory.slug,
-                    purchase_date=self.purchased_at
-                ).first()
-
-                if purchase_history:
-                    purchase_history.email_delivered = True
-                    purchase_history.email_delivered_at = self.email_sent_at
-                    purchase_history.save()
-            except Exception as history_error:
-                print(f"⚠️  Warning: Could not update PurchaseHistory record: {history_error}")
-
-            print(f"✅ Email sent successfully to {self.user.email} for purchase {self.id}")
+            # Use centralized email service
+            success = FactoryEmailService.send_single_factory_email(
+                user_email=self.user.email,
+                user_name=self.user.username,
+                factory=self.factory
+            )
+            
+            if success:
+                # Update FactoryPurchase record
+                self.email_sent = True
+                self.email_sent_at = timezone.now()
+                self.save()
+                
+                # Update corresponding PurchaseHistory record
+                try:
+                    purchase_history = PurchaseHistory.objects.filter(
+                        user=self.user,
+                        factory_slug=self.factory.slug,
+                        purchase_date=self.purchased_at
+                    ).first()
+                    
+                    if purchase_history:
+                        purchase_history.email_delivered = True
+                        purchase_history.email_delivered_at = self.email_sent_at
+                        purchase_history.save()
+                        print(f"✅ Updated PurchaseHistory record for purchase {self.id}")
+                except Exception as history_error:
+                    print(f"⚠️  Warning: Could not update PurchaseHistory record: {history_error}")
+                
+                print(f"✅ Email sent successfully to {self.user.email} for purchase {self.id}")
+            else:
+                print(f"❌ Failed to send email for purchase {self.id}")
+                
         except Exception as e:
+            # Log detailed error information
             import traceback
             error_msg = f"❌ Failed to send email for purchase {self.id}: {str(e)}"
             error_details = f"Error details: {traceback.format_exc()}"
             print(error_msg)
             print(error_details)
-
+            
             # Also log to Django's logging system
             import logging
             logger = logging.getLogger(__name__)

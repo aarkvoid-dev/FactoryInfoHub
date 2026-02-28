@@ -9,21 +9,78 @@ from django.contrib.auth import login
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.utils import timezone
-from django.core.mail import send_mail
-from django.conf import settings
+from .email_service import FactoryEmailService
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from django.forms import inlineformset_factory
-from .models import Factory, ShoppingCart, FactoryPurchase, PurchaseHistory
-from .forms import FactoryForm, FactoryFilterForm, FactoryImageFormSet, CategoryForm, SubCategoryForm, CountryForm, StateForm, CityForm, DistrictForm, RegionForm
+from django.http import Http404
+from django.core.exceptions import ValidationError
+from decimal import Decimal
+import json
+import logging
+
+def can_make_purchase(user):
+    """
+    Check if user can make purchases based on email verification status.
+    
+    Staff and superusers can always make purchases.
+    Regular users must have verified email to make purchases.
+    
+    Args:
+        user: Django User object
+        
+    Returns:
+        bool: True if user can make purchases, False otherwise
+    """
+    if not user.is_authenticated:
+        return False
+    
+    # Staff and superusers can always make purchases
+    if user.is_staff or user.is_superuser:
+        return True
+    
+    # Check if user has a profile and email is verified
+    try:
+        profile = user.profile
+        return profile.email_verified
+    except:
+        # If no profile exists, user cannot make purchases
+        return False
+
+
+def get_email_verification_message(user):
+    """
+    Get a user-friendly message about email verification status.
+    
+    Args:
+        user: Django User object
+        
+    Returns:
+        str: User-friendly message about email verification
+    """
+    if not user.is_authenticated:
+        return "Please log in to make purchases."
+    
+    # Staff and superusers don't need email verification
+    if user.is_staff or user.is_superuser:
+        return "You have admin privileges and can make purchases."
+    
+    # Check if user has a profile
+    try:
+        profile = user.profile
+        if profile.email_verified:
+            return "Your email is verified. You can make purchases."
+        else:
+            return "Please verify your email address to make purchases. Check your email for a verification link."
+    except:
+        return "Please complete your profile setup to make purchases."
+
+from .models import Factory, ShoppingCart, FactoryPurchase, PurchaseHistory, Order, OrderItem, Payment
+from .forms import FactoryForm, FactoryFilterForm, FactoryImageFormSet, CategoryForm, SubCategoryForm, CountryForm, StateForm, CityForm, DistrictForm, RegionForm, ShoppingCartForm, CheckoutForm, OrderForm, PaymentForm
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
-import smtplib
-import ssl
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 
 def factory_list(request):
@@ -423,18 +480,24 @@ def get_regions(request):
     return JsonResponse(list(regions), safe=False)
 
 
-# Shopping Cart Views
+# ENHANCED SHOPPING CART VIEWS
+
 @login_required
 def add_to_cart(request, factory_slug):
-    """Add a factory to the shopping cart"""
+    """Add a factory to the shopping cart with proper validation"""
     factory = get_object_or_404(Factory, slug=factory_slug, is_active=True, is_deleted=False)
     
-    # Check if already purchased
-    # if factory.has_user_purchased(request.user):
-    #     messages.warning(request, 'You have already purchased this factory.')
-    #     return redirect('karkahan:factory_detail', slug=factory_slug)
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before adding items to cart.")
+        return redirect('karkahan:factory_detail', slug=factory_slug)
     
-    # Check if already in cart - if so, just show message (no quantity increase)
+    # Check if already purchased
+    if factory.has_user_purchased(request.user):
+        messages.warning(request, 'You have already purchased this factory.')
+        return redirect('karkahan:factory_detail', slug=factory_slug)
+    
+    # Check if already in cart
     cart_item, created = ShoppingCart.objects.get_or_create(
         user=request.user,
         factory=factory,
@@ -442,7 +505,13 @@ def add_to_cart(request, factory_slug):
     )
     
     if not created:
-        messages.info(request, f'{factory.name} is already in your cart.')
+        # Item already exists in cart, increment quantity
+        if cart_item.quantity < 10:  # Max quantity limit
+            cart_item.quantity += 1
+            cart_item.save()
+            messages.success(request, f'Quantity updated for {factory.name}. Now {cart_item.quantity} in cart.')
+        else:
+            messages.warning(request, f'Maximum quantity limit reached for {factory.name}.')
     else:
         messages.success(request, f'Added {factory.name} to your cart.')
     
@@ -460,33 +529,48 @@ def remove_from_cart(request, cart_item_id):
 
 
 @login_required
+@require_POST
 def update_cart_quantity(request, cart_item_id):
-    """Update quantity of an item in the cart"""
-    if request.method == 'POST':
-        cart_item = get_object_or_404(ShoppingCart, id=cart_item_id, user=request.user)
+    """Update quantity of an item in the cart via AJAX"""
+    cart_item = get_object_or_404(ShoppingCart, id=cart_item_id, user=request.user)
+    
+    try:
         quantity = int(request.POST.get('quantity', 1))
         
         if quantity < 1:
             cart_item.delete()
             messages.success(request, f"Item removed from cart.")
+            return JsonResponse({'success': True, 'removed': True})
+        elif quantity > 10:
+            messages.error(request, "Maximum quantity per item is 10.")
+            return JsonResponse({'success': False, 'error': 'Maximum quantity per item is 10.'})
         else:
             cart_item.quantity = quantity
             cart_item.save()
             messages.success(request, f"Quantity updated for {cart_item.factory.name}.")
+            return JsonResponse({'success': True, 'new_quantity': quantity})
     
-    return redirect('karkahan:cart_view')
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'error': 'Invalid quantity value.'})
 
 
 @login_required
 def cart_view(request):
-    """View the shopping cart"""
+    """View the shopping cart with enhanced functionality"""
     cart_items = ShoppingCart.objects.filter(user=request.user).select_related('factory')
-    total_price = ShoppingCart.get_cart_total(request.user)
+    subtotal = ShoppingCart.get_cart_total(request.user)
     cart_count = ShoppingCart.get_cart_count(request.user)
+    
+    # Calculate tax and total for display
+    tax_amount = subtotal * Decimal('0.18')  # 18% GST
+    service_fee = Decimal('0.0')  # No service fee for now
+    total_amount = subtotal + tax_amount + service_fee
     
     context = {
         'cart_items': cart_items,
-        'total_price': total_price,
+        'total_price': subtotal,
+        'tax_amount': tax_amount,
+        'total_amount': total_amount,
         'cart_count': cart_count,
     }
     return render(request, 'karkahan/cart.html', context)
@@ -507,153 +591,256 @@ def clear_cart(request):
     return redirect('karkahan:cart_view')
 
 
-# Checkout and Purchase Views
+# ENHANCED CHECKOUT AND ORDER VIEWS
+
 @login_required
 def checkout(request):
-    """Checkout page to review and complete purchase"""
+    """Enhanced checkout page with order creation"""
     cart_items = ShoppingCart.objects.filter(user=request.user).select_related('factory')
     
     if not cart_items.exists():
         messages.info(request, "Your cart is empty.")
         return redirect('karkahan:factory_list')
     
-    total_price = ShoppingCart.get_cart_total(request.user)
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before proceeding to checkout.")
+        return redirect('karkahan:cart_view')
+    
+    # Calculate totals
+    subtotal = ShoppingCart.get_cart_total(request.user)
+    tax_amount = subtotal * Decimal('0.18')  # 18% GST
+    service_fee = Decimal('0.0')
+    total_amount = subtotal + tax_amount + service_fee
+    
+    # Initialize checkout form
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST, user=request.user)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Create order
+                    order = Order.objects.create(
+                        user=request.user,
+                        customer_name=form.cleaned_data['customer_name'],
+                        customer_email=form.cleaned_data['customer_email'],
+                        customer_phone=form.cleaned_data['customer_phone'],
+                        payment_method=form.cleaned_data['payment_method'],
+                        subtotal=subtotal,
+                        tax_amount=tax_amount,
+                        service_fee=service_fee,
+                        total_amount=total_amount,
+                        status='pending',
+                        payment_status='pending'
+                    )
+                    
+                    # Create order items
+                    for cart_item in cart_items:
+                        OrderItem.objects.create(
+                            order=order,
+                            factory=cart_item.factory,
+                            quantity=cart_item.quantity,
+                            price_at_purchase=cart_item.factory.price
+                        )
+                    
+                    # Create payment record
+                    payment = Payment.objects.create(
+                        order=order,
+                        payment_method=form.cleaned_data['payment_method'],
+                        amount=total_amount,
+                        currency='INR',
+                        status='pending'
+                    )
+                    
+                    # Clear cart
+                    cart_items.delete()
+                    
+                    messages.success(request, f"Order {order.order_number} created successfully!")
+                    return redirect('karkahan:order_detail', order_id=order.id)
+                    
+            except Exception as e:
+                messages.error(request, f"An error occurred while creating your order: {str(e)}")
+                return redirect('karkahan:checkout')
+    else:
+        form = CheckoutForm(user=request.user)
     
     context = {
         'cart_items': cart_items,
-        'total_price': total_price,
+        'subtotal': subtotal,
+        'tax_amount': tax_amount,
+        'service_fee': service_fee,
+        'total_amount': total_amount,
+        'form': form,
     }
     return render(request, 'karkahan/checkout.html', context)
 
 
 @login_required
-def process_purchase(request):
-    """Process the purchase and create FactoryPurchase records"""
-    if request.method == 'POST':
-        cart_items = ShoppingCart.objects.filter(user=request.user).select_related('factory')
-        
-        if not cart_items.exists():
-            messages.error(request, "Your cart is empty.")
-            return redirect('karkahan:cart_view')
-        
-        total_amount = 0
-        
-        # Create purchase records in a transaction
-        with transaction.atomic():
-            for cart_item in cart_items:
-                factory = cart_item.factory
-                
-                # Create FactoryPurchase record
-                purchase = FactoryPurchase.objects.create(
-                    user=request.user,
-                    factory=factory,
-                    quantity=cart_item.quantity,
-                    price_at_purchase=factory.price,
-                    payment_status='pending',
-                    transaction_id=f"FACTORY_{factory.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}"
-                )
-                
-                total_amount += purchase.total_amount
-                
-                # Create PurchaseHistory record
-                PurchaseHistory.create_from_purchase(purchase)
-        
-        # Clear the cart
-        cart_items.delete()
-        
-        # Redirect to payment page - convert Decimal to string for URL to preserve precision
-        purchase_amount_str = str(total_amount)
-        messages.success(request, f"Purchase created successfully! Total amount: Rs. {total_amount}")
-        return redirect('karkahan:payment_page', purchase_amount=purchase_amount_str)
+def order_detail(request, order_id):
+    """View order details"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
     
-    return redirect('karkahan:checkout')
+    context = {
+        'order': order,
+    }
+    return render(request, 'karkahan/order_detail.html', context)
 
 
 @login_required
-def payment_page(request, purchase_amount):
-    """Proxy payment page for demonstration"""
-    from decimal import Decimal, InvalidOperation
-    
-    # Convert string amount to Decimal for proper formatting
-    try:
-        amount_decimal = Decimal(purchase_amount)
-        formatted_amount = f"Rs. {amount_decimal:,.2f}"
-    except (ValueError, TypeError, InvalidOperation):
-        # Fallback to string if conversion fails
-        amount_decimal = purchase_amount
-        formatted_amount = f"Rs. {purchase_amount}"
+def order_list(request):
+    """List user's orders"""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
     context = {
-        'amount': amount_decimal,
-        'formatted_amount': formatted_amount,
+        'orders': orders,
+    }
+    return render(request, 'karkahan/order_list.html', context)
+
+
+@login_required
+def payment_page(request, order_id):
+    """Payment page for a specific order (New Order-based Payment)"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if order.payment_status in ['completed', 'refunded']:
+        messages.info(request, "This order has already been paid for.")
+        return redirect('karkahan:order_detail', order_id=order.id)
+    
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before making payments.")
+        return redirect('karkahan:order_detail', order_id=order.id)
+    
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method')
+        if payment_method:
+            try:
+                from .payment_utils import PaymentProcessor
+                
+                # Process payment using payment utilities
+                success = PaymentProcessor.complete_order_payment(order, payment_method)
+                
+                if success:
+                    messages.success(request, "Payment completed successfully!")
+                    return redirect('karkahan:order_detail', order_id=order.id)
+                else:
+                    messages.error(request, "Payment processing failed.")
+                    
+            except Exception as e:
+                messages.error(request, f"Payment processing failed: {str(e)}")
+    
+    context = {
+        'order': order,
+        'payment_methods': Payment.PAYMENT_METHOD_CHOICES,
     }
     return render(request, 'karkahan/payment.html', context)
 
 
 @login_required
-def process_payment(request):
-    """Process the proxy payment"""
-    if request.method == 'POST':
-        # Get the amount from form submission
-        amount_str = request.POST.get('amount', '0')
-        
-        try:
-            # Handle the amount properly - it might be a string representation of a decimal
-            # Remove currency symbols and commas, then convert to float
-            cleaned_amount = str(amount_str).replace(',', '').replace('Rs.', '').replace('Rs', '').strip()
-            submitted_amount = float(cleaned_amount)
-        except (ValueError, TypeError):
-            messages.error(request, "Invalid amount format. Please enter a valid number.")
-            return redirect('karkahan:payment_page', purchase_amount=0)
-        
-        # Get pending purchases for this user
-        pending_purchases = FactoryPurchase.objects.filter(
+def legacy_payment_page(request, purchase_amount):
+    """Legacy payment page for individual factory purchases"""
+    # This is for backward compatibility with old payment flow
+    # In a real implementation, you might want to redirect to new system
+    # or handle legacy purchases differently
+    
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before making purchases.")
+        return redirect('karkahan:factory_list')
+    
+    try:
+        # Try to find a pending purchase for this user with the given amount
+        pending_purchase = FactoryPurchase.objects.filter(
             user=request.user,
-            payment_status='pending'
-        )
+            payment_status='pending',
+            price_at_purchase=purchase_amount
+        ).first()
         
-        if not pending_purchases.exists():
-            messages.error(request, "No pending purchases found.")
+        if not pending_purchase:
+            messages.error(request, "No pending purchase found for this amount.")
             return redirect('karkahan:factory_list')
         
-        # Calculate total amount from purchases to verify
-        total_amount = sum(purchase.total_amount for purchase in pending_purchases)
+        context = {
+            'purchase': pending_purchase,
+            'amount': purchase_amount,
+            'formatted_amount': f"Rs. {purchase_amount:,.2f}",
+            'payment_methods': Payment.PAYMENT_METHOD_CHOICES,
+        }
+        return render(request, 'karkahan/legacy_payment.html', context)
         
-        # Verify amount matches with proper decimal comparison
-        try:
-            # Convert both to float for comparison
-            expected_amount = float(total_amount)
-            if abs(submitted_amount - expected_amount) > 0.01:  # Small tolerance for floating point
-                messages.error(request, f"Amount mismatch. Expected: Rs. {expected_amount:.2f}, Got: Rs. {submitted_amount:.2f}")
-                return redirect('karkahan:payment_page', purchase_amount=str(expected_amount))
-        except (ValueError, TypeError):
-            messages.error(request, "Error processing payment amount. Please try again.")
-            return redirect('karkahan:payment_page', purchase_amount=0)
-        
-        # Mark purchases as completed in a transaction
+    except Exception as e:
+        messages.error(request, f"Error loading payment page: {str(e)}")
+        return redirect('karkahan:factory_list')
+
+
+@login_required
+def cancel_order(request, order_id):
+    """Cancel an order"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if order.status in ['completed', 'cancelled', 'refunded']:
+        messages.error(request, "This order cannot be cancelled.")
+        return redirect('karkahan:order_detail', order_id=order.id)
+    
+    if request.method == 'POST':
         try:
             with transaction.atomic():
-                for purchase in pending_purchases:
-                    purchase.mark_as_completed()
-            
-            messages.success(request, "Payment completed successfully! Factory details have been sent to your email.")
-            return redirect('karkahan:payment_success')
-            
+                order.status = 'cancelled'
+                order.payment_status = 'cancelled'
+                order.save()
+                
+                # Refund payment if already completed
+                payment = order.payments.first()
+                if payment and payment.status == 'completed':
+                    payment.status = 'refunded'
+                    payment.refunded_amount = payment.amount
+                    payment.refunded_at = timezone.now()
+                    payment.save()
+                
+                messages.success(request, f"Order {order.order_number} has been cancelled.")
+                
         except Exception as e:
-            # Log the error for debugging
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Payment processing failed for user {request.user.username}: {str(e)}")
-            
-            messages.error(request, f"Payment processing failed: {str(e)}")
-            return redirect('karkahan:payment_failure')
+            messages.error(request, f"Failed to cancel order: {str(e)}")
     
-    return redirect('karkahan:payment_page', purchase_amount=0)
+    return redirect('karkahan:order_detail', order_id=order.id)
+
+
+# ENHANCED EMAIL SYSTEM - Using centralized email service
+
+def send_order_confirmation_email(order):
+    """Send order confirmation email using centralized email service"""
+    return FactoryEmailService.send_order_confirmation_email(order)
+
+
+# LEGACY VIEWS (for backward compatibility)
+
+@login_required
+def process_purchase(request):
+    """Legacy purchase processing (deprecated - use checkout instead)"""
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before making purchases.")
+        return redirect('karkahan:factory_list')
+    
+    messages.warning(request, "Please use the new checkout system for better experience.")
+    return redirect('karkahan:cart_view')
+
+
+@login_required
+def process_payment(request):
+    """Legacy payment processing (deprecated)"""
+    # Check if user can make purchases (email verification)
+    if not can_make_purchase(request.user):
+        messages.error(request, "Please verify your email address before making payments.")
+        return redirect('karkahan:factory_list')
+    
+    messages.warning(request, "Please use the new payment system for better experience.")
+    return redirect('karkahan:cart_view')
 
 
 @login_required
 def payment_success(request):
-    """Payment success page"""
+    """Legacy payment success page (deprecated)"""
     # Get the latest completed purchases for this user
     recent_purchases = FactoryPurchase.objects.filter(
         user=request.user,
@@ -672,7 +859,7 @@ def payment_success(request):
 
 @login_required
 def payment_failure(request):
-    """Payment failure page"""
+    """Legacy payment failure page (deprecated)"""
     # Get pending purchases that failed
     pending_purchases = FactoryPurchase.objects.filter(
         user=request.user,
@@ -688,7 +875,7 @@ def payment_failure(request):
 
 @login_required
 def purchase_history(request):
-    """View user's purchase history"""
+    """View user's purchase history (legacy)"""
     purchases = PurchaseHistory.objects.filter(user=request.user).order_by('-purchase_date')
     
     context = {
@@ -699,7 +886,7 @@ def purchase_history(request):
 
 @login_required
 def resend_purchase_email(request, purchase_id):
-    """Resend factory details email for a specific purchase"""
+    """Resend factory details email for a specific purchase (legacy)"""
     purchase = get_object_or_404(
         FactoryPurchase, 
         id=purchase_id, 
@@ -718,7 +905,7 @@ def resend_purchase_email(request, purchase_id):
 
 @login_required
 def send_selected_emails(request):
-    """Send emails for selected purchases"""
+    """Send emails for selected purchases using centralized email service"""
     if request.method == 'POST':
         selected_purchase_ids = request.POST.getlist('selected_purchases')
         
@@ -745,113 +932,44 @@ def send_selected_emails(request):
             messages.info(request, "All selected purchases already have emails sent.")
             return redirect('karkahan:purchase_history')
         
-        # Send emails for multiple factories
+        # Send emails for multiple factories using centralized service
         sent_count = 0
         try:
-            # Create a combined email for multiple factories using template
-            from django.template.loader import render_to_string
+            # Use centralized email service to send bulk email
+            success = FactoryEmailService.send_bulk_factory_emails(
+                user_email=request.user.email,
+                user_name=request.user.username,
+                factories=[purchase.factory for purchase in unsent_purchases]
+            )
             
-            # Prepare context for template with multiple factories
-            factories = [purchase.factory for purchase in unsent_purchases]
-            context = {
-                'user': request.user,
-                'factories': factories,
-            }
-
-            # Render HTML email template
-            html_content = render_to_string('karkahan/factory_details_email.html', context)
-
-            # Create plain text version (fallback)
-            text_content = f"""
-            Dear {request.user.username},
-
-            Thank you for your purchases! Here are the details for the factories you requested:
-
-            """
-            
-            # Add details for each factory
-            for i, purchase in enumerate(unsent_purchases, 1):
-                factory = purchase.factory
-                text_content += f"""
-            ---
-            Factory {i}: {factory.name}
-            Category: {factory.category.name}
-            Location: {factory.full_address}
-            Type: {factory.factory_type}
-            Production Capacity: {factory.production_capacity}
-            Employee Count: {factory.employee_count}
-            Established: {factory.established_year}
-            Annual Turnover: {factory.annual_turnover}
-
-            Contact Information:
-            Contact Person: {factory.contact_person}
-            Phone: {factory.contact_phone}
-            Email: {factory.contact_email}
-            Website: {factory.website}
-
-            Address: {factory.address}
-            {factory.city.name}, {factory.state.name} - {factory.pincode}
-            {factory.country.name}
-
-            """
-            
-            text_content += """
-            This information is confidential and intended solely for your use.
-
-            Best regards,
-            Factory InfoHub Team
-            """
-
-            # Send email with SSL context that bypasses certificate verification
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = f"Factory Details - {unsent_purchases.count()} Factory(ies)"
-            msg['From'] = settings.DEFAULT_FROM_EMAIL
-            msg['To'] = request.user.email
-            
-            # Add text content (for email clients that don't support HTML)
-            text_part = MIMEText(text_content, 'plain')
-            msg.attach(text_part)
-            
-            # Add HTML content
-            html_part = MIMEText(html_content, 'html')
-            msg.attach(html_part)
-            
-            # Send email with SSL context that bypasses certificate verification
-            ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
-            
-            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-                if settings.EMAIL_USE_TLS:
-                    server.starttls(context=ssl_context)
-                if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
-                    server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-                server.send_message(msg)
-            
-            # Update all purchases as sent
-            current_time = timezone.now()
-            for purchase in unsent_purchases:
-                purchase.email_sent = True
-                purchase.email_sent_at = current_time
-                purchase.save()
-                
-                # Update corresponding PurchaseHistory record
-                try:
-                    purchase_history = purchase_history = purchase_history = PurchaseHistory.objects.filter(
-                        user=purchase.user,
-                        factory_slug=purchase.factory.slug,
-                        purchase_date=purchase.purchased_at
-                    ).first()
+            if success:
+                # Update all purchases as sent
+                current_time = timezone.now()
+                for purchase in unsent_purchases:
+                    purchase.email_sent = True
+                    purchase.email_sent_at = current_time
+                    purchase.save()
                     
-                    if purchase_history:
-                        purchase_history.email_delivered = True
-                        purchase_history.email_delivered_at = current_time
-                        purchase_history.save()
-                except Exception as history_error:
-                    print(f"⚠️  Warning: Could not update PurchaseHistory record: {history_error}")
-            
-            sent_count = unsent_purchases.count()
-            
+                    # Update corresponding PurchaseHistory record
+                    try:
+                        purchase_history = PurchaseHistory.objects.filter(
+                            user=purchase.user,
+                            factory_slug=purchase.factory.slug,
+                            purchase_date=purchase.purchased_at
+                        ).first()
+                        
+                        if purchase_history:
+                            purchase_history.email_delivered = True
+                            purchase_history.email_delivered_at = current_time
+                            purchase_history.save()
+                    except Exception as history_error:
+                        print(f"⚠️  Warning: Could not update PurchaseHistory record: {history_error}")
+                
+                sent_count = unsent_purchases.count()
+            else:
+                messages.error(request, "Failed to send emails. Please try again later.")
+                return redirect('karkahan:purchase_history')
+                
         except Exception as e:
             # Log detailed error information
             import traceback
@@ -932,3 +1050,36 @@ def test_email(request):
         'default_from_email': getattr(settings, 'DEFAULT_FROM_EMAIL', 'Not set'),
     }
     return render(request, 'karkahan/test_email.html', context)
+
+
+@login_required
+def email_verification_help(request):
+    """Help page for email verification"""
+    verification_status = get_email_verification_message(request.user)
+    
+    context = {
+        'verification_status': verification_status,
+        'user_email': request.user.email,
+        'is_verified': can_make_purchase(request.user),
+        'help_text': """
+            <h4>How to Verify Your Email Address</h4>
+            <ol>
+                <li><strong>Check Your Inbox:</strong> Look for an email from Factory InfoHub with the subject "Verify Your Email Address"</li>
+                <li><strong>Click the Verification Link:</strong> Open the email and click the verification link provided</li>
+                <li><strong>Confirmation:</strong> You will be redirected to a confirmation page</li>
+                <li><strong>Start Shopping:</strong> Once verified, you can add items to cart and make purchases</li>
+            </ol>
+            
+            <h4>Didn't Receive the Email?</h4>
+            <ul>
+                <li>Check your spam/junk folder</li>
+                <li>Make sure you're checking the email address: <strong>{email}</strong></li>
+                <li>Wait a few minutes - emails may take some time to arrive</li>
+                <li>Contact support if you still haven't received it</li>
+            </ul>
+            
+            <h4>Need Help?</h4>
+            <p>If you're having trouble with email verification, please contact our support team at support@factoryinfohub.com</p>
+        """.format(email=request.user.email)
+    }
+    return render(request, 'karkahan/email_verification_help.html', context)

@@ -361,3 +361,63 @@ def verify_email(request, uidb64, token):
     else:
         messages.error(request, _('The verification link is invalid or has expired.'))
         return render(request, 'accounts/email_verification_invalid.html')
+
+
+@login_required
+def resend_verification_email(request):
+    """
+    Resend email verification email to user.
+    
+    Handles resend requests with rate limiting and proper error handling.
+    
+    Args:
+        request (HttpRequest): HTTP request object
+    
+    Returns:
+        HttpResponse: JSON response with success/error status
+    """
+    from django.http import JsonResponse
+    from django.views.decorators.http import require_POST
+    from django.views.decorators.csrf import csrf_exempt
+    from django.utils.decorators import method_decorator
+    
+    if request.method == 'POST':
+        # Check rate limiting for resend requests
+        is_limited, remaining_time = check_rate_limit(request, 'email_resend', max_attempts=3, window_minutes=30)
+        if is_limited:
+            minutes, seconds = divmod(int(remaining_time), 60)
+            return JsonResponse({
+                'success': False,
+                'message': _('Too many resend attempts. Please try again in {} minutes and {} seconds.').format(minutes, seconds)
+            }, status=429)
+        
+        user = request.user
+        
+        # Check if email is already verified
+        if hasattr(user, 'profile') and user.profile.email_verified:
+            return JsonResponse({
+                'success': False,
+                'message': _('Your email address is already verified.')
+            }, status=400)
+        
+        # Send verification email
+        if send_email_verification(user, request):
+            # Increment rate limit counter
+            increment_rate_limit(request, 'email_resend')
+            
+            log_user_activity(user, 'email_verification_resend', 'Verification email resent', request)
+            
+            return JsonResponse({
+                'success': True,
+                'message': _('A new verification email has been sent to your email address.')
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': _('An error occurred while sending the verification email. Please try again later.')
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'message': _('Invalid request method.')
+    }, status=405)

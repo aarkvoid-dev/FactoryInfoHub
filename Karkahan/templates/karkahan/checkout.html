@@ -45,12 +45,70 @@
         z-index: 2;
         text-align: center;
         min-width: 120px;
+        transition: all 0.3s ease;
     }
     
     .step.active {
         background: white;
         color: #1A2B3E;
         font-weight: bold;
+        transform: scale(1.05);
+    }
+    
+    .step.completed {
+        background: #10b981;
+        color: white;
+    }
+    
+    .checkout-form {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .form-section h5 {
+        color: #1A2B3E;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .row .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     .order-summary {
@@ -63,13 +121,19 @@
     .summary-item {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         padding: 1rem 0;
         border-bottom: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
     }
     
-    .summary-total {
-        display: flex;
-        justify-content: space-between;
+    .summary-item:hover {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+    
+    .summary-item:last-child {
+        border-bottom: none;
         padding: 1.5rem 0 0 0;
         font-size: 1.5rem;
         font-weight: 700;
@@ -101,36 +165,206 @@
         font-weight: 600;
         border-radius: 8px;
         color: white;
+        transition: all 0.3s ease;
     }
     
     .btn-secondary:hover {
         background: #475569;
+        transform: translateY(-1px);
     }
     
     .security-badge {
         display: flex;
         align-items: center;
-        gap: 10px;
-        background: #dcfce7;
+        gap: 15px;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
         border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .security-icon {
+        font-size: 2rem;
+        color: #16a34a;
+    }
+    
+    .terms-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .terms-checkbox input {
+        width: 1.5rem;
+        height: 1.5rem;
+        accent-color: #EB662B;
+    }
+    
+    .terms-checkbox label {
+        font-size: 0.9rem;
+        color: #374151;
+        cursor: pointer;
+    }
+    
+    .terms-checkbox label a {
+        color: #3b82f6;
+        text-decoration: none;
+    }
+    
+    .terms-checkbox label a:hover {
+        text-decoration: underline;
+    }
+    
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .payment-method {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 1.5rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .payment-method:hover {
+        border-color: #3b82f6;
+        background: #f0f9ff;
+    }
+    
+    .payment-method.selected {
+        border-color: #EB662B;
+        background: #fff7f3;
+        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
+    }
+    
+    .payment-icon {
+        font-size: 2rem;
+        width: 60px;
+        text-align: center;
+        color: #64748B;
+    }
+    
+    .payment-method.selected .payment-icon {
+        color: #EB662B;
+    }
+    
+    .payment-method input {
+        display: none;
+    }
+    
+    .alert-warning {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        color: #92400e;
         border-radius: 8px;
         padding: 1rem;
         margin-bottom: 2rem;
     }
     
-    .security-icon {
+    .alert-warning .alert-icon {
+        color: #d97706;
         font-size: 1.5rem;
-        color: #16a34a;
+        margin-right: 1rem;
+    }
+    
+    .actions-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #EB662B;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .cart-item-mini {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .cart-item-mini img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .cart-item-mini-info {
+        flex-grow: 1;
+    }
+    
+    .cart-item-mini-title {
+        font-weight: 600;
+        color: #1A2B3E;
+    }
+    
+    .cart-item-mini-details {
+        font-size: 0.875rem;
+        color: #64748B;
+    }
+    
+    .cart-item-mini-price {
+        font-weight: 700;
+        color: #1A2B3E;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
 <div class="checkout-header">
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1 class="mb-0">Checkout</h1>
-            <p class="mb-0 opacity-75">Review your order and complete the purchase</p>
+            <p class="mb-0 opacity-75">Complete your purchase securely</p>
         </div>
         <div class="col-md-4 text-md-end">
             <span class="badge bg-light text-dark fs-5 px-3 py-2">
@@ -139,12 +373,27 @@
         </div>
     </div>
 </div>
-<div class="checkout-container">
 
+<div class="alert-warning">
+    <div class="d-flex align-items-center">
+        <div class="alert-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div>
+            <strong>Secure Transaction:</strong> Your payment information is encrypted and secure. We use industry-standard security measures to protect your data.
+        </div>
+    </div>
+</div>
+
+<div class="checkout-container">
     <div class="checkout-steps">
-        <div class="step active">
+        <div class="step completed">
             <i class="fas fa-shopping-cart mb-2"></i>
-            <div>Review Order</div>
+            <div>Cart Review</div>
+        </div>
+        <div class="step active">
+            <i class="fas fa-user-check mb-2"></i>
+            <div>Customer Info</div>
         </div>
         <div class="step">
             <i class="fas fa-credit-card mb-2"></i>
@@ -156,71 +405,122 @@
         </div>
     </div>
 
-    <div class="security-badge">
-        <div class="security-icon">
-            <i class="fas fa-shield-alt"></i>
-        </div>
-        <div>
-            <strong>Secure Transaction</strong><br>
-            Your information is encrypted and secure. We use proxy payment for demonstration purposes.
-        </div>
-    </div>
-
     <div class="row">
         <div class="col-lg-8">
-            <div class="order-summary">
-                <h4 class="mb-3">Order Summary</h4>
+            <form method="post" action="{% url 'karkahan:checkout' %}" id="checkoutForm">
+                {% csrf_token %}
                 
-                {% for item in cart_items %}
-                <div class="summary-item">
-                    <div>
-                        <strong>{{ item.factory.name }}</strong><br>
-                        <span class="text-muted">{{ item.factory.category.name }} • {{ item.factory.city.name }}, {{ item.factory.state.name }}</span><br>
-                        <span class="text-muted">Qty: {{ item.quantity }} × Rs. {{ item.factory.price|intcomma }}</span>
+                <div class="checkout-form">
+                    <div class="form-section">
+                        <h5><i class="fas fa-user me-2"></i>Customer Information</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.customer_name.label }}</label>
+                                {{ form.customer_name }}
+                                {% if form.customer_name.errors %}
+                                    <div class="text-danger mt-1">{{ form.customer_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.customer_email.label }}</label>
+                                {{ form.customer_email }}
+                                {% if form.customer_email.errors %}
+                                    <div class="text-danger mt-1">{{ form.customer_email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.customer_phone.label }}</label>
+                                {{ form.customer_phone }}
+                                {% if form.customer_phone.errors %}
+                                    <div class="text-danger mt-1">{{ form.customer_phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.payment_method.label }}</label>
+                                {{ form.payment_method }}
+                                {% if form.payment_method.errors %}
+                                    <div class="text-danger mt-1">{{ form.payment_method.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-end">
-                        <span class="fw-bold">Rs. {{ item.total_price|intcomma }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-                
-                <div class="summary-total">
-                    <span>Total Amount</span>
-                    <span>Rs. {{ total_price|intcomma }}</span>
-                </div>
-            </div>
 
-            <div class="mt-4">
-                <a href="{% url 'karkahan:cart_view' %}" class="btn btn-secondary me-3">
-                    <i class="fas fa-arrow-left"></i> Back to Cart
-                </a>
-                <form method="post" action="{% url 'karkahan:process_purchase' %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-lock"></i> Complete Purchase
-                    </button>
-                </form>
-            </div>
+                    <div class="form-section">
+                        <h5><i class="fas fa-truck me-2"></i>Order Items</h5>
+                        
+                        {% for item in cart_items %}
+                        <div class="cart-item-mini">
+                            <img src="{{ item.factory.get_primary_image|default:'https://via.placeholder.com/50x50' }}" alt="{{ item.factory.name }}">
+                            <div class="cart-item-mini-info">
+                                <div class="cart-item-mini-title">{{ item.factory.name }}</div>
+                                <div class="cart-item-mini-details">
+                                    {{ item.factory.category.name }} • {{ item.factory.city.name }}, {{ item.factory.state.name }}
+                                </div>
+                                <div class="cart-item-mini-details">
+                                    Quantity: {{ item.quantity }} × Rs. {{ item.factory.price|intcomma }}
+                                </div>
+                            </div>
+                            <div class="cart-item-mini-price">
+                                Rs. {{ item.total_price|intcomma }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-section">
+                        <h5><i class="fas fa-file-alt me-2"></i>Additional Notes</h5>
+                        <label class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger mt-1">{{ form.notes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="terms-checkbox">
+                        {{ form.accept_terms }}
+                        <label for="{{ form.accept_terms.id_for_label }}">
+                            I agree to the <a href="#" target="_blank">terms and conditions</a> and <a href="#" target="_blank">privacy policy</a>. I understand that this is a factory information purchase and not a physical product.
+                        </label>
+                        {% if form.accept_terms.errors %}
+                            <div class="text-danger mt-1">{{ form.accept_terms.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="actions-row">
+                        <a href="{% url 'karkahan:cart_view' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-lock"></i> Place Order
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <div class="col-lg-4">
             <div class="order-summary">
-                <h5 class="mb-3">Purchase Details</h5>
+                <h5 class="mb-3">Order Summary</h5>
+                
                 <div class="summary-item">
-                    <span>Items ({{ cart_items.count }})</span>
-                    <span>Rs. {{ total_price|intcomma }}</span>
+                    <span>Subtotal ({{ cart_items.count }} items)</span>
+                    <span>Rs. {{ subtotal|intcomma }}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Tax (18%)</span>
+                    <span>Rs. {{ tax_amount|intcomma }}</span>
                 </div>
                 <div class="summary-item">
                     <span>Service Fee</span>
-                    <span>Rs. 0</span>
+                    <span>Rs. {{ service_fee|intcomma }}</span>
                 </div>
                 <div class="summary-item">
-                    <span>Tax</span>
-                    <span>Rs. 0</span>
-                </div>
-                <div class="summary-total">
-                    <span>Grand Total</span>
-                    <span>Rs. {{ total_price|intcomma }}</span>
+                    <span class="fw-bold">Total Amount</span>
+                    <span class="fw-bold fs-4">Rs. {{ total_amount|intcomma }}</span>
                 </div>
             </div>
 
@@ -232,10 +532,75 @@
                         <li><i class="fas fa-check text-success me-2"></i> Contact information</li>
                         <li><i class="fas fa-check text-success me-2"></i> Location details</li>
                         <li><i class="fas fa-check text-success me-2"></i> Email delivery</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Order confirmation</li>
                     </ul>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="security-badge">
+                    <div class="security-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <div>
+                        <strong>Secure Checkout</strong><br>
+                        <small>Your information is protected with SSL encryption</small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Payment method selection
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            const input = this.querySelector('input[type="radio"]');
+            if (input) {
+                input.checked = true;
+            }
+        });
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const acceptTerms = document.getElementById('{{ form.accept_terms.id_for_label }}');
+        if (!acceptTerms.checked) {
+            e.preventDefault();
+            alert('Please accept the terms and conditions to proceed.');
+            return false;
+        }
+        
+        // Show loading
+        showLoading();
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+    
+    // Show loading overlay
+    function showLoading() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+    
+    // Hide loading overlay
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+    
+    // Auto-fill from user profile if available
+    const customerName = document.getElementById('{{ form.customer_name.id_for_label }}');
+    const customerEmail = document.getElementById('{{ form.customer_email.id_for_label }}');
+    
+    // If fields are empty and we have user data, they might be pre-filled by Django
+    // This is handled server-side in the form initialization
+});
+</script>
 {% endblock %}

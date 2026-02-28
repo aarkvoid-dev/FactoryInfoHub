@@ -5,7 +5,8 @@
 
 {% block content %}
 <div class="dashboard-wrapper p-2 p-md-4 slide-up">
-    
+
+    <!-- Header and filter sections remain unchanged (I've kept them as you had) -->
     <div class="row mb-4 align-items-center g-3">
         <div class="col-md-6">
             <h3 class="fw-bold mb-1">Blog Management</h3>
@@ -26,7 +27,7 @@
     <div class="collapse {% if request.GET %}show{% endif %} mb-4" id="filterCollapse">
         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
             <form method="get" class="row g-2 g-md-3" id="blogFilterForm">
-                
+                <!-- filter fields unchanged -->
                 <div class="col-6 col-md-3">
                     <label class="label-xs">Category</label>
                     <select name="category" id="filter_category" class="form-select form-select-sm border-light bg-light">
@@ -118,15 +119,24 @@
         </div>
     </div>
 
+    <!-- Table with colgroup for exact column widths -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="d-none d-lg-block">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
+                <!-- Define column widths -->
+                <colgroup>
+                    <col style="width: 40%;">   <!-- Title / Excerpt -->
+                    <col style="width: 15%;">   <!-- Category -->
+                    <col style="width: 15%;">   <!-- Author -->
+                    <col style="width: 15%;">   <!-- Status -->
+                    <col style="width: 15%;">   <!-- Manage -->
+                </colgroup>
                 <thead class="bg-light">
                     <tr class="label-xs text-muted">
                         <th class="ps-4">Title / Excerpt</th>
-                        <th>Category</th>
-                        <th>Author</th>
-                        <th>Status</th>
+                        <th class="text-center">Category</th>
+                        <th class="text-center">Author</th>
+                        <th class="text-center">Status</th>
                         <th class="text-end pe-4">Manage</th>
                     </tr>
                 </thead>
@@ -137,11 +147,11 @@
                             <div class="fw-bold text-dark">{{ blog.title|truncatechars:40 }}</div>
                             <div class="extra-small text-muted">{{ blog.excerpt|truncatechars:60 }}</div>
                         </td>
-                        <td>
+                        <td class="text-center">
                             <span class="badge rounded-pill bg-soft-primary text-primary">{{ blog.category.name }}</span>
                         </td>
-                        <td class="small">{{ blog.author.username }}</td>
-                        <td>
+                        <td class="text-center small">{{ blog.author.username }}</td>
+                        <td class="text-center">
                             {% if blog.is_published %}
                                 <span class="badge-dot bg-success"></span> <span class="text-success small">Published</span>
                             {% else %}
@@ -166,6 +176,7 @@
             </table>
         </div>
 
+        <!-- Mobile view unchanged -->
         <div class="d-lg-none">
             {% for blog in blogs %}
             <div class="p-3 border-bottom">
@@ -198,6 +209,19 @@
     .badge-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
     .btn-white { background: white; border: none; }
     .btn-white:hover { background: #f8fafc; }
+
+    /* Ensure text wraps inside cells */
+    .table td {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    /* Optional: keep the last column's content from overflowing */
+    .table td:last-child {
+        white-space: nowrap;        /* prevents button group from wrapping */
+        overflow-x: auto;           /* adds scroll if buttons overflow */
+    }
+    /* If you prefer the buttons to wrap, remove the above and use flex-wrap on the btn-group */
 </style>
 
 <script>
@@ -224,10 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initialize Industry Chain
     setupCascade('filter_category', 'filter_subcategory', '/categories/ajax/load-subcategories/', 'All Subcategories');
-
-    // Initialize Location Chain
     setupCascade('filter_country', 'filter_state', '/location/ajax/states-by-country/', 'State', ['filter_city', 'filter_district', 'filter_region']);
     setupCascade('filter_state', 'filter_city', '/location/ajax/cities-by-state/', 'City', ['filter_district', 'filter_region']);
     setupCascade('filter_city', 'filter_district', '/location/ajax/districts-by-city/', 'District', ['filter_region']);
@@ -235,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Delete Modals for each blog -->
+<!-- Delete Modals for each blog (unchanged) -->
 {% for blog in blogs %}
 <div class="modal fade" id="deleteModal{{ blog.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ blog.id }}" aria-hidden="true">
     <div class="modal-dialog">
