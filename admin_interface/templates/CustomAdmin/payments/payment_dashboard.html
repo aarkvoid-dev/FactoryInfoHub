@@ -1,0 +1,423 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Payment Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Payment Dashboard</h1>
+                    <p class="text-muted mb-0">Overview of payment system performance and analytics</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_interface:admin_dashboard' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                    </a>
+                    <a href="{% url 'admin_interface:admin_payments' %}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-list me-2"></i>Payments List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.total_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-credit-card fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Completed Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.completed_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.pending_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Failed Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.failed_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ summary.total_revenue|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Success Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.success_rate }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Average Order Value
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ summary.avg_order_value|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Active Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.active_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics -->
+    <div class="row mb-4">
+        <div class="col-xl-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Payment Trends
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="paymentTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Payment Methods
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="paymentMethodsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history me-2"></i>Recent Payments
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.order.order_number }}</td>
+                                    <td>₹{{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">{{ payment.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ payment.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-credit-card fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No recent payments</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Issues & Alerts
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if pending_payments > 0 %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>{{ pending_payments }} pending payments</strong> - Review and process as needed
+                    </div>
+                    {% endif %}
+
+                    {% if failed_payments > 0 %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>{{ failed_payments }} failed payments</strong> - May need investigation
+                    </div>
+                    {% endif %}
+
+                    {% if recent_failed_payments %}
+                    <h6 class="text-muted mb-3">Recent Failed Payments:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_failed_payments %}
+                                <tr>
+                                    <td>{{ payment.order.order_number }}</td>
+                                    <td>₹{{ payment.amount }}</td>
+                                    <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'admin_interface:admin_payment_detail' payment.id %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Review
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <p class="text-muted">No issues to report</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_interface:admin_payments' %}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-list me-2"></i>View All Payments
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_interface:admin_orders' %}" class="btn btn-info w-100 mb-2">
+                                <i class="fas fa-shopping-cart me-2"></i>View Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_interface:admin_order_items' %}" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-box me-2"></i>View Order Items
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_interface:admin_gateways' %}" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-plug me-2"></i>Manage Gateways
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Payment Trends Chart
+    const trendsCtx = document.getElementById('paymentTrendsChart');
+    if (trendsCtx) {
+        // Sample data for demonstration
+        const trendsData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Completed Payments',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Failed Payments',
+                data: [2, 3, 1, 2, 1, 0],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4
+            }]
+        };
+        
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: trendsData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Payment Methods Chart
+    const methodsCtx = document.getElementById('paymentMethodsChart');
+    if (methodsCtx) {
+        // Sample data for demonstration
+        const chartData = {
+            labels: ['Razorpay', 'Stripe', 'PayPal', 'Cash on Delivery'],
+            datasets: [{
+                data: [45, 30, 15, 10],
+                backgroundColor: [
+                    '#007bff', '#28a745', '#ffc107', '#dc3545'
+                ]
+            }]
+        };
+        
+        new Chart(methodsCtx, {
+            type: 'doughnut',
+            data: chartData,
+            options: {
+                responsive: true
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

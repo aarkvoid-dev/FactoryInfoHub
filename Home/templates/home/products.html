@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Factory Chemistry{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="pt-60 pb-60 bg-accent-1-05">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="text-center">
+          <h1 class="text-48 fw-700 mb-20">Our Products</h1>
+          <p class="text-18 text-dark-1 lh-175">
+            Discover our comprehensive range of factory management solutions designed to streamline your operations and boost productivity.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Coming Soon Section -->
+<section class="pt-80 pb-80">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="text-center">
+          <!-- Coming Soon Badge -->
+          <div class="d-inline-block mb-40">
+            <span class="px-24 py-12 rounded-24 bg-accent-1-05 text-accent-1 fw-600 text-14">
+              <i class="fas fa-clock me-8"></i>COMING SOON
+            </span>
+          </div>
+
+          <!-- Main Image/Icon -->
+          <div class="mb-40">
+            <div class="w-120 h-120 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center mx-auto mb-20">
+              <i class="fas fa-box text-accent-1 text-48"></i>
+            </div>
+          </div>
+
+          <!-- Main Heading -->
+          <h2 class="text-32 fw-700 mb-20">Product Catalog Coming Soon</h2>
+          
+          <!-- Description -->
+          <p class="text-16 text-dark-1 lh-175 mb-40">
+            We're working hard to bring you an extensive catalog of factory management products and solutions. 
+            Our product line will include everything you need to optimize your factory operations, from management 
+            software to operational tools and resources.
+          </p>
+
+          <!-- Features Preview -->
+          <div class="row g-32 justify-content-center mb-60">
+            <div class="col-md-6">
+              <div class="d-flex align-items-start">
+                <div class="w-48 h-48 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center me-16">
+                  <i class="fas fa-laptop text-accent-1"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="text-18 fw-600 mb-8">Management Software</h4>
+                  <p class="text-14 text-dark-1">Advanced software solutions for factory management and optimization.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start">
+                <div class="w-48 h-48 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center me-16">
+                  <i class="fas fa-chart-line text-accent-1"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="text-18 fw-600 mb-8">Analytics Tools</h4>
+                  <p class="text-14 text-dark-1">Powerful analytics to track performance and improve efficiency.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start">
+                <div class="w-48 h-48 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center me-16">
+                  <i class="fas fa-cog text-accent-1"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="text-18 fw-600 mb-8">Operational Tools</h4>
+                  <p class="text-14 text-dark-1">Essential tools for day-to-day factory operations and management.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start">
+                <div class="w-48 h-48 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center me-16">
+                  <i class="fas fa-book text-accent-1"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="text-18 fw-600 mb-8">Resource Library</h4>
+                  <p class="text-14 text-dark-1">Comprehensive guides, templates, and resources for factory management.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Call to Action -->
+          <div class="bg-light-2 rounded-24 p-40 mb-40">
+            <h3 class="text-20 fw-700 mb-16">Stay Updated</h3>
+            <p class="text-14 text-dark-1 mb-24">
+              Be the first to know when our products launch. Sign up for our newsletter to receive updates and exclusive offers.
+            </p>
+            <div class="row justify-content-center">
+              <div class="col-md-8">
+                <form class="d-flex gap-12">
+                  <input type="email" class="form-control rounded-12 px-24 py-16" placeholder="Enter your email address" style="flex: 1;">
+                  <button type="submit" class="button -md -accent-1 rounded-12">
+                    Notify Me
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Section -->
+          <div class="row justify-content-center">
+            <div class="col-md-8">
+              <div class="bg-accent-1-05 rounded-24 p-40">
+                <h3 class="text-20 fw-700 mb-16">Questions?</h3>
+                <p class="text-14 text-dark-1 mb-24">
+                  If you have questions about our upcoming products or want to learn more about how we can help your factory, 
+                  please don't hesitate to contact us.
+                </p>
+                <a href="{% url 'contact' %}" class="button -md -accent-1 rounded-12">
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Sections -->
+<section class="pt-80 pb-80 bg-light-2">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="text-center mb-60">
+          <h2 class="text-32 fw-700 mb-16">While You Wait</h2>
+          <p class="text-16 text-dark-1">Explore what we currently offer to help your factory operations.</p>
+        </div>
+
+        <div class="row g-32">
+          <div class="col-md-4">
+            <div class="card rounded-16 border-0 h-100">
+              <div class="card-body text-center p-32">
+                <div class="w-64 h-64 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center mx-auto mb-20">
+                  <i class="fas fa-building text-accent-1 text-24"></i>
+                </div>
+                <h4 class="text-18 fw-600 mb-12">Factory Listings</h4>
+                <p class="text-14 text-dark-1 mb-24">Browse our comprehensive directory of verified factories and suppliers.</p>
+                <a href="{% url 'karkahan:factory_list' %}" class="button -sm -accent-1 rounded-12">Explore Factories</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card rounded-16 border-0 h-100">
+              <div class="card-body text-center p-32">
+                <div class="w-64 h-64 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center mx-auto mb-20">
+                  <i class="fas fa-blog text-accent-1 text-24"></i>
+                </div>
+                <h4 class="text-18 fw-600 mb-12">Industry Insights</h4>
+                <p class="text-14 text-dark-1 mb-24">Stay informed with the latest trends and insights in factory management.</p>
+                <a href="{% url 'blog:post_list' %}" class="button -sm -accent-1 rounded-12">Read Blog</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card rounded-16 border-0 h-100">
+              <div class="card-body text-center p-32">
+                <div class="w-64 h-64 rounded-full bg-accent-1-05 d-flex align-items-center justify-content-center mx-auto mb-20">
+                  <i class="fas fa-question-circle text-accent-1 text-24"></i>
+                </div>
+                <h4 class="text-18 fw-600 mb-12">Help & Support</h4>
+                <p class="text-14 text-dark-1 mb-24">Find answers to common questions and get the support you need.</p>
+                <a href="{% url 'faq:home' %}" class="button -sm -accent-1 rounded-12">Visit Q&A</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Custom styles for the products page */
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .button {
+    transition: all 0.3s ease;
+  }
+  
+  .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(235, 102, 43, 0.3);
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Add some interactivity to the products page
+  document.addEventListener('DOMContentLoaded', function() {
+    // Animate the coming soon badge on scroll
+    const badge = document.querySelector('.bg-accent-1-05');
+    if (badge) {
+      badge.style.opacity = '0';
+      badge.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        badge.style.transition = 'all 0.6s ease';
+        badge.style.opacity = '1';
+        badge.style.transform = 'translateY(0)';
+      }, 100);
+    }
+    
+    // Add hover effects to feature cards
+    const featureCards = document.querySelectorAll('.col-md-6');
+    featureCards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.transition = 'transform 0.3s ease';
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+  });
+</script>
+{% endblock %}

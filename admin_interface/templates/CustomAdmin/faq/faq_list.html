@@ -1,0 +1,127 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}FAQ Management - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard__content_header fade-in">
+    <h1>FAQ Management</h1>
+    <div class="header-actions">
+        <a href="{% url 'admin_interface:admin_faq_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New FAQ
+        </a>
+    </div>
+</div>
+
+<!-- Filters & Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="q" class="form-control" placeholder="Title, question, answer..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    {% for code, name in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- FAQ List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">All FAQ Questions</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th style="width: 40%">Title / Question</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Featured</th>
+                        <th>Order</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ question.title }}</div>
+                            <div class="small text-muted">{{ question.question_text|truncatechars:80 }}</div>
+                        </td>
+                        <td>{{ question.category.name }}</td>
+                        <td>
+                            <span class="badge {% if question.status == 'published' %}bg-success{% elif question.status == 'draft' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ question.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if question.is_featured %}
+                            <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                            <i class="fas fa-star text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ question.order }}</td>
+                        <td>
+                            <small>{{ question.created_at|date:"Y-m-d" }}</small><br>
+                            <small class="text-muted">by {{ question.created_by.username|default:"-" }}</small>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'admin_interface:admin_faq_edit' question.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'admin_interface:admin_faq_delete' question.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No FAQ questions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

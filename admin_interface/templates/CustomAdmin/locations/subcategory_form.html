@@ -1,0 +1,183 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}{% if action == 'create' %}Create Subcategory{% else %}Edit Subcategory{% endif %} - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">{{ title }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_categories' %}">Categories</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_subcategories' %}">Subcategories</a></li>
+                            <li class="breadcrumb-item active">{{ title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subcategory Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if action == 'create' %}
+                            <i class="fas fa-plus-circle me-2"></i>Create New Subcategory
+                        {% else %}
+                            <i class="fas fa-edit me-2"></i>Edit Subcategory
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">
+                                        Subcategory Name <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Enter a unique name for this subcategory</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label">
+                                        Parent Category <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Select the parent category for this subcategory</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Provide a detailed description of this subcategory</div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.is_active.id_for_label }}" class="form-label">
+                                Status
+                            </label>
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active Subcategory
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small">{{ form.is_active.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if action == 'create' %}
+                                    <i class="fas fa-plus me-2"></i>Create Subcategory
+                                {% else %}
+                                    <i class="fas fa-save me-2"></i>Update Subcategory
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .btn-primary:hover {
+        background-color: #5a6fd8;
+        border-color: #5a6fd8;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .text-danger {
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add real-time validation feedback
+        const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+        if (nameInput) {
+            nameInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+        
+        // Auto-generate slug from name (if there's a slug field)
+        const nameField = document.getElementById('{{ form.name.id_for_label }}');
+        const slugField = document.getElementById('{{ form.slug.id_for_label }}');
+        
+        if (nameField && slugField) {
+            nameField.addEventListener('input', function() {
+                const slug = this.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                slugField.value = slug;
+            });
+        }
+    });
+</script>
+{% endblock %}

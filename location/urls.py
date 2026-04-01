@@ -6,6 +6,7 @@ app_name = 'location'
 urlpatterns = [
     # Dashboard
     path('', views.location_dashboard, name='dashboard'),
+    path('user_locations', views.location_hierarchy, name='location_hierarchy'),
 
     # Country URLs
     path('countries/', views.country_list, name='country_list'),

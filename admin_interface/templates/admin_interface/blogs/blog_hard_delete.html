@@ -1,0 +1,144 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Hard Delete Blog Post{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Hard Delete Blog Post</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_blogs' %}">Blog Posts</a></li>
+                            <li class="breadcrumb-item active">Hard Delete</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_blogs' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Card -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Permanent Deletion Warning
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Are you sure you want to permanently delete this blog post?
+                        </h5>
+                        <p class="mb-2">This action cannot be undone. The blog post will be permanently deleted from the database.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Blog Post Details:</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Title:</strong> {{ blog.title }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Author:</strong> {{ blog.author.get_full_name|default:blog.author.username }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Category:</strong> {{ blog.category.name }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Location:</strong> {{ blog.city.name }}, {{ blog.state.name }}, {{ blog.country.name }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Created:</strong> {{ blog.created_at|date:"F j, Y" }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Status:</strong> 
+                                <span class="badge bg-{% if blog.is_published %}success{% else %}secondary{% endif %}">
+                                    {% if blog.is_published %}Published{% else %}Draft{% endif %}
+                                </span>
+                            </li>
+                            {% if blog.is_deleted %}
+                            <li class="list-group-item">
+                                <strong>Deleted:</strong> {{ blog.deleted_at|date:"F j, Y" }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">Important Information:</h6>
+                        <ul class="mb-0">
+                            <li><strong>This action is permanent and cannot be undone</strong></li>
+                            <li>The blog post will be completely removed from the database</li>
+                            <li>All associated images and data will be permanently deleted</li>
+                            <li>This action can only be performed by superusers or for blogs already in trash</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Recommendation:</h6>
+                        <p class="mb-0">If you want to keep the option to restore this blog post later, consider using the "Soft Delete" option instead.</p>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-2"></i>
+                                Permanently Delete
+                            </button>
+                        </form>
+                        <a href="{% url 'admin_interface:admin_blogs' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Blog Post Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Permanent Deletion Benefits</h6>
+                        <ul class="small text-muted">
+                            <li>Completely removes data from database</li>
+                            <li>Reduces database size and clutter</li>
+                            <li>Ensures sensitive data is unrecoverable</li>
+                            <li>Final action for content that should not exist</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Admin Actions</h6>
+                        <ul class="small text-muted">
+                            <li>Use only for content that should be permanently removed</li>
+                            <li>Consider data retention policies</li>
+                            <li>Ensure proper authorization before proceeding</li>
+                            <li>Document important deletions for audit purposes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

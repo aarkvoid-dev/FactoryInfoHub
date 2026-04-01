@@ -10,8 +10,9 @@
             <p class="text-muted small mb-0">Manage workforce and location deployments.</p>
         </div>
         <div class="d-flex gap-2 w-100 w-md-auto">
-            <button class="btn btn-dark btn-sm rounded-pill px-3 flex-grow-1" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
-                <i class="fas fa-filter me-1"></i> Filters
+            <button class="btn btn-dark btn-sm rounded-pill px-3 flex-grow-1" id="toggleFiltersBtn" onclick="toggleFilters()">
+                <i class="fas fa-filter me-1" id="filterIcon"></i> 
+                <span id="filterText">{% if request.GET %}Hide Filters{% else %}Show Filters{% endif %}</span>
             </button>
             <a href="{% url 'admin_interface:admin_worker_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1">
                 <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add Worker</span><span class="d-inline d-sm-none">Add</span>
@@ -25,10 +26,18 @@
         </div>
     </div>
 
+    <!-- Filter Collapse -->
     <div class="collapse {% if request.GET %}show{% endif %} mb-4" id="filterCollapse">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
             <form method="get" id="filterForm" class="row g-2 g-md-3">
-                
+                <!-- Search Field (NEW) -->
+                <div class="col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-0" placeholder="Search by name, email, phone, skills, category..." value="{{ search_query }}">
+                    </div>
+                </div>
+
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="small text-muted fw-bold">Category</label>
                     <select name="category" id="filter_category" class="form-select form-select-sm border-0 bg-light">
@@ -125,15 +134,18 @@
         </div>
     </div>
 
+    <!-- Workers Table (Desktop) -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr class="small text-uppercase text-muted">
                         <th class="ps-4">Worker Profile</th>
-                        <th>Role / Skills</th>
+                        <th>Contact / Role</th>
+                        <th>Experience / Wage</th>
                         <th>Location</th>
                         <th>Status</th>
+                        {% if is_admin %}<th>Created By</th>{% endif %}
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -147,31 +159,62 @@
                                 </div>
                                 <div>
                                     <div class="fw-bold mb-0 text-dark">{{ worker.full_name }}</div>
-                                    <span class="text-muted extra-small">ID: #{{ worker.id }} | {{ worker.get_gender_display }}</span>
+                                    <span class="text-muted extra-small">ID: #{{ worker.id }}</span>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div class="fw-bold small">{{ worker.category.name }}</div>
-                            <div class="extra-small text-muted">{{ worker.subcategory.name|default:"General" }}</div>
+                            <div class="small"><i class="fas fa-envelope me-1 text-muted"></i> {{ worker.email|default:"—" }}</div>
+                            <div class="small"><i class="fas fa-phone me-1 text-muted"></i> {{ worker.phone_number|default:"—" }}</div>
+                            <div class="small"><span class="badge bg-secondary-subtle text-secondary">{{ worker.category.name }}</span> / {{ worker.subcategory.name|default:"General" }}</div>
                         </td>
-                        <td><div class="small text-truncate" style="max-width: 200px;">{{ worker.get_full_location }}</div></td>
                         <td>
-                            <span class="badge {% if worker.is_active %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} px-3 py-1 rounded-pill fw-normal">
-                                {{ worker.is_active|yesno:"Active,Inactive" }}
-                            </span>
+                            <div>{{ worker.years_of_experience }} yrs exp</div>
+                            <div>₹{{ worker.expected_daily_wage }}/day</div>
                         </td>
+                        <td>
+                            <div class="small">{{ worker.get_full_location }}</div>
+                            <div class="extra-small text-muted">{{ worker.gender|default:"" }}</div>
+                        </td>
+                        <td>
+                            <div>
+                                <span class="badge {% if worker.is_active %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} px-3 py-1 rounded-pill fw-normal">
+                                    {{ worker.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </div>
+                            <div class="mt-1">
+                                {% if worker.is_verified %}
+                                <span class="badge bg-primary-subtle text-primary">Verified</span>
+                                {% else %}
+                                <span class="badge bg-warning-subtle text-warning">Unverified</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% if is_admin %}
+                        <td>
+                            <div class="small">{{ worker.created_by.username }}</div>
+                            <div class="extra-small text-muted">{{ worker.created_at|date:"Y-m-d H:i" }}</div>
+                        </td>
+                        {% endif %}
                         <td class="text-end pe-4">
-                             <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light rounded-pill px-3 border shadow-sm">Edit</a>
+                            <div class="d-flex gap-1 justify-content-end">
+                                <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light rounded-pill px-3 border shadow-sm">Edit</a>
+                                {% if worker.is_deleted %}
+                                <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">Restore</a>
+                                {% else %}
+                                <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Move to trash?')">Delete</a>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="text-center py-5 text-muted">No records found.</td></tr>
+                    <tr><td colspan="{% if is_admin %}7{% else %}6{% endif %}" class="text-center py-5 text-muted">No records found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
+        <!-- Mobile Cards -->
         <div class="d-md-none">
             {% for worker in workers %}
             <div class="p-3 border-bottom position-relative">
@@ -179,7 +222,6 @@
                     <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; flex-shrink: 0; font-size: 1.2rem;">
                         {{ worker.full_name|slice:":1" }}
                     </div>
-                    
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="d-flex justify-content-between align-items-start">
                             <h6 class="fw-bold mb-0 text-dark">{{ worker.full_name }}</h6>
@@ -187,17 +229,34 @@
                                 {{ worker.is_active|yesno:"Active,Inactive" }}
                             </span>
                         </div>
-                        <p class="text-primary small fw-bold mb-1">{{ worker.category.name }}</p>
-                        
+                        <div class="text-primary small fw-bold mb-1">{{ worker.category.name }}</div>
+                        <div class="small text-muted mb-1">
+                            <i class="fas fa-envelope me-1"></i> {{ worker.email|default:"—" }}<br>
+                            <i class="fas fa-phone me-1"></i> {{ worker.phone_number|default:"—" }}
+                        </div>
+                        <div class="small mb-1">
+                            <span class="badge bg-secondary-subtle">{{ worker.years_of_experience }} yrs exp</span>
+                            <span class="badge bg-secondary-subtle">₹{{ worker.expected_daily_wage }}/day</span>
+                        </div>
                         <div class="d-flex align-items-center text-muted extra-small mb-2">
                             <i class="fas fa-map-marker-alt me-1"></i>
                             <span class="text-truncate">{{ worker.get_full_location }}</span>
                         </div>
-
+                        {% if is_admin %}
+                        <div class="small text-muted mb-2">
+                            <i class="fas fa-user me-1"></i> {{ worker.created_by.username }}<br>
+                            <i class="fas fa-calendar-alt me-1"></i> {{ worker.created_at|date:"Y-m-d H:i" }}
+                        </div>
+                        {% endif %}
                         <div class="d-flex gap-2">
                             <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light border w-100 rounded-pill extra-small py-2 fw-bold">
-                                <i class="fas fa-edit me-1"></i> Edit Profile
+                                <i class="fas fa-edit me-1"></i> Edit
                             </a>
+                            {% if worker.is_deleted %}
+                            <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success w-100 rounded-pill">Restore</a>
+                            {% else %}
+                            <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="return confirm('Move to trash?')">Delete</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -206,76 +265,155 @@
             <div class="p-5 text-center text-muted">No records found.</div>
             {% endfor %}
         </div>
+
+        <!-- Pagination -->
+        {% if workers.has_other_pages %}
+        <div class="d-flex justify-content-center mt-4 pb-3">
+            <nav aria-label="Worker pagination">
+                <ul class="pagination pagination-sm">
+                    {% if workers.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ workers.previous_page_number }}">Previous</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    {% for num in workers.paginator.page_range %}
+                        {% if workers.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > workers.number|add:'-3' and num < workers.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if workers.has_next %}
+                    <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ workers.next_page_number }}">Next</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', async function() {
-    
-    async function updateOptions(sourceId, targetId, endpoint, placeholder, selectedValue) {
-        const source = document.getElementById(sourceId);
-        const target = document.getElementById(targetId);
-        if (!source || !target || !source.value) {
-            if(target) target.innerHTML = `<option value="">${placeholder}</option>`;
-            return false;
+    // Same JS as before, with optional addition to preserve search query in pagination
+    document.addEventListener('DOMContentLoaded', async function() {
+        const filterCollapse = document.getElementById('filterCollapse');
+        const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+        const filterIcon = document.getElementById('filterIcon');
+        const filterText = document.getElementById('filterText');
+        
+        // Initialize toggle state from localStorage or URL parameters
+        function initToggleState() {
+            const hasFilters = window.location.search.includes('=') || filterCollapse.classList.contains('show');
+            updateToggleUI(hasFilters);
         }
-        target.innerHTML = `<option value="">Loading...</option>`;
-        try {
-            const url = endpoint.endsWith('/') ? `${endpoint}${source.value}/` : `${endpoint}/${source.value}/`;
-            const res = await fetch(url);
-            const data = await res.json();
-            target.innerHTML = `<option value="">${placeholder}</option>`;
-            data.forEach(item => {
-                const opt = new Option(item.name, item.id);
-                if (selectedValue && item.id.toString() === selectedValue.toString()) opt.selected = true;
-                target.add(opt);
-            });
-            return true;
-        } catch (e) {
-            target.innerHTML = `<option value="">Error</option>`;
-            return false;
+        
+        // Update toggle button UI based on current state
+        function updateToggleUI(isExpanded) {
+            if (isExpanded) {
+                filterIcon.className = 'fas fa-filter-slash me-1';
+                filterText.textContent = 'Hide Filters';
+            } else {
+                filterIcon.className = 'fas fa-filter me-1';
+                filterText.textContent = 'Show Filters';
+            }
         }
-    }
-
-    function bindChangeListener(sourceId, targetId, endpoint, placeholder, deeperChildren) {
-        const source = document.getElementById(sourceId);
-        if (!source) return;
-        source.addEventListener('change', async function() {
-            deeperChildren.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = `<option value="">---</option>`;
+        
+        // Toggle filters function
+        window.toggleFilters = function() {
+            const bsCollapse = new bootstrap.Collapse(filterCollapse, {
+                toggle: true
             });
-            await updateOptions(sourceId, targetId, endpoint, placeholder, null);
+            
+            // Update UI after toggle
+            setTimeout(() => {
+                const isExpanded = filterCollapse.classList.contains('show');
+                updateToggleUI(isExpanded);
+            }, 150); // Match Bootstrap transition duration
+        };
+        
+        // Listen for collapse events to update UI
+        filterCollapse.addEventListener('shown.bs.collapse', () => {
+            updateToggleUI(true);
         });
-    }
+        
+        filterCollapse.addEventListener('hidden.bs.collapse', () => {
+            updateToggleUI(false);
+        });
 
-    const chains = [
-        { src: 'filter_category', tgt: 'filter_subcategory', url: '/categories/ajax/load-subcategories/', label: 'Sub-Category', children: [] },
-        { src: 'filter_country', tgt: 'filter_state', url: '/location/ajax/states-by-country/', label: 'State', children: ['filter_city', 'filter_district', 'filter_region'] },
-        { src: 'filter_state', tgt: 'filter_city', url: '/location/ajax/cities-by-state/', label: 'City', children: ['filter_district', 'filter_region'] },
-        { src: 'filter_city', tgt: 'filter_district', url: '/location/ajax/districts-by-city/', label: 'District', children: ['filter_region'] },
-        { src: 'filter_district', tgt: 'filter_region', url: '/location/ajax/regions-by-district/', label: 'Region', children: [] }
-    ];
-
-    chains.forEach(c => bindChangeListener(c.src, c.tgt, c.url, c.label, c.children));
-
-    // Sticky Initial Load
-    for (const link of chains) {
-        const sourceEl = document.getElementById(link.src);
-        const targetEl = document.getElementById(link.tgt);
-        if (sourceEl && sourceEl.value) {
-            const preSelected = targetEl.getAttribute('data-selected');
-            await updateOptions(link.src, link.tgt, link.url, link.label, preSelected);
+        async function updateOptions(sourceId, targetId, endpoint, placeholder, selectedValue) {
+            const source = document.getElementById(sourceId);
+            const target = document.getElementById(targetId);
+            if (!source || !target || !source.value) {
+                if(target) target.innerHTML = `<option value="">${placeholder}</option>`;
+                return false;
+            }
+            target.innerHTML = `<option value="">Loading...</option>`;
+            try {
+                const url = endpoint.endsWith('/') ? `${endpoint}${source.value}/` : `${endpoint}/${source.value}/`;
+                const res = await fetch(url);
+                const data = await res.json();
+                target.innerHTML = `<option value="">${placeholder}</option>`;
+                data.forEach(item => {
+                    const opt = new Option(item.name, item.id);
+                    if (selectedValue && item.id.toString() === selectedValue.toString()) opt.selected = true;
+                    target.add(opt);
+                });
+                return true;
+            } catch (e) {
+                target.innerHTML = `<option value="">Error</option>`;
+                return false;
+            }
         }
-    }
-});
 
-function resetFilters() { window.location.href = window.location.pathname; }
-function exportToCSV() { 
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('download', '1');
-    window.location.href = window.location.pathname + '?' + urlParams.toString();
-}
+        function bindChangeListener(sourceId, targetId, endpoint, placeholder, deeperChildren) {
+            const source = document.getElementById(sourceId);
+            if (!source) return;
+            source.addEventListener('change', async function() {
+                deeperChildren.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = `<option value="">---</option>`;
+                });
+                await updateOptions(sourceId, targetId, endpoint, placeholder, null);
+            });
+        }
+
+        const chains = [
+            { src: 'filter_category', tgt: 'filter_subcategory', url: '/categories/ajax/load-subcategories/', label: 'Sub-Category', children: [] },
+            { src: 'filter_country', tgt: 'filter_state', url: '/location/ajax/states-by-country/', label: 'State', children: ['filter_city', 'filter_district', 'filter_region'] },
+            { src: 'filter_state', tgt: 'filter_city', url: '/location/ajax/cities-by-state/', label: 'City', children: ['filter_district', 'filter_region'] },
+            { src: 'filter_city', tgt: 'filter_district', url: '/location/ajax/districts-by-city/', label: 'District', children: ['filter_region'] },
+            { src: 'filter_district', tgt: 'filter_region', url: '/location/ajax/regions-by-district/', label: 'Region', children: [] }
+        ];
+
+        chains.forEach(c => bindChangeListener(c.src, c.tgt, c.url, c.label, c.children));
+
+        // Initial load of selected values
+        for (const link of chains) {
+            const sourceEl = document.getElementById(link.src);
+            const targetEl = document.getElementById(link.tgt);
+            if (sourceEl && sourceEl.value) {
+                const preSelected = targetEl.getAttribute('data-selected');
+                await updateOptions(link.src, link.tgt, link.url, link.label, preSelected);
+            }
+        }
+        
+        // Initialize toggle state
+        initToggleState();
+    });
+
+    function resetFilters() {
+        window.location.href = window.location.pathname;
+    }
+
+    function exportToCSV() {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('download', '1');
+        window.location.href = window.location.pathname + '?' + urlParams.toString();
+    }
 </script>
 
 <style>
@@ -283,7 +421,6 @@ function exportToCSV() {
     .form-select-sm, .form-control-sm { border-radius: 10px; font-size: 0.85rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .avatar-circle { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .card { border-radius: 20px !important; }
-    /* Improved touch targets for mobile */
     @media (max-width: 768px) {
         .btn-sm { padding: 0.6rem 1rem; }
         label { margin-bottom: 2px; margin-left: 4px; }

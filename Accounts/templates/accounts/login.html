@@ -11,7 +11,7 @@
                         <div class="logo-circle">
                             <i class="fas fa-industry"></i>
                         </div>
-                        <h1 class="brand-title">FactoryInfoHub</h1>
+                        <h1 class="brand-title">Fashion Chemistry</h1>
                     </div>
                     <h2 class="login-subtitle">Sign in to your account</h2>
                     <p class="login-description">Welcome back! Please sign in to access your dashboard.</p>
@@ -26,6 +26,30 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Rate Limit Warning -->
+                {% if remaining_time %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Account Temporarily Locked</strong>
+                                <br>
+                                <small>You have exceeded the maximum login attempts. Please wait before trying again.</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold" id="countdown-text">
+                                    {{ minutes }} minutes {{ seconds }} seconds
+                                </div>
+                                <small class="text-muted">Remaining time</small>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar bg-warning" id="countdown-progress" style="width: 100%"></div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endif %}
 
@@ -65,7 +89,7 @@
                         Sign In
                     </button>
 
-                    <div class="divider">
+                    <!-- <div class="divider">
                         <span>or continue with</span>
                     </div>
 
@@ -78,7 +102,7 @@
                             <i class="fab fa-google"></i>
                             Google
                         </button>
-                    </div>
+                    </div> -->
 
                     <div class="signup-link">
                         Don't have an account? 
@@ -87,9 +111,9 @@
 
                     <div class="terms-text">
                         By signing in, you agree to our 
-                        <a href="#" class="terms-link">Terms</a> 
+                        <a href="{% url 'terms_and_conditions' %}" class="terms-link">Terms</a> 
                         and 
-                        <a href="#" class="terms-link">Privacy Policy</a>
+                        <a href="{% url 'privacy_policy' %}" class="terms-link">Privacy Policy</a>
                     </div>
                 </form>
             </div>
@@ -98,8 +122,8 @@
             <div class="login-feature-container">
                 <div class="feature-content">
                     <div class="feature-header">
-                        <h3 class="feature-title">Welcome to FactoryInfoHub</h3>
-                        <p class="feature-subtitle">Your comprehensive factory management solution</p>
+                        <h3 class="feature-title">Welcome to Fashion Chemistry</h3>
+                        <p class="feature-subtitle">Your comprehensive Establishments management solution</p>
                     </div>
 
                     <div class="feature-stats">
@@ -135,7 +159,7 @@
                     <div class="feature-list">
                         <div class="feature-item">
                             <i class="fas fa-check-circle"></i>
-                            <span>Comprehensive factory information</span>
+                            <span>Comprehensive Establishments information</span>
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check-circle"></i>
@@ -611,6 +635,94 @@
         color: white;
     }
 
+    /* Countdown Timer Styles */
+    .countdown-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .countdown-digit {
+        background: #fff;
+        border: 2px solid #667eea;
+        border-radius: 12px;
+        padding: 10px;
+        min-width: 60px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .countdown-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .countdown-progress {
+        margin-top: 10px;
+        height: 6px;
+        background-color: #f8f9fa;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .countdown-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 1s linear;
+    }
+
+    /* Countdown Timer Styles */
+    .countdown-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .countdown-digit {
+        background: #fff;
+        border: 2px solid #667eea;
+        border-radius: 12px;
+        padding: 10px;
+        min-width: 60px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .countdown-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .countdown-progress {
+        margin-top: 10px;
+        height: 6px;
+        background-color: #f8f9fa;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .countdown-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 1s linear;
+    }
+
     /* Responsive Design */
     @media (max-width: 992px) {
         .login-wrapper {
@@ -699,9 +811,63 @@
         }
     }
 
+    // Countdown Timer Functionality
+    function startCountdown(remainingTime) {
+        const countdownText = document.getElementById('countdown-text');
+        const countdownProgress = document.getElementById('countdown-progress');
+        const initialTime = remainingTime;
+        
+        if (!countdownText || !countdownProgress) return;
+
+        function updateCountdown() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            
+            // Update text
+            countdownText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bar
+            const progressPercent = ((initialTime - remainingTime) / initialTime) * 100;
+            countdownProgress.style.width = `${progressPercent}%`;
+            
+            // Change color as time runs out
+            if (remainingTime <= 60) {
+                countdownProgress.style.backgroundColor = '#dc3545';
+            } else if (remainingTime <= 300) {
+                countdownProgress.style.backgroundColor = '#ffc107';
+            }
+            
+            remainingTime--;
+            
+            if (remainingTime < 0) {
+                clearInterval(timer);
+                countdownText.textContent = "Time's up! You can try again now.";
+                countdownProgress.style.width = '100%';
+                countdownProgress.style.backgroundColor = '#28a745';
+                
+                // Auto-refresh the page after 3 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        }
+        
+        // Initial update
+        updateCountdown();
+        
+        // Start timer
+        const timer = setInterval(updateCountdown, 1000);
+    }
+
     // Add smooth animations
     document.addEventListener('DOMContentLoaded', function() {
         console.log('FactoryInfoHub Login page loaded');
+        
+        // Start countdown if remaining time is available
+        const remainingTime = {{ remaining_time|default:0 }};
+        if (remainingTime > 0) {
+            startCountdown(remainingTime);
+        }
         
         // Add hover effects to form inputs
         const formInputs = document.querySelectorAll('.form-input');

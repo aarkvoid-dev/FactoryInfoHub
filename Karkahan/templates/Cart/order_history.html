@@ -1,0 +1,537 @@
+{% extends 'base.html' %}
+{% load order_filters %}
+{% load factory_filters %}
+{% load static %}
+
+{% block title %}Order History - Factory Chemistry{% endblock %}
+
+{% block extra_css %}
+<style>
+  .history-page-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 60px 0;
+    color: white;
+    text-align: center;
+    padding-top: 120px;
+  }
+  .history-page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: white;
+  }
+  .history-page-header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+    color: white;
+  }
+  .order-table-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .order-table thead th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 16px;
+  }
+  .order-table tbody td {
+    padding: 24px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .order-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .order-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(235,102,43,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #EB662B;
+    font-size: 1.2rem;
+  }
+  .badge-status {
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-status.completed {
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+  }
+  .badge-status.pending {
+    background: rgba(245,158,11,0.1);
+    color: #f59e0b;
+  }
+  .badge-status.failed {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+  }
+  .factories-list .badge {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-weight: 500;
+    padding: 6px 12px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+    border-radius: 50px;
+  }
+  .stat-card {
+    background: white;
+    border: none;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+    transition: all 0.3s;
+    border: 1px solid #eef2f6;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+  }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(235,102,43,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #EB662B;
+    font-size: 1.5rem;
+    margin-right: 16px;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-accent {
+    background: #EB662B;
+    border: none;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(235,102,43,0.2);
+  }
+  .btn-accent:hover {
+    background: #d94f1a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(235,102,43,0.3);
+    color: white;
+  }
+  .btn-outline-accent {
+    border: 2px solid #EB662B;
+    color: #EB662B;
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .btn-outline-accent:hover {
+    background: #EB662B;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(235,102,43,0.2);
+  }
+  .btn-icon {
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: all 0.2s;
+  }
+  .btn-icon:hover {
+    background: #f8fafc;
+    color: #EB662B;
+    border-color: #EB662B;
+  }
+  .modal-content {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .modal-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 24px;
+  }
+  .modal-body {
+    padding: 24px;
+  }
+  .modal-footer {
+    border-top: 1px solid #e2e8f0;
+    padding: 20px 24px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="history-page-header">
+  <div class="container">
+    <h1>Order History</h1>
+    <p>Track your factory information purchases</p>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    {% if orders %}
+      <div class="row">
+        <div class="col-12">
+          <div class="order-table-card">
+            <div class="table-responsive">
+              <table class="table order-table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th class="text-center">Amount</th>
+                    <th class="text-center">Payment</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for order in orders %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="order-icon">
+                          <i class="fas fa-receipt"></i>
+                        </div>
+                        <div>
+                          <h6 class="fw-bold mb-0">#{{ order.id }}</h6>
+                          <small class="text-secondary">{{ order.order_date|date:"M d, Y H:i" }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ order.order_date|date:"M d, Y" }}</td>
+                    <td>
+                      <div class="factories-list">
+                        {% for item in order.items.all|slice:":2" %}
+                          <span class="badge">{{ item.factory.name|truncatechars:15 }}</span>
+                        {% endfor %}
+                        {% if order.items.count > 2 %}
+                          <span class="badge">+{{ order.items.count|add:"-2" }} more</span>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="text-center fw-bold text-accent-1">₹{{ order.total_amount|floatformat:2 }}</td>
+                    <td class="text-center">
+                      {% if order.payment_completed %}
+                        <span class="badge-status completed">
+                          <i class="fas fa-check-circle"></i> Payment Received
+                        </span>
+                      {% else %}
+                        <span class="badge-status pending">
+                          <i class="fas fa-clock"></i> Payment Pending
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn-icon" data-bs-toggle="modal" data-bs-target="#orderModal{{ order.id }}" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        {% if order.payment_status == 'completed' and not order.receipt_sent %}
+                          <button class="btn-icon" onclick="resendReceipt({{ order.id }})" title="Resend Email">
+                            <i class="fas fa-envelope"></i>
+                          </button>
+                        {% endif %}
+                        
+                        <!-- User Action Buttons for Order Resolution -->
+                        {% if order.payment_status == 'pending' %}
+                          <div class="btn-group-vertical" role="group">
+                            <button class="btn btn-warning btn-sm" onclick="reinitiatePayment({{ order.id }})" title="Complete Payment">
+                              <i class="fas fa-credit-card"></i> Complete Payment
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="verifyPayment({{ order.id }})" title="Verify Payment">
+                              <i class="fas fa-shield-check"></i> Verify Payment
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="reportIssue({{ order.id }})" title="Report Issue">
+                              <i class="fas fa-flag"></i> Report Issue
+                            </button>
+                          </div>
+                        {% elif order.payment_status == 'failed' %}
+                          <div class="btn-group-vertical" role="group">
+                            <button class="btn btn-danger btn-sm" onclick="retryPayment({{ order.id }})" title="Retry Payment">
+                              <i class="fas fa-redo"></i> Retry Payment
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="reportIssue({{ order.id }})" title="Report Issue">
+                              <i class="fas fa-flag"></i> Report Issue
+                            </button>
+                          </div>
+                        {% elif order.payment_status == 'completed' and order.email_status == 'failed' %}
+                          <div class="btn-group-vertical" role="group">
+                            <button class="btn btn-warning btn-sm" onclick="resendReceipt({{ order.id }})" title="Resend Email">
+                              <i class="fas fa-envelope"></i> Resend Email
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="downloadFactoryDetails({{ order.id }})" title="Download Details">
+                              <i class="fas fa-download"></i> Download Details
+                            </button>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row g-4 mt-4">
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div>
+              <div class="stat-value">{{ orders.count }}</div>
+              <div class="stat-label">Total Orders</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon" style="color: #10b981; background: rgba(16,185,129,0.1);">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+              <div class="stat-value">{{ orders|completed_orders_count }}</div>
+              <div class="stat-label">Completed</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon" style="color: #0f172a; background: rgba(15,23,42,0.05);">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div>
+              <div class="stat-value">₹{{ orders|total_spent|floatformat:2 }}</div>
+              <div class="stat-label">Total Spent</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Continue Shopping -->
+      <div class="text-center mt-5">
+        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-accent">
+          <i class="fas fa-plus me-2"></i>Explore More Factories
+        </a>
+      </div>
+
+    {% else %}
+      <!-- Empty Orders -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-receipt text-accent-1 fa-5x opacity-50"></i>
+        </div>
+        <h2 class="fw-bold mb-3">No Orders Found</h2>
+        <p class="text-secondary mb-4">You haven't made any purchases yet. Start exploring our factory listings!</p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+          <a href="{% url 'karkahan:factory_list' %}" class="btn btn-accent">
+            <i class="fas fa-search me-2"></i>Browse Factories
+          </a>
+          <a href="{% url 'home' %}" class="btn btn-outline-accent">
+            <i class="fas fa-home me-2"></i>Back to Home
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Order Details Modals -->
+{% for order in orders %}
+<div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Order #{{ order.id }} Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Order Information</h6>
+            <div class="info-item p-3 bg-light rounded-3">
+              <p class="mb-2"><span class="text-secondary">Date:</span> {{ order.order_date|date:"M d, Y H:i" }}</p>
+              <p class="mb-2"><span class="text-secondary">Status:</span> 
+                {% if order.payment_status == 'completed' %}
+                  <span class="badge-status completed"><i class="fas fa-check-circle"></i> Completed</span>
+                {% elif order.payment_status == 'pending' %}
+                  <span class="badge-status pending"><i class="fas fa-clock"></i> Pending</span>
+                {% else %}
+                  <span class="badge-status failed"><i class="fas fa-times-circle"></i> Failed</span>
+                {% endif %}
+              </p>
+              <p class="mb-0"><span class="text-secondary">Transaction ID:</span> {{ order.transaction_id|default:"Manual"|truncatechars:20 }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Amount Summary</h6>
+            <div class="info-item p-3 bg-light rounded-3">
+              <h6 class="fw-bold mb-3">Individual Items</h6>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-start">Factory</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                      <td class="text-start">{{ item.factory.name }}</td>
+                      <td class="text-end">₹{{ item.price_at_purchase|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot>
+                    <tr class="border-top">
+                      <td class="text-start fw-bold">Total Amount</td>
+                      <td class="text-end fw-bold text-accent-1">₹{{ order.total_amount|floatformat:2 }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="fw-bold mb-3">Purchased Factories</h6>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th>Factory</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th class="text-end">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items.all %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    {% if item.factory.get_primary_image %}
+                      <img src="{{ item.factory.get_primary_image }}" class="rounded-3" style="width: 50px; height: 40px; object-fit: cover;" alt="{{ item.factory.name }}">
+                    {% else %}
+                      <img src="https://via.placeholder.com/50x40/f5f5f5/666666?text=No+Image" class="rounded-3" style="width: 50px; height: 40px; object-fit: cover;" alt="No image">
+                    {% endif %}
+                    <div>
+                      <h6 class="fw-bold mb-0">{{ item.factory.name }}</h6>
+                      <small class="text-secondary">{{ item.factory.category.name }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ item.factory.category.name }}</td>
+                <td>{{ item.factory.full_address|truncatechars:40 }}</td>
+                <td class="text-end fw-semibold text-accent-1">₹{{ item.price_at_purchase|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if order.payment_status == 'completed' %}
+        <div class="alert alert-success border-0 bg-success-soft rounded-3 mt-4 d-flex align-items-center">
+          <i class="fas fa-check-circle text-success me-3 fs-4"></i>
+          <div>Factory information has been sent to your email. Check your inbox (including spam folder).</div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+        {% if order.payment_status == 'completed' %}
+          <a href="{% url 'karkahan:factory_list' %}" class="btn btn-accent rounded-pill px-4">Browse More Factories</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Animation script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.order-table tbody tr');
+    rows.forEach((row, i) => {
+      row.style.opacity = '0';
+      row.style.transform = 'translateY(20px)';
+      row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 100);
+    });
+  });
+
+  function resendReceipt(orderId) {
+    if (confirm('Resend order receipt email?')) {
+      // Implement with AJAX or redirect to a resend endpoint
+      window.location.href = '/karkahan/order/' + orderId + '/resend-email/';
+    }
+  }
+
+  function reinitiatePayment(orderId) {
+    if (confirm('This will redirect you to complete your payment. Continue?')) {
+      window.location.href = '/karkahan/order/' + orderId + '/reinitiate/';
+    }
+  }
+
+  function verifyPayment(orderId) {
+    if (confirm('This will check if your payment was completed. Continue?')) {
+      window.location.href = '/karkahan/order/' + orderId + '/verify/';
+    }
+  }
+
+  function retryPayment(orderId) {
+    if (confirm('This will create a new order with the same items. Continue?')) {
+      window.location.href = '/karkahan/cart/retry-payment/' + orderId + '/';
+    }
+  }
+
+  function reportIssue(orderId) {
+    if (confirm('This will redirect you to report a payment issue. Continue?')) {
+      window.location.href = '/karkahan/order/' + orderId + '/report-issue/';
+    }
+  }
+
+  function downloadFactoryDetails(orderId) {
+    // For completed orders, redirect to factory details or provide download link
+    window.location.href = '/karkahan/factories/';
+  }
+</script>
+{% endblock %}

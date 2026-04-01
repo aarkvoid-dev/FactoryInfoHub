@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.category_dashboard, name='dashboard'),
 
     # Category URLs
+    path('userCategories/', views.user_category_list, name='user_category_list'),
     path('categories/', views.category_list, name='category_list'),
     path('categories/add/', views.category_create, name='category_create'),
     path('categories/<slug:slug>/', views.category_detail, name='category_detail'),

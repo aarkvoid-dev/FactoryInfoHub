@@ -84,6 +84,21 @@ class FAQQuestion(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Additional fields for admin interface compatibility
+    is_published = models.BooleanField(
+        default=False,
+        help_text="Whether this question is published and visible to users"
+    )
+    is_deleted = models.BooleanField(
+        default=False,
+        help_text="Whether this question is soft deleted"
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this question was published"
+    )
+    
     class Meta:
         verbose_name = "FAQ Question"
         verbose_name_plural = "FAQ Questions"
@@ -115,11 +130,6 @@ class FAQQuestion(SoftDeleteModel):
         """Increment the view count"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
-    
-    @property
-    def is_published(self):
-        """Check if question is published"""
-        return self.status == 'published'
     
     @classmethod
     def get_published_questions(cls):

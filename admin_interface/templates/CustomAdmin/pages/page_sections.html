@@ -1,0 +1,215 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Manage Sections - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_pages' %}">Pages</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_page_detail' page.id %}">{{ page.title }}</a></li>
+                        <li class="breadcrumb-item active">Sections</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">{{ title }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Page Sections</h5>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'admin_interface:admin_page_detail' page.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Page
+                            </a>
+                            <a href="{% url 'admin_interface:admin_page_edit' page.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit Page
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Page Sections:</strong> Sections allow you to organize your page content into different parts.
+                        Each section has a title, content, and order. The order determines how sections are displayed on the page.
+                    </div>
+
+                    <!-- Add Section Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Add New Section</h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="page" value="{{ page.id }}">
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.title.id_for_label }}" class="form-label">Section Title *</label>
+                                            {{ form.title }}
+                                            {% if form.title.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.title.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.order.id_for_label }}" class="form-label">Order *</label>
+                                            {{ form.order }}
+                                            {% if form.order.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.order.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Display order (lower numbers appear first)</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                                    {{ form.content }}
+                                    {% if form.content.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.content.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Add Section
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Existing Sections -->
+                    {% if page_sections %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Title</th>
+                                        <th>Content Preview</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for section in page_sections %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">{{ section.order }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ section.title }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ section.content|truncatechars:100 }}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'admin_interface:admin_page_section_edit' section.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'admin_interface:admin_page_section_delete' section.id %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No sections yet</h5>
+                            <p class="text-muted">Add your first section to start organizing your page content.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Page Information</h5>
+                    <div class="mb-3">
+                        <strong>Title:</strong> {{ page.title }}<br>
+                        <strong>Slug:</strong> <code>{{ page.slug }}</code><br>
+                        <strong>Type:</strong> {{ page.get_page_type_display }}<br>
+                        <strong>Status:</strong> 
+                        {% if page.is_published %}
+                            <span class="badge bg-success">Published</span>
+                        {% else %}
+                            <span class="badge bg-warning">Draft</span>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Section Management Tips</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Use descriptive section titles</li>
+                        <li><i class="fas fa-check text-success"></i> Set appropriate order numbers</li>
+                        <li><i class="fas fa-check text-success"></i> Keep content organized and concise</li>
+                        <li><i class="fas fa-check text-success"></i> Use HTML for rich formatting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-suggest next order number
+    const orderInput = document.getElementById('{{ form.order.id_for_label }}');
+    const sections = document.querySelectorAll('tbody tr');
+    
+    if (orderInput && sections.length > 0) {
+        // Get the highest order number and suggest next
+        let maxOrder = 0;
+        sections.forEach(row => {
+            const orderBadge = row.querySelector('.badge.bg-primary');
+            if (orderBadge) {
+                const orderNum = parseInt(orderBadge.textContent);
+                if (orderNum > maxOrder) {
+                    maxOrder = orderNum;
+                }
+            }
+        });
+        
+        if (orderInput.value === '') {
+            orderInput.value = maxOrder + 1;
+        }
+    }
+});
+</script>
+{% endblock %}

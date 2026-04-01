@@ -1,0 +1,111 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Delete Subcategory: {{ subcategory.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Delete Subcategory</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_categories' %}">Categories</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_subcategories' %}">Subcategories</a></li>
+                            <li class="breadcrumb-item active">Delete Subcategory</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Confirm Deletion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All data associated with this subcategory will be permanently deleted.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Subcategory Name</h6>
+                            <p class="text-muted">{{ subcategory.name }}</p>
+                            
+                            <h6>Parent Category</h6>
+                            <p class="text-muted">{{ subcategory.category.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Description</h6>
+                            <p class="text-muted">{{ subcategory.description|default:"No description provided" }}</p>
+                            
+                            <h6>Status</h6>
+                            <p class="text-muted">
+                                {% if subcategory.is_active %}
+                                    <span class="badge badge-success">Active</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6>Associated Data</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-industry me-2"></i>Factories: {{ subcategory.factories.count }}</li>
+                                <li><i class="fas fa-users me-2"></i>Workers: {{ subcategory.workers.count }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Note:</strong> This subcategory will be permanently deleted along with all its associated factories and workers. This action cannot be undone.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <form method="POST" action="{% url 'admin_interface:admin_subcategory_delete' subcategory.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Permanently Delete Subcategory
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-warning {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+}
+</style>
+{% endblock %}

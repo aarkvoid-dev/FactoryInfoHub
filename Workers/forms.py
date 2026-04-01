@@ -23,23 +23,23 @@ class WorkerForm(ModelForm):
             'is_active', 'is_verified'
         ]
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., John Doe'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., +91 9876543210'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'e.g., john.doe@example.com'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),
-            'years_of_experience': forms.NumberInput(attrs={'min': 0, 'class': 'form-control'}),
-            'skills': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'years_of_experience': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'placeholder': 'e.g., 5'}),
+            'skills': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'e.g., Machine Operation, Quality Control, Team Leadership, Sewing, Embroidery'}),
             'availability': forms.Select(attrs={'class': 'form-control'}),
-            'expected_daily_wage': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'expected_daily_wage': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'placeholder': 'e.g., 800.00'}),
             'country': forms.Select(attrs={'class': 'form-control'}),
             'state': forms.Select(attrs={'class': 'form-control'}),
             'city': forms.Select(attrs={'class': 'form-control'}),
             'district': forms.Select(attrs={'class': 'form-control'}),
             'region': forms.Select(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'e.g., 456 Worker Colony, Near Industrial Area, Mumbai, Maharashtra 400002'}),
         }
         labels = {
             'full_name': 'Full Name',
@@ -63,9 +63,25 @@ class WorkerForm(ModelForm):
             'is_verified': 'Verified Worker',
         }
         help_texts = {
-            'skills': 'List your skills separated by commas (e.g., Sewing, Embroidery, Pattern Making)',
-            'availability': 'e.g., Full-time, Part-time, Contract, Available immediately',
-            'expected_daily_wage': 'Your expected daily wage in Indian Rupees',
+            'full_name': 'Your complete legal name as it appears on official documents and identification',
+            'date_of_birth': 'Your date of birth (required for age verification and legal employment purposes)',
+            'gender': 'Your gender identity (optional but helps with workplace diversity tracking)',
+            'phone_number': 'Active phone number where you can be reached for job opportunities and interviews',
+            'email': 'Valid email address for job notifications, communications, and important updates',
+            'category': 'Your primary trade or skill category that best represents your main profession (e.g., Tailoring, Construction, Electronics, Automotive)',
+            'subcategory': 'Your specific specialization within the selected category (e.g., for Tailoring: Machine Operation, Hand Embroidery, Pattern Making)',
+            'years_of_experience': 'Total years of professional experience in your trade or skill area',
+            'skills': 'List all relevant skills separated by commas (e.g., Machine Operation, Quality Control, Team Leadership, Computer Skills, Language Proficiency)',
+            'availability': 'Your current work availability status (Full-time, Part-time, Contract, Freelance, Available immediately, Notice period: 15 days, etc.)',
+            'expected_daily_wage': 'Your expected daily wage rate in Indian Rupees. Be realistic about market rates for your skills and experience',
+            'country': 'Country where you are currently based or willing to work (select your preferred work location)',
+            'state': 'State or province where you are based or willing to work for job opportunities',
+            'city': 'City or municipality where you are based or willing to work (helps employers find local candidates)',
+            'district': 'District or area within your city where you prefer to work or are currently located',
+            'region': 'Specific region or locality within your district for more precise location targeting',
+            'address': 'Your current residential address or preferred work address (street, building, landmark)',
+            'is_active': 'Check to make your profile visible to potential employers and searchable in job listings',
+            'is_verified': 'Check if your profile has been verified by administrators (usually checked by staff after verification)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -221,8 +237,12 @@ class WorkExperienceForm(forms.ModelForm):
             'is_current': 'Currently Employed Here',
         }
         help_texts = {
-            'description': 'Brief description of your role and responsibilities',
-            'is_current': 'Check if this is your current job',
+            'company_name': 'Name of the company where you were employed (include if it was a factory, workshop, or business)',
+            'job_title': 'Your official job title or position at this company (e.g., Machine Operator, Supervisor, Quality Inspector)',
+            'start_date': 'Start date of your employment at this company (month and year)',
+            'end_date': 'End date of your employment (leave blank if currently employed here)',
+            'description': 'Brief description of your role, responsibilities, achievements, and key skills used in this position',
+            'is_current': 'Check if this is your current place of employment (leave end date blank if checked)',
         }
 
     def clean(self):

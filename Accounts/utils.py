@@ -121,10 +121,16 @@ def send_password_reset_email(user, request):
         html_part = MIMEText(email_body, 'html')
         msg.attach(html_part)
         
-        # Send email with SSL context that bypasses certificate verification
+        # Send email with proper SSL context
         context = ssl.create_default_context()
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
+        # Only disable certificate verification in development
+        if not settings.DEBUG:
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            # In development, allow self-signed certificates but still verify hostname
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_OPTIONAL
         
         with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
             if settings.EMAIL_USE_TLS:
@@ -377,7 +383,7 @@ def send_email_verification(user, request):
         profile.email_verification_sent_at = timezone.now()
         profile.save()
         
-        # Send verification email with SSL certificate verification disabled
+        # Send verification email with proper SSL context
         import ssl
         import smtplib
         from email.mime.text import MIMEText
@@ -406,10 +412,16 @@ def send_email_verification(user, request):
         html_part = MIMEText(email_body, 'html')
         msg.attach(html_part)
         
-        # Send email with SSL context that bypasses certificate verification
+        # Send email with proper SSL context
         context = ssl.create_default_context()
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
+        # Only disable certificate verification in development
+        if not settings.DEBUG:
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            # In development, allow self-signed certificates but still verify hostname
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_OPTIONAL
         
         with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
             if settings.EMAIL_USE_TLS:
@@ -418,9 +430,17 @@ def send_email_verification(user, request):
                 server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
             server.send_message(msg)
         
+        # Log successful email sending
+        log_user_activity(user, 'email_verification_sent', f'Verification email sent to {user.email}', request)
         return True
+        
+    except smtplib.SMTPException as e:
+        # Log SMTP errors specifically
+        log_user_activity(user, 'email_verification_failed', f'SMTP error: {str(e)}', request)
+        return False
     except Exception as e:
-        print("Error is :",e)
+        # Log other errors
+        log_user_activity(user, 'email_verification_failed', f'Unexpected error: {str(e)}', request)
         return False
 
 
@@ -467,29 +487,26 @@ def check_rate_limit(request, action='login', max_attempts=5, window_minutes=15)
     Returns:
         tuple: (is_limited, remaining_time)
     """
-    from django.core.cache import cache
+    from .models import RateLimit
     import time
     
     # Create cache key based on IP and action
     ip = get_client_ip(request)
-    cache_key = f"rate_limit_{action}_{ip}"
     
-    # Get current attempts and window start time
-    data = cache.get(cache_key, {'attempts': 0, 'window_start': time.time()})
+    # Get or create rate limit entry
+    rate_limit = RateLimit.get_or_create_rate_limit(ip, action)
     
-    current_time = time.time()
-    window_start = data['window_start']
-    attempts = data['attempts']
-    
-    # Check if window has expired
-    if current_time - window_start > window_minutes * 60:
-        # Reset window
-        data = {'attempts': 0, 'window_start': current_time}
-        attempts = 0
-    
-    # Check if rate limit exceeded
-    if attempts >= max_attempts:
-        remaining_time = window_minutes * 60 - (current_time - window_start)
+    # Check if currently limited
+    if rate_limit.is_limited(max_attempts, window_minutes):
+        # Calculate remaining time
+        current_time = timezone.now()
+        if rate_limit.blocked_until and rate_limit.blocked_until > current_time:
+            remaining_time = (rate_limit.blocked_until - current_time).total_seconds()
+        else:
+            # Calculate based on window
+            window_end = rate_limit.window_start + timezone.timedelta(minutes=window_minutes)
+            remaining_time = (window_end - current_time).total_seconds()
+        
         return True, max(0, remaining_time)
     
     return False, 0
@@ -504,26 +521,15 @@ def increment_rate_limit(request, action='login', window_minutes=15):
         action (str): Type of action to rate limit
         window_minutes (int): Time window in minutes
     """
-    from django.core.cache import cache
-    import time
+    from .models import RateLimit
     
     ip = get_client_ip(request)
-    cache_key = f"rate_limit_{action}_{ip}"
     
-    # Get current data or initialize
-    data = cache.get(cache_key, {'attempts': 0, 'window_start': time.time()})
-    current_time = time.time()
+    # Get or create rate limit entry
+    rate_limit = RateLimit.get_or_create_rate_limit(ip, action)
     
-    # Check if window has expired
-    if current_time - data['window_start'] > window_minutes * 60:
-        # Reset window
-        data = {'attempts': 1, 'window_start': current_time}
-    else:
-        # Increment attempts
-        data['attempts'] += 1
-    
-    # Set cache with expiration
-    cache.set(cache_key, data, window_minutes * 60)
+    # Increment the counter
+    rate_limit.increment()
 
 
 def get_client_ip(request):
@@ -557,23 +563,10 @@ def log_user_activity(user, action, details=None, request=None):
     Returns:
         None
     """
-    # This is a placeholder for activity logging
-    # In a production system, you might want to create an Activity model
-    # and log these activities to the database
-    import logging
-    logger = logging.getLogger('accounts.activity')
+    from .models import UserActivityLog
     
-    ip_address = get_client_ip(request) if request else 'unknown'
-    log_data = {
-        'user_id': user.id if user else None,
-        'username': user.username if user else 'anonymous',
-        'action': action,
-        'details': details,
-        'ip_address': ip_address,
-        'timestamp': timezone.now().isoformat()
-    }
-    
-    logger.info(f"User activity: {log_data}")
+    # Use the persistent logging model
+    UserActivityLog.log_activity(user, action, details, request)
 
 
 def validate_password_history(user, new_password):
@@ -587,9 +580,8 @@ def validate_password_history(user, new_password):
     Returns:
         bool: True if password is not in history, False otherwise
     """
-    # This is a placeholder - in production you'd want to store
-    # password hashes in a PasswordHistory model
-    return True
+    from .models import PasswordHistory
+    return not PasswordHistory.check_password_reuse(user, new_password)
 
 
 def enforce_password_policy(password):

@@ -1,0 +1,112 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}About Us - Fashion Chemistry{% endblock %}
+
+{% block content %}
+<section class="layout-pt-xl layout-pb-xl bg-gradient-primary">
+  <div class="container">
+    <div data-anim="slide-up" class="row justify-center">
+      <div class="col-xl-8 col-lg-9 col-md-10">
+        <div class="text-center">
+          <div class="d-inline-flex items-center px-20 py-8 rounded-full bg-white-10 text-white fw-600 text-14 mb-25 backdrop-blur">
+            <i class="fas fa-info-circle mr-10"></i> ABOUT
+          </div>
+          <h1 class="text-54 fw-800 text-white tracking-tighter mb-20">About <span class="text-accent-1">Fashion Chemistry</span></h1>
+          <p class="text-18 text-white opacity-80 max-w-600 mx-auto">Connecting fashion professionals worldwide through reliable information.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-1">
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-lg-10">
+        <div class="bg-white rounded-24 px-45 py-50 md:px-25 md:py-30 shadow-xl border-light">
+          
+          <div class="row y-gap-40">
+            <div class="col-12">
+              <p class="text-17 text-dark-3 leading-lg">Fashion Chemistry is a fashion industry information platform dedicated to connecting fashion designers, brand owners, exporters, and manufacturers. Our goal is simple — to help fashion professionals connect more easily and build successful business relationships.</p>
+            </div>
+
+            <div class="col-md-4 text-center">
+              <div class="size-80 rounded-full bg-accent-1-10 d-flex items-center justify-center mx-auto mb-15">
+                <i class="icon-flag text-40 text-accent-1"></i>
+              </div>
+              <h4 class="text-18 fw-600">Our Mission</h4>
+              <p class="text-14 text-light-1 mt-5">Bridge the information gap in fashion manufacturing</p>
+            </div>
+
+            <div class="col-md-4 text-center">
+              <div class="size-80 rounded-full bg-accent-1-10 d-flex items-center justify-center mx-auto mb-15">
+                <i class="icon-eye text-40 text-accent-1"></i>
+              </div>
+              <h4 class="text-18 fw-600">Our Vision</h4>
+              <p class="text-14 text-light-1 mt-5">A globally connected fashion community</p>
+            </div>
+
+            <div class="col-md-4 text-center">
+              <div class="size-80 rounded-full bg-accent-1-10 d-flex items-center justify-center mx-auto mb-15">
+                <i class="icon-heart text-40 text-accent-1"></i>
+              </div>
+              <h4 class="text-18 fw-600">Our Commitment</h4>
+              <p class="text-14 text-light-1 mt-5">Accurate, reliable, up-to-date information</p>
+            </div>
+
+            <div class="col-12">
+              <div class="bg-accent-1-05 rounded-12 p-30 mt-20">
+                <div class="d-flex">
+                  <i class="icon-bulb text-30 text-accent-1 mr-20"></i>
+                  <div>
+                    <h5 class="text-16 fw-600">Core Purpose</h5>
+                    <p class="text-15 text-dark-3 mt-5">We bridge the information gap in the fashion manufacturing industry, making it easier for businesses to find reliable partners and suppliers.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <hr class="border-light my-30">
+              <div class="row y-gap-20">
+                <div class="col-md-6">
+                  <h5 class="fw-600 mb-10">📍 Contact Person</h5>
+                  <p>IZHAR</p>
+                </div>
+                <div class="col-md-6">
+                  <h5 class="fw-600 mb-10">📧 Email</h5>
+                  <p>infofashionchemistry@gmail.com</p>
+                </div>
+                <div class="col-md-6">
+                  <h5 class="fw-600 mb-10">📞 Phone</h5>
+                  <p>+91 9022116040</p>
+                </div>
+                <div class="col-md-6">
+                  <h5 class="fw-600 mb-10">🏭 Founded</h5>
+                  <p>2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
+  }
+  .bg-white-10 { background: rgba(255, 255, 255, 0.1); }
+  .backdrop-blur { backdrop-filter: blur(10px); }
+  .bg-accent-1-10 { background: rgba(235, 102, 43, 0.1); }
+  .text-accent-1 { color: #EB662B; }
+  .text-dark-3 { color: #334155; }
+  .leading-lg { line-height: 1.7; }
+</style>
+{% endblock %}

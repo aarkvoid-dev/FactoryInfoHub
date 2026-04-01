@@ -1,0 +1,243 @@
+{% extends 'pages/page.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  /* Refund Policy specific styles */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
+  }
+  
+  .bg-accent-1-05 {
+    background: rgba(235, 102, 43, 0.05);
+  }
+  
+  .text-accent-1 {
+    color: #EB662B;
+  }
+  
+  .policy-section {
+    border-bottom: 1px solid #eef2f6;
+    padding-bottom: 30px;
+    margin-bottom: 40px;
+    transition: all 0.3s ease;
+  }
+  
+  .policy-section:hover {
+    border-bottom-color: #EB662B;
+    padding-bottom: 35px;
+  }
+  
+  .policy-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  
+  .policy-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(235, 102, 43, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #EB662B;
+    font-size: 18px;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+  
+  .policy-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .policy-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .policy-content {
+    color: #334155;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  
+  .policy-content strong {
+    color: #1e293b;
+    font-weight: 600;
+  }
+  
+  .policy-content a {
+    color: #EB662B;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  
+  .policy-content a:hover {
+    border-bottom-color: #EB662B;
+  }
+  
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(235, 102, 43, 0.1), rgba(235, 102, 43, 0.05));
+    border-left: 4px solid #EB662B;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .highlight-box h5 {
+    margin: 0 0 10px 0;
+    color: #EB662B;
+    font-weight: 700;
+  }
+  
+  .highlight-box p {
+    margin: 0;
+    color: #334155;
+  }
+  
+  .step-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+  }
+  
+  .step-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+    padding-left: 30px;
+  }
+  
+  .step-list li:before {
+    content: attr(data-step);
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 24px;
+    height: 24px;
+    background: #EB662B;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .contact-info {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .contact-info h5 {
+    margin: 0 0 15px 0;
+    color: #1e293b;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .contact-item i {
+    color: #EB662B;
+    margin-right: 15px;
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+  }
+  
+  .contact-item span {
+    color: #334155;
+    font-weight: 600;
+  }
+  
+  .warning-box {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .warning-box h5 {
+    margin: 0 0 10px 0;
+    color: #856404;
+    font-weight: 700;
+  }
+  
+  .warning-box p {
+    margin: 0;
+    color: #856404;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add step numbers to list items
+  const stepLists = document.querySelectorAll('.step-list');
+  stepLists.forEach(list => {
+    const items = list.querySelectorAll('li');
+    items.forEach((item, index) => {
+      item.setAttribute('data-step', index + 1);
+    });
+  });
+  
+  // Animate policy sections on scroll
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, observerOptions);
+  
+  const policySections = document.querySelectorAll('.policy-section');
+  policySections.forEach(section => {
+    section.style.opacity = '0';
+    section.style.transform = 'translateY(20px)';
+    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(section);
+  });
+  
+  // Add hover effects to contact items
+  const contactItems = document.querySelectorAll('.contact-item');
+  contactItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      item.style.transform = 'translateX(5px)';
+      item.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+    });
+    
+    item.addEventListener('mouseleave', () => {
+      item.style.transform = 'translateX(0)';
+      item.style.boxShadow = 'none';
+    });
+  });
+});
+</script>
+{% endblock %}

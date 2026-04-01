@@ -6,10 +6,10 @@ class WorkerAdmin(admin.ModelAdmin):
     list_display = ['full_name', 'category', 'subcategory', 'city', 'created_by', 'phone_number', 'is_verified', 'created_at', 'is_deleted']
     list_filter = ['category', 'subcategory', 'city', 'is_verified', 'is_deleted', 'created_by', 'created_at']
     search_fields = ['full_name', 'phone_number', 'email', 'skills', 'category__name', 'subcategory__name', 'created_by__username', 'created_by__email']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'created_by']
     fieldsets = (
         ('Personal Information', {
-            'fields': ('user', 'full_name', 'phone_number', 'email', 'date_of_birth', 'gender')
+            'fields': ('full_name', 'phone_number', 'email', 'date_of_birth', 'gender')
         }),
         ('Contact Information', {
             'fields': ('address', 'country', 'state', 'city', 'district', 'region')
@@ -30,6 +30,12 @@ class WorkerAdmin(admin.ModelAdmin):
         }),
     )
     ordering = ['-created_at']
+    
+    def save_model(self, request, obj, form, change):
+        """Automatically set created_by field to current user when creating new Worker"""
+        if not change:  # Only set for new objects, not when editing
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
 @admin.register(WorkExperience)
 class WorkExperienceAdmin(admin.ModelAdmin):

@@ -1,0 +1,40 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - FactoryHub Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard__content_header fade-in">
+    <h1>{{ title }}</h1>
+    <div class="header-actions">
+        <a href="{% url 'admin_interface:admin_faq' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the following FAQ question?</p>
+                <div class="alert alert-warning">
+                    <strong>{{ question.title }}</strong><br>
+                    <small class="text-muted">{{ question.question_text|truncatechars:100 }}</small>
+                </div>
+                <p class="text-danger"><small>This will only mark the question as deleted. It can be restored later from the database if needed.</small></p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                        <a href="{% url 'admin_interface:admin_faq' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

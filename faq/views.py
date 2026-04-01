@@ -301,6 +301,46 @@ def faq_statistics(request):
     return render(request, 'faq/statistics.html', context)
 
 
+def faq_category_questions(request, slug):
+    """
+    FAQ category questions view.
+    
+    Displays all questions for a specific category.
+    """
+    category = get_object_or_404(Category, slug=slug, is_active=True)
+    
+    # Get questions for this category
+    questions = FAQQuestion.objects.filter(
+        category=category,
+        status='published'
+    ).select_related('category').order_by('-is_featured', '-view_count', '-created_at')
+    
+    # Get all categories for navigation
+    categories = Category.objects.filter(is_active=True).annotate(
+        question_count=Count('questions', filter=Q(questions__status='published'))
+    ).filter(question_count__gt=0).order_by('name')
+    
+    # Pagination
+    paginator = Paginator(questions, 15)
+    page = request.GET.get('page')
+    
+    try:
+        questions_page = paginator.page(page)
+    except PageNotAnInteger:
+        questions_page = paginator.page(1)
+    except EmptyPage:
+        questions_page = paginator.page(paginator.num_pages)
+    
+    context = {
+        'category': category,
+        'questions': questions_page,
+        'categories': categories,
+        'total_questions': questions.count(),
+    }
+    
+    return render(request, 'faq/category_questions.html', context)
+
+
 def get_client_ip(request):
     """Get client IP address from request."""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

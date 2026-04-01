@@ -1,0 +1,107 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Restore Category: {{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Restore Category</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_categories' %}">Categories</a></li>
+                            <li class="breadcrumb-item active">Restore Category</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_categories' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Confirmation -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Confirm Restoration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Restore Category:</strong> This will restore the category and all its associated data.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Category Name</h6>
+                            <p class="text-muted">{{ category.name }}</p>
+                            
+                            <h6>Description</h6>
+                            <p class="text-muted">{{ category.description|default:"No description provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status</h6>
+                            <p class="text-muted">
+                                <span class="badge badge-warning">Deleted</span>
+                            </p>
+                            
+                            <h6>Deleted At</h6>
+                            <p class="text-muted">{{ category.deleted_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6>Associated Data to Restore</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-layer-group me-2"></i>Subcategories: {{ category.subcategories.count }}</li>
+                                <li><i class="fas fa-industry me-2"></i>Factories: {{ category.factories.count }}</li>
+                                <li><i class="fas fa-users me-2"></i>Workers: {{ category.workers.count }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Note:</strong> All associated subcategories, factories, and workers will be restored along with this category.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'admin_interface:admin_categories' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <form method="POST" action="{% url 'admin_interface:admin_category_restore' category.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-undo me-2"></i>Restore Category
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.restore-info {
+    border-left: 4px solid #28a745;
+    background-color: #d4edda;
+}
+</style>
+{% endblock %}

@@ -47,6 +47,7 @@ from .mixins import (
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from Karkahan.views import process_hierarchical_fields
+from Accounts.decorators import email_verified_required
 
 
 class BlogPostListView(ListView):
@@ -56,8 +57,28 @@ class BlogPostListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = BlogPost.objects.filter(is_published=True)\
-            .select_related('author', 'subcategory', 'region')
+        # If user is not logged in, only show published, non-deleted blogs
+        if not self.request.user.is_authenticated:
+            queryset = BlogPost.objects.filter(
+                is_published=True,
+                is_deleted=False
+            ).select_related('author', 'subcategory', 'region')
+        else:
+            # If user is logged in, show:
+            # 1. All published, non-deleted blogs (for public viewing)
+            # 2. User's own blogs regardless of published status (but exclude deleted)
+            user_published = BlogPost.objects.filter(
+                is_published=True,
+                is_deleted=False
+            ).select_related('author', 'subcategory', 'region')
+            
+            user_owned = BlogPost.objects.filter(
+                author=self.request.user,
+                is_deleted=False
+            ).select_related('author', 'subcategory', 'region')
+            
+            # Combine the querysets and remove duplicates
+            queryset = (user_published | user_owned).distinct()
         
         # Prepare initial data for form based on GET parameters
         initial_data = {}
@@ -199,7 +220,7 @@ class BlogPostDetailView(DetailView):
     slug_url_kwarg = 'slug'
 
     def get_queryset(self):
-        return BlogPost.objects.filter(is_published=True).select_related('author', 'subcategory', 'region')
+        return BlogPost.objects.filter(Q(is_published=True,is_deleted=False) | Q(author=self.request.user) ).select_related('author', 'subcategory', 'region') if self.request.user.is_authenticated else BlogPost.objects.filter(is_published=True,is_deleted=False).select_related('author', 'subcategory', 'region')
 
 
 # class BlogPostCreateView(LoginRequiredMixin, CreateView):
@@ -214,6 +235,7 @@ class BlogPostDetailView(DetailView):
 #             form.instance.published_at = timezone.now()
 #         return super().form_valid(form)
 
+@email_verified_required
 @login_required
 def create_blog_post(request):
     if request.method == "POST":
@@ -286,6 +308,7 @@ def create_blog_post(request):
     return render(request, 'blog/create_blog_manual.html', context)
 
 
+@email_verified_required
 @login_required
 def create_blog_post_form(request):
     if request.method == 'POST':
@@ -294,21 +317,9 @@ def create_blog_post_form(request):
         form = BlogPostForm(data, request.FILES)    # use the modified data
         if form.is_valid():
             try:
-                blog = form.save(commit=False, author=request.user)
-                blog.save()
-                form.save_m2m()                     # save many-to-many (related_factories)
-
-                # Handle multiple images
-                images = request.FILES.getlist('images')
-                if images and any(images):
-                    for i, image in enumerate(images):
-                        BlogImage.objects.create(
-                            blog_post=blog,
-                            image=image,
-                            order=i,
-                            is_featured=(i == 0)
-                        )
-
+                # The form's save method now handles images automatically
+                blog = form.save(commit=True, author=request.user)
+                
                 messages.success(request, _('Blog post created successfully!'))
                 return redirect('blog:post_list')
             except Exception as e:
@@ -352,23 +363,8 @@ def edit_blog_post(request, slug):
         process_hierarchical_fields(data)
         form = BlogPostForm(data, request.FILES, instance=blog)
         if form.is_valid():
-            blog = form.save(commit=False)          # don't commit yet to control images manually
-            blog.save()
-            form.save_m2m()                         # save many-to-many
-
-            # Handle multiple images manually (consistent with create view)
-            images = request.FILES.getlist('images')
-            if images and any(images):
-                # Optional: decide whether to delete old images or just add new ones
-                # Here we just add new ones (no deletion)
-                for i, image in enumerate(images):
-                    BlogImage.objects.create(
-                        blog_post=blog,
-                        image=image,
-                        order=i,
-                        is_featured=(i == 0)
-                    )
-
+            # The form's save method now handles images automatically
+            blog = form.save(commit=True, author=request.user)
             return redirect('blog:post_detail', slug=blog.slug)
     else:
         form = BlogPostForm(instance=blog)
@@ -380,7 +376,7 @@ def edit_blog_post(request, slug):
         'countries': Country.objects.all(),
         'factories': Factory.objects.filter(is_active=True),
     }
-    return render(request, 'blog/edit_blog.html', context)
+    return render(request, 'blog/post_form.html', context)
 
 
 @login_required
@@ -408,7 +404,7 @@ def manage_images(request, slug):
             image = get_object_or_404(BlogImage, id=image_id, blog_post=blog)
             image.delete()
             messages.success(request, _('Image deleted successfully!'))
-            return redirect('blog:manage_images', slug=blog.slug)
+            return redirect('blog:post_detail', slug=blog.slug)
         
         # Handle featured image selection
         if 'set_featured' in request.POST:
@@ -420,7 +416,7 @@ def manage_images(request, slug):
             image.is_featured = True
             image.save()
             messages.success(request, _('Featured image updated successfully!'))
-            return redirect('blog:manage_images', slug=blog.slug)
+            return redirect('blog:post_detail', slug=blog.slug)
         
         # Handle image order update
         if 'update_order' in request.POST:
@@ -433,7 +429,7 @@ def manage_images(request, slug):
                 except BlogImage.DoesNotExist:
                     continue
             messages.success(request, _('Image order updated successfully!'))
-            return redirect('blog:manage_images', slug=blog.slug)
+            return redirect('blog:post_detail', slug=blog.slug)
         
         # Handle image caption update
         if 'update_caption' in request.POST:
@@ -443,7 +439,7 @@ def manage_images(request, slug):
             image.caption = caption
             image.save()
             messages.success(request, _('Image caption updated successfully!'))
-            return redirect('blog:manage_images', slug=blog.slug)
+            return redirect('blog:post_detail', slug=blog.slug)
         if request.FILES.getlist('images'):
             files = request.FILES.getlist('images')
 
@@ -458,7 +454,7 @@ def manage_images(request, slug):
                 )
 
             messages.success(request,'Images uploaded!')
-            return redirect('blog:manage_images',slug=blog.slug)
+            return redirect('blog:post_detail',slug=blog.slug)
     
     context = {
         'blog': blog,
@@ -503,14 +499,19 @@ def upload_images(request, slug):
 class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
     model = BlogPost
     form_class = BlogPostForm
-    template_name = 'blog/edit_blog.html'
+    template_name = 'blog/post_form.html'
     context_object_name = 'post'
     slug_field = 'slug'
     slug_url_kwarg = 'slug'
     success_url = reverse_lazy('blog:post_list')
 
     def get_queryset(self):
-        return BlogPost.objects.filter(author=self.request.user)
+        return BlogPost.objects.filter(Q(author=self.request.user)) if not self.request.user.is_staff else BlogPost.objects.all()
+
+    def form_valid(self, form):
+        # Use the form's save method which handles images automatically
+        blog = form.save(commit=True, author=self.request.user)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -565,3 +566,151 @@ class BlogPostDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return BlogPost.objects.filter(author=self.request.user)
+
+
+# New Blog Delete Functions
+@login_required
+@blog_author_or_admin_required
+def blog_soft_delete(request, slug):
+    """Soft delete a blog post"""
+    blog = get_object_or_404(BlogPost, slug=slug)
+    
+    if request.method == 'POST':
+        blog.soft_delete()
+        messages.success(request, f'Blog post "{blog.title}" has been moved to trash.')
+        return redirect('blog:post_list')
+    
+    context = {
+        'blog': blog,
+        'action': 'soft_delete'
+    }
+    return render(request, 'blog/confirm_soft_delete.html', context)
+
+
+@login_required
+@blog_author_or_admin_required  
+def blog_hard_delete(request, slug):
+    """Hard delete a blog post (permanent deletion)"""
+    blog = get_object_or_404(BlogPost, slug=slug)
+    
+    # Only allow hard delete for soft-deleted blogs or superusers
+    if not blog.is_deleted and not request.user.is_superuser:
+        messages.error(request, "You can only hard delete blogs that are in the trash.")
+        return redirect('blog:post_detail', slug=blog.slug)
+    
+    if request.method == 'POST':
+        blog_name = blog.title
+        blog.hard_delete()
+        messages.success(request, f'Blog post "{blog_name}" has been permanently deleted.')
+        return redirect('blog:post_list')
+    
+    context = {
+        'blog': blog,
+        'action': 'hard_delete'
+    }
+    return render(request, 'blog/confirm_hard_delete.html', context)
+
+
+@login_required
+@blog_author_or_admin_required
+def blog_restore(request, slug):
+    """Restore a soft-deleted blog post"""
+    blog = get_object_or_404(BlogPost, slug=slug, is_deleted=True)
+    
+    if request.method == 'POST':
+        blog.restore()
+        messages.success(request, f'Blog post "{blog.title}" has been restored.')
+        return redirect('blog:post_detail', slug=blog.slug)
+    
+    context = {
+        'blog': blog,
+        'action': 'restore'
+    }
+    return render(request, 'blog/confirm_restore.html', context)
+
+
+# Admin Blog Management Functions
+@login_required
+def admin_blog_soft_delete(request, blog_id):
+    """Admin soft delete a blog post"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('admin_interface:admin_blogs')
+    
+    blog = get_object_or_404(BlogPost, id=blog_id)
+    
+    if request.method == 'POST':
+        blog.soft_delete()
+        messages.success(request, f'Blog post "{blog.title}" has been moved to trash.')
+        return redirect('admin_interface:admin_blogs')
+    
+    context = {
+        'blog': blog,
+        'action': 'soft_delete'
+    }
+    return render(request, 'admin_interface/blogs/blog_soft_delete.html', context)
+
+
+@login_required
+def admin_blog_hard_delete(request, blog_id):
+    """Admin hard delete a blog post (permanent deletion)"""
+    if not request.user.is_superuser:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('admin_interface:admin_blogs')
+    
+    blog = get_object_or_404(BlogPost, id=blog_id)
+    
+    if request.method == 'POST':
+        blog_name = blog.title
+        blog.hard_delete()
+        messages.success(request, f'Blog post "{blog_name}" has been permanently deleted.')
+        return redirect('admin_interface:admin_blogs')
+    
+    context = {
+        'blog': blog,
+        'action': 'hard_delete'
+    }
+    return render(request, 'admin_interface/blogs/blog_hard_delete.html', context)
+
+
+@login_required
+def admin_blog_restore(request, blog_id):
+    """Admin restore a soft-deleted blog post"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('admin_interface:admin_blogs')
+    
+    blog = get_object_or_404(BlogPost, id=blog_id, is_deleted=True)
+    
+    if request.method == 'POST':
+        blog.restore()
+        messages.success(request, f'Blog post "{blog.title}" has been restored.')
+        return redirect('admin_interface:admin_blogs')
+    
+    context = {
+        'blog': blog,
+        'action': 'restore'
+    }
+    return render(request, 'admin_interface/blogs/blog_restore.html', context)
+
+
+@login_required
+def admin_blog_permanent_delete(request, blog_id):
+    """Admin permanent delete a blog post (bypassing soft delete)"""
+    if not request.user.is_superuser:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('admin_interface:admin_blogs')
+    
+    blog = get_object_or_404(BlogPost, id=blog_id)
+    
+    if request.method == 'POST':
+        blog_name = blog.title
+        blog.delete()  # This is the actual Django delete, not soft delete
+        messages.success(request, f'Blog post "{blog_name}" has been permanently deleted.')
+        return redirect('admin_interface:admin_blogs')
+    
+    context = {
+        'blog': blog,
+        'action': 'permanent_delete'
+    }
+    return render(request, 'admin_interface/blogs/blog_permanent_delete.html', context)

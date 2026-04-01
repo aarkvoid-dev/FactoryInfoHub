@@ -1,0 +1,169 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='admin_interface' %}">{% trans 'Admin interface' %}</a>
+    &rsaquo; <a href="{% url 'admin:admin_interface_paymentissuereport_changelist' %}">{% trans 'Payment issue reports' %}</a>
+    &rsaquo; {{ report.id }}
+    &rsaquo; {% trans 'Escalate' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module escalated">
+    <h1>{{ title }}</h1>
+    
+    <div class="form-row">
+        <div class="fieldBox">
+            <h3>Issue Details</h3>
+            <table class="table table-striped">
+                <tr>
+                    <th>Issue ID:</th>
+                    <td>{{ report.id }}</td>
+                </tr>
+                <tr>
+                    <th>Order:</th>
+                    <td><a href="{% url 'admin:Karkahan_order_change' report.order.id %}">{{ report.order.order_number }}</a></td>
+                </tr>
+                <tr>
+                    <th>User:</th>
+                    <td><a href="{% url 'admin:auth_user_change' report.user.id %}">{{ report.user.username }}</a></td>
+                </tr>
+                <tr>
+                    <th>Issue Type:</th>
+                    <td>{{ report.get_issue_type_display }}</td>
+                </tr>
+                <tr>
+                    <th>Priority:</th>
+                    <td>{{ report.get_priority_display }}</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>{{ report.get_status_display }}</td>
+                </tr>
+                <tr>
+                    <th>Reported:</th>
+                    <td>{{ report.reported_at }}</td>
+                </tr>
+                <tr>
+                    <th>User Description:</th>
+                    <td>{{ report.user_description|default:"-" }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-row">
+            <div class="fieldBox">
+                <h3>Escalation</h3>
+                <p>Escalate this issue to a higher support level:</p>
+                
+                <div class="form-group">
+                    <label for="id_escalation_notes">Escalation Notes:</label>
+                    <textarea name="escalation_notes" id="id_escalation_notes" class="form-control" rows="5" placeholder="Describe why this issue needs escalation..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <p class="help-block">This will mark the issue as escalated and record the escalation details.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="submit-row">
+            <p class="deletelink-box"><a href="{% url 'admin:admin_interface_paymentissuereport_change' report.id %}" class="deletelink">{% trans "Cancel" %}</a></p>
+            <input type="submit" value="{% trans 'Escalate Issue' %}" class="default" name="_save" style="background-color: #dc3545; border-color: #dc3545;">
+        </div>
+    </form>
+</div>
+
+<style>
+.module.escalated {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.module.escalated h1 {
+    color: #856404;
+    border-bottom: 2px solid #ffc107;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.submit-row {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.default {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.default:hover {
+    background-color: #c82333;
+}
+
+.deletelink-box {
+    float: left;
+    margin-right: 10px;
+}
+
+.deletelink {
+    color: #dc3545;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.deletelink:hover {
+    text-decoration: underline;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+table th {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    width: 200px;
+}
+</style>
+{% endblock %}

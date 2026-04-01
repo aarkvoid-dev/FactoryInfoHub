@@ -1,0 +1,151 @@
+"""
+Custom decorators for email verification and user restrictions.
+
+This module provides decorators to enforce email verification requirements
+for different types of user actions in the FactoryInfoHub application.
+"""
+
+from functools import wraps
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.translation import gettext as _
+
+
+def email_verified_required(view_func):
+    """
+    Decorator that requires the user's email to be verified.
+    
+    This decorator checks if the user's email is verified and blocks access
+    to certain functionality if not verified. It provides clear error messages
+    and redirects users to appropriate pages.
+    
+    Usage:
+        @email_verified_required
+        def my_view(request):
+            # View logic here
+    
+    Args:
+        view_func (function): The view function to decorate
+        
+    Returns:
+        function: The decorated view function
+        
+    Behavior:
+        - If user is not logged in: Redirects to login page
+        - If user's email is verified: Proceeds with the view
+        - If user's email is not verified: Shows error message and redirects to dashboard
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        # First check if user is authenticated (login_required functionality)
+        if not request.user.is_authenticated:
+            messages.error(request, _('You must be logged in to access this page.'))
+            return redirect(f"{reverse('login')}?next={request.path}")
+        
+        # Check if user's email is verified
+        # The email_verified field is in the Profile model, linked to User
+        try:
+            profile = request.user.profile
+            if not profile.email_verified:
+                messages.error(
+                    request, 
+                    _('Your email address is not verified. Please verify your email to access this feature. '
+                      'Check your email for a verification link, or go to your profile to resend the verification email.')
+                )
+                # Redirect to dashboard or profile page where they can verify email
+                return redirect('karkahan:factory_list')
+        except Exception:
+            # If profile doesn't exist, redirect to dashboard
+            messages.error(request, _('Please complete your profile setup.'))
+            return redirect('karkahan:factory_list')
+        
+        # If email is verified, proceed with the original view
+        return view_func(request, *args, **kwargs)
+    
+    return _wrapped_view
+
+
+def allow_unverified(view_func):
+    """
+    Decorator that explicitly allows unverified users to access a view.
+    
+    This decorator is used for views that should be accessible even to users
+    who haven't verified their email yet. It's primarily used for worker
+    registration and profile management.
+    
+    Usage:
+        @allow_unverified
+        def worker_registration_view(request):
+            # View logic here
+    
+    Args:
+        view_func (function): The view function to decorate
+        
+    Returns:
+        function: The decorated view function
+        
+    Note:
+        This decorator doesn't add any restrictions - it's mainly for documentation
+        purposes to explicitly mark views that should allow unverified users.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        # This decorator doesn't add any restrictions
+        # It's used to explicitly mark views that allow unverified users
+        return view_func(request, *args, **kwargs)
+    
+    return _wrapped_view
+
+
+def require_verified_or_admin(view_func):
+    """
+    Decorator that requires email verification or admin status.
+    
+    This decorator allows access if either:
+    1. The user's email is verified, OR
+    2. The user is an admin/staff member
+    
+    This is useful for administrative functions that should be accessible
+    to staff even if their email isn't verified.
+    
+    Usage:
+        @require_verified_or_admin
+        def admin_view(request):
+            # View logic here
+    
+    Args:
+        view_func (function): The view function to decorate
+        
+    Returns:
+        function: The decorated view function
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        # First check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, _('You must be logged in to access this page.'))
+            return redirect(f"{reverse('login')}?next={request.path}")
+        
+        # Allow access if user is admin/staff
+        if request.user.is_staff or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        
+        # Check if user's email is verified
+        try:
+            profile = request.user.profile
+            if not profile.email_verified:
+                messages.error(
+                    request, 
+                    _('Your email address is not verified. Please verify your email to access this feature. '
+                      'Check your email for a verification link, or go to your profile to resend the verification email.')
+                )
+                return redirect('karkahan:dashboard')
+        except Exception:
+            messages.error(request, _('Please complete your profile setup.'))
+            return redirect('karkahan:dashboard')
+        
+        return view_func(request, *args, **kwargs)
+    
+    return _wrapped_view

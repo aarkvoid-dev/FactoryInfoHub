@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Failed - Factory Chemistry{% endblock %}
+
+{% block content %}
+<!-- Error Section -->
+<section class="pt-80 pb-80 bg-light-2">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-8 col-lg-10">
+        <div class="text-center">
+          <!-- Error Icon -->
+          <div class="mb-40">
+            <div class="error-icon mx-auto">
+              <i class="fas fa-exclamation-triangle text-danger fs-80"></i>
+            </div>
+          </div>
+          
+          <!-- Error Message -->
+          <h1 class="text-40 fw-700 mb-20 text-danger">Payment Failed</h1>
+          <p class="text-18 text-light-1 mb-40">{{ error_message }}</p>
+          
+          <!-- Error Details -->
+          <div class="card shadow-lg border-0 rounded-16 mb-40">
+            <div class="card-body p-30">
+              <div class="row">
+                <div class="col-md-6 mb-20 mb-md-0">
+                  <h6 class="fw-600 mb-15">What happened?</h6>
+                  <ul class="text-14 text-light-1 mb-0">
+                    <li>• Payment processing was interrupted</li>
+                    <li>• Insufficient funds or card declined</li>
+                    <li>• Network connectivity issues</li>
+                    <li>• Security verification failed</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="fw-600 mb-15">What should you do?</h6>
+                  <ul class="text-14 text-light-1 mb-0">
+                    <li>• Check your payment method</li>
+                    <li>• Verify sufficient funds</li>
+                    <li>• Try again with a different card</li>
+                    <li>• Contact your bank if needed</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="row justify-content-center">
+            <div class="col-md-8">
+              <div class="d-flex flex-column flex-md-row gap-16 justify-content-center">
+                <a href="{% url 'karkahan:cart_detail' %}" class="btn btn-accent-1 rounded-12 px-32 py-16 fw-600">
+                  <i class="fas fa-shopping-cart me-8"></i>Review Cart
+                </a>
+                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-accent-1 rounded-12 px-32 py-16 fw-600">
+                  <i class="fas fa-search me-8"></i>Browse More Factories
+                </a>
+                <a href="{% url 'contact' %}" class="btn btn-outline-danger rounded-12 px-32 py-16 fw-600">
+                  <i class="fas fa-headset me-8"></i>Contact Support
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Support Info -->
+          <div class="mt-50">
+            <div class="card border-0 bg-light-2 rounded-12">
+              <div class="card-body p-30">
+                <div class="row align-items-center">
+                  <div class="col-md-8">
+                    <h6 class="fw-600 mb-10">Need Help?</h6>
+                    <p class="text-14 text-light-1 mb-0">If you continue to experience payment issues, please contact our support team with your order details.</p>
+                  </div>
+                  <div class="col-md-4 text-md-end mt-20 mt-md-0">
+                    <a href="{% url 'contact' %}" class="btn btn-danger rounded-12 px-24 py-12">
+                      <i class="fas fa-envelope me-8"></i>Get Support
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .error-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+  }
+  
+  .btn-accent-1 {
+    background: linear-gradient(135deg, #EB662B, #F28555);
+    border: none;
+    box-shadow: 0 4px 15px rgba(235, 102, 43, 0.3);
+  }
+  
+  .btn-accent-1:hover {
+    background: linear-gradient(135deg, #F28555, #EB662B);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(235, 102, 43, 0.4);
+  }
+  
+  .btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+  
+  .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #dc3545);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+  
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .fs-80 {
+    font-size: 80px;
+  }
+</style>
+
+<script>
+  // Add subtle shake animation to error icon
+  document.addEventListener('DOMContentLoaded', function() {
+    const errorIcon = document.querySelector('.error-icon');
+    if (errorIcon) {
+      setTimeout(() => {
+        errorIcon.style.animation = 'shake 0.5s ease-in-out';
+      }, 500);
+    }
+  });
+</script>
+{% endblock %}

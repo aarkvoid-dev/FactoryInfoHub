@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load blog_extras %}
 
 {% block title %}{{ post.title }} - FactoryInfoHub Blog{% endblock %}
 
@@ -84,7 +85,7 @@
         </div>
 
         <div class="post-content mt-20">
-          {{ post.content|linebreaks }}
+          {{ post.content|render_blog_content:post.images.all }}
         </div>
 
         <!-- Gallery -->
@@ -111,13 +112,17 @@
           
           <h3 class="text-24 fw-600 mb-20">Related Factories</h3>
           
-          <!-- Search Bar for Related Factories -->
+          <!-- Search Bar for Related Factories - Only visible to creator or staff -->
+          {% if user.is_authenticated %}
+            {% if user == post.author or user.is_staff %}
           <div class="mb-20">
             <div class="form-input">
               <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control">
               <label class="lh-1 text-14">Search Related Factories</label>
             </div>
           </div>
+            {% endif %}
+          {% endif %}
           
           <!-- Sideways Scrollable Related Factories -->
           <div class="related-factories-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
@@ -174,7 +179,7 @@
         {% endif %}
 
         <div class="row y-gap-15 justify-between items-center pt-20">
-          <div class="col-auto">
+          <!-- <div class="col-auto">
             <div class="d-flex x-gap-10">
               <div>
                 <a href="#" class="button -accent-1 size-40 flex-center bg-accent-1-05 rounded-full">
@@ -197,7 +202,7 @@
                 </a>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div class="col-auto">
             <div class="d-flex x-gap-10">
@@ -226,15 +231,19 @@
           </div>
         </div>
 
-        {% if user.is_authenticated and user == post.author %}
+
+         {% if user.is_staff or user == post.author %}
           <div class="line mt-60 mb-30"></div>
           
           <div class="d-flex gap-2 mb-4">
-            {% if user.is_staff or factory.created_by == user %}
+            <!-- {% if user.is_staff or factory.created_by == user %}
             <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
               <i class="icon-edit text-16 me-1"></i>Edit Post
             </a>
-            {% endif %}
+            {% endif %} -->
+            <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
+              <i class="icon-edit text-16 me-1"></i>Edit Post
+            </a>
             <a href="{% url 'blog:manage_images' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
               <i class="icon-images text-16 me-1"></i>Manage Images
             </a>
@@ -269,7 +278,7 @@
           </div>
 
           <div class="col-md-auto">
-            <a href="{% url 'blog:post_list' %}?category={{ post.category.slug }}" class="d-flex items-center text-decoration-none">
+            <a href="{% url 'blog:post_list' %}?category={{ post.category.id }}" class="d-flex items-center text-decoration-none">
               <div>
                 <div class="text-14 fw-500 text-accent-1">More {{ post.category.name|default:'Posts' }}</div>
                 <div class="text-12 mt-2">Related content</div>

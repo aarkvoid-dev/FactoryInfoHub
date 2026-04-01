@@ -5,27 +5,347 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FactoryHub Admin{% endblock %}</title>
+    <!-- Bootstrap 5 & Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'admin_interface/css/admin.css' %}">
-</head>
-{% block extra_css %} {% endblock %}
-<body>
-    <div class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </div>
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Global styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+            color: #1e293b;
+        }
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: white;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #eef2f6;
+        }
+        .sidebar-header {
+            padding: 1.75rem 1.5rem 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .sidebar-header a {
+            text-decoration: none;
+        }
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-header p {
+            margin: 0.25rem 0 0;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-menu {
+            flex: 1;
+            padding: 1.5rem 1rem 2rem;
+            overflow-y: auto;
+        }
+        .sidebar-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 1rem 0;
+        }
+        .sidebar-section-header {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-section-header i {
+            margin-right: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+            color: #334155;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-item i {
+            width: 1.75rem;
+            font-size: 1.1rem;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+        .sidebar-item:hover {
+            background-color: #f1f5f9;
+            color: #2563eb;
+            border-left-color: #2563eb;
+        }
+        .sidebar-item:hover i {
+            color: #2563eb;
+        }
+        .sidebar-item.active {
+            background-color: #eef2ff;
+            color: #2563eb;
+            border-left-color: #2563eb;
+        }
+        .sidebar-item.active i {
+            color: #2563eb;
+        }
+        .notification-badge {
+            background-color: #2563eb;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            margin-left: auto;
+        }
+        .sidebar-footer {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+        }
+        .user-details h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .user-details p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #64748b;
+        }
 
+        /* Main content */
+        .dashboard__content {
+            margin-left: 280px;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Top navbar */
+        .dashboard__navbar {
+            background: white;
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #64748b;
+            margin-right: 1.5rem;
+            cursor: pointer;
+            display: none; /* hidden on desktop, shown on mobile */
+            transition: color 0.2s;
+        }
+        .menu-toggle:hover {
+            color: #2563eb;
+        }
+        .search-box {
+            background-color: #f8fafc;
+            border-radius: 2rem;
+            padding: 0.4rem 1rem;
+            display: flex;
+            align-items: center;
+            width: 300px;
+            border: 1px solid #e2e8f0;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .search-box i {
+            color: #94a3b8;
+            margin-right: 0.5rem;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            outline: none;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .search-box input::placeholder {
+            color: #94a3b8;
+        }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+        .notification-bell:hover {
+            color: #2563eb;
+        }
+        .notification-bell .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.55rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 1rem;
+        }
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 2rem;
+            transition: background-color 0.2s;
+        }
+        .user-dropdown:hover {
+            background-color: #f1f5f9;
+        }
+        .user-dropdown .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+        .user-dropdown span {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        /* Page content wrapper */
+        .dashboard__content_inner {
+            padding: 2rem;
+            flex: 1;
+        }
+
+        /* Footer */
+        .admin-footer {
+            padding: 1rem 2rem;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .dashboard__content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .search-box {
+                width: 200px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile menu toggle (visible on small screens) -->
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
     <div class="sidebar" id="adminSidebar">
         <div class="sidebar-header">
-            <a href="{% url 'home' %}" >
+            <a href="{% url 'home' %}">
                 <h3>FashionChemistry</h3>
             </a>
             <p>Admin Dashboard</p>
         </div>
 
         <div class="sidebar-menu">
-            <a href="{% url 'admin_interface:admin_dashboard' %}" class="sidebar-item active" data-page="dashboard">
+            <a href="{% url 'admin_interface:admin_dashboard' %}" class="sidebar-item" data-page="dashboard">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -33,11 +353,10 @@
                 <i class="fas fa-users"></i>
                 <span>Users</span>
             </a>
-             <a href="{% url 'admin_interface:admin_blogs' %}" class="sidebar-item" data-page="blogs">
+            <a href="{% url 'admin_interface:admin_blogs' %}" class="sidebar-item" data-page="blogs">
                 <i class="fas fa-blog"></i>
                 <span>Blogs</span>
             </a>
-            
             <a href="{% url 'admin_interface:admin_factories' %}" class="sidebar-item" data-page="factories">
                 <i class="fas fa-industry"></i>
                 <span>Factories</span>
@@ -46,15 +365,29 @@
                 <i class="fas fa-user-tie"></i>
                 <span>Workers</span>
             </a>
+            <a href="{% url 'admin_interface:factory_stats' %}" class="sidebar-item" data-page="stats">
+                <i class="fas fa-chart-line"></i>
+                <span>Factory Stats</span>
+            </a>
+            <a href="{% url 'admin_interface:factory_stats_charts' %}" class="sidebar-item" data-page="charts">
+                <i class="fas fa-chart-line"></i>
+                <span>Factory Charts</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_pages' %}" class="sidebar-item" data-page="charts">
+                <i class="fas fa-book"></i>
+                <span>Pages</span>
+            </a>
+            {% comment %} 
             <a href="{% url 'admin_interface:admin_reports' %}" class="sidebar-item" data-page="reports">
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </a>
-            <a href="{% url 'admin_interface:admin_notifications' %}" class="sidebar-item" data-page="notifications">
+            <a href="{% url 'admin_interface:admzin_notifications' %}" class="sidebar-item" data-page="notifications">
                 <i class="fas fa-bell"></i>
                 <span>Notifications</span>
                 <span class="notification-badge">3</span>
-            </a>
+            </a> 
+            {% endcomment %}
             <a href="{% url 'admin_interface:admin_contacts' %}" class="sidebar-item" data-page="contacts">
                 <i class="fas fa-envelope"></i>
                 <span>Contact Messages</span>
@@ -66,12 +399,34 @@
                 <i class="fas fa-question-circle"></i>
                 <span>FAQ Management</span>
             </a>
-            
             <a href="{% url 'admin_interface:admin_homepage_videos' %}" class="sidebar-item" data-page="videos">
                 <i class="fas fa-video"></i>
                 <span>Home Page Videos</span>
             </a>
-            
+
+            <!-- Payment Management Section -->
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-header">
+                <i class="fas fa-credit-card"></i>
+                <span>Payment Management</span>
+            </div>
+            <a href="{% url 'admin_interface:admin_payments' %}" class="sidebar-item" data-page="payments">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Payments</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_payment_gateways' %}" class="sidebar-item" data-page="gateways">
+                <i class="fas fa-plug"></i>
+                <span>Payment Gateways</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_orders' %}" class="sidebar-item" data-page="orders">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_order_items' %}" class="sidebar-item" data-page="order_items">
+                <i class="fas fa-box"></i>
+                <span>Order Items</span>
+            </a>
+
             <!-- Location Management Section -->
             <div class="sidebar-divider"></div>
             <div class="sidebar-section-header">
@@ -102,7 +457,7 @@
                 <i class="fas fa-map"></i>
                 <span>Regions</span>
             </a>
-            
+
             <!-- Category Management Section -->
             <div class="sidebar-divider"></div>
             <div class="sidebar-section-header">
@@ -117,7 +472,7 @@
                 <i class="fas fa-tags"></i>
                 <span>Subcategories</span>
             </a>
-           
+
             <div class="sidebar-divider"></div>
             <a href="{% url 'admin_interface:admin_profile' %}" class="sidebar-item" data-page="profile">
                 <i class="fas fa-user-cog"></i>
@@ -132,7 +487,7 @@
         <div class="sidebar-footer">
             <div class="user-info">
                 <div class="user-avatar">
-                    <i class="fas fa-user-circle"></i>
+                    <i class="fas fa-user"></i>
                 </div>
                 <div class="user-details">
                     <h4>Admin User</h4>
@@ -142,48 +497,56 @@
         </div>
     </div>
 
+    <!-- Main Content Area -->
     <div class="dashboard__content" id="adminContent">
-        <div class="dashboard__content_header fade-in">
-            <h1>{% block header %}Dashboard Overview{% endblock %}</h1>
-            <div class="header-actions">
+        <!-- Top Navbar -->
+        <div class="dashboard__navbar">
+            <div class="navbar-left">
+                <!-- Mobile toggle is already outside, so we don't duplicate -->
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search users, factories, reports...">
                 </div>
+            </div>
+            <div class="navbar-right">
                 <div class="notification-bell">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">3</span>
                 </div>
-                <button class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    <span>New Report</span>
-                </button>
+                <div class="user-dropdown">
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span>Admin</span>
+                </div>
             </div>
         </div>
 
-        {% block content %}{% endblock %}
+        <!-- Page Content -->
+        <div class="dashboard__content_inner fade-in">
+            {% block content %}{% endblock %}
+        </div>
 
+        <!-- Footer -->
         <div class="admin-footer">
             <p>© 2024 FactoryHub Admin Panel. All rights reserved.</p>
             <p class="text-muted">v2.1.0 | Last updated: Today</p>
         </div>
     </div>
 
-
-    {% block extra_js %} {% endblock %}
+    <!-- Scripts -->
+    {% block extra_js %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
             const menuToggle = document.getElementById('menuToggle');
             const adminSidebar = document.getElementById('adminSidebar');
             const adminContent = document.getElementById('adminContent');
 
+            // Toggle sidebar on mobile
             menuToggle.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent click from bubbling to document
+                e.stopPropagation();
                 adminSidebar.classList.toggle('show');
-                adminContent.style.marginLeft = adminSidebar.classList.contains('show') ? '300px' : '0';
-                menuToggle.style.left = adminSidebar.classList.contains('show') ? '320px' : '20px';
             });
 
             // Close sidebar when clicking outside on mobile
@@ -191,139 +554,34 @@
                 if (window.innerWidth <= 768) {
                     if (!adminSidebar.contains(event.target) && !menuToggle.contains(event.target)) {
                         adminSidebar.classList.remove('show');
-                        adminContent.style.marginLeft = '0';
-                        menuToggle.style.left = '20px';
                     }
                 }
             });
 
-            // Sidebar item click handler
+            // Sidebar active state based on current URL
             const sidebarItems = document.querySelectorAll('.sidebar-item');
-            const currentPage = window.location.pathname.split('/').pop() || 'dashboard';
+            const currentPath = window.location.pathname;
 
             sidebarItems.forEach(item => {
-                // Set active based on current page
-                const itemPage = item.getAttribute('data-page');
-                if (itemPage === currentPage || 
-                    (currentPage === '' && itemPage === 'dashboard') ||
-                    (currentPage === 'admin_dashboard' && itemPage === 'dashboard')) {
+                const href = item.getAttribute('href');
+                if (href && currentPath.includes(href) && href !== '#' && href !== '' && href !== '/') {
                     item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
+                } else if (currentPath === '/' && item.getAttribute('data-page') === 'dashboard') {
+                    item.classList.add('active');
+                } else if (currentPath === '/admin/' && item.getAttribute('data-page') === 'dashboard') {
+                    item.classList.add('active');
                 }
-
-                // Add click animation
-                item.addEventListener('click', function(e) {
-                    if (this.classList.contains('active')) return;
-
-                    // Remove active class from all items
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-
-                    // Add active class to clicked item
-                    this.classList.add('active');
-
-                    // Add click animation
-                    this.style.animation = 'none';
-                    setTimeout(() => {
-                        this.style.animation = 'fadeIn 0.3s ease';
-                    }, 10);
-
-                    // If on mobile, close sidebar after click
-                    if (window.innerWidth <= 768) {
-                        setTimeout(() => {
-                            adminSidebar.classList.remove('show');
-                            adminContent.style.marginLeft = '0';
-                            menuToggle.style.left = '20px';
-                        }, 300);
-                    }
-                });
             });
 
-            // Search functionality
-            const searchInput = document.querySelector('.search-box input');
-            searchInput.addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                // Implement search logic here
-                console.log('Searching for:', searchTerm);
-            });
-
-            // Notification bell click
+            // Handle notification bell click
             const notificationBell = document.querySelector('.notification-bell');
             notificationBell.addEventListener('click', function() {
-                // Show notifications dropdown or page
                 window.location.href = "{% url 'admin_interface:admin_notifications' %}";
             });
 
-            // Add hover effects to cards
-            const statCards = document.querySelectorAll('.stat-card');
-            statCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.zIndex = '10';
-                });
-                card.addEventListener('mouseleave', function() {
-                    this.style.zIndex = '1';
-                });
-            });
-
-            // Window resize handler
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    adminSidebar.classList.remove('show');
-                    adminContent.style.marginLeft = '280px';
-                    menuToggle.style.display = 'none';
-                } else {
-                    menuToggle.style.display = 'flex';
-                    adminContent.style.marginLeft = '0';
-                }
-            });
-
-            // Initialize based on window size
-            if (window.innerWidth <= 768) {
-                menuToggle.style.display = 'flex';
-                adminContent.style.marginLeft = '0';
-            }
+            // Add smooth fade-in to content
+            document.querySelector('.dashboard__content_inner').classList.add('fade-in');
         });
     </script>
-    <style>
-        /* Sidebar Header Container */
-        .sidebar-header {
-            padding: 1.5rem 1rem;
-            background-color: #1e293b;  /* Dark blue-gray */
-            border-bottom: 1px solid #334155;
-            text-align: center;
-        }
-
-        /* Logo / Title Link */
-        .sidebar-header a {
-            text-decoration: none;
-            display: inline-block;
-            transition: opacity 0.2s ease;
-        }
-
-        .sidebar-header a:hover {
-            opacity: 0.8;
-        }
-
-        /* FactoryHub Heading */
-        .sidebar-header h3 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #10b981;             /* Emerald green */
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            line-height: 1.2;
-        }
-
-        /* Admin Dashboard Subtitle */
-        .sidebar-header p {
-            margin: 0.5rem 0 0;
-            font-size: 0.9rem;
-            color: #94a3b8;             /* Light slate */
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-    </style>
 </body>
 </html>

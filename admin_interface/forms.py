@@ -1,13 +1,14 @@
 from django import forms
 from django.contrib.auth.models import User
-from Karkahan.models import Factory
+from Karkahan.models import Factory,PaymentGateway,Order,OrderItem
 from Workers.models import Worker, WorkExperience
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from Accounts.models import Profile
 from blog.models import BlogPost, BlogImage
-from Home.models import HomePageVideo
+from Home.models import HomePageVideo, Page, PageSection
 from faq.models import FAQQuestion
+from tinymce.widgets import TinyMCE
 
 class AdminUserForm(forms.ModelForm):
     class Meta:
@@ -29,6 +30,12 @@ class AdminProfileForm(forms.ModelForm):
         }
 
 class AdminFactoryForm(forms.ModelForm):
+    # Add image field for factory images
+    image = forms.ImageField(required=False, widget=forms.FileInput(attrs={
+        'class': 'form-control',
+        'accept': 'image/*'
+    }))
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -105,9 +112,10 @@ class AdminFactoryForm(forms.ModelForm):
             self.fields['region'].queryset = self.instance.district.regions.all().order_by('name')
         else:
             self.fields['region'].queryset = Region.objects.none()
+    
     class Meta:
         model = Factory
-        fields = ['name', 'slug', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'is_active', 'is_verified']
+        fields = ['name', 'slug', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'video_url', 'created_by', 'is_active', 'is_verified']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter factory name'}),
             'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Auto-generated slug'}),
@@ -132,89 +140,22 @@ class AdminFactoryForm(forms.ModelForm):
             'production_capacity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter production capacity'}),
             'working_hours': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter working hours'}),
             'holidays': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'List holidays observed'}),
+            'video_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Enter YouTube or Vimeo link'}),
+            'created_by': forms.Select(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 class AdminWorkerForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        if 'category' in self.data:
-            try:
-                category_id = int(self.data.get('category'))
-                self.fields['subcategory'].queryset = SubCategory.objects.filter(
-                    category_id=category_id, is_active=True
-                ).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            # If editing existing factory, show subcategories for its current category
-            self.fields['subcategory'].queryset = self.instance.category.subcategories.filter(
-                is_active=True
-            ).order_by('name')
-        else:
-            self.fields['subcategory'].queryset = SubCategory.objects.none()
-
-        # Set up initial queryset for state based on selected country
-        if 'country' in self.data:
-            try:
-                country_id = int(self.data.get('country'))
-                self.fields['state'].queryset = State.objects.filter(
-                    country_id=country_id
-                ).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
-        else:
-            self.fields['state'].queryset = State.objects.none()
-
-        # Set up initial queryset for city based on selected state
-        if 'state' in self.data:
-            try:
-                state_id = int(self.data.get('state'))
-                self.fields['city'].queryset = City.objects.filter(
-                    state_id=state_id
-                ).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
-        else:
-            self.fields['city'].queryset = City.objects.none()
-
-        # Set up initial queryset for district based on selected city
-        if 'city' in self.data:
-            try:
-                city_id = int(self.data.get('city'))
-                self.fields['district'].queryset = District.objects.filter(
-                    city_id=city_id
-                ).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.city:
-            self.fields['district'].queryset = self.instance.city.districts.all().order_by('name')
-        else:
-            self.fields['district'].queryset = District.objects.none()
-
-        # Set up initial queryset for region based on selected district
-        if 'district' in self.data:
-            try:
-                district_id = int(self.data.get('district'))
-                self.fields['region'].queryset = Region.objects.filter(
-                    district_id=district_id
-                ).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.district:
-            self.fields['region'].queryset = self.instance.district.regions.all().order_by('name')
-        else:
-            self.fields['region'].queryset = Region.objects.none()
-    
     class Meta:
         model = Worker
-        fields = ['full_name', 'date_of_birth', 'gender', 'phone_number', 'email', 'category', 'subcategory', 'years_of_experience', 'skills', 'availability', 'expected_daily_wage', 'country', 'state', 'city', 'district', 'region', 'address', 'slug', 'is_active', 'is_verified']
+        fields = [
+            'full_name', 'date_of_birth', 'gender', 'phone_number', 'email',
+            'category', 'subcategory', 'years_of_experience', 'skills',
+            'availability', 'expected_daily_wage', 'country', 'state', 'city',
+            'district', 'region', 'address', 'is_active', 'is_verified',
+            'created_by'
+        ]
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full name'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -233,10 +174,84 @@ class AdminWorkerForm(forms.ModelForm):
             'district': forms.Select(attrs={'class': 'form-control'}),
             'region': forms.Select(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter address'}),
-            'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Auto-generated slug'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'created_by': forms.Select(attrs={'class': 'form-control', 'disabled': 'disabled'}),
+            'created_at': forms.DateTimeInput(attrs={'class': 'form-control', 'disabled': 'disabled', 'readonly': 'readonly'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Mark required fields
+        self.fields['full_name'].required = True
+        self.fields['category'].required = True
+        self.fields['years_of_experience'].required = True
+
+        # ---------- Category/subcategory cascading ----------
+        if 'category' in self.data:
+            try:
+                category_id = int(self.data.get('category'))
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                    category_id=category_id, is_active=True
+                ).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk:
+            self.fields['subcategory'].queryset = self.instance.category.subcategories.filter(
+                is_active=True
+            ).order_by('name')
+        else:
+            self.fields['subcategory'].queryset = SubCategory.objects.none()
+
+        # ---------- Location cascading ----------
+        # Country → State
+        if 'country' in self.data:
+            try:
+                country_id = int(self.data.get('country'))
+                self.fields['state'].queryset = State.objects.filter(country_id=country_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.country:
+            self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
+        else:
+            self.fields['state'].queryset = State.objects.none()
+
+        # State → City
+        if 'state' in self.data:
+            try:
+                state_id = int(self.data.get('state'))
+                self.fields['city'].queryset = City.objects.filter(state_id=state_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.state:
+            self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
+        else:
+            self.fields['city'].queryset = City.objects.none()
+
+        # City → District
+        if 'city' in self.data:
+            try:
+                city_id = int(self.data.get('city'))
+                self.fields['district'].queryset = District.objects.filter(city_id=city_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.city:
+            self.fields['district'].queryset = self.instance.city.districts.all().order_by('name')
+        else:
+            self.fields['district'].queryset = District.objects.none()
+
+        # District → Region
+        if 'district' in self.data:
+            try:
+                district_id = int(self.data.get('district'))
+                self.fields['region'].queryset = Region.objects.filter(district_id=district_id).order_by('name')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.district:
+            self.fields['region'].queryset = self.instance.district.regions.all().order_by('name')
+        else:
+            self.fields['region'].queryset = Region.objects.none()
 
 class ReportForm(forms.Form):
     REPORT_TYPES = [
@@ -413,8 +428,8 @@ class AdminBlogForm(forms.ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
-            # If editing existing factory, show subcategories for its current category
+        elif self.instance.pk and self.instance.category:
+            # If editing existing blog post, show subcategories for its current category
             self.fields['subcategory'].queryset = self.instance.category.subcategories.filter(
                 is_active=True
             ).order_by('name')
@@ -430,7 +445,7 @@ class AdminBlogForm(forms.ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.country:
             self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
         else:
             self.fields['state'].queryset = State.objects.none()
@@ -444,7 +459,7 @@ class AdminBlogForm(forms.ModelForm):
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.state:
             self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
         else:
             self.fields['city'].queryset = City.objects.none()
@@ -479,7 +494,7 @@ class AdminBlogForm(forms.ModelForm):
     
     class Meta:
         model = BlogPost
-        fields = ['title', 'slug', 'content', 'excerpt', 'author', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'is_published', 'published_at', 'is_deleted']
+        fields = ['title', 'slug', 'content', 'excerpt', 'author', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'related_factories', 'is_published', 'published_at', 'is_deleted']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -522,6 +537,10 @@ class AdminBlogForm(forms.ModelForm):
             }),
             'region': forms.Select(attrs={
                 'class': 'form-control'
+            }),
+            'related_factories': forms.SelectMultiple(attrs={
+                'class': 'form-control',
+                'size': '5'
             }),
             'published_at': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
@@ -608,34 +627,169 @@ class AdminHomePageVideoForm(forms.ModelForm):
 class AdminFAQQuestionForm(forms.ModelForm):
     class Meta:
         model = FAQQuestion
-        fields = ['title', 'question_text', 'answer_text', 'category', 'tags', 'status', 'is_featured', 'order']
+        fields = ['title', 'question_text', 'answer_text', 'category', 'tags', 'status', 'is_featured', 'order', 'published_at']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter question title'}),
+            'question_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter the question text'}),
+            'answer_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 8, 'placeholder': 'Enter the answer text'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'tags': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter tags separated by commas'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Order number'}),
+            'published_at': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].required = True
+        self.fields['question_text'].required = True
+        self.fields['answer_text'].required = True
+        self.fields['category'].required = True
+        if not self.instance.pk and not self.data.get('order'):
+            self.fields['order'].initial = 0
+
+
+# Admin Forms for Payment Management
+class AdminPaymentGatewayForm(forms.ModelForm):
+    class Meta:
+        model = PaymentGateway
+        fields = ['name', 'is_active', 'key_id', 'key_secret', 'webhook_secret', 'mode']
+        widgets = {
+            'name': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'key_id': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter API Key ID (e.g., publishable key)'
+            }),
+            'key_secret': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter API Secret Key'
+            }),
+            'webhook_secret': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter Webhook signing secret'
+            }),
+            'mode': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+        }
+
+class AdminOrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['user', 'total_amount', 'payment_status', 'payment_method', 'gateway_used', 'transaction_id', 'receipt_sent', 'email_status', 'email_retry_count']
+        widgets = {
+            'user': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'total_amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter total amount'
+            }),
+            'payment_status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'payment_method': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter payment method (e.g., card, upi, netbanking)'
+            }),
+            'gateway_used': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'transaction_id': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter transaction ID'
+            }),
+            'receipt_sent': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'email_status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'email_retry_count': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly'
+            }),
+        }
+
+class AdminOrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['order', 'factory', 'price_at_purchase']
+        widgets = {
+            'order': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'factory': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'price_at_purchase': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter price at purchase'
+            }),
+        }
+
+
+# Admin Forms for Page Management
+class AdminPageForm(forms.ModelForm):
+    class Meta:
+        model = Page
+        fields = ['title','order', 'slug', 'page_type', 'content', 'meta_title', 'meta_description', 'is_published']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter question title'
+                'placeholder': 'Enter page title'
             }),
-            'question_text': forms.Textarea(attrs={
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Order number'}),
+
+            'slug': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter the question text',
-                'rows': 4
+                'placeholder': 'Auto-generated slug'
             }),
-            'answer_text': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter the answer text',
-                'rows': 8
-            }),
-            'category': forms.Select(attrs={
+            'page_type': forms.Select(choices=Page.PAGE_TYPES, attrs={
                 'class': 'form-control'
             }),
-            'tags': forms.TextInput(attrs={
+            'content': TinyMCE(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter tags separated by commas (e.g., factory, worker, registration)'
+                'rows': 10,
+                'placeholder': 'Enter page content'
             }),
-            'status': forms.Select(attrs={
+            'meta_title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter meta title (optional)'
+            }),
+            'meta_description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter meta description (optional)'
+            }),
+        }
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if not self.instance.pk and not self.data.get('order'):
+                self.fields['order'].initial = 0
+
+class AdminPageSectionForm(forms.ModelForm):
+    class Meta:
+        model = PageSection
+        fields = ['page', 'title', 'content', 'order']
+        widgets = {
+            'page': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'is_featured': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter section title'
+            }),
+            'content': TinyMCE(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'Enter section content'
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',

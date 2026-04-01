@@ -1,0 +1,151 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Complete Order with Email - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_orders' %}">Orders</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_order_detail' order.id %}">{{ order.order_number }}</a></li>
+                        <li class="breadcrumb-item active">Complete Order with Email</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Complete Order with Email - {{ order.order_number }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                            <p><strong>Customer:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+                            <p><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p><strong>Order Date:</strong> {{ order.order_date|date:"M d, Y H:i" }}</p>
+                            <p><strong>Payment Status:</strong> 
+                                <span class="badge badge-{{ order.get_payment_status_display|lower }}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+                            <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id|default:"Not available" }}</p>
+                            <p><strong>Items:</strong> {{ order.items.count }}</p>
+                            <p><strong>Email Status:</strong> 
+                                <span class="badge badge-{{ order.email_status|lower }}">
+                                    {{ order.get_email_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="card-title">Order Items</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Factory Name</th>
+                                    <th>Category</th>
+                                    <th>Price at Purchase</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ item.factory.name }}</td>
+                                    <td>{{ item.factory.category.name }}</td>
+                                    <td>₹{{ item.price_at_purchase }}</td>
+                                    <td>{{ item.factory.city.name }}, {{ item.factory.state.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <div class="alert alert-warning">
+                        <h5><i class="mdi mdi-alert-circle-outline"></i> Important</h5>
+                        <p>By completing this order, you will:</p>
+                        <ul>
+                            <li>Mark the order as completed</li>
+                            <li>Clear the customer's shopping cart</li>
+                            <li>Send an order confirmation email to the customer</li>
+                        </ul>
+                        <p><strong>This action cannot be undone.</strong></p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="email_content">Email Content Preview</label>
+                            <textarea class="form-control" id="email_content" rows="5" readonly>
+Order {{ order.order_number }} has been successfully completed!
+
+Thank you for your purchase. Your order details:
+- Order Number: {{ order.order_number }}
+- Total Amount: ₹{{ order.total_amount }}
+- Items: {{ order.items.count }} factory/factories
+
+The order confirmation email will be sent to {{ order.user.email }}.
+                            </textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="confirm_completion" required>
+                                <label class="custom-control-label" for="confirm_completion">
+                                    I understand this action will complete the order and send an email
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{% url 'admin_interface:admin_order_detail' order.id %}" class="btn btn-secondary">
+                                    <i class="mdi mdi-arrow-left"></i> Back to Order
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="submit" class="btn btn-success" id="complete_order_btn" disabled>
+                                    <i class="mdi mdi-check-circle"></i> Complete Order & Send Email
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirm_completion');
+    const submitBtn = document.getElementById('complete_order_btn');
+    
+    checkbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}

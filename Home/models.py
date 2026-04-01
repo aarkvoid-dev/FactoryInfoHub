@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from tinymce.models import HTMLField
 
 
 class SoftDeleteManager(models.Manager):
@@ -48,7 +49,7 @@ class SoftDeleteModel(models.Model):
 
     def hard_delete(self):
         """Permanently delete the object"""
-        super().delete()
+        super(SoftDeleteModel, self).delete()
 
 
 class SoftDeleteAdminMixin:
@@ -103,7 +104,7 @@ class HomePageVideo(SoftDeleteModel):
     title = models.CharField(max_length=200)
     video = models.FileField(upload_to='home_videos/')
     is_active = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -164,7 +165,9 @@ class ContactMessage(SoftDeleteModel):
     )
     is_read = models.BooleanField(default=False, help_text="Whether the message has been read by admin")
     read_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    has_replies = models.BooleanField(default=False, help_text="Whether this message has been replied to")
+    last_reply_at = models.DateTimeField(null=True, blank=True, help_text="When the last reply was sent")
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -174,6 +177,12 @@ class ContactMessage(SoftDeleteModel):
         """Mark this message as read"""
         self.is_read = True
         self.read_at = timezone.now()
+        self.save()
+
+    def mark_replied(self):
+        """Mark this message as having been replied to"""
+        self.has_replies = True
+        self.last_reply_at = timezone.now()
         self.save()
 
     class Meta:
@@ -186,4 +195,136 @@ class ContactMessage(SoftDeleteModel):
             models.Index(fields=['email']),
             models.Index(fields=['created_at']),
             models.Index(fields=['user']),
+            models.Index(fields=['has_replies']),
+            models.Index(fields=['last_reply_at']),
         ]
+
+
+class ContactReply(SoftDeleteModel):
+    """Model to track replies sent to contact messages"""
+    contact_message = models.ForeignKey(
+        ContactMessage, 
+        on_delete=models.CASCADE, 
+        related_name='replies',
+        help_text="The original contact message this reply is for"
+    )
+    admin_user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="The admin user who sent this reply"
+    )
+    subject = models.CharField(max_length=200, help_text="Subject of the reply email")
+    message = models.TextField(help_text="Content of the reply message")
+    recipient_email = models.EmailField(help_text="Email address the reply was sent to")
+    sent_at = models.DateTimeField(default=timezone.now, help_text="When the reply was sent")
+    email_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('sent', 'Sent'),
+            ('failed', 'Failed'),
+        ],
+        default='pending',
+        help_text="Status of the email sending"
+    )
+    error_message = models.TextField(blank=True, help_text="Error message if email sending failed")
+
+    def __str__(self):
+        return f"Reply to {self.contact_message.name} - {self.subject}"
+
+    def mark_as_sent(self):
+        """Mark this reply as successfully sent"""
+        self.email_status = 'sent'
+        self.save()
+        # Update the parent contact message
+        self.contact_message.mark_replied()
+
+    def mark_as_failed(self, error_message=""):
+        """Mark this reply as failed"""
+        self.email_status = 'failed'
+        self.error_message = error_message
+        self.save()
+
+    class Meta:
+        ordering = ['-sent_at']
+        verbose_name = "Contact Reply"
+        verbose_name_plural = "Contact Replies"
+        indexes = [
+            *SoftDeleteModel.Meta.indexes,
+            models.Index(fields=['contact_message']),
+            models.Index(fields=['admin_user']),
+            models.Index(fields=['sent_at']),
+            models.Index(fields=['email_status']),
+        ]
+
+
+class Page(SoftDeleteModel):
+    """Model for dynamic pages like Terms & Conditions, Refund Policy, etc."""
+    PAGE_TYPES = (
+        ('terms', 'Terms & Conditions'),
+        ('refund', 'Refund Policy'),
+        ('disclaimer', 'Disclaimer'),
+        ('privacy', 'Privacy Policy'),
+        ('about', 'About Us'),
+    )
+    
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    content = HTMLField()
+    page_type = models.CharField(max_length=20, choices=PAGE_TYPES, unique=True)
+    is_published = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, help_text="Order in which pages appear in navigation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    meta_title = models.CharField(max_length=200, blank=True, help_text="SEO meta title")
+    meta_description = models.TextField(blank=True, help_text="SEO meta description")
+    
+    class Meta:
+        verbose_name = "Page"
+        verbose_name_plural = "Pages"
+        ordering = ['order', 'title']
+        indexes = [
+            *SoftDeleteModel.Meta.indexes,
+            models.Index(fields=['page_type']),
+            models.Index(fields=['is_published']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['order']),
+        ]
+    
+    def __str__(self):
+        return self.title
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('home:page_detail', kwargs={'slug': self.slug})
+    
+    @classmethod
+    def get_page_by_type(cls, page_type):
+        """Get a page by its type"""
+        try:
+            return cls.objects.get(page_type=page_type, is_published=True, is_deleted=False)
+        except cls.DoesNotExist:
+            return None
+
+
+class PageSection(SoftDeleteModel):
+    """Optional sections within a page for more complex layouts"""
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='sections')
+    title = models.CharField(max_length=200, blank=True)
+    content = HTMLField()
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Page Section"
+        verbose_name_plural = "Page Sections"
+        indexes = [
+            *SoftDeleteModel.Meta.indexes,
+            models.Index(fields=['page']),
+            models.Index(fields=['order']),
+        ]
+    
+    def __str__(self):
+        return f"{self.page.title} - {self.title or 'Section'}"

@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Status - Factory Chemistry{% endblock %}
+
+{% block extra_css %}
+<style>
+  .status-page-header {
+    background: linear-gradient(135deg, #011a55 0%, #00112c 100%);
+    padding: 60px 0;
+    color: white;
+    text-align: center;
+    padding-top: 120px;
+  }
+  .status-page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: white;
+  }
+  .status-page-header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+    color: white;
+  }
+  .status-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-top: -40px;
+    background: white;
+  }
+  .status-icon-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 3rem;
+    color: white;
+  }
+  .status-icon-large.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 10px 20px rgba(16,185,129,0.2);
+  }
+  .status-icon-large.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 10px 20px rgba(245,158,11,0.2);
+  }
+  .status-badge {
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-success {
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+  }
+  .badge-warning {
+    background: rgba(245,158,11,0.1);
+    color: #f59e0b;
+  }
+  .badge-danger {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+  }
+  .info-item {
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 3px solid #EB662B;
+  }
+  .info-item .label {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .info-item .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .factory-table {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+  }
+  .factory-table thead th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #334155;
+    border: none;
+    padding: 15px 20px;
+  }
+  .factory-table tbody td {
+    padding: 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .factory-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .factory-thumb {
+    width: 60px;
+    height: 45px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f1f5f9;
+  }
+  .btn-accent {
+    background: #EB662B;
+    border: none;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(235,102,43,0.2);
+  }
+  .btn-accent:hover {
+    background: #d94f1a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(235,102,43,0.3);
+    color: white;
+  }
+  .btn-outline-accent {
+    border: 2px solid #EB662B;
+    color: #EB662B;
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .btn-outline-accent:hover {
+    background: #EB662B;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(235,102,43,0.2);
+  }
+  .support-card {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border: none;
+    border-radius: 16px;
+    padding: 30px;
+  }
+  @keyframes fall {
+    to { transform: translateY(100vh) rotate(360deg); }
+  }
+  .confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: #EB662B;
+    pointer-events: none;
+    z-index: 9999;
+    animation: fall linear infinite;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="status-page-header">
+  <div class="container">
+    <h1>Order Status</h1>
+    <p>Track your order and access purchased factory information</p>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-10">
+        <!-- Main Status Card -->
+        <div class="status-card p-4 p-lg-5 mb-4">
+          <div class="row g-4 align-items-center">
+            <div class="col-md-3 text-center">
+              {% if payment_verified %}
+                <div class="status-icon-large success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h5 class="fw-bold text-success mb-1">Payment Successful</h5>
+                <span class="status-badge badge-success">
+                  <i class="fas fa-check-circle"></i> Verified
+                </span>
+              {% else %}
+                <div class="status-icon-large warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5 class="fw-bold text-warning mb-1">Payment Issue</h5>
+                <span class="status-badge badge-warning">
+                  <i class="fas fa-exclamation-circle"></i> {{ payment_error|default:"Pending" }}
+                </span>
+              {% endif %}
+            </div>
+            <div class="col-md-9">
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <div class="info-item">
+                    <div class="label">Order Number</div>
+                    <div class="value">#{{ order.order_number }}</div>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="info-item">
+                    <div class="label">Order Date</div>
+                    <div class="value">{{ order.order_date|date:"M d, Y H:i" }}</div>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="info-item">
+                    <div class="label">Total Amount</div>
+                    <div class="value text-accent-1">₹{{ order.total_amount|floatformat:2 }}</div>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="info-item">
+                    <div class="label">Payment Method</div>
+                    <div class="value">{% if order.gateway_used %}{{ order.gateway_used.get_name_display }}{% else %}Not specified{% endif %}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Status Alert -->
+        {% if payment_verified %}
+          <div class="alert alert-{% if email_sent or order.email_status == 'sent' %}success{% else %}warning{% endif %} border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center">
+            <div class="me-3 fs-3">
+              {% if email_sent or order.email_status == 'sent' %}
+                <i class="fas fa-envelope-circle-check text-success"></i>
+              {% else %}
+                <i class="fas fa-envelope-exclamation text-warning"></i>
+              {% endif %}
+            </div>
+            <div>
+              <h6 class="fw-bold mb-1">
+                {% if email_sent or order.email_status == 'sent' %}
+                  Email Sent Successfully
+                {% elif order.email_status == 'pending' %}
+                  Email is being sent...
+                {% elif order.email_status == 'retry' %}
+                  Email Sending Retry Needed
+                {% else %}
+                  Email Sending Failed
+                {% endif %}
+              </h6>
+              <p class="mb-0 small">
+                {% if email_sent or order.email_status == 'sent' %}
+                  Check your inbox (including spam folder) for the factory information.
+                {% elif email_error %}
+                  {{ email_error }}
+                {% else %}
+                  {{ payment_error|default:"Please check back later." }}
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Factories List -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+          <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0"><i class="fas fa-industry me-2 text-accent-1"></i>Purchased Factories</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive factory-table">
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Factory</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for factory in factories %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        {% if factory.get_primary_image %}
+                          <img src="{{ factory.get_primary_image }}" class="factory-thumb" alt="{{ factory.name }}">
+                        {% else %}
+                          <img src="https://via.placeholder.com/60x45/f5f5f5/666666?text=No+Image" class="factory-thumb" alt="No image">
+                        {% endif %}
+                        <div>
+                          <h6 class="fw-bold mb-1">{{ factory.name }}</h6>
+                          <small class="text-secondary">{{ factory.category.name }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ factory.category.name }}</td>
+                    <td>{{ factory.full_address|truncatechars:50 }}</td>
+                    <td><span class="fw-bold text-accent-1">₹{{ factory.price|floatformat:2 }}</span></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap gap-3 justify-content-center my-4">
+          <a href="{% url 'karkahan:order_history' %}" class="btn btn-outline-accent rounded-pill px-4 py-2">
+            <i class="fas fa-history me-2"></i>Order History
+          </a>
+          {% if payment_verified and order.email_status != 'sent' %}
+            <a href="{% url 'karkahan:resend_order_email' order.id %}" class="btn btn-accent rounded-pill px-4 py-2">
+              <i class="fas fa-envelope me-2"></i>Resend Email
+            </a>
+          {% endif %}
+          <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-accent rounded-pill px-4 py-2">
+            <i class="fas fa-plus me-2"></i>Explore More
+          </a>
+        </div>
+
+        <!-- Support Card -->
+        <div class="support-card d-flex flex-wrap align-items-center justify-content-between mt-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="fs-1 text-accent-1"><i class="fas fa-headset"></i></div>
+            <div>
+              <h6 class="fw-bold mb-1">Need Help?</h6>
+              <p class="small text-secondary mb-0">
+                {% if payment_verified %}
+                  If you don't receive the email within 24 hours, contact support.
+                {% else %}
+                  If you're experiencing payment issues, please contact support.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          <a href="{% url 'contact' %}" class="btn btn-accent rounded-pill px-4 py-2 mt-3 mt-sm-0">
+            <i class="fas fa-envelope me-2"></i>Contact Support
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Confetti for success -->
+{% if payment_verified %}
+<script>
+  (function() {
+    const colors = ['#EB662B', '#F28555', '#10b981', '#f59e0b', '#3b82f6'];
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.top = '-10px';
+      confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      confetti.style.opacity = Math.random() * 0.7 + 0.3;
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 6000);
+    }
+  })();
+</script>
+{% endif %}
+
+<!-- Animation for cards -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.status-card, .alert, .card, .support-card');
+    cards.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      setTimeout(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, i * 100);
+    });
+  });
+</script>
+{% endblock %}

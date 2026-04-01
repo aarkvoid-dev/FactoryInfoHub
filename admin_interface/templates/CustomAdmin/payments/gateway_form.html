@@ -1,0 +1,153 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}{% if action == 'create' %}Create Payment Gateway{% else %}Edit Payment Gateway{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">{% if action == 'create' %}Create Payment Gateway{% else %}Edit Payment Gateway{% endif %}</h1>
+                    <p class="text-muted mb-0">{% if action == 'create' %}Add a new payment gateway configuration{% else %}Update payment gateway settings{% endif %}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_interface:admin_payment_gateways' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Gateways
+                    </a>
+                    <a href="{% url 'admin_interface:admin_dashboard' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gateway Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-plug me-2"></i>{% if action == 'create' %}New Gateway Configuration{% else %}Gateway Configuration{% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">Gateway Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger mt-1">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.mode.id_for_label }}" class="form-label">Mode</label>
+                                {{ form.mode }}
+                                {% if form.mode.errors %}
+                                    <div class="text-danger mt-1">{{ form.mode.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.key_id.id_for_label }}" class="form-label">API Key ID</label>
+                                {{ form.key_id }}
+                                {% if form.key_id.errors %}
+                                    <div class="text-danger mt-1">{{ form.key_id.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Your gateway's publishable key or API key ID</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.key_secret.id_for_label }}" class="form-label">API Secret Key</label>
+                                {{ form.key_secret }}
+                                {% if form.key_secret.errors %}
+                                    <div class="text-danger mt-1">{{ form.key_secret.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Your gateway's secret key (keep this secure)</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.webhook_secret.id_for_label }}" class="form-label">Webhook Secret</label>
+                                {{ form.webhook_secret }}
+                                {% if form.webhook_secret.errors %}
+                                    <div class="text-danger mt-1">{{ form.webhook_secret.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Secret for verifying webhook signatures</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Active
+                                    </label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                    <div class="text-danger mt-1">{{ form.is_active.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>{% if action == 'create' %}Create Gateway{% else %}Update Gateway{% endif %}
+                                    </button>
+                                    <a href="{% url 'admin_interface:admin_payment_gateways' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Gateway Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Supported Gateways</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Razorpay</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Stripe</li>
+                        <li><i class="fas fa-check text-success me-2"></i>PayPal</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6 class="text-muted mb-3">Security Notes</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-shield-alt text-warning me-2"></i>Keep API keys secure</li>
+                        <li><i class="fas fa-shield-alt text-warning me-2"></i>Use test mode for development</li>
+                        <li><i class="fas fa-shield-alt text-warning me-2"></i>Enable webhooks for payment updates</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6 class="text-muted mb-3">Configuration Tips</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-lightbulb text-info me-2"></i>Test thoroughly before going live</li>
+                        <li><i class="fas fa-lightbulb text-info me-2"></i>Set only one gateway as active</li>
+                        <li><i class="fas fa-lightbulb text-info me-2"></i>Configure webhooks for real-time updates</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

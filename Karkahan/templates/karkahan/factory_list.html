@@ -20,7 +20,7 @@
     .sidebar__content { padding: 20px; }
     .sidebar__item { margin-bottom: 20px; }
     .sidebar__item h5 { margin-bottom: 15px; }
-    .accordion__button { background: #F8F9FB; border: 1px solid #EDEDED; border-radius: 8px; padding: 12px 16px; cursor: pointer; }
+    .accordion__button { background: #F8F9FB; border: 1px solid #4853cd; border-radius: 8px; padding: 12px 16px; cursor: pointer; }
     .accordion__content { padding: 15px 0; }
     .modern-select-top { width: 100%; height: 45px; border-radius: 8px; border: 1px solid #EDEDED; background: #F8F9FB; padding: 0 15px; font-weight: 600; color: #1A1C1E; appearance: none; }
     .form-checkbox { margin-bottom: 10px; }
@@ -52,64 +52,62 @@
         #mobile-filters.active { display: block; }
     }
 
-    /* Factory Cards - Tour Card Style */
-    .factoryCard { 
-        background: white; 
-        border-radius: 16px; 
-        overflow: hidden; 
-        border: 1px solid #EDEDED; 
-        transition: all 0.4s ease; 
-        display: flex;
-        gap: 20px;
-        padding: 20px;
-    }
-    
-    .factoryCard:hover { 
-        transform: translateY(-2px); 
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
-    }
-    
-    .factoryCard__image { 
-        position: relative; 
-        flex-shrink: 0;
-        width: 280px;
-        height: 180px;
-        border-radius: 12px;
+    /* ===== FACTORY CARD STYLES ===== */
+    .factoryCard {
+        background: white;
+        border-radius: 16px;
         overflow: hidden;
+        border: 1px solid #EDEDED;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        min-height: 280px;
     }
-    
-    .factoryCard__image img { 
-        width: 100%; 
-        height: 100%; 
-        object-fit: cover; 
-        transition: transform 0.3s ease; 
+    .factoryCard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     }
-    
-    .factoryCard__image:hover img { 
-        transform: scale(1.02); 
+
+    /* Image Section */
+    .factoryCard__image {
+        position: relative;
+        flex: 0 0 280px;
+        background: #F8F9FB;
+        overflow: hidden;
+        max-height: 300px;
     }
-    
-    .factoryCard__badge { 
-        position: absolute; 
-        top: 12px; 
-        left: 12px; 
+    .factoryCard__image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
     }
-    
-    .factoryCard__favorite { 
-        position: absolute; 
-        top: 12px; 
-        right: 12px; 
+    .factoryCard__image:hover img {
+        transform: scale(1.02);
     }
-    
-    /* Content Indicators */
+
+    /* Badges & Indicators */
+    .factoryCard__badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 2;
+    }
+    .factoryCard__favorite {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 2;
+    }
     .factoryCard__indicators {
         position: absolute;
         top: 12px;
         right: 12px;
         display: flex;
         gap: 6px;
+        z-index: 2;
     }
-    
     .indicator-badge {
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid #EDEDED;
@@ -125,13 +123,11 @@
         transition: all 0.2s ease;
         position: relative;
     }
-    
     .indicator-badge:hover {
         background: #EB662B;
         color: white;
         transform: scale(1.1);
     }
-    
     .badge-count {
         position: absolute;
         top: -5px;
@@ -146,181 +142,202 @@
         align-items: center;
         justify-content: center;
     }
-    
     .gallery-indicator { border-color: #EB662B; }
     .video-indicator { border-color: #28a745; }
-    
-    .factoryCard__content { 
+
+    /* Content Section */
+    .factoryCard__content {
         flex: 1;
-        padding: 0;
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
-    
-    .factoryCard__location { 
-        color: #666; 
+    .factoryCard__location {
+        color: #666;
         font-size: 13px;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    
-    .factoryCard__title { 
-        font-size: 18px; 
-        font-weight: 700; 
-        margin-top: 8px;
+    .factoryCard__title {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 8px 0 12px 0;
         line-height: 1.3;
         color: #1A1C1E;
     }
-    
-    .factoryCard__text { 
-        color: #666; 
-        font-size: 13px; 
+    .factoryCard__text {
+        color: #666;
+        font-size: 14px;
         line-height: 1.5;
-        margin-top: 8px;
+        margin-bottom: 16px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    
-    .factoryCard__info { 
-        padding: 15px 0 0 0; 
-        border-top: 1px solid #EDEDED; 
-        display: flex; 
-        justify-content: flex-start;
-        align-items: center;
-        margin-top: auto;
+    .factoryMeta {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
     }
-    
-    /* Enhanced Button Group Styling */
-    .factoryCard__info .d-flex {
+    .factoryMeta__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #555;
+    }
+    .factoryMeta__item i {
+        color: #EB662B;
+        width: 18px;
+    }
+
+    /* Action Buttons */
+    .factoryCard__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+        border-top: 1px solid #EDEDED;
+        padding-top: 16px;
+    }
+    .price-tag {
+        display: flex;
+        flex-direction: column;
+    }
+    .price-label {
+        font-size: 12px;
+        color: #666;
+    }
+    .price-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1A1C1E;
+    }
+    .btn-group {
+        display: flex;
         gap: 8px;
         flex-wrap: wrap;
     }
-    
-    .factoryCard__info .button {
+    /* --- Adjusted button sizes for smaller, better fit --- */
+    .btn-group .button {
         font-size: 12px;
         padding: 6px 12px;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border: 1px solid #EDEDED;
+        border-radius: 8px;
+        transition: all 0.2s;
     }
-    
-    .factoryCard__info .button:hover {
+    .btn-group .btn-outline {
+        background: white;
+        border: 1px solid #EB662B;
+        color: #EB662B;
+    }
+    .btn-group .btn-outline:hover {
+        background: #EB662B;
+        color: white;
+        border-color: #EB662B;
+    }
+    .btn-group .btn-primary {
+        background: #EB662B;
+        border: none;
+        color: white;
+    }
+    .btn-group .btn-primary:hover {
+        background: #d45b23;
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .factoryCard__info .btn-sm {
-        min-width: 120px;
-        justify-content: center;
-    }
-    
-    .factoryCard__price { 
-        margin: 0;
-    }
-    
-    .factoryCard__price div { 
-        font-size: 12px; 
-        color: #666; 
-    }
-    
-    .factoryCard__price .text-20 { 
-        font-size: 16px; 
-        font-weight: 600; 
-        color: #333; 
+        box-shadow: 0 2px 8px rgba(235,102,43,0.2);
     }
 
-    /* Responsive Design - Smaller Mobile Dimensions */
-    @media (max-width: 1199px) {
-        .factoryCard { 
-            padding: 16px;
-            gap: 16px;
-        }
-        .factoryCard__image { 
-            width: 240px;
-            height: 160px;
-        }
-    }
-
+    /* Responsive */
     @media (max-width: 991px) {
-        .factoryCard { 
+        .factoryCard {
             flex-direction: column;
-            padding: 16px;
+            min-height: auto;
         }
-        .factoryCard__image { 
-            width: 100%;
-            height: 160px;
+        .factoryCard__image {
+            flex: 0 0 auto;
+            height: 200px;
         }
-        .factoryCard__content { 
-            padding: 0;
+        .factoryCard__content {
+            padding: 20px;
         }
-        .factoryCard__info { 
-            padding: 12px 0 0 0;
+        .factoryCard__actions {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
+            align-items: stretch;
+        }
+        .btn-group {
+            justify-content: center;
+        }
+        .price-tag {
+            text-align: center;
+            margin-bottom: 8px;
         }
     }
 
     @media (max-width: 768px) {
-        .hero { min-height: 350px; }
-        .hero__title { font-size: 32px; }
-        .hero__text { font-size: 16px; }
-        .sidebar { margin-bottom: 20px; }
-        .accordion__button { font-size: 14px; padding: 10px 12px; }
-        .modern-select-top { height: 40px; font-size: 14px; }
-        
-        .factoryCard { 
-            padding: 14px;
-            gap: 12px;
+        .factoryCard__image { height: 180px; }
+        .factoryCard__title { font-size: 18px; }
+        .factoryCard__text { font-size: 13px; }
+        .factoryMeta__item { font-size: 12px; }
+        /* Further reduce button size on mobile */
+        .btn-group .button {
+            font-size: 10px;
         }
-        .factoryCard__image { 
-            height: 140px;
-        }
-        .factoryCard__title { 
-            font-size: 16px;
-        }
-        .factoryCard__text { 
-            font-size: 12px;
-            -webkit-line-clamp: 2;
-        }
-        .factoryCard__price .text-20 { 
-            font-size: 14px; 
-        }
+        .price-value { font-size: 18px; }
     }
 
-    @media (max-width: 576px) {
-        .factoryCard { 
-            padding: 12px;
-            gap: 10px;
-        }
-        .factoryCard__image { 
-            height: 120px;
-        }
-        .factoryCard__title { 
-            font-size: 15px;
-        }
-        .factoryCard__text { 
-            font-size: 12px;
-            -webkit-line-clamp: 1;
-        }
-        .factoryCard__location { 
-            font-size: 12px;
-        }
-        .factoryCard__price .text-20 { 
-            font-size: 13px; 
-        }
+    /* Search form full width */
+    .searchForm {
+        width: 100%;
+    }
+    .searchForm .searchFormItem__button {
+        width: 100%;
+    }
+    .searchForm .searchFormItem__button .d-flex {
+        width: 100%;
+    }
+    .searchForm .searchFormItem__button input {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid #EDEDED;
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    .searchForm .searchFormItem__button i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+    }
+    .searchForm .pl-calendar {
+        position: relative;
+        width: 100%;
+    }
+    .searchForm .pl-calendar input {
+        width: 100%;
+        padding-left: 45px;
+    }
+    .pl-calendar{
+        padding: 0px;
     }
 
-    /* Accordion Styles */
-    .accordion -simple-2 .accordion__item { margin-bottom: 10px; }
-    .accordion -simple-2 .accordion__button { background: #F8F9FB; border: 1px solid #EDEDED; }
-    .accordion -simple-2 .accordion__content { border-top: 1px solid #EDEDED; }
-    .accordion__icon { transition: transform 0.3s ease; }
-    .accordion__item-active .accordion__icon { transform: rotate(180deg); }
+    /* Mobile: filter button inline with search */
+    .mobile-filter-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    @media (max-width: 767px) {
+        .mobile-filter-btn {
+            padding: 0 12px;
+            height: 48px;
+            line-height: 48px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -333,26 +350,65 @@
   <div class="container">
     <div class="row justify-center">
       <div class="col-xl-12">
-        <div class="hero__content ">
-          <h1 class="hero__title text-light-1 ">Factory <span class="text-accent-1">Inventory</span></h1>
-          <p class="hero__text text-light-1 ">Discover and explore industrial facilities across our global network.</p>
+        <div class="hero__content">
+          <h1 class="hero__title text-light-1">Factory <span class="text-accent-1">Inventory</span></h1>
+          <p class="hero__text text-light-1">Discover and explore industrial facilities across our global network.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
+
 <section class="layout-pt-md layout-pb-xl bg-light-1">
   <div class="container">
-    <div class="row">
-      <div class="col-xl-3 col-lg-4">
-        <!-- <div class="compact-filter-toggle">
-          <button class="button -md bg-accent-1 text-white px-30 rounded-12 w-100" onclick="toggleMobileFilters()">
-            <i class="icon-filter mr-10"></i>
-            Show Filters
+    <!-- Full-width search bar + filter (mobile) + cart -->
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="d-flex gap-2 gap-md-3 align-items-center">
+          <!-- Mobile filter button (visible only on mobile) -->
+          <button id="mobileFilterBtn" class="button -md bg-dark-1 text-white px-3 px-md-4 py-2 rounded-8 d-lg-none mobile-filter-btn">
+            <i class="fas fa-filter me-1"></i> <span class="d-none d-sm-inline">Filter</span>
           </button>
-        </div> -->
-        
-        <div class="lg:d-none" id="mobile-filters">
+          
+          <div class="searchForm -type-1 -col-1 -narrow flex-grow-1">
+            <div class="searchForm__form">
+              <div class="searchFormItem">
+                <div class="searchFormItem__button">
+                  <div class="pl-calendar d-flex items-center">
+                    <i class="icon-search text-20 mr-15"></i>
+                    <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" placeholder="Search factories...">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {% if user.is_authenticated %}
+          <a href="{% url 'karkahan:cart_detail' %}" class="button -md bg-accent-1 text-white rounded-8 position-relative flex-shrink-0">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="d-none d-sm-inline ms-1">Cart</span>
+            {% if cart_items_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-badge-count">
+              {{ cart_items_count }}
+            </span>
+            {% endif %}
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Results count row (below search bar) -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="fw-semibold text-muted">{{ page_obj.paginator.count }} results found</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Sidebar Filters -->
+      <div class="col-xl-3 col-lg-4">
+        <div id="mobile-filters">
           <div class="sidebar -type-1 overflow-hidden rounded-12">
             <div class="sidebar__content">
               <!-- Location Filters -->
@@ -379,15 +435,15 @@
                 </select>
               
                 <label for="district">District</label>
-                <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.state %}disabled{% endif %}>
+                <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
                     <option value="">Select District</option>
-                    {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.city == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
+                    {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                 </select>
               
                 <label for="region">Region</label>
-                <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.state %}disabled{% endif %}>
+                <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                     <option value="">Select Region</option>
-                    {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.city == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
+                    {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
                 </select>
               </div>
 
@@ -409,26 +465,8 @@
                 </select>
               </div>
 
-              <!-- Operational Status -->
-              <!-- <div class="filter-group">
-                <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Operational Status</label>
-                <div class="d-flex flex-column y-gap-15">
-                  <div class="form-checkbox">
-                    <input type="checkbox" name="is_active" {% if request.GET.is_active == 'true' %}checked{% endif %}>
-                    <label>Active Facilities</label>
-                  </div>
-                  <div class="form-checkbox">
-                    <input type="checkbox" name="is_verified" {% if request.GET.is_verified == 'true' %}checked{% endif %}>
-                    <label>Verified Facilities</label>
-                  </div>
-                </div>
-              </div> -->
-
               <div class="filter-actions">
                 <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
-                <!-- <button id="apply-filter-btn" class="btn-apply" style="display:none; text-align:center;">
-                  <i class="icon-filter mr-10" ></i>Apply Filter
-                </button> -->
                 <button id="apply-filter-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
               </div>
               {% if user.is_authenticated %}
@@ -441,17 +479,17 @@
             </div>
           </div>
         </div>
+        <!-- Desktop accordion (hidden on mobile) -->
         <div class="accordion d-none mb-30 lg:d-flex js-accordion">
           <div class="accordion__item col-12">
-            <button class="accordion__button button -dark-1 bg-light-1 px-25 py-10 border-1 rounded-12">
-              <i class="icon-sort-down mr-10 text-16"></i>
-              Filter
+            <button class="accordion__button button -dark-1 bg-light-1 px-25 py-10 border-1 rounded-12" style="display: none;">
+              <i class="icon-sort-down mr-10 text-16"></i> Filter
             </button>       
             <div class="accordion__content">
               <div class="pt-20">
                 <div class="sidebar -type-1 overflow-hidden rounded-12">
                   <div class="sidebar__content">
-                    <!-- Location Filters -->
+                    <!-- Location Filters (same as above) -->
                     <div class="filter-group">
                       <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Locations</label>
                       <label for="country">Country</label>
@@ -475,15 +513,15 @@
                       </select>
                     
                       <label for="district">District</label>
-                      <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.state %}disabled{% endif %}>
+                      <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
                           <option value="">Select District</option>
-                          {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.city == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
+                          {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                       </select>
                     
                       <label for="region">Region</label>
-                      <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.state %}disabled{% endif %}>
+                      <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                           <option value="">Select Region</option>
-                          {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.city == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
+                          {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
                       </select>
                     </div>
 
@@ -505,26 +543,9 @@
                       </select>
                     </div>
 
-                    <!-- Operational Status
-                    <div class="filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Operational Status</label>
-                      <div class="d-flex flex-column y-gap-15">
-                        <div class="form-checkbox">
-                          <input type="checkbox" name="is_active" {% if request.GET.is_active == 'true' %}checked{% endif %}>
-                          <label>Active Facilities</label>
-                        </div>
-                        <div class="form-checkbox">
-                          <input type="checkbox" name="is_verified" {% if request.GET.is_verified == 'true' %}checked{% endif %}>
-                          <label>Verified Facilities</label>
-                        </div>
-                      </div>
-                    </div> -->
-
                     <div class="filter-actions">
                       <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
-                      <button id="apply-filter-btn" class="btn-apply" style="display:none;">
-                        <i class="icon-filter mr-10"></i>Apply Filter
-                      </button>
+                      <button id="apply-filter-btn-desktop" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
                     </div>
                   </div>
                 </div>
@@ -533,49 +554,21 @@
           </div>
         </div>
       </div> 
+
+      <!-- Main Content Area -->
       <div class="col-xl-9 col-lg-8">
-        <div class="row y-gap-5 justify-between">
-          <div class="col-auto">
-            <div>{{ page_obj.paginator.count }} results</div>
-          </div>     
-          <div class="col-auto">
-            <div class="d-flex align-items-center gap-3">
-              <div class="searchForm -type-1 -col-1 -narrow">
-                <div class="searchForm__form">
-                  <div class="searchFormItem">
-                    <div class="searchFormItem__button">
-                      <div class="pl-calendar d-flex items-center">
-                        <i class="icon-search text-20 mr-15"></i>
-                        <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" placeholder="Search factories...">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {% if user.is_authenticated %}
-              <a href="{% url 'karkahan:cart_view' %}" class="button -md bg-accent-1 text-white px-20 py-10 rounded-8 position-relative">
-                <i class="fas fa-shopping-cart me-2"></i> Cart
-                {% if cart_items_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {{ cart_items_count }}
-                  <span class="visually-hidden">items in cart</span>
-                </span>
-                {% endif %}
-              </a>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-        <div class="row y-gap-30 pt-30">
+        <div class="row y-gap-30">
           {% if page_obj %}
             {% for factory in page_obj %}
               <div class="col-12">
-                <div class="factoryCard -type-2">
+                <div class="factoryCard">
+                  <!-- Image Section -->
                   <div class="factoryCard__image">
                     {% with primary_image=factory.get_primary_image %}
                       {% if primary_image %}
                         <img src="{{ primary_image }}" alt="{{ factory.name }}">
                       {% else %}
+                        <img src="{% static 'img/tourCards/1/8.png' %}" alt="{{ factory.name }}">
                         <div class="placeholder-icon h-100 center bg-light-1"><i class="fas fa-industry fa-4x text-accent-1 opacity-20"></i></div>
                       {% endif %}
                     {% endwith %}
@@ -585,126 +578,140 @@
                         {{ factory.factory_type|default:"Industrial Asset" }}
                       </div>
                     </div>               
-                    {% if factory.is_verified %}
-                    <div class="factoryCard__favorite">
-                      <button class="button -accent-1 size-35 bg-white rounded-full flex-center">
-                        <i class="icon-check text-15"></i>
-                      </button>
-                    </div>
-                    {% endif %}
                     
-                    <!-- Content Indicators -->
+                    
+                    <!-- NEW: AJAX Cart Button (replaces old cart indicator) -->
                     <div class="factoryCard__indicators">
-                        {% if factory.images.exists %}
-                        <span class="indicator-badge gallery-indicator" title="View Gallery">
-                            <i class="fas fa-images"></i>
-                            <span class="badge-count">{{ factory.images.count }}</span>
+                      <!-- {% if factory.images.exists %}
+                      <span class="indicator-badge gallery-indicator" title="View Gallery">
+                        <i class="fas fa-images"></i>
+                        <span class="badge-count">{{ factory.images.count }}</span>
+                      </span>
+                      {% endif %}
+                      
+                      {% if factory.video_url %}
+                      <span class="indicator-badge video-indicator" title="Watch Video">
+                        <i class="fas fa-play"></i>
+                      </span>
+                      {% endif %}
+                      
+                      {% if factory.is_verified %}
+                        <span class="indicator-badge bg-success text-white" title="is varified">
+                            <i class="icon-check text-15"></i>
                         </span>
-                        {% endif %}
-                        
-                        {% if factory.video_url %}
-                        <span class="indicator-badge video-indicator" title="Watch Video">
-                            <i class="fas fa-play"></i>
-                        </span>
-                        {% endif %}
-                        
-                        {% if user.is_authenticated %}
-                            {% for cart_item in cart_items %}
-                                {% if cart_item.factory == factory %}
-                                <span class="indicator-badge bg-warning text-dark" title="In Cart">
-                                    <i class="fas fa-shopping-cart"></i>
-                                </span>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                  </div>             
-                  <div class="factoryCard__content">
-                    <div class="factoryCard__location">
-                      <i class="icon-pin"></i>
-                      {{ factory.city.name }}, {{ factory.state.name }}
-                    </div>               
-                    <h3 class="factoryCard__title mt-5">
-                      <span>{{ factory.name }}</span>
-                    </h3>                 
-                    <p class="factoryCard__text mt-5">
-                      {{ factory.description|default:"Detailed manufacturing data for this facility is available in the profile."|truncatewords:20 }}
-                    </p>    
-                    <div>
-                      <div class="d-flex items-center text-14">
-                        <i class="icon-building mr-10"></i>
-                        {{ factory.category.name }}
-                      </div>        
-                    </div>   
-                    <div>
-                      <div class="d-flex items-center text-14">
-                        <i class="icon-building mr-10"></i>
-                        {% if factory.price > 0 %}
-                            Rs. {{ factory.price|intcomma }}
+                      {% endif %} -->
+
+                      {% if user.is_authenticated %}
+                        {% if factory.id in cart_items %}
+                          <span class="indicator-badge bg-success text-white" title="In Cart">
+                            <i class="fas fa-heart"></i>
+                          </span>
                         {% else %}
-                            <span class="badge bg-success">Free</span>
+                          <button class="indicator-badge cart-add-btn" data-factory-slug="{{ factory.slug }}" data-factory-name="{{ factory.name }}" title="Add to Cart">
+                            <i class="fas fa-heart"></i>
+                          </button>
                         {% endif %}
-                      </div>        
+                      {% else %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart">
+                          <i class="fas fa-heart"></i>
+                        </a>
+                      {% endif %}
                     </div>
-                  </div>             
-                    <div class="factoryCard__info">
-                    <div class="d-flex flex-wrap gap-2">
-                        <!-- Gallery Button - Only if images exist -->
+                  </div>
+
+                  <!-- Content Section -->
+                  <div class="factoryCard__content">
+                    <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}">
+                      <div>
+                        <div class="factoryCard__location">
+                          <i class="icon-pin"></i> {{ factory.city.name }}, {{ factory.state.name }}
+                        </div>
+                        <h3 class="factoryCard__title">{{ factory.name }} {% if factory.is_verified %}<i style="background-color: #28a745; text-align: right; color: #F8F9FB; font-size:10px;  border-radius: 20%" > verified  </i> {% endif %} </h3>
+                        <p class="factoryCard__text">
+                          {{ factory.description|default:"Detailed manufacturing data for this facility is available in the profile."|truncatewords:20 }}
+                        </p>
+                        <div class="factoryMeta">
+                          <div class="factoryMeta__item">
+                            <i class="fas fa-industry"></i>
+                            <span>{{ factory.category.name }}</span>
+                          </div>
+                          <!-- {% if factory.production_capacity %}
+                          <div class="factoryMeta__item">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Capacity: {{ factory.production_capacity }}</span>
+                          </div>
+                          {% endif %}
+                          {% if factory.employee_count %}
+                          <div class="factoryMeta__item">
+                            <i class="fas fa-users"></i>
+                            <span>{{ factory.employee_count }} employees</span>
+                          </div>
+                          {% endif %} -->
+                        </div>
+                      </div>
+                    </a>
+
+                    <!-- Action Buttons & Price -->
+                    <div class="factoryCard__actions">
+                      <div class="price-tag">
+                        <div class="price-value">
+                          {% if factory.price > 0 %}
+                            Rs. {{ factory.price|intcomma }}
+                          {% else %}
+                            Free
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="btn-group">
                         {% if factory.images.exists %}
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" 
-                           class="button -outline-accent-1 text-accent-1 btn-sm">
-                            <i class="fas fa-images me-2"></i> Gallery ({{ factory.images.count }})
+                           class="button btn-outline">
+                           <i class="fas fa-images me-1"></i> Gallery ({{ factory.images.count }})
                         </a>
                         {% endif %}
                         
-                        <!-- Video Button - Only if video exists -->
                         {% if factory.video_url %}
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#video" 
-                           class="button -outline-accent-1 text-accent-1 btn-sm">
-                            <i class="fas fa-play me-2"></i> Video Tour
+                           class="button btn-outline">
+                           <i class="fas fa-play me-1"></i> Video
                         </a>
                         {% endif %}
                         
-                        <!-- Main Details Button -->
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
-                           class="button -outline-accent-1 text-accent-1 btn-sm">
-                            <i class="fas fa-info-circle me-2"></i> Details
+                           class="button btn-outline">
+                           <i class="fas fa-info-circle me-1"></i> Details
                         </a>
                         
-                        <!-- Purchase Button -->
+                        <!-- Original Purchase Button (unchanged) -->
                         {% if factory.price >= 0 %}
                             {% if user.is_authenticated %}
                                 {% if factory.has_user_purchased.user %}
-                                    <span class="button -md bg-success text-white btn-sm disabled">
-                                        <i class="fas fa-check me-2"></i> Purchased
+                                    <span class="button btn-primary disabled" style="background:#28a745;">
+                                        <i class="fas fa-check me-1"></i> Purchased
                                     </span>
                                 {% else %}
                                     <a href="{% url 'karkahan:add_to_cart' factory.slug %}" 
-                                       class="button -md bg-accent-1 text-white btn-sm">
-                                        <i class="fas fa-shopping-cart me-2"></i> 
+                                       class="button btn-primary">
+                                        <i class="fas fa-shopping-cart me-1"></i> 
                                         {% if factory.price > 0 %}
-                                            Add to Cart - Rs. {{ factory.price|intcomma }}
+                                            Add to Cart
                                         {% else %}
-                                            Add to Cart - Free
+                                            Get Free
                                         {% endif %}
                                     </a>
                                 {% endif %}
                             {% else %}
                                 <a href="{% url 'login' %}?next={{ request.path }}" 
-                                   class="button -md bg-accent-1 text-white btn-sm">
-                                    <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
-                                    {% if factory.price > 0 %}
-                                        - Rs. {{ factory.price|intcomma }}
-                                    {% else %}
-                                        - Free
-                                    {% endif %}
+                                   class="button btn-primary">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Login to Purchase
                                 </a>
                             {% endif %}
                         {% else %}
-                            <span class="button -md bg-secondary text-white btn-sm disabled">
-                                <i class="fas fa-ban me-2"></i> Not Available
+                            <span class="button btn-secondary disabled" style="background:#6c757d;">
+                                <i class="fas fa-ban me-1"></i> Unavailable
                             </span>
                         {% endif %}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -718,6 +725,7 @@
             </div>
           {% endif %}
         </div>   
+
         {% if is_paginated %}
           <div class="d-flex justify-center flex-column mt-60">
             <div class="pagination justify-center">
@@ -747,29 +755,30 @@
     </div>
   </div>
 </section>
-
 {% endblock %}
-
 
 {% block extra_js %}
 <script>
-// Mobile Filter Toggle Function
-function toggleMobileFilters() {
-    const filters = document.getElementById('mobile-filters');
-    const button = document.querySelector('.compact-filter-toggle .button');
-    
-    if (filters.classList.contains('active')) {
-        filters.classList.remove('active');
-        button.innerHTML = '<i class="icon-filter mr-10"></i>Show Filters';
-    } else {
-        filters.classList.add('active');
-        button.innerHTML = '<i class="icon-filter mr-10"></i>Hide Filters';
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Helper: Update all instances of a dropdown (Mobile & Desktop)
+    // Mobile filter toggle
+    const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+    const mobileFilters = document.getElementById('mobile-filters');
+    if (mobileFilterBtn && mobileFilters) {
+        mobileFilterBtn.addEventListener('click', function() {
+            mobileFilters.classList.toggle('active');
+            const icon = this.querySelector('i');
+            const textSpan = this.querySelector('span.d-none');
+            if (mobileFilters.classList.contains('active')) {
+                icon.className = 'fas fa-times me-1';
+                if (textSpan) textSpan.innerText = 'Close';
+            } else {
+                icon.className = 'fas fa-filter me-1';
+                if (textSpan) textSpan.innerText = 'Filter';
+            }
+        });
+    }
+
+    // Helper: Update all instances of a dropdown
     const updateTargetDropdowns = (name, data, label) => {
         const selects = document.querySelectorAll(`select[name="${name}"]`);
         selects.forEach(select => {
@@ -781,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // 2. AJAX & Chaining Logic
+    // AJAX & Chaining Logic
     const handleFilterChange = (element) => {
         const value = element.value;
         const name = element.getAttribute('name');
@@ -791,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll(`select[name="${name}"]`).forEach(el => { if (el !== element) el.value = value; });
 
         // Show Apply buttons
-        document.querySelectorAll('.js-apply-btn, #apply-filter-btn').forEach(btn => btn.style.display = 'block');
+        document.querySelectorAll('#apply-filter-btn, #apply-filter-btn-desktop').forEach(btn => btn.style.display = 'block');
 
         if (!value || !nextField) return;
 
@@ -804,7 +813,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (url) {
             fetch(url).then(res => res.json()).then(data => {
-                // Handle different JSON structures (List vs Object)
                 const items = Array.isArray(data) ? data : (data.subcategories || []);
                 const label = `Select ${nextField.charAt(0).toUpperCase() + nextField.slice(1)}`;
                 updateTargetDropdowns(nextField, items, label);
@@ -812,42 +820,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 3. Bind Events
+    // Bind Events
     document.querySelectorAll('.js-filter-select').forEach(select => {
         select.addEventListener('change', function() { handleFilterChange(this); });
     });
 
-    // 4. Final Submission Logic
-    document.querySelectorAll('.js-apply-btn, #apply-filter-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            applyFilters();
-        });
-    });
-
-    // 5. Search Functionality
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        // Trigger search on Enter key
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                applyFilters();
-            }
-        });
-
-        // Optional: Add debounced search on input (search after user stops typing for 500ms)
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                applyFilters();
-            }, 500);
-        });
-    }
-
-    // Helper function to apply filters and search
-    function applyFilters() {
+    // Apply filters function
+    const applyFilters = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const fields = ['category', 'subcategory', 'country', 'state', 'city', 'district', 'region'];
         
@@ -857,8 +836,8 @@ document.addEventListener('DOMContentLoaded', function() {
             else urlParams.delete(field);
         });
 
-        // Handle Search
-        const search = document.querySelector('input[name="search"]');
+        // Get search value
+        const search = document.getElementById('search-input');
         if (search && search.value) {
             urlParams.set('search', search.value);
         } else {
@@ -867,7 +846,100 @@ document.addEventListener('DOMContentLoaded', function() {
 
         urlParams.delete('page'); 
         window.location.search = urlParams.toString();
+    };
+
+    // Attach to both apply buttons
+    document.querySelectorAll('#apply-filter-btn, #apply-filter-btn-desktop').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            applyFilters();
+        });
+    });
+
+    // Search on Enter key
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFilters();
+            }
+        });
     }
+
+    // ---------- NEW: AJAX Add to Cart ----------
+    const addButtons = document.querySelectorAll('.cart-add-btn');
+    const cartBadge = document.getElementById('cart-badge-count');
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    addButtons.forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const slug = this.dataset.factorySlug;
+            const originalIcon = this.innerHTML;
+            const originalTitle = this.getAttribute('title');
+
+            // Disable button and show spinner
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.setAttribute('title', 'Adding...');
+
+            try {
+                const response = await fetch(`/karkahan/cart/add-api/${slug}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update cart badge count
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) {
+                            cartBadge.style.display = 'inline-block';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
+                    }
+                    // Change button to "Added" style
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    this.classList.remove('cart-add-btn');
+                    this.classList.add('bg-success', 'text-white');
+                    this.disabled = true;
+                    this.setAttribute('title', 'In Cart');
+                } else {
+                    // Restore original
+                    this.innerHTML = originalIcon;
+                    this.disabled = false;
+                    this.setAttribute('title', originalTitle);
+                    alert(data.message || 'Failed to add to cart.');
+                }
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                this.innerHTML = originalIcon;
+                this.disabled = false;
+                this.setAttribute('title', originalTitle);
+                alert('Network error. Please try again.');
+            }
+        });
+    });
 });
 </script>
 {% endblock %}

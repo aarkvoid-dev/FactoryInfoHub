@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from .models import Category, SubCategory
 from .forms import CategoryForm, SubCategoryForm
 
+from django.db.models import Prefetch
+
 
 @login_required
 def category_dashboard(request):
@@ -20,6 +22,28 @@ def category_dashboard(request):
     }
     return render(request, 'category/dashboard.html', context)
 
+
+
+def user_category_list(request):
+    """
+    Display all categories and their subcategories.
+    """
+    # Fetch all active categories with their active subcategories, ordered by name
+    categories = Category.objects.filter(
+        is_active=True,
+        is_deleted=False
+    ).prefetch_related(
+        Prefetch(
+            'subcategories',
+            queryset=SubCategory.objects.filter(is_active=True, is_deleted=False).order_by('name')
+        )
+    ).order_by('name')
+    
+    context = {
+        'categories': categories,
+        'title': 'Browse Categories',
+    }
+    return render(request, 'category/user_category_list.html', context)
 
 # Category Views
 @login_required

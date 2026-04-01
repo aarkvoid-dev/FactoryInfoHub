@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block meta_description %}{{ page.meta_description|default:page.content|truncatewords:30 }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #EB662B;
+        --primary-dark: #d45b23;
+        --secondary: #011d54;
+        --secondary-light: #0a3d91;
+        --gray-light: #f8fafc;
+        --border-light: #eef2f6;
+    }
+
+    /* Hero Section - Modern Design */
+    .hero-modern {
+        position: relative;
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 50%, var(--primary) 100%);
+        min-height: 480px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .hero-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.03)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+        opacity: 0.4;
+        pointer-events: none;
+    }
+    .hero-modern::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 30%, rgba(235,102,43,0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 80px 20px;
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(8px);
+        padding: 8px 20px;
+        border-radius: 100px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 24px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .hero-title {
+        font-size: 52px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: white;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .hero-description {
+        font-size: 18px;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.9);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Content Card */
+    .content-card {
+        background: white;
+        border-radius: 32px;
+        padding: 48px;
+        margin-top: -60px;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-light);
+    }
+    @media (max-width: 768px) {
+        .content-card {
+            padding: 28px;
+            margin-top: -40px;
+        }
+        .hero-title {
+            font-size: 36px;
+        }
+        .hero-description {
+            font-size: 16px;
+        }
+    }
+
+    /* Content Sections */
+    .policy-section {
+        margin-bottom: 48px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border-light);
+        transition: all 0.3s ease;
+    }
+    .policy-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .section-heading {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #1e293b;
+        position: relative;
+        padding-left: 20px;
+        border-left: 4px solid var(--primary);
+    }
+    .section-content {
+        color: #334155;
+        line-height: 1.7;
+        font-size: 16px;
+    }
+    .section-content p {
+        margin-bottom: 16px;
+    }
+    .section-content h1, .section-content h2, .section-content h3, .section-content h4 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        color: #0f172a;
+    }
+    .section-content ul, .section-content ol {
+        margin-left: 24px;
+        margin-bottom: 16px;
+    }
+    .section-content li {
+        margin-bottom: 8px;
+    }
+    .section-content a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    .section-content a:hover {
+        border-bottom-color: var(--primary);
+    }
+
+    /* Help Box */
+    .help-box {
+        background: linear-gradient(135deg, rgba(235,102,43,0.05) 0%, rgba(1,29,84,0.05) 100%);
+        border-radius: 24px;
+        padding: 32px;
+        margin-top: 48px;
+        border: 1px solid rgba(235,102,43,0.1);
+        transition: all 0.3s ease;
+    }
+    .help-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    }
+    .help-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(235,102,43,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 24px;
+        margin-right: 20px;
+        flex-shrink: 0;
+    }
+    .help-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+    .help-text {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+    .help-text a {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        background: #fef9e8;
+        border-radius: 24px;
+        padding: 48px;
+        text-align: center;
+        border: 1px solid #ffedd5;
+    }
+    .empty-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+    .empty-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #1e293b;
+    }
+    .empty-text {
+        color: #64748b;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Hero Section -->
+<section class="hero-modern">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-file-alt"></i>
+                <span>{{ page.get_page_type_display|default:page.page_type|upper }}</span>
+            </div>
+            <h1 class="hero-title">{{ page.title }}</h1>
+            <p class="hero-description">
+                {% if page.meta_description %}
+                    {{ page.meta_description }}
+                {% else %}
+                    {{ page.content|striptags|truncatewords:35 }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-1">
+    <div class="container">
+        <div class="row justify-center">
+            <div class="col-lg-10">
+                <div class="content-card">
+                    <!-- Main Content -->
+                    {% if page.content %}
+                        <div class="policy-section">
+                            <h2 class="section-heading">Overview</h2>
+                            <div class="section-content">
+                                {{ page.content|safe }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Additional Sections -->
+                    {% if sections %}
+                        <div class="additional-sections">
+                            {% for section in sections %}
+                                <div class="policy-section">
+                                    {% if section.title %}
+                                        <h2 class="section-heading">{{ section.title }}</h2>
+                                    {% endif %}
+                                    <div class="section-content">
+                                        {{ section.content|safe }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Empty State -->
+                    {% if not page.content and not sections %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="empty-title">Content Coming Soon</h3>
+                            <p class="empty-text">We're currently preparing this information. Please check back later or contact support for assistance.</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Help Box -->
+                    <div class="help-box d-flex align-items-start flex-wrap flex-sm-nowrap gap-4">
+                        <div class="help-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div>
+                            <h5 class="help-title">Need Assistance?</h5>
+                            <p class="help-text">If you have any questions about this page or need help, our support team is here for you. Contact us at <a href="mailto:arfatur.shaikh@gmail.com">arfatur.shaikh@gmail.com</a> or call <strong>+91 9022116040</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Smooth scroll for anchor links inside content
+        const links = document.querySelectorAll('.section-content a[href^="#"]');
+        links.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Animate sections on scroll
+        const sections = document.querySelectorAll('.policy-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = `opacity 0.5s ease, transform 0.5s ease ${index * 0.05}s`;
+            observer.observe(section);
+        });
+    });
+</script>
+{% endblock %}

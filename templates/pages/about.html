@@ -1,0 +1,117 @@
+{% extends 'pages/page.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  /* About Us specific styles */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
+  }
+  
+  .bg-accent-1-10 {
+    background: rgba(235, 102, 43, 0.1);
+  }
+  
+  .bg-accent-1-05 {
+    background: rgba(235, 102, 43, 0.05);
+  }
+  
+  .text-accent-1 {
+    color: #EB662B;
+  }
+  
+  .icon-flag, .icon-eye, .icon-heart {
+    color: #EB662B;
+  }
+  
+  .team-member-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .team-member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .milestone-badge {
+    background: linear-gradient(135deg, #EB662B, #FF8A50);
+    color: white;
+    font-weight: 700;
+  }
+  
+  .stats-grid .stat-item {
+    border-left: 3px solid #EB662B;
+    padding-left: 20px;
+  }
+  
+  .timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    background: #EB662B;
+    border-radius: 50%;
+  }
+  
+  .timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 20px;
+    width: 2px;
+    height: calc(100% + 10px);
+    background: #e2e8f0;
+  }
+  
+  .timeline-item:last-child::after {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animate stats counters
+  const stats = document.querySelectorAll('.stat-number');
+  stats.forEach(stat => {
+    const target = parseInt(stat.getAttribute('data-target'));
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        current = target;
+        clearInterval(timer);
+      }
+      stat.textContent = Math.floor(current);
+    }, 16);
+  });
+  
+  // Animate mission cards
+  const missionCards = document.querySelectorAll('.team-member-card');
+  missionCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 200);
+  });
+});
+</script>
+{% endblock %}

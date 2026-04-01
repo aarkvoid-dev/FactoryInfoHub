@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import Factory, FactoryImage, ShoppingCart, Order, OrderItem, Payment
+from .models import Factory, FactoryImage
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from django.core.exceptions import ValidationError
@@ -22,30 +22,30 @@ class FactoryForm(ModelForm):
             'is_active', 'is_verified'
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4, 'cols': 40, 'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control'}),
-            'holidays': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control'}),
-            'contact_phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control'}),
-            'contact_email': forms.EmailInput(attrs={'type': 'email', 'class': 'form-control'}),
-            'website': forms.URLInput(attrs={'type': 'url', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 4, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., We specialize in textile manufacturing with 20 years of experience...'}),
+            'address': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., 123 Industrial Area, Sector 5, Mumbai, Maharashtra 400001'}),
+            'holidays': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., Diwali, Holi, Republic Day, Independence Day, weekends'}),
+            'contact_phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control', 'placeholder': 'e.g., 9876543210', 'maxlength': '10', 'pattern': '[0-9]{10}', 'title': 'Please enter exactly 10 digits'}),
+            'contact_email': forms.EmailInput(attrs={'type': 'email', 'class': 'form-control', 'placeholder': 'e.g., contact@factoryname.com'}),
+            'website': forms.URLInput(attrs={'type': 'url', 'class': 'form-control', 'placeholder': 'e.g., https://factoryname.com (optional)'}),
             'video_url': forms.URLInput(attrs={
                 'type': 'url', 
                 'class': 'form-control',
-                'placeholder': 'https://youtube.com/watch?v=...',
-                'pattern': 'https://.*',
-                'title': 'Please enter a valid URL starting with https://',
+                'placeholder': 'e.g., https://youtube.com/watch?v=dQw4w9WgXcQ (optional)',
+                'pattern': 'https?://.*',
+                'title': 'Please enter a valid URL starting with http:// or https://',
                 'data-video-preview': 'true'
             }),
-            'established_year': forms.NumberInput(attrs={'min': 1900, 'max': 2030, 'class': 'form-control'}),
-            'employee_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control'}),
-            'annual_turnover': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
-            'factory_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'production_capacity': forms.TextInput(attrs={'class': 'form-control'}),
-            'working_hours': forms.TextInput(attrs={'class': 'form-control'}),
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'pincode': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'established_year': forms.NumberInput(attrs={'min': 1900, 'max': 2030, 'class': 'form-control', 'placeholder': 'e.g., 2015'}),
+            'employee_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'placeholder': 'e.g., 150'}),
+            'annual_turnover': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'placeholder': 'e.g., 5000000.00'}),
+            'factory_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Textile Manufacturing, Electronics Assembly, Food Processing'}),
+            'production_capacity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Bulk/Avrage/Small'}),
+            'working_hours': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 9:00 AM - 6:00 PM, Monday to Saturday'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., ABC Textiles Pvt. Ltd.'}),
+            'pincode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 400001'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Mr. John Doe, Operations Manager'}),
+            'price': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'placeholder': 'e.g., 1500.00'}),
         }
         labels = {
             'name': 'Factory Name',
@@ -76,11 +76,32 @@ class FactoryForm(ModelForm):
             'price': 'Amount'
         }
         help_texts = {
-            'factory_type': 'e.g., Manufacturing, Assembly, Processing',
-            'production_capacity': 'e.g., 1000 units/month',
-            'working_hours': 'e.g., 9:00 AM - 6:00 PM',
-            'holidays': 'List of holidays observed',
-            'video_url': 'Paste YouTube or Vimeo link for factory virtual tour',
+            'name': 'Official registered name of your factory as it appears in business documents',
+            'description': 'Detailed description of your factory operations, capabilities, specialties, and what makes your factory unique',
+            'category': 'Main industry category that best represents your factory type and operations',
+            'subcategory': 'More specific specialization within the selected main category',
+            'country': 'Select the country where your factory is located',
+            'state': 'Select the state or province within the selected country',
+            'city': 'Select the city or municipality where your factory is located',
+            'district': 'Select the district or area within the selected city',
+            'region': 'Select the specific region or locality within the selected district',
+            'address': 'Complete physical address including street, building number, and nearby landmarks',
+            'pincode': 'Postal code or ZIP code for your factory location',
+            'contact_person': 'Name of the primary contact person at your factory for business inquiries',
+            'contact_phone': 'Primary contact phone number (include country code if international)',
+            'contact_email': 'Business email address for official communications and inquiries',
+            'website': 'Your factory\'s official website URL (optional but recommended for credibility)',
+            'video_url': 'Paste YouTube or Vimeo link for factory virtual tour to showcase your facilities',
+            'established_year': 'Year your factory was established and began operations (e.g., 2015)',
+            'employee_count': 'Total number of employees currently working at your factory',
+            'annual_turnover': 'Your factory\'s annual revenue in Indian Rupees (approximate if confidential)',
+            'factory_type': 'Type of manufacturing or processing operations (e.g., Textile, Electronics, Food Processing, Automotive)',
+            'production_capacity': 'Maximum production output per time period (e.g., 5000 units/month, 10 tons/day, 1000 pieces/week)',
+            'working_hours': 'Standard working hours and days (e.g., 9:00 AM - 6:00 PM, Monday to Saturday, 24/7 operations)',
+            'holidays': 'List of observed holidays or non-working days throughout the year',
+            'price': 'Cost per unit or service rate (optional for information purposes)',
+            'is_active': 'Check to make your factory visible to users and searchable in listings',
+            'is_verified': 'Check if your factory has been verified by administrators (usually checked by staff)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -88,6 +109,13 @@ class FactoryForm(ModelForm):
         
         # Make name required
         self.fields['name'].required = True
+        self.fields['description'].required = True
+        self.fields['price'].required = True
+        self.fields['contact_person'].required = True
+        self.fields['contact_email'].required = True
+        self.fields['contact_phone'].required = True
+        self.fields['category'].required = True
+        self.fields['subcategory'].required = True
         
         # Set up initial queryset for subcategory based on selected category
         if 'category' in self.data:
@@ -300,14 +328,16 @@ class FactoryImageForm(ModelForm):
         widgets = {
             'image': forms.FileInput(attrs={
                 'accept': 'image/*',
-                'class': 'form-control-file'
+                'class': 'form-control-file',
+                'data-image-id': lambda: 'image_' + str(id(self)) if hasattr(self, 'instance') and self.instance.pk else 'new_image'
             }),
             'alt_text': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Description of this image...'
             }),
             'is_primary': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+                'class': 'form-check-input',
+                'data-toggle-primary': 'true'
             })
         }
         labels = {
@@ -462,213 +492,3 @@ class FactoryFilterForm(forms.Form):
                 pass
 
 
-# NEW FORMS FOR ENHANCED CART AND PAYMENT SYSTEM
-
-class ShoppingCartForm(forms.ModelForm):
-    """Form for managing shopping cart items"""
-    class Meta:
-        model = ShoppingCart
-        fields = ['quantity']
-        widgets = {
-            'quantity': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'max': '10',
-                'step': '1'
-            })
-        }
-        labels = {
-            'quantity': 'Quantity'
-        }
-        help_texts = {
-            'quantity': 'Select quantity (1-10)'
-        }
-
-    def clean_quantity(self):
-        """Validate quantity"""
-        quantity = self.cleaned_data.get('quantity')
-        if quantity < 1:
-            raise ValidationError('Quantity must be at least 1')
-        if quantity > 10:
-            raise ValidationError('Maximum quantity per item is 10')
-        return quantity
-
-
-class CheckoutForm(forms.Form):
-    """Form for checkout process"""
-    customer_name = forms.CharField(
-        max_length=200,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your full name'
-        }),
-        label='Full Name'
-    )
-    customer_email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your email address'
-        }),
-        label='Email Address'
-    )
-    customer_phone = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your phone number (optional)'
-        }),
-        label='Phone Number'
-    )
-    payment_method = forms.ChoiceField(
-        choices=Payment.PAYMENT_METHOD_CHOICES,
-        widget=forms.Select(attrs={
-            'class': 'form-select'
-        }),
-        label='Payment Method'
-    )
-    accept_terms = forms.BooleanField(
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input'
-        }),
-        label='I accept the terms and conditions',
-        required=True
-    )
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        
-        if user and user.is_authenticated:
-            # Pre-fill fields if user is authenticated
-            if hasattr(user, 'profile') and user.profile:
-                self.fields['customer_name'].initial = user.get_full_name() or user.username
-                self.fields['customer_email'].initial = user.email
-                if user.profile.phone_number:
-                    self.fields['customer_phone'].initial = user.profile.phone_number
-
-
-class OrderForm(forms.ModelForm):
-    """Form for creating orders"""
-    class Meta:
-        model = Order
-        fields = ['customer_name', 'customer_email', 'customer_phone', 'payment_method', 'notes']
-        widgets = {
-            'customer_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter your full name'
-            }),
-            'customer_email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter your email address'
-            }),
-            'customer_phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter your phone number (optional)'
-            }),
-            'payment_method': forms.Select(attrs={
-                'class': 'form-select'
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Any special instructions or notes...'
-            })
-        }
-        labels = {
-            'customer_name': 'Full Name',
-            'customer_email': 'Email Address',
-            'customer_phone': 'Phone Number',
-            'payment_method': 'Payment Method',
-            'notes': 'Additional Notes'
-        }
-
-
-class PaymentForm(forms.ModelForm):
-    """Form for payment processing"""
-    class Meta:
-        model = Payment
-        fields = ['payment_method', 'amount']
-        widgets = {
-            'payment_method': forms.Select(attrs={
-                'class': 'form-select'
-            }),
-            'amount': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'readonly': 'readonly',
-                'step': '0.01'
-            })
-        }
-        labels = {
-            'payment_method': 'Payment Method',
-            'amount': 'Amount to Pay'
-        }
-
-    def __init__(self, *args, **kwargs):
-        order_total = kwargs.pop('order_total', None)
-        super().__init__(*args, **kwargs)
-        
-        if order_total:
-            self.fields['amount'].initial = order_total
-            self.fields['amount'].widget.attrs['readonly'] = 'readonly'
-
-
-class OrderStatusForm(forms.ModelForm):
-    """Form for updating order status (Admin use)"""
-    class Meta:
-        model = Order
-        fields = ['status', 'payment_status', 'notes', 'tracking_number']
-        widgets = {
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'payment_status': forms.Select(attrs={'class': 'form-select'}),
-            'notes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3
-            }),
-            'tracking_number': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter tracking number (if applicable)'
-            })
-        }
-        labels = {
-            'status': 'Order Status',
-            'payment_status': 'Payment Status',
-            'notes': 'Internal Notes',
-            'tracking_number': 'Tracking Number'
-        }
-
-
-class RefundForm(forms.Form):
-    """Form for processing refunds"""
-    refund_amount = forms.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'step': '0.01'
-        }),
-        label='Refund Amount'
-    )
-    refund_reason = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 3,
-            'placeholder': 'Please provide reason for refund...'
-        }),
-        label='Refund Reason'
-    )
-    confirm_refund = forms.BooleanField(
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input'
-        }),
-        label='I confirm this refund is authorized',
-        required=True
-    )
-
-    def __init__(self, *args, **kwargs):
-        max_refund_amount = kwargs.pop('max_refund_amount', None)
-        super().__init__(*args, **kwargs)
-        
-        if max_refund_amount:
-            self.fields['refund_amount'].initial = max_refund_amount
-            self.fields['refund_amount'].widget.attrs['max'] = str(max_refund_amount)

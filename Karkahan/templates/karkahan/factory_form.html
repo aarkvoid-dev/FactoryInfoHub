@@ -1,7 +1,7 @@
 {% extends 'home/base.html' %}
 {% load static %}
 
-{% block title %}{% if factory %}Edit Factory{% else %}Add New Factory{% endif %} - FashionChemistry{% endblock %}
+{% block title %}{% if factory %}Edit Establishment{% else %}Add New Establishment{% endif %} - FashionChemistry{% endblock %}
 
 {% block content %}
 
@@ -13,9 +13,9 @@
   <div class="container">
     <div class="row justify-center">
       <div class="col-xl-12">
-        <div class="hero__content ">
-          <h1 class="hero__title text-light-1 ">{% if factory %}Edit Factory{% else %}Add New Factory{% endif %}</h1>
-          <p class="hero__text text-light-1 ">Fill in the details below to {% if factory %}update{% else %}create{% endif %} a factory</p>
+        <div class="hero__content">
+          <h1 class="hero__title text-light-1">{% if factory %}Edit Establishment{% else %}Add New Establishment{% endif %}</h1>
+          <p class="hero__text text-light-1">Fill in the details below to {% if factory %}update{% else %}create{% endif %} a factory</p>
         </div>
       </div>
     </div>
@@ -23,323 +23,332 @@
 </section>
 
 <section class="layout-pt-md layout-pb-xl bg-light-surface">
-    <div class="container">
-        <form method="POST" enctype="multipart/form-data" id="main-editor-form">
-            {% csrf_token %}
-            <div class="row g-4">
-                
-                <div class="col-lg-8">
-                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
-                        <div class="canvas-header d-flex align-items-center justify-content-between p-4 border-bottom">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="icon-box bg-accent-soft text-accent rounded-3 p-2">
-                                    <i class="fas fa-file-invoice fs-5"></i>
-                                </div>
-                                <h5 class="mb-0 fw-bold">Primary Specifications</h5>
-                            </div>
-                            <span class="badge bg-light text-dark border rounded-pill px-3">Phase 01: Core Data</span>
-                        </div>
+  <div class="container">
+    <form method="POST" enctype="multipart/form-data" id="main-editor-form" data-is-editing="{% if factory %}true{% else %}false{% endif %}">
+      {% csrf_token %}
+      <div class="row g-4">
 
-                        <div class="p-4 p-md-5">
-                            <div class="row g-4 mb-5">
-                                <div class="col-12">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Official Factory Name</label>
-                                        {{ form.name }}
-                                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Architecture Type</label>
-                                        {{ form.factory_type }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Conatact Price</label>
-                                        {{ form.price }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Inception Year</label>
-                                        {{ form.established_year }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="separator-text mb-4"><span>Operational Metrics</span></div>
-
-                            <div class="row g-4 mb-5">
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Production Volume</label>
-                                        {{ form.production_capacity }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Shift Structure (Hours)</label>
-                                        {{ form.working_hours }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Staff Capacity</label>
-                                        {{ form.employee_count }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Annual Revenue Ledger</label>
-                                        {{ form.annual_turnover }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Virtual Tour Link</label>
-                                        {{ form.video_url }}
-                                        {% if form.video_url.help_text %}<small class="text-muted">{{ form.video_url.help_text }}</small>{% endif %}
-                                        <div id="video-preview-container" class="mt-2" style="display: none;">
-                                            <div class="video-preview-card bg-light rounded-3 p-3">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <small class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i>Valid Video URL</small>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="preview-toggle">Preview</button>
-                                                </div>
-                                                <div id="video-preview-iframe" style="display: none; height: 200px;">
-                                                    <div class="ratio ratio-16x9">
-                                                        <iframe id="video-iframe" frameborder="0" allowfullscreen></iframe>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div id="video-error-container" class="mt-2" style="display: none;">
-                                            <small class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Invalid video URL. Please enter a valid YouTube or Vimeo link.</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="separator-text mb-4"><span>Communication Channels</span></div>
-
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Point of Contact</label>
-                                        {{ form.contact_person }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Secure Phone</label>
-                                        {{ form.contact_phone }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Verification Email</label>
-                                        {{ form.contact_email }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Digital Hub (Website)</label>
-                                        {{ form.website }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group-custom">
-                                        <label class="label-tech">Internal Narrative (Description)</label>
-                                        {{ form.description }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4 overflow-hidden">
-                        <div class="canvas-header p-4 border-bottom bg-light-surface">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-camera-retro text-accent me-2"></i>Visual Assets</h5>
-                        </div>
-                        <div class="p-4 p-md-5">
-                            <div class="upload-area-premium" onclick="document.getElementById('id_images-TOTAL_FORMS').closest('.formset-container').querySelector('input[type=file]').click()">
-                                <div class="upload-icon-pulse"><i class="fas fa-cloud-upload-alt"></i></div>
-                                <h6 class="fw-bold mt-3">Upload Factory Images</h6>
-                                <p class="text-muted small">Drag and drop or click to browse (Multiple images supported)</p>
-                            </div>
-                            
-                            <!-- Image Formset Container -->
-                            <div class="formset-container mt-3">
-                                {{ formset.management_form }}
-                                <div id="image-forms-container">
-                                    {% for image_form in formset %}
-                                        <div class="image-form-row mb-3 p-3 border rounded" id="image-form-{{ forloop.counter0 }}">
-                                            {{ image_form.id }}
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <div class="form-group-custom">
-                                                        <label class="label-tech-sm">Image File</label>
-                                                        {{ image_form.image }}
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-5">
-                                                    <div class="form-group-custom">
-                                                        <label class="label-tech-sm">Alternative Text</label>
-                                                        {{ image_form.alt_text }}
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-3 d-flex align-items-end">
-                                                    <div class="form-group-custom">
-                                                        <div class="form-check">
-                                                            {{ image_form.is_primary }}
-                                                            <label class="form-check-label label-tech-sm" for="{{ image_form.is_primary.id_for_label }}">
-                                                                Set as Primary
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% if image_form.instance.pk %}
-                                                <div class="mt-2">
-                                                    <div class="form-check">
-                                                        {{ image_form.DELETE }}
-                                                        <label class="form-check-label text-danger" for="{{ image_form.DELETE.id_for_label }}">
-                                                            Delete this image
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-image-btn">
-                                    <i class="fas fa-plus"></i> Add Another Image
-                                </button>
-                            </div>
-                            
-                            <!-- Image Preview Gallery -->
-                            <div id="image-preview-gallery" class="mt-3">
-                                {% if factory %}
-                                    <div class="row">
-                                        {% for image in factory.images.all %}
-                                            <div class="col-md-3 mb-3">
-                                                <div class="card h-100">
-                                                    <img src="{{ image.image.url }}" class="card-img-top" style="height: 120px; object-fit: cover;">
-                                                    <div class="card-body p-2">
-                                                        <small class="text-muted">{{ image.alt_text|default:"No description" }}</small>
-                                                        {% if image.is_primary %}
-                                                            <span class="badge bg-primary ms-2">Primary</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+        <!-- Left Column: Main Content -->
+        <div class="col-lg-8">
+          <!-- Primary Specifications Card -->
+          <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+            <div class="canvas-header d-flex align-items-center justify-content-between p-4 border-bottom">
+              <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-accent-soft text-accent rounded-3 p-2">
+                  <i class="fas fa-file-invoice fs-5"></i>
                 </div>
-
-                <div class="col-lg-4">
-                    <div class="sticky-sidebar">
-                        
-                        <div class="sidebar-card-premium mb-4">
-                            <div class="sidebar-card-header border-bottom">
-                                <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Hierarchy</h6>
-                            </div>
-                        <div class="p-4 bg-white">
-                            <div class="mb-3">
-                                <label class="label-tech-sm">Industry Vertical</label>
-                                <select name="category" id="id_category" class="select2-searchable">
-                                    {% for cat in form.category.field.queryset %}
-                                    <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="label-tech-sm">Niche Specification</label>
-                                <select name="subcategory" id="id_subcategory" class="select2-searchable">
-                                    {% for subcat in form.subcategory.field.queryset %}
-                                    <option value="{{ subcat.id }}" {% if form.subcategory.value == subcat.id %}selected{% endif %}>{{ subcat.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        </div>
-
-                        <div class="sidebar-card-premium mb-4">
-                            <div class="sidebar-card-header border-bottom">
-                                <h6 class="mb-0 fw-800"><i class="fas fa-map-marked-alt me-2"></i>Geo-Location</h6>
-                            </div>
-                            <div class="p-4 bg-white d-grid gap-3">
-                                <select name="country" id="id_country" class="select2-searchable">
-                        
-                                    {% for c in form.country.field.queryset %}
-                                    <option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <select name="state" id="id_state" class="select2-searchable">
-                        
-                                    {% for s in form.state.field.queryset %}
-                                    <option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <select name="city" id="id_city" class="select2-searchable">
-                         
-                                    {% for c in form.city.field.queryset %}
-                                    <option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <select name="district" id="id_district" class="select2-searchable">
-                           
-                                    {% for d in form.district.field.queryset %}
-                                    <option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <select name="region" id="id_region" class="select2-searchable">
-                    
-                                    {% for r in form.region.field.queryset %}
-                                    <option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="form-group-custom mt-2">
-                                    <label class="label-tech-sm">Street Address</label>
-                                    {{ form.address }}
-                                </div>
-                                <div class="form-group-custom">
-                                    <label class="label-tech-sm">Postal Index</label>
-                                    {{ form.pincode }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="sidebar-card-premium border-accent">
-                            <div class="p-4 bg-white">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <span class="fw-bold small">System Verification</span>
-                                    <div class="form-check form-switch m-0">{{ form.is_verified }}</div>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <span class="fw-bold small">Visibility Status</span>
-                                    <div class="form-check form-switch m-0">{{ form.is_active }}</div>
-                                </div>
-                                <button type="submit" class="btn-action-main w-100">
-                                    <span>{% if factory %}Update Node{% else %}Initialize Node{% endif %}</span>
-                                    <i class="fas fa-rocket"></i>
-                                </button>
-                                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-link w-100 text-muted text-decoration-none mt-2 small">Discard Changes</a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
+                <h5 class="mb-0 fw-bold">Primary Specifications</h5>
+              </div>
+              <span class="badge bg-light text-dark border rounded-pill px-3">Phase 01: Core Data</span>
             </div>
-        </form>
-    </div>
+            <div class="p-4 p-md-5">
+              <div class="row g-4 mb-5">
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Official Establishment Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Establishment Type</label>
+                    {{ form.factory_type }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Contact Price</label>
+                    {{ form.price }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Start Year</label>
+                    {{ form.established_year }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="separator-text mb-4"><span>Operational Metrics</span></div>
+              <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Production Volume (MOQ)</label>
+                    {{ form.production_capacity }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Shift Structure (Hours)</label>
+                    {{ form.working_hours }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Staff Capacity</label>
+                    {{ form.employee_count }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Annual Revenue Ledger</label>
+                    {{ form.annual_turnover }}
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Virtual Tour Link</label>
+                    {{ form.video_url }}
+                    {% if form.video_url.help_text %}<small class="text-muted">{{ form.video_url.help_text }}</small>{% endif %}
+                    <div id="video-preview-container" class="mt-2" style="display: none;">
+                      <div class="video-preview-card bg-light rounded-3 p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                          <small class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i>Valid Video URL</small>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="preview-toggle">Preview</button>
+                        </div>
+                        <div id="video-preview-iframe" style="display: none; height: 200px;">
+                          <div class="ratio ratio-16x9">
+                            <iframe id="video-iframe" frameborder="0" allowfullscreen></iframe>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="video-error-container" class="mt-2" style="display: none;">
+                      <small class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Invalid video URL. Please enter a valid YouTube or Vimeo link.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="separator-text mb-4"><span>Communication Channels</span></div>
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Point of Contact</label>
+                    {{ form.contact_person }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Secure Phone</label>
+                    {{ form.contact_phone }}
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Verification Email</label>
+                    {{ form.contact_email }}
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Digital Hub (Website)</label>
+                    {{ form.website }}
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Internal Narrative (Description)</label>
+                    {{ form.description }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="separator-text mb-4"><span>Establishment Operations</span></div>
+              <div class="row g-4">
+                <div class="col-12">
+                  <div class="form-group-custom">
+                    <label class="label-tech">Holidays</label>
+                    {{ form.holidays }}
+                    {% if form.holidays.help_text %}<small class="text-muted">{{ form.holidays.help_text }}</small>{% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== VISUAL ASSETS (REDESIGNED) ========== -->
+          <div class="editor-main-canvas shadow-soft rounded-4 bg-white mt-4 overflow-hidden">
+            <div class="canvas-header p-4 border-bottom bg-light-surface">
+              <h5 class="mb-0 fw-bold"><i class="fas fa-camera-retro text-accent me-2"></i>Visual Assets</h5>
+              <p class="text-muted small mt-1">Manage your factory images. The first image will be used as the thumbnail.</p>
+            </div>
+            <div class="p-4 p-md-5">
+
+              <!-- Hidden formset (used by JS) -->
+              <div id="hidden-formset" style="display: none;">
+                {{ formset.management_form }}
+                <div id="image-forms-container">
+                  {% for image_form in formset %}
+                    <div class="image-form-row" data-form-index="{{ forloop.counter0 }}" {% if image_form.instance.pk %}data-image-id="{{ image_form.instance.pk }}" data-image-url="{{ image_form.instance.image.url }}"{% endif %}>
+                      {{ image_form.id }}
+                      {{ image_form.image }}
+                      {{ image_form.alt_text }}
+                      {{ image_form.is_primary }}
+                      {% if image_form.instance.pk %}{{ image_form.DELETE }}{% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Existing Images Gallery -->
+              <div class="mb-5">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <div>
+                    <i class="fas fa-images text-accent me-2"></i>
+                    <span class="fw-semibold">Existing Images</span>
+                  </div>
+                  <span class="badge bg-light text-dark border" id="existing-count">{{ formset.initial|length }}</span>
+                </div>
+                <div id="existing-gallery" class="row g-4"></div>
+                <div id="no-existing-message" class="text-center text-muted py-4" style="display: none;">
+                  <i class="fas fa-image fa-2x mb-2 d-block"></i>
+                  <p>No images uploaded yet. Use the upload area below to add images.</p>
+                </div>
+              </div>
+
+              <!-- New Image Upload Area -->
+              <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fas fa-cloud-upload-alt text-accent me-2"></i>
+                  <span class="fw-semibold">Add New Images</span>
+                </div>
+                <div class="upload-area-premium" id="dropzone">
+                  <div class="upload-icon-pulse"><i class="fas fa-cloud-upload-alt"></i></div>
+                  <h6 class="fw-bold mt-3">Drag & Drop or Click to Upload</h6>
+                  <p class="text-muted small">Supports JPG, PNG, GIF. Max 5MB per file.</p>
+                  <input type="file" id="new-image-input" multiple accept="image/*" style="display: none;">
+                </div>
+                <div id="new-images-preview" class="row g-3 mt-4"></div>
+              </div>
+
+              <div class="alert alert-info small">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Tips:</strong>
+                <ul class="mb-0 mt-1">
+                  <li>Click the star icon to set an image as primary.</li>
+                  <li>Primary images appear as thumbnails and are shown first.</li>
+                  <li>You can add alt text for better SEO and accessibility.</li>
+                  <li>To delete an image, click the trash icon. Deleted images are removed after saving.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Sidebar (unchanged) -->
+        <div class="col-lg-4">
+          <div class="sticky-sidebar">
+            <!-- Hierarchy Card -->
+            <div class="sidebar-card-premium mb-4">
+              <div class="sidebar-card-header border-bottom">
+                <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Hierarchy</h6>
+              </div>
+              <div class="p-4 bg-white">
+                <div class="mb-3">
+                  <label class="label-tech-sm">Industry Vertical</label>
+                  <select name="category" id="id_category" class="select2-searchable">
+                    {% for cat in form.category.field.queryset %}
+                    <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label class="label-tech-sm">Niche Specification</label>
+                  <select name="subcategory" id="id_subcategory" class="select2-searchable">
+                    {% for subcat in form.subcategory.field.queryset %}
+                    <option value="{{ subcat.id }}" {% if form.subcategory.value == subcat.id %}selected{% endif %}>{{ subcat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Geo-Location Card -->
+            <div class="sidebar-card-premium mb-4">
+              <div class="sidebar-card-header border-bottom">
+                <h6 class="mb-0 fw-800"><i class="fas fa-map-marked-alt me-2"></i>Geo-Location</h6>
+              </div>
+              <div class="p-4 bg-white d-grid gap-3">
+                <select name="country" id="id_country" class="select2-searchable">
+                  {% for c in form.country.field.queryset %}
+                  <option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="state" id="id_state" class="select2-searchable">
+                  {% for s in form.state.field.queryset %}
+                  <option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="city" id="id_city" class="select2-searchable">
+                  {% for c in form.city.field.queryset %}
+                  <option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="district" id="id_district" class="select2-searchable">
+                  {% for d in form.district.field.queryset %}
+                  <option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="region" id="id_region" class="select2-searchable">
+                  {% for r in form.region.field.queryset %}
+                  <option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>
+                  {% endfor %}
+                </select>
+                <div class="form-group-custom mt-2">
+                  <label class="label-tech-sm">Street Address</label>
+                  {{ form.address }}
+                </div>
+                <div class="form-group-custom">
+                  <label class="label-tech-sm">Postal Index</label>
+                  {{ form.pincode }}
+                </div>
+              </div>
+            </div>
+
+            <div class="sidebar-card-premium border-accent">
+              <div class="p-4 bg-white">
+                {% if user.is_staff %}
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold small">System Verification</span>
+                    <div class="form-check form-switch m-0">{{ form.is_verified }}</div>
+                  </div>
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold small">Verification Status</span>
+                    <div class="verification-status-badge">
+                      {% if factory and factory.is_verified %}
+                        <span class="badge badge-verified text-white px-3 py-2 rounded-3 fw-600">
+                          <i class="fas fa-check-circle me-2"></i>
+                          Verified
+                        </span>
+                      {% else %}
+                        <span class="badge badge-unverified text-white px-3 py-2 rounded-3 fw-600">
+                          <i class="fas fa-clock me-2"></i>
+                          Pending
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endif %}
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                  <span class="fw-bold small">Is Active</span>
+                  <div class="form-check form-switch m-0">{{ form.is_active }}</div>
+                </div>
+                <button type="submit" class="btn-action-main w-100">
+                  <span>{% if factory %}Update Node{% else %}Initialize Node{% endif %}</span>
+                  <i class="fas fa-rocket"></i>
+                </button>
+                <a href="{% url 'karkahan:factory_list' %}" class="btn btn-link w-100 text-muted text-decoration-none mt-2 small">Discard Changes</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
 </section>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -347,11 +356,263 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  /* All the CSS (unchanged) */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --accent: #EB662B;
+    --accent-glow: rgba(235, 102, 43, 0.15);
+    --dark-bg: #111827;
+    --surface: #F9FAFB;
+    --border-soft: #E5E7EB;
+    --text-muted: #6B7280;
+  }
+
+  body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
+  .font-syne { font-family: 'Syne', sans-serif; }
+  .fw-800 { font-weight: 800; }
+  .bg-light-surface { background-color: var(--surface); }
+
+  /* Hero */
+  .hero { position: relative; overflow: hidden; min-height: 350px; display: flex; align-items: center; justify-content: center; }
+  .hero__bg { position: absolute; inset: 0; z-index: 1; }
+  .hero__bg img { width: 100%; height: 100%; object-fit: cover; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 2; }
+  .hero__content { position: relative; z-index: 3; color: white; text-align: center; padding: 80px 0; }
+  .hero__title { font-size: 48px; font-weight: 700; }
+  .hero__text { font-size: 18px; margin-top: 15px; opacity: 0.9; }
+
+  /* Cards & Layout */
+  .editor-main-canvas { border: 1px solid var(--border-soft); }
+  .shadow-soft { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
+  .label-tech { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+  .label-tech-sm { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; display: block; }
+  .separator-text { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+  .separator-text::before, .separator-text::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
+  .separator-text span { padding: 0 15px; }
+
+  /* Form Inputs */
+  .form-group-custom input, .form-group-custom textarea, .form-group-custom select {
+    border: 1.5px solid var(--border-soft) !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+    background: white !important;
+    font-weight: 500;
+    transition: 0.2s ease-in-out;
+  }
+  .form-group-custom input:focus, .form-group-custom textarea:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 4px var(--accent-glow) !important;
+    outline: none;
+  }
+
+  /* Upload Area */
+  .upload-area-premium {
+    border: 2px dashed var(--border-soft);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    background: var(--surface);
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .upload-area-premium:hover { border-color: var(--accent); background: white; }
+  .upload-icon-pulse { font-size: 30px; color: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .upload-area-premium.drag-over {
+    border-color: var(--accent);
+    background: rgba(235,102,43,0.05);
+  }
+
+  /* Sidebar Cards */
+  .sidebar-card-premium {
+    background: white; border-radius: 20px;
+    border: 1px solid var(--border-soft); overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  }
+  .sidebar-card-header { background: #fcfcfc; padding: 15px 20px; border-bottom: 1px solid var(--border-soft); }
+  .border-accent { border-top: 4px solid var(--accent) !important; }
+  .sticky-sidebar { position: sticky; top: 100px; }
+
+  /* Action Button */
+  .btn-action-main {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .btn-action-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
+
+  /* Select2 Overrides */
+  .select2-container--default .select2-selection--single {
+    border: 1.5px solid var(--border-soft) !important;
+    height: 50px !important;
+    border-radius: 12px !important;
+    padding-top: 10px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow { top: 12px !important; }
+
+  /* Image Gallery Styles */
+  .image-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border-soft);
+    height: 100%;
+  }
+  .image-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .image-card .card-img-top {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: #f8f9fa;
+  }
+  .image-card .card-body {
+    padding: 12px;
+  }
+  .image-card .alt-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #f8f9fa;
+    padding: 6px;
+    border-radius: 8px;
+  }
+  .image-card .image-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-icon:hover {
+    background: #f1f5f9;
+  }
+  .btn-icon.primary-active {
+    color: #EB662B;
+  }
+  .btn-icon.primary-inactive {
+    color: #94a3b8;
+  }
+  .btn-icon.delete {
+    color: #dc2626;
+  }
+  .btn-icon.delete:hover {
+    background: #fee2e2;
+  }
+  .new-image-card {
+    position: relative;
+  }
+  .new-image-card .remove-image {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 1;
+  }
+  .new-image-card .remove-image:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 991px) {
+    .sticky-sidebar { position: static; }
+    .hero__title { font-size: 32px; }
+    .hero__text { font-size: 16px; }
+  }
+
+  /* Verification Status Badge Styling */
+  .verification-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .verification-status-badge .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .verification-status-badge .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .verification-status-badge .badge.badge-verified {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+  }
+
+  .verification-status-badge .badge.badge-unverified {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    border: none;
+    color: #856404;
+  }
+
+  .verification-status-badge .badge i {
+    font-size: 16px;
+    opacity: 0.9;
+  }
+</style>
+{% endblock %}
 
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    // Initialize Select2 once (will be re-triggered after dynamic updates)
     $('.select2-searchable').select2({ tags: true, width: '100%' });
 });
 
@@ -360,7 +621,6 @@ function updateChain(parent, child, url, clear = [], initialize = false, current
         const parentVal = $(this).val();
         const childEl = $('#' + child);
 
-        // Clear dependent children
         clear.forEach(id => {
             $('#' + id).empty().append('<option value="">---</option>').trigger('change');
         });
@@ -369,22 +629,19 @@ function updateChain(parent, child, url, clear = [], initialize = false, current
             $.getJSON(url.replace('0', parentVal), function(data) {
                 let options = '<option value="">Select or Type New...</option>';
                 data.forEach(i => {
-                    // Use the stored currentChildValue to mark selected
                     const selected = (String(i.id) === String(currentChildValue)) ? 'selected' : '';
                     options += `<option value="${i.id}" ${selected}>${i.name}</option>`;
                 });
                 childEl.html(options).trigger('change');
             });
         } else if (parentVal) {
-            // User typed a new parent value – allow tagging in child
             childEl.empty().append('<option value="">Type to add new...</option>').trigger('change');
         }
     });
 
-    // Initialize chain on page load
     if (initialize) {
         const parentEl = $('#' + parent);
-        const parentVal = parentEl.val();  // Use parent's actual value
+        const parentVal = parentEl.val();
         if (parentVal && !isNaN(parentVal)) {
             $.getJSON(url.replace('0', parentVal), function(data) {
                 let options = '<option value="">Select or Type New...</option>';
@@ -398,374 +655,463 @@ function updateChain(parent, child, url, clear = [], initialize = false, current
     }
 }
 
-// Initialize chain updates with the correct current values
-updateChain(
-    'id_category',
-    'id_subcategory',
-    "{% url 'category:ajax_load_subcategories' 0 %}",
-    [],
-    true,
-    $('#id_subcategory').val()   // FIXED: use subcategory's current value
-);
+// Hierarchy chains
+updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}", [], true, $('#id_subcategory').val());
+updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region'], true, $('#id_state').val());
+updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region'], true, $('#id_city').val());
+updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region'], true, $('#id_district').val());
+updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}", [], true, $('#id_region').val());
 
-updateChain(
-    'id_country',
-    'id_state',
-    "{% url 'location:states_by_country' 0 %}",
-    ['id_city', 'id_district', 'id_region'],
-    true,
-    $('#id_state').val()
-);
+// ========== IMAGE GALLERY MANAGEMENT (DYNAMIC, NO EMPTY ROWS) ==========
+(function() {
+    const hiddenContainer = document.getElementById('image-forms-container');
+    const existingGallery = document.getElementById('existing-gallery');
+    const newPreviewContainer = document.getElementById('new-images-preview');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('new-image-input');
+    const noExistingMsg = document.getElementById('no-existing-message');
+    let newImageFiles = []; // each: { file, alt, isPrimary }
 
-updateChain(
-    'id_state',
-    'id_city',
-    "{% url 'location:cities_by_state' 0 %}",
-    ['id_district', 'id_region'],
-    true,
-    $('#id_city').val()
-);
-
-updateChain(
-    'id_city',
-    'id_district',
-    "{% url 'location:districts_by_city' 0 %}",
-    ['id_region'],
-    true,
-    $('#id_district').val()
-);
-
-updateChain(
-    'id_district',
-    'id_region',
-    "{% url 'location:regions_by_district' 0 %}",
-    [],
-    true,
-    $('#id_region').val()
-);
-
-// Initialize subcategories based on current category selection
-$(document).ready(function() {
-    // Initialize select2 with current values
-    $('.select2-searchable').each(function() {
-        const $select = $(this);
-        const currentValue = $select.val();
-        if (currentValue) {
-            // For existing values, ensure they are properly selected
-            $select.find('option[value="' + currentValue + '"]').prop('selected', true);
-        }
-    });
-
-    // Re-initialize select2 to reflect current selections
-    $('.select2-searchable').select2({tags:true,width:'100%'});
-});
-
-// Multi-image upload functionality
-let formCount = {{ formset.total_form_count }};
-
-$('#add-image-btn').on('click', function() {
-    // Get the management form values
-    const totalFormsInput = $('#id_images-TOTAL_FORMS'); // Ensure the ID starts with id_
-    const initialFormsInput = $('#id_images-INITIAL_FORMS');
-    const minFormsInput = $('#id_images-MIN_NUM_FORMS');
-    const maxFormsInput = $('#id_images-MAX_NUM_FORMS');
-    
-    // Update the total forms count
-    const currentTotal = parseInt(totalFormsInput.val());
-    const newTotal = currentTotal + 1;
-    totalFormsInput.val(newTotal);
-    
-    // Create new form using the template
-    const template = $('#image-form-template').html();
-    const newForm = template.replace(/__prefix__/g, currentTotal);
-    
-    // Add the new form to the container
-    $('#image-forms-container').append(newForm);
-    
-    // Update the form count variable
-    formCount = newTotal;
-});
-
-// Handle file input changes for image preview
-$(document).on('change', 'input[type="file"]', function() {
-    const file = this.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Create preview for new images
-            const previewContainer = $(this).closest('.image-form-row');
-            if (!previewContainer.find('.image-preview').length) {
-                previewContainer.append('<div class="image-preview mt-2"><img src="' + e.target.result + '" class="rounded" style="height: 80px; width: 80px; object-fit: cover;"></div>');
-            } else {
-                previewContainer.find('.image-preview img').attr('src', e.target.result);
+    function refreshExistingGallery() {
+        // Get all rows, but only those with a data-image-id (existing images) and not deleted
+        const allRows = hiddenContainer.querySelectorAll('.image-form-row');
+        const rows = Array.from(allRows).filter(row => {
+            const imgId = row.getAttribute('data-image-id');
+            if (!imgId) return false;
+            const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+            return !(deleteCheckbox && deleteCheckbox.checked);
+        });
+        existingGallery.innerHTML = '';
+        let hasPrimary = false;
+        rows.forEach((row, idx) => {
+            const imgUrl = row.getAttribute('data-image-url');
+            const altText = row.querySelector('[name$="-alt_text"]')?.value || '';
+            const isPrimary = row.querySelector('[name$="-is_primary"]')?.checked || false;
+            const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+            const formIndex = row.getAttribute('data-form-index');
+            const card = createExistingImageCard(imgUrl, altText, isPrimary, formIndex, deleteCheckbox);
+            existingGallery.appendChild(card);
+            if (isPrimary) hasPrimary = true;
+        });
+        // If no primary and images exist, set the first as primary
+        if (!hasPrimary && rows.length > 0) {
+            const firstRow = rows[0];
+            const isPrimaryInput = firstRow.querySelector('[name$="-is_primary"]');
+            if (isPrimaryInput) {
+                isPrimaryInput.checked = true;
+                refreshExistingGallery();
+                return;
             }
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// Video URL validation and preview functionality
-const videoUrlInput = document.querySelector('input[data-video-preview]');
-const videoPreviewContainer = document.getElementById('video-preview-container');
-const videoErrorContainer = document.getElementById('video-error-container');
-const videoIframe = document.getElementById('video-iframe');
-const previewToggle = document.getElementById('preview-toggle');
-const videoPreviewIframe = document.getElementById('video-preview-iframe');
-
-function validateVideoUrl(url) {
-    if (!url) return false;
-    
-    // Check if it's a valid URL format
-    try {
-        new URL(url);
-    } catch (e) {
-        return false;
-    }
-    
-    // Check if it's YouTube or Vimeo
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+/;
-    
-    return youtubeRegex.test(url) || vimeoRegex.test(url);
-}
-
-function getEmbedUrl(url) {
-    if (!url) return '';
-    
-    // YouTube URL conversion
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        let videoId = '';
-        if (url.includes('youtu.be/')) {
-            videoId = url.split('youtu.be/')[1].split('?')[0];
-        } else if (url.includes('v=')) {
-            videoId = url.split('v=')[1].split('&')[0];
         }
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-    }
-    
-    // Vimeo URL conversion
-    if (url.includes('vimeo.com')) {
-        const videoId = url.split('vimeo.com/')[1].split('?')[0];
-        return videoId ? `https://player.vimeo.com/video/${videoId}` : '';
-    }
-    
-    return '';
-}
-
-function updateVideoPreview() {
-    const url = videoUrlInput.value.trim();
-    
-    if (!url) {
-        videoPreviewContainer.style.display = 'none';
-        videoErrorContainer.style.display = 'none';
-        return;
-    }
-    
-    if (validateVideoUrl(url)) {
-        videoPreviewContainer.style.display = 'block';
-        videoErrorContainer.style.display = 'none';
-        const embedUrl = getEmbedUrl(url);
-        if (embedUrl) {
-            videoIframe.src = embedUrl;
-        }
-    } else {
-        videoPreviewContainer.style.display = 'none';
-        videoErrorContainer.style.display = 'block';
-    }
-}
-
-// Toggle video preview
-previewToggle.addEventListener('click', function() {
-    if (videoPreviewIframe.style.display === 'none') {
-        videoPreviewIframe.style.display = 'block';
-        previewToggle.textContent = 'Hide Preview';
-        previewToggle.classList.remove('btn-outline-secondary');
-        previewToggle.classList.add('btn-outline-primary');
-    } else {
-        videoPreviewIframe.style.display = 'none';
-        previewToggle.textContent = 'Preview';
-        previewToggle.classList.remove('btn-outline-primary');
-        previewToggle.classList.add('btn-outline-secondary');
-    }
-});
-
-// Form submission validation
-$('#main-editor-form').on('submit', function(e) {
-    // Validate required fields
-    let isValid = true;
-    const requiredFields = ['name', 'category', 'country', 'state', 'city'];
-    
-    requiredFields.forEach(fieldName => {
-        const field = $('#id_' + fieldName);
-        if (!field.val() || field.val().trim() === '') {
-            field.addClass('is-invalid');
-            isValid = false;
+        // Show/hide empty message
+        if (rows.length === 0) {
+            noExistingMsg.style.display = 'block';
         } else {
-            field.removeClass('is-invalid');
+            noExistingMsg.style.display = 'none';
+        }
+        document.getElementById('existing-count').innerText = rows.length;
+    }
+
+    function createExistingImageCard(imgUrl, altText, isPrimary, formIndex, deleteCheckbox) {
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-sm-6';
+        col.setAttribute('data-index', formIndex);
+        col.innerHTML = `
+            <div class="image-card">
+                <img src="${imgUrl}" class="card-img-top" alt="${altText}">
+                <div class="card-body">
+                    <div class="alt-text" title="${altText}">${altText || 'No description'}</div>
+                    <div class="image-actions">
+                        <button type="button" class="btn-icon primary-toggle ${isPrimary ? 'primary-active' : 'primary-inactive'}" data-action="primary">
+                            <i class="fas fa-star"></i> <span class="small">Primary</span>
+                        </button>
+                        <button type="button" class="btn-icon delete" data-action="delete">
+                            <i class="fas fa-trash-alt"></i> <span class="small">Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        const primaryBtn = col.querySelector('.primary-toggle');
+        const deleteBtn = col.querySelector('.delete');
+        primaryBtn.addEventListener('click', () => setPrimaryImage(formIndex));
+        deleteBtn.addEventListener('click', () => deleteExistingImage(formIndex, deleteCheckbox));
+        return col;
+    }
+
+    function setPrimaryImage(selectedIndex) {
+        const allRows = hiddenContainer.querySelectorAll('.image-form-row');
+        allRows.forEach((row) => {
+            const isPrimaryInput = row.querySelector('[name$="-is_primary"]');
+            if (isPrimaryInput && row.getAttribute('data-form-index') == selectedIndex) {
+                isPrimaryInput.checked = true;
+            } else if (isPrimaryInput) {
+                isPrimaryInput.checked = false;
+            }
+        });
+        refreshExistingGallery();
+    }
+
+    function deleteExistingImage(formIndex, deleteCheckbox) {
+        if (confirm('Delete this image? This action can be undone before saving.')) {
+            deleteCheckbox.checked = true;
+            refreshExistingGallery();
+        }
+    }
+
+    // New images handling (unchanged)
+    function handleNewImages(files) {
+        for (const file of files) {
+            newImageFiles.push({ file, alt: '', isPrimary: false });
+        }
+        renderNewImagePreviews();
+    }
+
+    function renderNewImagePreviews() {
+        newPreviewContainer.innerHTML = '';
+        newImageFiles.forEach((item, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6 new-image-card';
+                col.setAttribute('data-index', index);
+                col.innerHTML = `
+                    <div class="image-card">
+                        <img src="${e.target.result}" class="card-img-top" alt="New image">
+                        <div class="card-body">
+                            <div class="alt-text">
+                                <input type="text" class="form-control form-control-sm" placeholder="Description (optional)" value="${item.alt}" data-alt-input>
+                            </div>
+                            <div class="image-actions">
+                                <button type="button" class="btn-icon primary-toggle ${item.isPrimary ? 'primary-active' : 'primary-inactive'}" data-action="primary">
+                                    <i class="fas fa-star"></i> <span class="small">Primary</span>
+                                </button>
+                                <button type="button" class="btn-icon delete" data-action="delete">
+                                    <i class="fas fa-trash-alt"></i> <span class="small">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-image"><i class="fas fa-times"></i></button>
+                `;
+                const removeBtn = col.querySelector('.remove-image');
+                const primaryBtn = col.querySelector('.primary-toggle');
+                const deleteBtn = col.querySelector('.delete');
+                const altInput = col.querySelector('[data-alt-input]');
+                removeBtn.addEventListener('click', () => removeNewImage(index));
+                primaryBtn.addEventListener('click', () => togglePrimaryNewImage(index));
+                deleteBtn.addEventListener('click', () => removeNewImage(index));
+                altInput.addEventListener('input', (e) => {
+                    newImageFiles[index].alt = e.target.value;
+                });
+                newPreviewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(item.file);
+        });
+    }
+
+    function removeNewImage(index) {
+        newImageFiles.splice(index, 1);
+        renderNewImagePreviews();
+    }
+
+    function togglePrimaryNewImage(index) {
+        newImageFiles.forEach((item, i) => {
+            item.isPrimary = (i === index);
+        });
+        renderNewImagePreviews();
+    }
+
+    // Form submission (using fetch)
+    const mainForm = document.getElementById('main-editor-form');
+    mainForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        newImageFiles.forEach(item => {
+            formData.append('new_images', item.file);
+            formData.append('new_image_alt', item.alt);
+            if (item.isPrimary) {
+                formData.append('new_image_primary', '1');
+            }
+        });
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.text();
+            }
+        })
+        .catch(err => console.error('Submit error:', err));
+    });
+
+    // Dropzone events
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        const files = Array.from(e.dataTransfer.files);
+        handleNewImages(files);
+    });
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        handleNewImages(files);
+        fileInput.value = '';
+    });
+
+    refreshExistingGallery();
+})();
+
+// Video preview (unchanged)
+const videoUrlInput = document.querySelector('input[data-video-preview]');
+if (videoUrlInput) {
+    const videoPreviewContainer = document.getElementById('video-preview-container');
+    const videoErrorContainer = document.getElementById('video-error-container');
+    const videoIframe = document.getElementById('video-iframe');
+    const previewToggle = document.getElementById('preview-toggle');
+    const videoPreviewIframe = document.getElementById('video-preview-iframe');
+
+    function validateVideoUrl(url) {
+        if (!url) return false;
+        try { new URL(url); } catch (e) { return false; }
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+        const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+/;
+        return youtubeRegex.test(url) || vimeoRegex.test(url);
+    }
+    function getEmbedUrl(url) {
+        if (!url) return '';
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            let videoId = '';
+            if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
+            else if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+            return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+        }
+        if (url.includes('vimeo.com')) {
+            const videoId = url.split('vimeo.com/')[1].split('?')[0];
+            return videoId ? `https://player.vimeo.com/video/${videoId}` : '';
+        }
+        return '';
+    }
+    function updateVideoPreview() {
+        const url = videoUrlInput.value.trim();
+        if (!url) {
+            videoPreviewContainer.style.display = 'none';
+            videoErrorContainer.style.display = 'none';
+            return;
+        }
+        if (validateVideoUrl(url)) {
+            videoPreviewContainer.style.display = 'block';
+            videoErrorContainer.style.display = 'none';
+            const embedUrl = getEmbedUrl(url);
+            if (embedUrl) videoIframe.src = embedUrl;
+        } else {
+            videoPreviewContainer.style.display = 'none';
+            videoErrorContainer.style.display = 'block';
+        }
+    }
+    previewToggle.addEventListener('click', function() {
+        if (videoPreviewIframe.style.display === 'none') {
+            videoPreviewIframe.style.display = 'block';
+            previewToggle.textContent = 'Hide Preview';
+            previewToggle.classList.remove('btn-outline-secondary');
+            previewToggle.classList.add('btn-outline-primary');
+        } else {
+            videoPreviewIframe.style.display = 'none';
+            previewToggle.textContent = 'Preview';
+            previewToggle.classList.remove('btn-outline-primary');
+            previewToggle.classList.add('btn-outline-secondary');
         }
     });
-    
-    // Validate at least one image if creating new factory
-    const isEditing = {{ factory.pk|default:"false" }};
-    if (!isEditing) {
-        const hasImages = $('.image-form-row').length > 0 && 
-                         $('.image-form-row').find('input[type="file"]').filter(function() {
-                             return this.files && this.files.length > 0;
-                         }).length > 0;
+    videoUrlInput.addEventListener('input', updateVideoPreview);
+    videoUrlInput.addEventListener('blur', updateVideoPreview);
+    if (videoUrlInput.value) updateVideoPreview();
+}
+
+    // Enhanced validation before fetch
+    $('#main-editor-form').on('submit', function(e) {
+        let isValid = true;
+        const requiredFields = ['name', 'description', 'price', 'contact_person', 'contact_email', 'contact_phone', 'category', 'subcategory'];
+        const missingFields = [];
+        const invalidFields = [];
         
-        if (!hasImages) {
-            alert('Please upload at least one factory image.');
+        requiredFields.forEach(fieldName => {
+            const field = $('#id_' + fieldName);
+            const fieldLabel = field.closest('.form-group-custom').find('label').text() || field.attr('name') || fieldName;
+            
+            // Check if field is empty
+            if (!field.val() || field.val().trim() === '') {
+                field.addClass('is-invalid');
+                missingFields.push(fieldLabel);
+                isValid = false;
+            } else {
+                field.removeClass('is-invalid');
+                
+                // Additional field-specific validation
+                if (fieldName === 'contact_email') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(field.val())) {
+                        field.addClass('is-invalid');
+                        invalidFields.push('Valid email address');
+                        isValid = false;
+                    }
+                } else if (fieldName === 'contact_phone') {
+                    const phoneRegex = /^[0-9]{10}$/;
+                    if (!phoneRegex.test(field.val())) {
+                        field.addClass('is-invalid');
+                        invalidFields.push('10-digit phone number');
+                        isValid = false;
+                    }
+                } else if (fieldName === 'price') {
+                    const priceValue = parseFloat(field.val());
+                    if (isNaN(priceValue) || priceValue <= 0) {
+                        field.addClass('is-invalid');
+                        invalidFields.push('Valid price amount');
+                        isValid = false;
+                    }
+                } else if (fieldName === 'description') {
+                    if (field.val().trim().length < 50) {
+                        field.addClass('is-invalid');
+                        invalidFields.push('Description (minimum 50 characters)');
+                        isValid = false;
+                    }
+                }
+            }
+        });
+    
+    const isEditing = document.getElementById('main-editor-form').dataset.isEditing === 'true';
+    if (!isEditing) {
+        const hasExisting = document.getElementById('image-forms-container').querySelectorAll('.image-form-row[data-image-id]').length > 0;
+        const hasNew = typeof newImageFiles !== 'undefined' && newImageFiles.length > 0;
+        if (!hasExisting && !hasNew) {
+            showImageRequiredModal();
             isValid = false;
         }
     }
     
     if (!isValid) {
         e.preventDefault();
-        alert('Please fill in all required fields.');
+        if (missingFields.length > 0) {
+            showMissingFieldsModal(missingFields);
+        }
         return false;
     }
-    
-    // Show loading state
-    const submitBtn = $(this).find('button[type="submit"]');
-    const originalText = submitBtn.html();
-    submitBtn.html('<span>Processing...</span><i class="fas fa-spinner fa-spin"></i>');
-    submitBtn.prop('disabled', true);
-    
-    // Reset button after 3 seconds if form doesn't submit
-    setTimeout(() => {
-        submitBtn.html(originalText);
-        submitBtn.prop('disabled', false);
-    }, 3000);
+    // The fetch will handle submission, so we let it proceed.
 });
 
-// Real-time validation
-if (videoUrlInput) {
-    videoUrlInput.addEventListener('input', updateVideoPreview);
-    videoUrlInput.addEventListener('blur', updateVideoPreview);
+// Modal functions for better user experience
+function showMissingFieldsModal(missingFields) {
+    const modalHtml = `
+        <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white border-0">
+                        <h5 class="modal-title" id="validationModalLabel">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Required Fields Missing
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <p class="text-muted mb-3">Please fill in the following required fields:</p>
+                        <ul class="list-group list-group-flush mb-3">
+                            ${missingFields.map(field => `<li class="list-group-item border-0 px-0"><i class="fas fa-dot-circle text-danger me-2"></i>${field}</li>`).join('')}
+                        </ul>
+                        <p class="text-muted small">These fields are marked with red borders. Please complete them before submitting.</p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Got it</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     
-    // Initial validation if there's a value
-    if (videoUrlInput.value) {
-        updateVideoPreview();
+    // Remove existing modal if present
+    $('#validationModal').remove();
+    
+    // Add modal to body and show
+    $('body').append(modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('validationModal'));
+    modal.show();
+}
+
+function showImageRequiredModal() {
+    const modalHtml = `
+        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-warning text-dark border-0">
+                        <h5 class="modal-title" id="imageModalLabel">
+                            <i class="fas fa-image me-2"></i>
+                            Establishment Images Required
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <p class="text-muted mb-3">To create a new factory, you must upload at least one factory image.</p>
+                        <div class="alert alert-info border-0 bg-light rounded-3 p-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-lightbulb text-warning me-3"></i>
+                                <div>
+                                    <strong>Tip:</strong> Click on the upload area below to add images, or drag and drop files.
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted small">Establishment images help showcase your facility and are required for new factory listings.</p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Proceed without Image</button>
+                        <button type="button" class="btn btn-warning" onclick="focusImageUpload()">Add Images</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if present
+    $('#imageModal').remove();
+    
+    // Add modal to body and show
+    $('body').append(modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+function focusImageUpload() {
+    // Close the modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('imageModal'));
+    if (modal) {
+        modal.hide();
+    }
+    
+    // Scroll to and focus on the image upload area
+    const uploadArea = document.getElementById('dropzone');
+    if (uploadArea) {
+        uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        uploadArea.focus();
+        
+        // Add visual highlight
+        uploadArea.style.boxShadow = '0 0 0 4px rgba(235, 102, 43, 0.3)';
+        uploadArea.style.borderColor = '#EB662B';
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+            uploadArea.style.boxShadow = '';
+            uploadArea.style.borderColor = '';
+        }, 3000);
     }
 }
 </script>
-
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');
-
-    :root {
-        --accent: #EB662B;
-        --accent-glow: rgba(235, 102, 43, 0.15);
-        --dark-bg: #111827;
-        --surface: #F9FAFB;
-        --border-soft: #E5E7EB;
-        --text-muted: #6B7280;
-    }
-
-    body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
-    .font-syne { font-family: 'Syne', sans-serif; }
-    .fw-800 { font-weight: 800; }
-    .bg-light-surface { background-color: var(--surface); }
-
-    /* Hero */
-    .hero-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .hero-visual-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-        background-size: 32px 32px;
-    }
-    .text-accent { color: var(--accent); }
-
-    /* Canvas Cards */
-    .editor-main-canvas { border: 1px solid var(--border-soft); }
-    .shadow-soft { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
-    
-    .label-tech { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
-    .label-tech-sm { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; display: block; }
-
-    .separator-text { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-    .separator-text::before, .separator-text::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
-    .separator-text span { padding: 0 15px; }
-
-    /* Inputs */
-    .form-group-custom input, .form-group-custom textarea, .form-group-custom select {
-        border: 1.5px solid var(--border-soft) !important;
-        padding: 12px 16px !important;
-        border-radius: 12px !important;
-        background: white !important;
-        font-weight: 500;
-        transition: 0.2s ease-in-out;
-    }
-    .form-group-custom input:focus, .form-group-custom textarea:focus {
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 0 4px var(--accent-glow) !important;
-        outline: none;
-    }
-
-    /* Premium Upload Area */
-    .upload-area-premium {
-        border: 2px dashed var(--border-soft);
-        padding: 40px;
-        border-radius: 20px;
-        text-align: center;
-        background: var(--surface);
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    .upload-area-premium:hover { border-color: var(--accent); background: white; }
-    .upload-icon-pulse { font-size: 30px; color: var(--accent); animation: pulse 2s infinite; }
-
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.1); opacity: 0.7; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Sidebar Cards */
-    .sidebar-card-premium {
-        background: white; border-radius: 20px;
-        border: 1px solid var(--border-soft); overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-    }
-    .sidebar-card-header { background: #fcfcfc; padding: 15px 20px; border-bottom: 1px solid var(--border-soft); }
-    .border-accent { border-top: 4px solid var(--accent) !important; }
-
-    .sticky-sidebar { position: sticky; top: 100px; }
-
-    /* Action Button */
-    .btn-action-main {
-        background: var(--accent);
-        color: white;
-        border: none;
-        padding: 16px;
-        border-radius: 14px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .btn-action-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--accent-glow); }
-
-    /* Select2 High-End Overrides */
-    .select2-container--default .select2-selection--single {
-        border: 1.5px solid var(--border-soft) !important;
-        height: 50px !important;
-        border-radius: 12px !important;
-        padding-top: 10px !important;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow { top: 12px !important; }
-
-    @media (max-width: 991px) {
-        .sticky-sidebar { position: static; }
-    }
-
-</style>
 {% endblock %}

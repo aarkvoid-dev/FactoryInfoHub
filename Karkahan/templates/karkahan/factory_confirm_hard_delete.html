@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Permanently Delete Factory - {{ factory.name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content">
+          <h1 class="hero__title text-light-1">Permanently Delete Factory</h1>
+          <p class="hero__text text-light-1">This action cannot be undone. All data will be permanently lost.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-surface">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+          <div class="canvas-header p-4 border-bottom">
+            <h5 class="mb-0 fw-bold">Factory Permanent Deletion</h5>
+          </div>
+          <div class="p-4 p-md-5">
+            <div class="alert alert-danger border-0 bg-danger-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle text-danger fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">Permanent Deletion Warning</h6>
+                  <p class="mb-0">This factory will be permanently deleted from the database. This action cannot be undone.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Factory Name</label>
+                  <input type="text" class="form-control" value="{{ factory.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Category</label>
+                  <input type="text" class="form-control" value="{{ factory.category.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Location</label>
+                  <input type="text" class="form-control" value="{{ factory.city.name }}, {{ factory.state.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Status</label>
+                  <input type="text" class="form-control" value="Active" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-warning border-0 bg-warning-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle text-warning fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">What will be permanently deleted?</h6>
+                  <ul class="mb-0">
+                    <li>Factory basic information (name, description, contact details)</li>
+                    <li>All factory images and media files</li>
+                    <li>Factory view statistics and tracking data</li>
+                    <li>Any associated orders or purchase history</li>
+                    <li>All related database records</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info border-0 bg-info-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle text-info fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">Alternative: Soft Delete</h6>
+                  <p class="mb-0">If you want to hide this factory from users but keep the data, consider using the soft delete option instead. This will make the factory inactive but preserve all data for potential restoration.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-danger border-0 bg-danger-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-lock text-danger fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">Superuser Required</h6>
+                  <p class="mb-0">This action requires superuser privileges. Only administrators with superuser access can perform permanent deletions.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3">
+              <form method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger px-4 py-2 fw-bold">
+                  <i class="fas fa-trash me-2"></i> Permanently Delete Factory
+                </button>
+              </form>
+              <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" class="btn btn-outline-secondary px-4 py-2 fw-bold">
+                <i class="fas fa-times me-2"></i> Cancel
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

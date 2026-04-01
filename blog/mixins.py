@@ -57,15 +57,42 @@ class LocationCascadingMixin:
             dict: Dictionary of initial values for location fields
         """
         initial = {}
-        if self.instance and self.instance.region:
-            region = self.instance.region
-            initial.update({
-                'country': region.district.city.state.country,
-                'state': region.district.city.state,
-                'city': region.district.city,
-                'district': region.district,
-                'region': region,
-            })
+        if self.instance and self.instance.pk:
+            # Get location hierarchy from the instance
+            if self.instance.region:
+                region = self.instance.region
+                initial.update({
+                    'country': region.district.city.state.country,
+                    'state': region.district.city.state,
+                    'city': region.district.city,
+                    'district': region.district,
+                    'region': region,
+                })
+            elif self.instance.district:
+                district = self.instance.district
+                initial.update({
+                    'country': district.city.state.country,
+                    'state': district.city.state,
+                    'city': district.city,
+                    'district': district,
+                })
+            elif self.instance.city:
+                city = self.instance.city
+                initial.update({
+                    'country': city.state.country,
+                    'state': city.state,
+                    'city': city,
+                })
+            elif self.instance.state:
+                state = self.instance.state
+                initial.update({
+                    'country': state.country,
+                    'state': state,
+                })
+            elif self.instance.country:
+                initial.update({
+                    'country': self.instance.country,
+                })
         return initial
 
 

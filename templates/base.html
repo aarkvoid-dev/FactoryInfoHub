@@ -18,6 +18,19 @@
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <!-- Font Awesome 6.x -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Main site CSS isolation - only apply to main site, not admin -->
+  <style>
+    /* Wrap all main site styles in a specific class to prevent admin conflicts */
+    .main-site-content {
+      /* Your main site styles here */
+    }
+    
+    /* Ensure admin pages are not affected by main site styles */
+    body:not(.djn-admin) .main-site-content {
+      /* Main site specific styles */
+    }
+  </style>
 
   <!-- Mobile responsive styles -->
   <style>
@@ -93,7 +106,7 @@
       </div>
     </div>
 
-    <div class="preloader__title"> Factory Chemistry </div>
+    <div class="preloader__title"> Fashion Chemistry </div>
   </div>
 
   <div class="tourPagesSidebar" data-x="tourPagesSidebar" data-x-toggle="-is-active">
@@ -126,7 +139,7 @@
   <main>
     <!-- Header Section -->
     {% block header %}
-    <header class="header -type-9 js-header">
+    <header class="header -type-9 js-header" style="background: #000;">
         <div data-anim="fade delay-3" class="header__container container d-flex items-center justify-between">
             
             <div class="headerMobile__left">
@@ -139,7 +152,7 @@
 
                 <div class="header__logo">
                     <a href="{% url 'home' %}">
-                        <h4 class="text-white fw-700 tracking-tighter">Factory<span class="text-accent-1"> Chemistry</span></h4>
+                        <h4 class="text-white fw-700 tracking-tighter">Fashion<span class="text-accent-1"> Chemistry</span></h4>
                     </a>
                 </div>
 
@@ -150,26 +163,63 @@
                   </div>
 
                   <div class="desktopNav__item">
-                      <a href="{% url 'karkahan:factory_list' %}">Factories</a>
+                      <a href="{% url 'karkahan:factory_list' %}">Karkhana</a>
                   </div>
 
                   <div class="desktopNav__item">
                       <a href="{% url 'blog:post_list' %}">Blog</a>
                   </div>
 
+                  <div class="desktopNav__item">
+                      <a href="{% url 'faq:home' %}">Q&A</a>
+                  </div>
+                  <div class="desktopNav__item">
+                      <a href="{% url 'location:location_hierarchy' %}">Locations</a>
+                  </div>
+                  <div class="desktopNav__item">
+                      <a href="{% url 'category:user_category_list' %}">Category</a>
+                  </div>
+                  
+
+                  <!-- <div class="desktopNav__item">
+                      <a href="{% url 'workers:worker_list' %}">Workers</a>
+                  </div> -->
+
+                  
+
                   {% if request.user.is_staff or request.user.is_superuser %}
                   <div class="desktopNav__item">
-                      <a href="{% url 'admin_interface:admin_dashboard' %}">Admin Dashboard</a>
+                      <a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a>
                   </div>
-                  {% endif %}
-
+                  {% else %}
                   <div class="desktopNav__item">
                       <a href="{% url 'contact' %}">Contact</a>
                   </div>
+                  {% endif %}
+
+                  <!-- <div class="desktopNav__item">
+                      <a href="{% url 'terms_and_conditions' %}">Terms</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'privacy_policy' %}">Privacy</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'about_us' %}">About</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'disclaimer' %}">Disclaimer</a>
+                  </div>
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'refund_policy' %}">Refund Policy</a>
+                  </div> -->
 
                   {% if user.is_authenticated %}
                   <div class="desktopNav__item">
-                      <a href="{% url 'karkahan:purchase_history' %}">Purchase History</a>
+                      <a href="{% url 'karkahan:order_history' %}">Orders</a>
                   </div>
                   {% endif %}
                   </div>
@@ -493,22 +543,33 @@
               </li>
 
               <li class="submenu__item">
-                <a href="{% url 'karkahan:factory_list' %}">Factories</a>
+                <a href="{% url 'karkahan:factory_list' %}">Karkhana</a>
               </li>
 
               <li class="submenu__item">
                 <a href="{% url 'blog:post_list' %}">Blog</a>
               </li>
 
-              
+              <li class="submenu__item">
+                  <a href="{% url 'faq:home' %}">Q&A</a>
+              </li> 
 
               <li class="submenu__item">
-                <a href="{% url 'category:category_list' %}">Categories</a>
+                  <a href="{% url 'location:location_hierarchy' %}">Locations</a>
+              </li>
+              <li class="submenu__item">
+                  <a href="{% url 'category:user_category_list' %}">Category</a>
               </li>
 
-              <li class="submenu__item">
-                <a href="{% url 'location:country_list' %}">Locations</a>
+              <!-- <li class="submenu__item">
+                <a href="{% url 'workers:worker_list' %}">Workers</a>
+              </li> -->
+
+              {% if request.user.is_staff or request.user.is_superuser %}
+                <li class="submenu__item">
+                    <a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a>
               </li>
+              {% endif %}
 
               <li class="submenu__item">
                 <a href="{% url 'contact' %}">Contact</a>
@@ -516,7 +577,7 @@
 
               {% if user.is_authenticated %}
               <li class="submenu__item">
-                <a href="{% url 'karkahan:purchase_history' %}">Purchase History</a>
+                <a href="{% url 'karkahan:order_history' %}">Orders</a>
               </li>
               {% endif %}
             </ul>
@@ -540,7 +601,7 @@
         </ul>
       </div>
 
-      <div class="menu__footer">
+      <!-- <div class="menu__footer">
         <i class="icon-headphone text-50"></i>
 
         <div class="text-20 lh-12 fw-500 mt-20">
@@ -575,7 +636,7 @@
           </div>
 
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -594,8 +655,8 @@
                 </div>
                 <div class="col-auto">
                   <div class="text-20 fw-500">
-                    Factory Management System
-                    <span class="text-accent-1">Factory Chemistry</span>
+                    Establishment Management System
+                    <span class="text-accent-1">Fashion Chemistry</span>
                   </div>
                 </div>
               </div>
@@ -618,10 +679,10 @@
         <div class="footer__content">
           <div class="row y-gap-40 justify-between">
             <div class="col-lg-4 col-md-6">
-              <h4 class="text-20 fw-500">Factory Management</h4>
+              <h4 class="text-20 fw-500">Management</h4>
               <div class="y-gap-10 mt-20">
-                <a class="d-block" href="{% url 'karkahan:dashboard' %}">Factory Dashboard</a>
-                <a class="d-block" href="{% url 'karkahan:factory_list' %}">All Factories</a>
+                <a class="d-block" href="{% url 'karkahan:dashboard' %}">Dashboard</a>
+                <a class="d-block" href="{% url 'karkahan:factory_list' %}">All Establishments</a>
                 <a class="d-block" href="{% url 'blog:post_list' %}">Blog</a>
               </div>
             </div>
@@ -633,6 +694,21 @@
                 <a class="d-block fw-500" href="{% url 'karkahan:dashboard' %}">Factories</a>
                 <a class="d-block fw-500" href="{% url 'blog:post_list' %}">Blog</a>
                 <a class="d-block fw-500" href="{% url 'contact' %}">Contact</a>
+                
+                <!-- Dynamic Pages from Page Model -->
+                 
+                {% for page in pages %}
+                  <a class="d-block fw-500" href="{% url 'page_detail' page.slug %}">{{ page.title }}</a>
+                {% endfor %}
+                
+                <!-- Legacy static pages (fallback) -->
+                {% if not pages %}
+                  <a class="d-block fw-500" href="{% url 'terms_and_conditions' %}">Terms & Conditions</a>
+                  <a class="d-block fw-500" href="{% url 'refund_policy' %}">Refund Policy</a>
+                  <a class="d-block fw-500" href="{% url 'privacy_policy' %}">Privacy Policy</a>
+                  <a class="d-block fw-500" href="{% url 'disclaimer' %}">Disclaimer</a>
+                  <a class="d-block fw-500" href="{% url 'about_us' %}">About Us</a>
+                {% endif %}
               </div>
             </div>
 
@@ -651,7 +727,7 @@
 
             <div class="col-lg-3 col-md-6">
               <h4 class="text-20 fw-500">Newsletter</h4>
-              <p class="mt-20">Stay updated with our latest factory listings</p>
+              <p class="mt-20">Stay updated with our latest Establishments listings</p>
 
               <div class="footer__newsletter">
                 <input type="Email" placeholder="Your email address">
@@ -667,7 +743,7 @@
       <div class="footer__bottom">
         <div class="row y-gap-5 justify-between items-center">
           <div class="col-auto">
-            <div>© Copyright Factory Chemistry 2026</div>
+            <div>© Copyright Fashion Chemistry 2026</div>
           </div>
           <div class="col-auto">
             <div class="footer__images d-flex items-center x-gap-10">
@@ -687,6 +763,7 @@
   <!-- Website JavaScript -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAz77U5XQuEME6TpftaMdX0bBelQxXRlM"></script>
   <script src="https://unpkg.com/@googlemaps/markerclusterer@2.6.2/dist/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/vendors.js' %}"></script>
   <script src="{% static 'js/main.js' %}"></script>
 

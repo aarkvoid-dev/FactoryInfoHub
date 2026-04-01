@@ -395,3 +395,213 @@ def get_order_status_display(status):
         'refunded': 'Refunded',
     }
     return status_map.get(status, status.title())
+
+
+# Stripe Integration Functions
+try:
+    import stripe
+    
+    def get_stripe_api_key():
+        """Get Stripe API key from the active payment gateway"""
+        try:
+            from .models import PaymentGateway
+            gateway = PaymentGateway.objects.get(is_active=True, name='stripe')
+            return gateway.key_secret
+        except PaymentGateway.DoesNotExist:
+            return None
+
+    def get_stripe_publishable_key():
+        """Get Stripe publishable key from the active payment gateway"""
+        try:
+            from .models import PaymentGateway
+            gateway = PaymentGateway.objects.get(is_active=True, name='stripe')
+            return gateway.key_id
+        except PaymentGateway.DoesNotExist:
+            return None
+
+    def get_stripe_client():
+        """Get configured Stripe client with lazy initialization"""
+        api_key = get_stripe_api_key()
+        if api_key:
+            stripe.api_key = api_key
+            return stripe
+        else:
+            return None
+    
+    # Initialize Stripe client - will be configured lazily when needed
+    # stripe.api_key will be set when get_stripe_client() is called
+except ImportError:
+    logger.error("Stripe package not installed. Install with: pip install stripe")
+
+def create_stripe_checkout_session(order, success_url, cancel_url):
+    """
+    Create a Stripe checkout session
+    """
+    try:
+        # Get configured Stripe client
+        stripe_client = get_stripe_client()
+        if not stripe_client:
+            raise ValueError("Stripe API key not configured")
+        
+        # Create line items for the checkout session
+        line_items = []
+        for item in order.items.all():
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': item.factory.name,
+                        'description': f'Factory Information: {item.factory.name} - {item.factory.category.name}',
+                    },
+                    'unit_amount': int(item.price_at_purchase * 100),  # Stripe expects amount in cents
+                },
+                'quantity': item.quantity,
+            })
+        
+        # Create checkout session
+        session = stripe_client.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'order_id': str(order.id),
+                'user_id': str(order.user.id)
+            },
+            customer_email=order.customer_email,
+        )
+        
+        return session
+    except Exception as e:
+        logger.error(f"Error creating Stripe checkout session: {str(e)}")
+        raise Exception(f"Failed to create checkout session: {str(e)}")
+
+def verify_stripe_webhook_signature(payload, sig_header, endpoint_secret):
+    """
+    Verify Stripe webhook signature
+    """
+    try:
+        # Get configured Stripe client
+        stripe_client = get_stripe_client()
+        if not stripe_client:
+            raise ValueError("Stripe API key not configured")
+        
+        event = stripe_client.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+        return event
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Stripe webhook signature verification failed: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Error processing Stripe webhook: {str(e)}")
+        return None
+
+def get_stripe_payment_intent(payment_intent_id):
+    """
+    Get payment intent details from Stripe
+    """
+    try:
+        # Get configured Stripe client
+        stripe_client = get_stripe_client()
+        if not stripe_client:
+            raise ValueError("Stripe API key not configured")
+        
+        payment_intent = stripe_client.PaymentIntent.retrieve(payment_intent_id)
+        return payment_intent
+    except Exception as e:
+        logger.error(f"Error fetching payment intent details: {str(e)}")
+        return None
+
+def process_stripe_payment_completion(order, session_id):
+    """
+    Process Stripe payment completion and update order status
+    """
+    try:
+        # Get configured Stripe client
+        stripe_client = get_stripe_client()
+        if not stripe_client:
+            raise ValueError("Stripe API key not configured")
+        
+        # Get checkout session details
+        session = stripe_client.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status != 'paid':
+            raise Exception(f"Payment not completed. Status: {session.payment_status}")
+        
+        # Update order and payment records
+        order.status = 'completed'
+        order.payment_status = 'completed'
+        order.completed_at = timezone.now()
+        order.save()
+        
+        # Create payment record
+        payment = Payment.objects.create(
+            order=order,
+            payment_method='credit_card',
+            amount=order.total_amount,
+            currency='USD',
+            transaction_id=session_id,
+            status='completed',
+            gateway_response=session
+        )
+        
+        # Create factory purchases for each order item
+        from .models import FactoryPurchase
+        
+        for item in order.items.all():
+            FactoryPurchase.objects.create(
+                user=order.user,
+                factory=item.factory,
+                quantity=item.quantity,
+                price_at_purchase=item.price_at_purchase,
+                payment_status='completed',
+                transaction_id=session_id
+            )
+        
+        # Clear user's cart
+        from .models import ShoppingCart
+        ShoppingCart.objects.filter(user=order.user).delete()
+        
+        return True, "Payment completed successfully"
+        
+    except Exception as e:
+        logger.error(f"Stripe payment completion failed: {str(e)}")
+        # Mark order as failed
+        if order:
+            order.status = 'failed'
+            order.payment_status = 'failed'
+            order.save()
+        return False, str(e)
+
+def create_stripe_payment_options():
+    """
+    Create payment options for Stripe checkout
+    """
+    return {
+        'publishableKey': settings.STRIPE_PUBLISHABLE_KEY,
+        'currency': 'USD',
+        'locale': 'auto'
+    }
+
+# Backward compatibility functions (redirect to Stripe functions)
+def create_razorpay_order(amount, currency='INR', receipt=None, notes=None):
+    """Create a Stripe checkout session instead of Razorpay order"""
+    logger.warning("create_razorpay_order called but using Stripe. This function is deprecated.")
+    raise Exception("Razorpay integration has been replaced with Stripe. Use create_stripe_checkout_session instead.")
+
+def verify_payment_signature(params_dict):
+    """Verify Stripe webhook signature instead of Razorpay"""
+    logger.warning("verify_payment_signature called but using Stripe. This function is deprecated.")
+    raise Exception("Razorpay integration has been replaced with Stripe. Use verify_stripe_webhook_signature instead.")
+
+def process_payment_completion(order, payment_id, signature):
+    """Process Stripe payment completion instead of Razorpay"""
+    logger.warning("process_payment_completion called but using Stripe. This function is deprecated.")
+    raise Exception("Razorpay integration has been replaced with Stripe. Use process_stripe_payment_completion instead.")
+
+def create_payment_options():
+    """Create Stripe payment options instead of Razorpay"""
+    logger.warning("create_payment_options called but using Stripe. This function is deprecated.")
+    return create_stripe_payment_options()

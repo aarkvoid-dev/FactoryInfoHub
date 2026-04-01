@@ -191,11 +191,25 @@
                         <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary">
                             <i class="fas fa-images me-2"></i>Manage Images
                         </a>
-                        <button type="button" class="btn btn-outline-danger" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal">
-                            <i class="fas fa-trash me-2"></i>Delete Blog
-                        </button>
+                        
+                        {% if blog.is_deleted %}
+                            <!-- Restore and Permanent Delete buttons for deleted blogs -->
+                            <a href="{% url 'admin_interface:admin_blog_restore' blog.id %}" class="btn btn-success">
+                                <i class="fas fa-trash-restore me-2"></i>Restore Blog
+                            </a>
+                            <button type="button" class="btn btn-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#permanentDeleteModal">
+                                <i class="fas fa-trash-alt me-2"></i>Permanent Delete
+                            </button>
+                        {% else %}
+                            <!-- Soft Delete button for active blogs -->
+                            <button type="button" class="btn btn-warning" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#softDeleteModal">
+                                <i class="fas fa-trash me-2"></i>Move to Trash
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -203,7 +217,73 @@
     </div>
 </div>
 
-<!-- Delete Modal -->
+<!-- Soft Delete Modal -->
+<div class="modal fade" id="softDeleteModal" tabindex="-1" aria-labelledby="softDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="softDeleteModalLabel">
+                    <i class="fas fa-trash me-2"></i> Move to Trash
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-bold">Are you sure you want to move this blog post to trash?</p>
+                <p><strong>{{ blog.title }}</strong></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This action can be undone. The post will be moved to trash and can be restored later.
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-image me-2"></i>
+                    Associated images and data will be preserved and can be restored.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'admin_interface:admin_blog_soft_delete' blog.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permanent Delete Modal -->
+<div class="modal fade" id="permanentDeleteModal" tabindex="-1" aria-labelledby="permanentDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="permanentDeleteModalLabel">
+                    <i class="fas fa-trash-alt me-2"></i> Permanent Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-bold text-danger">Are you sure you want to permanently delete this blog post?</p>
+                <p><strong>{{ blog.title }}</strong></p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>This action cannot be undone.</strong> The post will be permanently removed from the database.
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-image me-2"></i>
+                    All associated images and data will be permanently deleted.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'admin_interface:admin_blog_hard_delete' blog.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Permanently Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Legacy Delete Modal (for backward compatibility) -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

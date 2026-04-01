@@ -1,0 +1,209 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}Fix Order - {{ order.id }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='karkahan' %}">Karkahan</a>
+    &rsaquo; <a href="{% url 'admin:karkahan_order_changelist' %}">Orders</a>
+    &rsaquo; Fix Order #{{ order.id }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module custom-admin-page">
+    <h2>Fix Order #{{ order.id }}</h2>
+    
+    <div class="order-info">
+        <h3>Order Details</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>User:</strong> {{ order.user.username }} ({{ order.user.email }})
+            </div>
+            <div class="info-item">
+                <strong>Amount:</strong> ₹{{ order.total_amount|floatformat:2 }}
+            </div>
+            <div class="info-item">
+                <strong>Status:</strong> 
+                <span class="status-badge status-failed">{{ order.payment_status|title }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Gateway:</strong> {{ order.gateway_used.name|title }}
+            </div>
+            <div class="info-item">
+                <strong>Date:</strong> {{ order.order_date|date:"M d, Y H:i" }}
+            </div>
+            <div class="info-item">
+                <strong>Transaction ID:</strong> {{ order.transaction_id|default:"Not set" }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-items">
+        <h3>Order Items</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Factory</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.factory.name }}</td>
+                    <td>{{ item.factory.city.name }}, {{ item.factory.state.name }}</td>
+                    <td>₹{{ item.price_at_purchase|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="warning-box">
+        <h3>Warning</h3>
+        <p>This action will:</p>
+        <ul>
+            <li>Mark the order as completed</li>
+            <li>Clear the user's cart</li>
+            <li>Send an order receipt email to the user</li>
+        </ul>
+        <p><strong>This action cannot be undone.</strong></p>
+    </div>
+    
+    <div class="form-actions">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="button danger">Complete Order</button>
+            <a href="{% url 'admin:karkahan_order_changelist' %}" class="button">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<style>
+.custom-admin-page .order-info {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.custom-admin-page .order-info h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.custom-admin-page .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 10px;
+}
+
+.custom-admin-page .info-item {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.custom-admin-page .order-items {
+    margin-bottom: 20px;
+}
+
+.custom-admin-page .order-items h3 {
+    color: #333;
+}
+
+.custom-admin-page .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.custom-admin-page .warning-box h3 {
+    margin-top: 0;
+    color: #856404;
+}
+
+.custom-admin-page .warning-box ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.custom-admin-page .warning-box strong {
+    color: #721c24;
+}
+
+.custom-admin-page .form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.custom-admin-page .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007cba;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.custom-admin-page .button:hover {
+    background-color: #005a87;
+}
+
+.custom-admin-page .button.danger {
+    background-color: #dc3545;
+}
+
+.custom-admin-page .button.danger:hover {
+    background-color: #c82333;
+}
+
+.custom-admin-page .button.secondary {
+    background-color: #6c757d;
+}
+
+.custom-admin-page .button.secondary:hover {
+    background-color: #545b62;
+}
+
+.custom-admin-page .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+.custom-admin-page .table th, .custom-admin-page .table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.custom-admin-page .table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.custom-admin-page .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.custom-admin-page .status-failed { background-color: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}

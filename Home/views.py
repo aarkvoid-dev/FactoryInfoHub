@@ -1,14 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Sum
+from django.utils import timezone
 from Karkahan.models import Factory
 from blog.models import BlogPost
 from category.models import Category
 from location.models import Country,City
-from .models import HomePageVideo, ContactMessage
+from .models import HomePageVideo, ContactMessage,Page
+
 
 def home(request):
     # Fetch featured factories (verified and active)
@@ -56,6 +58,9 @@ def home(request):
         total_capacity=Sum('annual_turnover')
     )['total_capacity'] or 0
 
+    # Get all published pages for footer
+    # pages = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
+    
     context = {
         'featured_factories': featured_factories,
         'latest_posts': latest_posts,
@@ -68,6 +73,7 @@ def home(request):
         'countries_covered': countries_covered,
         'total_capacity': total_capacity,
         'home_page_video': HomePageVideo.objects.filter(is_active=True).first(),
+        # 'pages': pages,
     }
     return render(request, 'home/home.html', context)
 
@@ -110,7 +116,7 @@ Name: {name}
 Email: {email}
 Subject: {subject}
 User: {request.user.username if request.user.is_authenticated else 'Anonymous'}
-Date: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+Date: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')}
 
 Message:
 {message}
@@ -181,4 +187,96 @@ Phone: +91 22 1234 5678
     if request.user.is_authenticated:
         context['user_email'] = request.user.email
     
+    # Add pages for footer
+    context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
+    
     return render(request, 'home/contact.html', context)
+
+def products(request):
+    """Products page - Coming Soon"""
+    return render(request, 'home/products.html')
+
+def terms_and_conditions(request):
+    """Terms and Conditions page"""
+    return render(request, 'terms_and_conditions.html')
+
+def privacy_policy(request):
+    """Privacy Policy page"""
+    return render(request, 'privacy_policy.html')
+
+def about_us(request):
+    """About Us page"""
+    return render(request, 'about_us.html')
+
+def disclaimer(request):
+    """Disclaimer page"""
+    return render(request, 'disclaimer.html')
+
+def refund_policy(request):
+    """Refund Policy page"""
+    return render(request, 'refund_policy.html')
+
+
+def page_detail(request, slug):
+    """Dynamic page view for Terms, Refund Policy, Disclaimer, etc."""
+    page = get_object_or_404(Page, slug=slug, is_published=True, is_deleted=False)
+    
+    # Get page sections if they exist
+    sections = page.sections.filter(is_deleted=False).order_by('order')
+    
+    context = {
+        'page': page,
+        'sections': sections,
+    }
+    
+    # Use a generic page template or specific templates based on page type
+    # template_name = f'pages/{page.page_type}.html'
+    
+    # Check if specific template exists, otherwise use generic
+    # try:
+    #     return render(request, template_name, context)
+    # except:
+    #     # Fallback to generic page template
+    #     return render(request, 'pages/page.html', context)
+
+    return render(request, 'page.html', context)
+
+
+def terms_and_conditions_view(request):
+    """Legacy view for Terms & Conditions - redirects to dynamic page"""
+    page = Page.get_page_by_type('terms')
+    if page:
+        return redirect('page_detail', slug=page.slug)
+    return render(request, 'terms_and_conditions.html')
+
+
+def refund_policy_view(request):
+    """Legacy view for Refund Policy - redirects to dynamic page"""
+    page = Page.get_page_by_type('refund')
+    if page:
+        return redirect('page_detail', slug=page.slug)
+    return render(request, 'refund_policy.html')
+
+
+def disclaimer_view(request):
+    """Legacy view for Disclaimer - redirects to dynamic page"""
+    page = Page.get_page_by_type('disclaimer')
+    if page:
+        return redirect('page_detail', slug=page.slug)
+    return render(request, 'disclaimer.html')
+
+
+def privacy_policy_view(request):
+    """Legacy view for Privacy Policy - redirects to dynamic page"""
+    page = Page.get_page_by_type('privacy')
+    if page:
+        return redirect('page_detail', slug=page.slug)
+    return render(request, 'privacy_policy.html')
+
+
+def about_us_view(request):
+    """Legacy view for About Us - redirects to dynamic page"""
+    page = Page.get_page_by_type('about')
+    if page:
+        return redirect('page_detail', slug=page.slug)
+    return render(request, 'about_us.html')

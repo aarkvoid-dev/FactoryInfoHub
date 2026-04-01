@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Explore Locations - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #EB662B;
+        --primary-dark: #d45b23;
+        --secondary-blue: #0f172a;
+        --accent-blue: #3b82f6;
+        --surface: #ffffff;
+        --background: #f1f5f9;
+        --glass: rgba(255, 255, 255, 0.8);
+    }
+
+    body { background-color: var(--background); }
+
+    /* Hero Section */
+    .location-hero {
+        background: radial-gradient(circle at top left, #1e3c72, #2a5298);
+        padding: 180px 0 120px;
+        text-align: center;
+        color: white;
+        clip-path: ellipse(150% 100% at 50% 0%);
+    }
+
+    .location-hero h1{
+        color: #f8fafc;
+    }
+    .location-hero p{
+        color: #f8fafc;
+    }
+
+    .search-container {
+        max-width: 600px;
+        margin: -40px auto 40px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .search-input-group {
+        background: white;
+        padding: 8px;
+        border-radius: 50px;
+        display: flex;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .search-input-group input {
+        border: none;
+        padding: 10px 25px;
+        flex-grow: 1;
+        border-radius: 50px;
+        outline: none;
+    }
+
+    /* City-First Section */
+    .section-title {
+        font-weight: 800;
+        color: var(--secondary-blue);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .city-grid-main {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 4rem;
+    }
+
+    .city-card-fancy {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .city-card-fancy:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary);
+    }
+
+    .city-icon-box {
+        width: 50px;
+        height: 50px;
+        background: #fff4ed;
+        color: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    /* Accordion Styling */
+    .country-accordion {
+        background: transparent;
+        border: none;
+    }
+
+    .country-item {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border-radius: 1.5rem !important;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .country-btn {
+        padding: 1.5rem;
+        font-weight: 700;
+        color: var(--secondary-blue) !important;
+        background: white !important;
+        border: none;
+        box-shadow: none !important;
+    }
+
+    .country-btn:not(.collapsed) {
+        background: linear-gradient(to right, #fff, #f8fafc) !important;
+    }
+
+    .state-pill {
+        display: inline-block;
+        padding: 8px 20px;
+        background: white;
+        border-radius: 50px;
+        margin: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .state-pill:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .badge-count {
+        font-size: 0.7rem;
+        background: #e2e8f0;
+        color: #64748b;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="location-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Find Your Next Factory</h1>
+        <p class="lead">Select a city to explore industrial opportunities</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="search-container">
+        <div class="search-input-group">
+            <input type="text" id="citySearch" placeholder="Search for a city or region...">
+            <button class="btn btn-primary px-4 rounded-pill">Search</button>
+        </div>
+    </div>
+
+    <h3 class="section-title">
+        <i class="fas fa-city"></i> Popular Cities
+    </h3>
+    <div class="city-grid-main" id="featuredCities">
+        {% for country in countries %}
+            {% for state in country.states.all|slice:":2" %}
+                {% for city in state.cities.all|slice:":2" %}
+                <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="city-card-fancy">
+                    <div class="city-icon-box">
+                        <i class="fas fa-building-circle-check"></i>
+                    </div>
+                    <span class="fw-bold">{{ city.name }}</span>
+                    <span class="text-muted small">{{ state.name }}, {{ country.name }}</span>
+                </a>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <h3 class="section-title">
+        <i class="fas fa-globe-americas"></i> Browse by Region
+    </h3>
+    
+    <div class="accordion country-accordion" id="locationAccordion">
+        {% for country in countries %}
+        <div class="accordion-item country-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed country-btn" type="button" data-bs-toggle="collapse" data-bs-target="#country-{{ country.id }}">
+                    <img src="https://flagcdn.com/24x18/{{ country.code|lower }}.png" class="me-3 shadow-sm" alt="">
+                    {{ country.name }}
+                </button>
+            </h2>
+            <div id="country-{{ country.id }}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion">
+                <div class="accordion-body bg-light">
+                    <div class="row">
+                        {% for state in country.states.all %}
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold mb-3 text-uppercase small text-muted letter-spacing-1">
+                                {{ state.name }} <span class="badge-count">{{ state.cities.count }} Cities</span>
+                            </h6>
+                            <div class="d-flex flex-wrap">
+                                {% for city in state.cities.all %}
+                                <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="state-pill">
+                                    {{ city.name }}
+                                </a>
+                                {% endfor %}
+                                <a href="{% url 'karkahan:factory_list' %}?state={{ state.id }}" class="state-pill bg-dark text-white border-0">
+                                    View All in {{ state.name }} →
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Simple filter for the city grid
+    document.getElementById('citySearch').addEventListener('input', function(e) {
+        let term = e.target.value.toLowerCase();
+        let cards = document.querySelectorAll('.city-card-fancy');
+        
+        cards.forEach(card => {
+            let cityName = card.innerText.toLowerCase();
+            card.style.display = cityName.includes(term) ? 'flex' : 'none';
+        });
+    });
+</script>
+{% endblock %}

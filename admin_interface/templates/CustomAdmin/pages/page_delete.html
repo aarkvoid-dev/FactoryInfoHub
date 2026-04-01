@@ -1,0 +1,32 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{% trans 'Delete page' %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='Home' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:Home_page_changelist' %}">Pages</a>
+    &rsaquo; {% trans 'Delete' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{% trans 'Delete page' %}</h1>
+<p>{% trans "Are you sure you want to delete the page" %} "{{ object }}"?</p>
+
+<form method="post">{% csrf_token %}
+    <div>
+        <input type="hidden" name="post" value="yes">
+        {% if is_popup %}
+            <input type="hidden" name="{{ is_popup_var }}" value="1">
+        {% endif %}
+        {% if to_field %}
+            <input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">
+        {% endif %}
+        <input type="submit" value="{% trans 'Yes, I\'m sure' %}">
+        <a href="#" onclick="window.history.back(); return false;" class="default">{% trans 'No, take me back' %}</a>
+    </div>
+</form>
+{% endblock %}

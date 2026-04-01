@@ -1,0 +1,113 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Retry Email - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_orders' %}">Orders</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_order_detail' order.id %}">{{ order.order_number }}</a></li>
+                        <li class="breadcrumb-item active">Retry Email</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Retry Email - {{ order.order_number }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                            <p><strong>Customer:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+                            <p><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p><strong>Order Date:</strong> {{ order.order_date|date:"M d, Y H:i" }}</p>
+                            <p><strong>Payment Status:</strong> 
+                                <span class="badge badge-{{ order.get_payment_status_display|lower }}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+                            <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id|default:"Not available" }}</p>
+                            <p><strong>Items:</strong> {{ order.items.count }}</p>
+                            <p><strong>Email Status:</strong> 
+                                <span class="badge badge-{{ order.email_status|lower }}">
+                                    {{ order.get_email_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="alert alert-info">
+                        <h5><i class="mdi mdi-information-outline"></i> Email Retry</h5>
+                        <p>This will resend the order confirmation email to {{ order.user.email }}.</p>
+                        <p>The email will contain the order details and confirmation of completion.</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="email_preview">Email Content Preview</label>
+                            <textarea class="form-control" id="email_preview" rows="8" readonly>
+Order {{ order.order_number }} Confirmation
+
+Dear {{ order.user.get_full_name|default:order.user.username }},
+
+Thank you for your purchase! Your order has been successfully completed.
+
+Order Details:
+- Order Number: {{ order.order_number }}
+- Order Date: {{ order.order_date|date:"M d, Y H:i" }}
+- Total Amount: ₹{{ order.total_amount }}
+- Payment Method: {{ order.get_payment_method_display }}
+- Items: {{ order.items.count }} factory/factories
+
+Purchased Factories:
+{% for item in order.items.all %}
+- {{ item.factory.name }} ({{ item.factory.category.name }}) - ₹{{ item.price_at_purchase }}
+  Location: {{ item.factory.city.name }}, {{ item.factory.state.name }}
+{% endfor %}
+
+Your access to the purchased factory information has been granted.
+
+Best regards,
+Factory InfoHub Team
+                            </textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{% url 'admin_interface:admin_order_detail' order.id %}" class="btn btn-secondary">
+                                    <i class="mdi mdi-arrow-left"></i> Back to Order
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="mdi mdi-email"></i> Send Email
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

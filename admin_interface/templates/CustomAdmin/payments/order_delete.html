@@ -1,0 +1,122 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Delete Order{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Delete Order</h1>
+                    <p class="text-muted mb-0">Are you sure you want to delete this order?</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_interface:admin_orders' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Warning
+                </h4>
+                <p class="mb-0">This action cannot be undone. Deleting this order will permanently remove:</p>
+                <ul class="mb-0 mt-2">
+                    <li>The order record and all associated data</li>
+                    <li>Order items and purchase history</li>
+                    <li>Any related payment information</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>Order Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">{{ order.order_number }}</h5>
+                            <p class="text-muted mb-2">
+                                <strong>Customer:</strong><br>
+                                {{ order.user.get_full_name|default:order.user.username }}<br>
+                                <small>{{ order.user.email }}</small>
+                            </p>
+                            <p class="text-muted mb-2">
+                                <strong>Order Date:</strong><br>
+                                {{ order.order_date|date:"M d, Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-2">
+                                <strong>Payment Status:</strong><br>
+                                <span class="badge bg-{{ order.get_payment_status_display|lower }}">{{ order.get_payment_status_display }}</span>
+                            </p>
+                            <p class="text-muted mb-2">
+                                <strong>Payment Method:</strong><br>
+                                {{ order.payment_method|default:"Not specified" }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <strong>Total Amount:</strong><br>
+                                <strong class="h5">₹{{ order.total_amount }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-trash me-2"></i>Confirm Deletion
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="confirmation" class="form-label">Type "DELETE" to confirm:</label>
+                            <input type="text" class="form-control" id="confirmation" name="confirmation" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg" onclick="return validateDelete()">
+                                <i class="fas fa-trash me-2"></i>Delete Order
+                            </button>
+                            <a href="{% url 'admin_interface:admin_order_detail' order.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function validateDelete() {
+    const confirmation = document.getElementById('confirmation').value;
+    if (confirmation !== 'DELETE') {
+        alert('Please type "DELETE" to confirm deletion.');
+        return false;
+    }
+    return confirm('Are you absolutely sure you want to delete this order? This action cannot be undone.');
+}
+</script>
+{% endblock %}

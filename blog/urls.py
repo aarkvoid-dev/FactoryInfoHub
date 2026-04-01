@@ -12,4 +12,9 @@ urlpatterns = [
     path('<slug:slug>/update/', views.BlogPostUpdateView.as_view(), name='post_update'),
     path('<slug:slug>/delete/', views.BlogPostDeleteView.as_view(), name='post_delete'),
     path('<slug:slug>/manage-images/', views.manage_images, name='manage_images'),
+    
+    # Blog Delete Operations
+    path('<slug:slug>/soft-delete/', views.blog_soft_delete, name='blog_soft_delete'),
+    path('<slug:slug>/hard-delete/', views.blog_hard_delete, name='blog_hard_delete'),
+    path('<slug:slug>/restore/', views.blog_restore, name='blog_restore'),
 ]

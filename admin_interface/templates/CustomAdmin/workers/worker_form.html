@@ -1,4 +1,5 @@
 {% extends 'CustomAdmin/base.html' %}
+{% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -27,114 +28,112 @@
         </div>
     </div>
 
-    <!-- Form -->
+    <!-- Messages -->
+    {% if messages %}
+    <div class="row">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">{{ title }}</h5>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="card-title fw-bold mb-0">{{ title }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="POST" id="workerForm">
                         {% csrf_token %}
                         
                         <!-- Personal Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="card-title mb-0">Personal Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.full_name.label_tag }}
-                                        {{ form.full_name }}
-                                        {% if form.full_name.errors %}
-                                            <div class="text-danger small">{{ form.full_name.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.date_of_birth.label_tag }}
-                                        {{ form.date_of_birth }}
-                                        {% if form.date_of_birth.errors %}
-                                            <div class="text-danger small">{{ form.date_of_birth.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3"><i class="fas fa-user me-2 text-primary"></i> Personal Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.full_name.label_tag }}
+                                    {{ form.full_name }}
+                                    {% if form.full_name.errors %}
+                                        <div class="text-danger small">{{ form.full_name.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.gender.label_tag }}
-                                        {{ form.gender }}
-                                        {% if form.gender.errors %}
-                                            <div class="text-danger small">{{ form.gender.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.phone_number.label_tag }}
-                                        {{ form.phone_number }}
-                                        {% if form.phone_number.errors %}
-                                            <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.email.label_tag }}
-                                        {{ form.email }}
-                                        {% if form.email.errors %}
-                                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                                <div class="col-md-6">
+                                    {{ form.date_of_birth.label_tag }}
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="text-danger small">{{ form.date_of_birth.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.gender.label_tag }}
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="text-danger small">{{ form.gender.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.phone_number.label_tag }}
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.email.label_tag }}
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
 
                         <!-- Professional Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="card-title mb-0">Professional Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.category.label_tag }}
-                                        {{ form.category }}
-                                        {% if form.category.errors %}
-                                            <div class="text-danger small">{{ form.category.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.subcategory.label_tag }}
-                                        {{ form.subcategory }}
-                                        {% if form.subcategory.errors %}
-                                            <div class="text-danger small">{{ form.subcategory.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3"><i class="fas fa-briefcase me-2 text-primary"></i> Professional Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.category.label_tag }}
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.years_of_experience.label_tag }}
-                                        {{ form.years_of_experience }}
-                                        {% if form.years_of_experience.errors %}
-                                            <div class="text-danger small">{{ form.years_of_experience.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.availability.label_tag }}
-                                        {{ form.availability }}
-                                        {% if form.availability.errors %}
-                                            <div class="text-danger small">{{ form.availability.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        {{ form.expected_daily_wage.label_tag }}
-                                        {{ form.expected_daily_wage }}
-                                        {% if form.expected_daily_wage.errors %}
-                                            <div class="text-danger small">{{ form.expected_daily_wage.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                                <div class="col-md-6">
+                                    {{ form.subcategory.label_tag }}
+                                    {{ form.subcategory }}
+                                    {% if form.subcategory.errors %}
+                                        <div class="text-danger small">{{ form.subcategory.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
-                                
-                                <div class="mb-3">
+                                <div class="col-md-4">
+                                    {{ form.years_of_experience.label_tag }}
+                                    {{ form.years_of_experience }}
+                                    {% if form.years_of_experience.errors %}
+                                        <div class="text-danger small">{{ form.years_of_experience.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.availability.label_tag }}
+                                    {{ form.availability }}
+                                    {% if form.availability.errors %}
+                                        <div class="text-danger small">{{ form.availability.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.expected_daily_wage.label_tag }}
+                                    {{ form.expected_daily_wage }}
+                                    {% if form.expected_daily_wage.errors %}
+                                        <div class="text-danger small">{{ form.expected_daily_wage.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12">
                                     {{ form.skills.label_tag }}
                                     {{ form.skills }}
                                     {% if form.skills.errors %}
@@ -146,95 +145,162 @@
                         </div>
 
                         <!-- Location Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="card-title mb-0">Location Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
-                                        {{ form.country.label_tag }}
-                                        {{ form.country }}
-                                        {% if form.country.errors %}
-                                            <div class="text-danger small">{{ form.country.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        {{ form.state.label_tag }}
-                                        {{ form.state }}
-                                        {% if form.state.errors %}
-                                            <div class="text-danger small">{{ form.state.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        {{ form.city.label_tag }}
-                                        {{ form.city }}
-                                        {% if form.city.errors %}
-                                            <div class="text-danger small">{{ form.city.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        {{ form.district.label_tag }}
-                                        {{ form.district }}
-                                        {% if form.district.errors %}
-                                            <div class="text-danger small">{{ form.district.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Location Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    {{ form.country.label_tag }}
+                                    {{ form.country }}
+                                    {% if form.country.errors %}
+                                        <div class="text-danger small">{{ form.country.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.region.label_tag }}
-                                        {{ form.region }}
-                                        {% if form.region.errors %}
-                                            <div class="text-danger small">{{ form.region.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.address.label_tag }}
-                                        {{ form.address }}
-                                        {% if form.address.errors %}
-                                            <div class="text-danger small">{{ form.address.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                                <div class="col-md-3">
+                                    {{ form.state.label_tag }}
+                                    {{ form.state }}
+                                    {% if form.state.errors %}
+                                        <div class="text-danger small">{{ form.state.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.city.label_tag }}
+                                    {{ form.city }}
+                                    {% if form.city.errors %}
+                                        <div class="text-danger small">{{ form.city.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.district.label_tag }}
+                                    {{ form.district }}
+                                    {% if form.district.errors %}
+                                        <div class="text-danger small">{{ form.district.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.region.label_tag }}
+                                    {{ form.region }}
+                                    {% if form.region.errors %}
+                                        <div class="text-danger small">{{ form.region.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.address.label_tag }}
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="text-danger small">{{ form.address.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- System Fields -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="card-title mb-0">System Information</h6>
+                        <!-- Work Experience (Inline Formset) -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3"><i class="fas fa-history me-2 text-primary"></i> Work Experience</h6>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    {{ formset.management_form }}
+                                    <div id="experience-forms-container">
+                                        {% for exp_form in formset %}
+                                            <div class="experience-form card mb-3 border">
+                                                <div class="card-body p-3">
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            {{ exp_form.company_name.label_tag }}
+                                                            {{ exp_form.company_name }}
+                                                            {% if exp_form.company_name.errors %}
+                                                                <div class="text-danger small">{{ exp_form.company_name.errors.0 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            {{ exp_form.job_title.label_tag }}
+                                                            {{ exp_form.job_title }}
+                                                            {% if exp_form.job_title.errors %}
+                                                                <div class="text-danger small">{{ exp_form.job_title.errors.0 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            {{ exp_form.start_date.label_tag }}
+                                                            {{ exp_form.start_date }}
+                                                            {% if exp_form.start_date.errors %}
+                                                                <div class="text-danger small">{{ exp_form.start_date.errors.0 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            {{ exp_form.end_date.label_tag }}
+                                                            {{ exp_form.end_date }}
+                                                            {% if exp_form.end_date.errors %}
+                                                                <div class="text-danger small">{{ exp_form.end_date.errors.0 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <div class="form-check">
+                                                                {{ exp_form.is_current }}
+                                                                {{ exp_form.is_current.label_tag }}
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            {{ exp_form.description.label_tag }}
+                                                            {{ exp_form.description }}
+                                                            {% if exp_form.description.errors %}
+                                                                <div class="text-danger small">{{ exp_form.description.errors.0 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if exp_form.instance.pk %}
+                                                            <div class="col-12">
+                                                                <label class="form-check-label">
+                                                                    {{ exp_form.DELETE }} Delete this experience
+                                                                </label>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="button" id="add-experience" class="btn btn-sm btn-outline-primary mt-2">
+                                        <i class="fas fa-plus"></i> Add Another Experience
+                                    </button>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <div class="form-check">
-                                            {{ form.is_active }}
-                                            {{ form.is_active.label_tag }}
-                                            {% if form.is_active.errors %}
-                                                <div class="text-danger small">{{ form.is_active.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
+                        </div>
+
+                        <!-- System Information -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i> System Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        {{ form.is_active.label_tag }}
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger small">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="form-check">
-                                            {{ form.is_verified }}
-                                            {{ form.is_verified.label_tag }}
-                                            {% if form.is_verified.errors %}
-                                                <div class="text-danger small">{{ form.is_verified.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form.is_verified }}
+                                        {{ form.is_verified.label_tag }}
+                                        {% if form.is_verified.errors %}
+                                            <div class="text-danger small">{{ form.is_verified.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.created_by.label_tag }}
+                                    {{ form.created_by }}
+                                    {% if form.created_by.errors %}
+                                        <div class="text-danger small">{{ form.created_by.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
                                 <i class="fas fa-save me-2"></i>Save Worker
                             </button>
-                            <a href="{% url 'admin_interface:admin_workers' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'admin_interface:admin_workers' %}" class="btn btn-outline-secondary rounded-pill px-4">
                                 <i class="fas fa-times me-2"></i>Cancel
                             </a>
                         </div>
@@ -245,42 +311,74 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">Worker Information</h6>
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h6 class="fw-semibold mb-0"><i class="fas fa-info-circle me-2 text-primary"></i> Form Tips</h6>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <h6>Form Tips</h6>
-                        <ul class="small text-muted">
-                            <li>Full name should include first and last name</li>
-                            <li>Date of birth helps calculate age for filtering</li>
-                            <li>Skills should be comma-separated for better organization</li>
-                            <li>Expected daily wage should be in local currency</li>
-                            <li>Location fields help with regional job matching</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6>Worker Status</h6>
-                        <ul class="small text-muted">
-                            <li><strong>Active:</strong> Worker is available for jobs</li>
-                            <li><strong>Inactive:</strong> Worker is temporarily unavailable</li>
-                            <li><strong>Verified:</strong> Worker's information has been verified</li>
-                            <li><strong>Unverified:</strong> Worker's information needs verification</li>
-                        </ul>
-                    </div>
+                    <ul class="small text-muted">
+                        <li>Full name should include first and last name</li>
+                        <li>Date of birth helps calculate age for filtering</li>
+                        <li>Skills should be comma-separated for better organization</li>
+                        <li>Expected daily wage should be in local currency (₹)</li>
+                        <li>Location fields help with regional job matching</li>
+                        <li>Slug is auto‑generated from the name</li>
+                    </ul>
                 </div>
             </div>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h6 class="fw-semibold mb-0"><i class="fas fa-chart-line me-2 text-primary"></i> Worker Status</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small text-muted">
+                        <li><strong>Active:</strong> Worker is available for jobs</li>
+                        <li><strong>Inactive:</strong> Worker is temporarily unavailable</li>
+                        <li><strong>Verified:</strong> Worker's information has been verified</li>
+                        <li><strong>Unverified:</strong> Worker's information needs verification</li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if worker %}
+            <div class="card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h6 class="fw-semibold mb-0"><i class="fas fa-tools me-2 text-primary"></i> Worker Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_interface:admin_worker_detail' worker.id %}" class="btn btn-info btn-sm rounded-pill">
+                            <i class="fas fa-eye me-2"></i> View Details
+                        </a>
+                        <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-warning btn-sm rounded-pill" onclick="return confirm('Move worker to trash?')">
+                            <i class="fas fa-trash me-2"></i> Soft Delete
+                        </a>
+                        <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-success btn-sm rounded-pill" onclick="return confirm('Restore worker?')">
+                            <i class="fas fa-undo me-2"></i> Restore
+                        </a>
+                        <a href="{% url 'admin_interface:admin_worker_hard_delete' worker.id %}" class="btn btn-danger btn-sm rounded-pill" onclick="return confirm('Permanently delete worker? This cannot be undone.')">
+                            <i class="fas fa-skull-crossbones me-2"></i> Permanent Delete
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Soft delete hides the worker but keeps data. Permanent delete removes all data permanently.
+                    </small>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
 {% endblock %}
 
+
+<!-- JavaScript for dynamic experience forms and cascading selects -->
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
+    // --- Form validation ---
     const form = document.getElementById('workerForm');
     form.addEventListener('submit', function(e) {
         let isValid = true;
@@ -303,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Category/Subcategory dynamic filtering
+    // --- Category/Subcategory dynamic filtering ---
     const categorySelect = document.getElementById('{{ form.category.id_for_label }}');
     const subcategorySelect = document.getElementById('{{ form.subcategory.id_for_label }}');
     
@@ -311,17 +409,11 @@ document.addEventListener('DOMContentLoaded', function() {
         categorySelect.addEventListener('change', function() {
             const categoryId = this.value;
             if (categoryId) {
-                // Show loading state
                 subcategorySelect.innerHTML = '<option value="">Loading subcategories...</option>';
                 subcategorySelect.disabled = true;
                 
                 fetch(`{% url 'category:ajax_load_subcategories' 0 %}`.replace('0', categoryId))
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load subcategories');
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(subcategories => {
                         subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
                         subcategories.forEach(subcat => {
@@ -344,199 +436,232 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Location Hierarchy Dynamic Filtering
+    // --- Location hierarchy cascading ---
     const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
     const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
     const citySelect = document.getElementById('{{ form.city.id_for_label }}');
     const districtSelect = document.getElementById('{{ form.district.id_for_label }}');
     const regionSelect = document.getElementById('{{ form.region.id_for_label }}');
 
-    // Country → State
-    if (countrySelect && stateSelect) {
-        countrySelect.addEventListener('change', function() {
-            const countryId = this.value;
-            if (countryId) {
-                // Show loading state
-                stateSelect.innerHTML = '<option value="">Loading states...</option>';
-                stateSelect.disabled = true;
-                
-                fetch(`{% url 'location:states_by_country' 0 %}`.replace('0', countryId))
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load states');
-                        }
-                        return response.json();
-                    })
-                    .then(states => {
-                        stateSelect.innerHTML = '<option value="">Select State</option>';
-                        states.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            stateSelect.appendChild(option);
-                        });
-                        stateSelect.disabled = false;
-                        
-                        // Reset dependent selects
-                        citySelect.innerHTML = '<option value="">Select City</option>';
-                        citySelect.disabled = true;
-                        districtSelect.innerHTML = '<option value="">Select District</option>';
-                        districtSelect.disabled = true;
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
-                        regionSelect.disabled = true;
-                    })
-                    .catch(error => {
-                        console.error('Error loading states:', error);
-                        stateSelect.innerHTML = '<option value="">Error loading states</option>';
-                        stateSelect.disabled = true;
+    function loadStates() {
+        const countryId = countrySelect.value;
+        if (countryId) {
+            stateSelect.innerHTML = '<option value="">Loading states...</option>';
+            stateSelect.disabled = true;
+            fetch(`{% url 'location:states_by_country' 0 %}`.replace('0', countryId))
+                .then(response => response.json())
+                .then(states => {
+                    stateSelect.innerHTML = '<option value="">Select State</option>';
+                    states.forEach(state => {
+                        const option = document.createElement('option');
+                        option.value = state.id;
+                        option.textContent = state.name;
+                        stateSelect.appendChild(option);
                     });
-            } else {
-                stateSelect.innerHTML = '<option value="">Select State</option>';
-                stateSelect.disabled = true;
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                citySelect.disabled = true;
-                districtSelect.innerHTML = '<option value="">Select District</option>';
-                districtSelect.disabled = true;
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
-                regionSelect.disabled = true;
+                    stateSelect.disabled = false;
+                    // Reset dependent selects
+                    citySelect.innerHTML = '<option value="">Select City</option>';
+                    citySelect.disabled = true;
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.disabled = true;
+                    regionSelect.innerHTML = '<option value="">Select Region</option>';
+                    regionSelect.disabled = true;
+                })
+                .catch(error => console.error('Error loading states:', error));
+        } else {
+            stateSelect.innerHTML = '<option value="">Select State</option>';
+            stateSelect.disabled = true;
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            citySelect.disabled = true;
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.disabled = true;
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            regionSelect.disabled = true;
+        }
+    }
+
+    function loadCities() {
+        const stateId = stateSelect.value;
+        if (stateId) {
+            citySelect.innerHTML = '<option value="">Loading cities...</option>';
+            citySelect.disabled = true;
+            fetch(`{% url 'location:cities_by_state' 0 %}`.replace('0', stateId))
+                .then(response => response.json())
+                .then(cities => {
+                    citySelect.innerHTML = '<option value="">Select City</option>';
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        citySelect.appendChild(option);
+                    });
+                    citySelect.disabled = false;
+                    // Reset deeper levels
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.disabled = true;
+                    regionSelect.innerHTML = '<option value="">Select Region</option>';
+                    regionSelect.disabled = true;
+                })
+                .catch(error => console.error('Error loading cities:', error));
+        } else {
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            citySelect.disabled = true;
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.disabled = true;
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            regionSelect.disabled = true;
+        }
+    }
+
+    function loadDistricts() {
+        const cityId = citySelect.value;
+        if (cityId) {
+            districtSelect.innerHTML = '<option value="">Loading districts...</option>';
+            districtSelect.disabled = true;
+            fetch(`{% url 'location:districts_by_city' 0 %}`.replace('0', cityId))
+                .then(response => response.json())
+                .then(districts => {
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.id;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    });
+                    districtSelect.disabled = false;
+                    regionSelect.innerHTML = '<option value="">Select Region</option>';
+                    regionSelect.disabled = true;
+                })
+                .catch(error => console.error('Error loading districts:', error));
+        } else {
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.disabled = true;
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            regionSelect.disabled = true;
+        }
+    }
+
+    function loadRegions() {
+        const districtId = districtSelect.value;
+        if (districtId) {
+            regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+            regionSelect.disabled = true;
+            fetch(`{% url 'location:regions_by_district' 0 %}`.replace('0', districtId))
+                .then(response => response.json())
+                .then(regions => {
+                    regionSelect.innerHTML = '<option value="">Select Region</option>';
+                    regions.forEach(region => {
+                        const option = document.createElement('option');
+                        option.value = region.id;
+                        option.textContent = region.name;
+                        regionSelect.appendChild(option);
+                    });
+                    regionSelect.disabled = false;
+                })
+                .catch(error => console.error('Error loading regions:', error));
+        } else {
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            regionSelect.disabled = true;
+        }
+    }
+
+    if (countrySelect) countrySelect.addEventListener('change', loadStates);
+    if (stateSelect) stateSelect.addEventListener('change', loadCities);
+    if (citySelect) citySelect.addEventListener('change', loadDistricts);
+    if (districtSelect) districtSelect.addEventListener('change', loadRegions);
+
+    // Initial load for edit mode
+    if (countrySelect && countrySelect.value) loadStates();
+    if (stateSelect && stateSelect.value) loadCities();
+    if (citySelect && citySelect.value) loadDistricts();
+    if (districtSelect && districtSelect.value) loadRegions();
+
+    // --- Work experience dynamic formset ---
+    const container = document.getElementById('experience-forms-container');
+    const addButton = document.getElementById('add-experience');
+    const totalForms = document.getElementById('id_experiences-TOTAL_FORMS');
+    let formNum = parseInt(totalForms.value);
+
+    if (addButton) {
+        addButton.addEventListener('click', function() {
+            if (!container.children.length) {
+                // If no forms exist, we need to create a new one from scratch
+                const newFormDiv = document.createElement('div');
+                newFormDiv.className = 'experience-form card mb-3 border';
+                newFormDiv.innerHTML = getNewExperienceFormHtml(formNum);
+                container.appendChild(newFormDiv);
+                formNum++;
+                totalForms.value = formNum;
+                return;
             }
+            const templateForm = container.children[0].cloneNode(true);
+            // Clear all input values in the cloned form
+            templateForm.querySelectorAll('input, textarea, select').forEach(input => {
+                if (input.type !== 'checkbox') {
+                    input.value = '';
+                } else {
+                    input.checked = false;
+                }
+                // Update names and ids
+                if (input.name) {
+                    input.name = input.name.replace(/-[0-9]+-/, `-${formNum}-`);
+                }
+                if (input.id) {
+                    input.id = input.id.replace(/-[0-9]+-/, `-${formNum}-`);
+                }
+            });
+            // Remove the DELETE checkbox if present
+            const deleteDiv = templateForm.querySelector('.form-check-input[name*="DELETE"]');
+            if (deleteDiv) {
+                deleteDiv.closest('.col-12').remove();
+            }
+            // Clear any validation errors
+            templateForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+            container.appendChild(templateForm);
+            formNum++;
+            totalForms.value = formNum;
         });
     }
 
-    // State → City
-    if (stateSelect && citySelect) {
-        stateSelect.addEventListener('change', function() {
-            const stateId = this.value;
-            if (stateId) {
-                // Show loading state
-                citySelect.innerHTML = '<option value="">Loading cities...</option>';
-                citySelect.disabled = true;
-                
-                fetch(`{% url 'location:cities_by_state' 0 %}`.replace('0', stateId))
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load cities');
-                        }
-                        return response.json();
-                    })
-                    .then(cities => {
-                        citySelect.innerHTML = '<option value="">Select City</option>';
-                        cities.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            citySelect.appendChild(option);
-                        });
-                        citySelect.disabled = false;
-                        
-                        // Reset dependent selects
-                        districtSelect.innerHTML = '<option value="">Select District</option>';
-                        districtSelect.disabled = true;
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
-                        regionSelect.disabled = true;
-                    })
-                    .catch(error => {
-                        console.error('Error loading cities:', error);
-                        citySelect.innerHTML = '<option value="">Error loading cities</option>';
-                        citySelect.disabled = true;
-                    });
-            } else {
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                citySelect.disabled = true;
-                districtSelect.innerHTML = '<option value="">Select District</option>';
-                districtSelect.disabled = true;
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
-                regionSelect.disabled = true;
-            }
-        });
+    function getNewExperienceFormHtml(formIndex) {
+        return `
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label>Company name</label>
+                        <input type="text" name="experiences-${formIndex}-company_name" class="form-control" placeholder="Company name">
+                    </div>
+                    <div class="col-md-6">
+                        <label>Job title</label>
+                        <input type="text" name="experiences-${formIndex}-job_title" class="form-control" placeholder="Job title">
+                    </div>
+                    <div class="col-md-6">
+                        <label>Start date</label>
+                        <input type="date" name="experiences-${formIndex}-start_date" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label>End date</label>
+                        <input type="date" name="experiences-${formIndex}-end_date" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input type="checkbox" name="experiences-${formIndex}-is_current" class="form-check-input" id="id_experiences-${formIndex}-is_current">
+                            <label class="form-check-label" for="id_experiences-${formIndex}-is_current">Currently working here</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label>Description</label>
+                        <textarea name="experiences-${formIndex}-description" class="form-control" rows="2" placeholder="Job description"></textarea>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
-    // City → District
-    if (citySelect && districtSelect) {
-        citySelect.addEventListener('change', function() {
-            const cityId = this.value;
-            if (cityId) {
-                // Show loading state
-                districtSelect.innerHTML = '<option value="">Loading districts...</option>';
-                districtSelect.disabled = true;
-                
-                fetch(`{% url 'location:districts_by_city' 0 %}`.replace('0', cityId))
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load districts');
-                        }
-                        return response.json();
-                    })
-                    .then(districts => {
-                        districtSelect.innerHTML = '<option value="">Select District</option>';
-                        districts.forEach(district => {
-                            const option = document.createElement('option');
-                            option.value = district.id;
-                            option.textContent = district.name;
-                            districtSelect.appendChild(option);
-                        });
-                        districtSelect.disabled = false;
-                        
-                        // Reset dependent select
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
-                        regionSelect.disabled = true;
-                    })
-                    .catch(error => {
-                        console.error('Error loading districts:', error);
-                        districtSelect.innerHTML = '<option value="">Error loading districts</option>';
-                        districtSelect.disabled = true;
-                    });
-            } else {
-                districtSelect.innerHTML = '<option value="">Select District</option>';
-                districtSelect.disabled = true;
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
-                regionSelect.disabled = true;
-            }
-        });
-    }
-
-    // District → Region
-    if (districtSelect && regionSelect) {
-        districtSelect.addEventListener('change', function() {
-            const districtId = this.value;
-            if (districtId) {
-                // Show loading state
-                regionSelect.innerHTML = '<option value="">Loading regions...</option>';
-                regionSelect.disabled = true;
-                
-                fetch(`{% url 'location:regions_by_district' 0 %}`.replace('0', districtId))
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load regions');
-                        }
-                        return response.json();
-                    })
-                    .then(regions => {
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
-                        regions.forEach(region => {
-                            const option = document.createElement('option');
-                            option.value = region.id;
-                            option.textContent = region.name;
-                            regionSelect.appendChild(option);
-                        });
-                        regionSelect.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error('Error loading regions:', error);
-                        regionSelect.innerHTML = '<option value="">Error loading regions</option>';
-                        regionSelect.disabled = true;
-                    });
-            } else {
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
-                regionSelect.disabled = true;
-            }
-        });
-    }
-
-    // Experience validation
-    const experienceInput = document.getElementById('{{ form.years_of_experience.id_for_label }}');
-    if (experienceInput) {
-        experienceInput.addEventListener('blur', function() {
+    // --- Experience and wage validation ---
+    const expInput = document.getElementById('{{ form.years_of_experience.id_for_label }}');
+    if (expInput) {
+        expInput.addEventListener('blur', function() {
             const value = parseInt(this.value);
             if (value < 0 || value > 100) {
                 this.classList.add('is-invalid');
@@ -547,7 +672,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Wage validation
     const wageInput = document.getElementById('{{ form.expected_daily_wage.id_for_label }}');
     if (wageInput) {
         wageInput.addEventListener('blur', function() {

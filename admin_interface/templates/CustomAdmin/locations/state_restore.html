@@ -1,0 +1,292 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Restore State{% endblock %}
+
+{% block content %}
+<div class="state-restore-page">
+    <!-- Header with gradient -->
+    <div class="page-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+            <div>
+                <h1 class="h2 fw-bold text-white mb-1">Restore State</h1>
+                <p class="text-white-80 mb-0">Restore {{ state.name }} from the trash</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to States
+                </a>
+                <a href="{% url 'admin_interface:admin_state_detail' state.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-eye me-1"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Alert -->
+    <div class="alert alert-warning border-0 mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning"></i>
+            <div>
+                <h5 class="alert-heading mb-1">Restore State: {{ state.name }}</h5>
+                <p class="mb-0">This will restore the state "{{ state.name }}" (Code: {{ state.code }}) from the trash. All associated cities, districts, and regions will also be restored.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Form -->
+    <div class="content-card">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-warning-soft me-3">
+                <i class="fas fa-recycle text-warning"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">Restore State</h5>
+        </div>
+
+        <form method="post" class="restore-form">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">State Name</label>
+                        <input type="text" class="form-control" value="{{ state.name }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">State Code</label>
+                        <input type="text" class="form-control" value="{{ state.code|default:"N/A" }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Country</label>
+                        <input type="text" class="form-control" value="{{ state.country.name }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Created By</label>
+                        <input type="text" class="form-control" value="{{ state.created_by.get_full_name|default:state.created_by.username }}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info border-0 mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Restoring this state will also restore:</strong>
+                <ul class="mb-0 mt-2">
+                    <li><strong>{{ state.cities.count }}</strong> cities</li>
+                    <li><strong>{{ total_districts }}</strong> districts</li>
+                    <li><strong>{{ total_regions }}</strong> regions</li>
+                </ul>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-recycle me-2"></i> Restore State
+                </button>
+                <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Related Data Summary -->
+    {% if cities %}
+        <div class="content-card mt-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="icon-shape bg-info-soft me-3">
+                    <i class="fas fa-list text-info"></i>
+                </div>
+                <h5 class="fw-semibold mb-0">Cities to be Restored</h5>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>City Name</th>
+                            <th>City Code</th>
+                            <th>Is Capital</th>
+                            <th>Districts</th>
+                            <th>Regions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for city in cities %}
+                            <tr>
+                                <td>{{ city.name }}</td>
+                                <td>{{ city.code|default:"N/A" }}</td>
+                                <td>
+                                    {% if city.is_capital %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ city.districts.count }}</td>
+                                <td>{{ city.districts.all|sum:"regions.count" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Global page styles */
+    .state-restore-page {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header with gradient */
+    .page-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+    }
+    .text-white-80 {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Content card */
+    .content-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    /* Icon shape */
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+
+    /* Form styling */
+    .restore-form .form-label {
+        color: #495057;
+        font-weight: 600;
+    }
+    .restore-form .form-control {
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
+        font-weight: 500;
+    }
+    .restore-form .form-control[readonly] {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    /* Button styling */
+    .btn {
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+        padding: 0.75rem 1.5rem;
+    }
+    .btn-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border: none;
+        color: white;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        background: transparent;
+    }
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Table styling */
+    .table {
+        margin-bottom: 0;
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    /* Badge styling */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5em 0.75em;
+        border-radius: 0.375rem;
+    }
+
+    /* Soft backgrounds */
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.1); color: #0d6efd; }
+
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1.5rem;
+        }
+        .content-card {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation dialog for restore action
+    const restoreForm = document.querySelector('.restore-form');
+    if (restoreForm) {
+        restoreForm.addEventListener('submit', function(e) {
+            const confirmed = confirm('Are you sure you want to restore this state? This will also restore all associated cities, districts, and regions.');
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

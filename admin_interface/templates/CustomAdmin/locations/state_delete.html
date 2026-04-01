@@ -1,0 +1,346 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}Delete State{% endblock %}
+
+{% block content %}
+<div class="state-delete-page">
+    <!-- Header with gradient -->
+    <div class="page-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+            <div>
+                <h1 class="h2 fw-bold text-white mb-1">Delete State</h1>
+                <p class="text-white-80 mb-0">Confirm deletion of {{ state.name }}</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to States
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="content-card bg-danger-soft border-danger">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-danger-soft me-3">
+                <i class="fas fa-exclamation-triangle text-danger"></i>
+            </div>
+            <h5 class="fw-semibold text-danger mb-0">Warning: This Action Cannot Be Undone</h5>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="alert alert-danger border-0">
+                    <h6 class="fw-bold mb-2">What will be deleted:</h6>
+                    <ul class="mb-0">
+                        <li><strong>State:</strong> {{ state.name }} ({{ state.code }})</li>
+                        <li><strong>All associated cities</strong> within this state</li>
+                        <li><strong>All associated districts</strong> within those cities</li>
+                        <li><strong>All associated regions</strong> within those districts</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-warning border-0">
+                    <h6 class="fw-bold mb-2">Before deleting, please ensure:</h6>
+                    <ul class="mb-0">
+                        <li>No active references to this state</li>
+                        <li>Backup any important data</li>
+                        <li>Consider deactivating instead</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- State Details -->
+    <div class="content-card mt-4">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-info-soft me-3">
+                <i class="fas fa-info-circle text-info"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">State Details</h5>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <span class="detail-label">State Name:</span>
+                    <span class="detail-value">{{ state.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">State Code:</span>
+                    <span class="detail-value">{{ state.code|default:"N/A" }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <span class="detail-label">Country:</span>
+                    <span class="detail-value">{{ state.country.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value">{{ state.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="content-card mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="fw-semibold mb-3">Confirm Deletion</h6>
+                <p class="text-muted mb-4">
+                    Type "<strong>{{ state.name }}</strong>" below to confirm you want to delete this state and all its associated data.
+                </p>
+                
+                <form method="post" class="delete-form">
+                    {% csrf_token %}
+                    <div class="form-group mb-4">
+                        <label for="confirm_name" class="form-label fw-semibold">Confirmation</label>
+                        <input type="text" id="confirm_name" class="form-control" placeholder="Type the state name to confirm">
+                        <div class="form-text text-muted">This is a safety measure to prevent accidental deletions</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" id="delete_btn" class="btn btn-danger btn-lg" disabled>
+                            <i class="fas fa-trash me-2"></i>Delete State
+                        </button>
+                        <a href="{% url 'admin_interface:admin_states' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-info border-0">
+                    <h6 class="fw-bold mb-2">Alternative Actions:</h6>
+                    <ul class="mb-0">
+                        <li><a href="{% url 'admin_interface:admin_state_edit' state.id %}">Edit State</a></li>
+                        <li><a href="{% url 'admin_interface:admin_cities' %}?state={{ state.id }}">View Cities</a></li>
+                        <li><a href="{% url 'admin_interface:admin_states' %}">Back to List</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Global page styles */
+    .state-delete-page {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Header with gradient */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .text-white-80 {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Content card */
+    .content-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    /* Danger card styling */
+    .bg-danger-soft {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    /* Icon shape */
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Detail styling */
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        width: 40%;
+    }
+    .detail-value {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Form styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        transform: translateY(-1px);
+    }
+
+    /* Button styling */
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+    }
+    .btn-danger:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        background: transparent;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+
+    /* List styling */
+    .list-unstyled li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .list-unstyled li:last-child {
+        border-bottom: none;
+    }
+
+    /* Soft backgrounds */
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.1); color: #0d6efd; }
+    .bg-danger-soft { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1.5rem;
+        }
+        .content-card {
+            padding: 1rem;
+        }
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput = document.getElementById('confirm_name');
+    const deleteBtn = document.getElementById('delete_btn');
+    const stateName = "{{ state.name }}";
+    
+    if (confirmInput && deleteBtn) {
+        confirmInput.addEventListener('input', function() {
+            // Enable delete button only when exact state name is typed
+            deleteBtn.disabled = this.value.trim() !== stateName;
+        });
+    }
+    
+    // Add confirmation dialog before form submission
+    const form = document.querySelector('.delete-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!deleteBtn.disabled) {
+                const confirmed = confirm('Are you absolutely sure you want to delete this state and ALL its associated data (cities, districts, regions)? This action cannot be undone.');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

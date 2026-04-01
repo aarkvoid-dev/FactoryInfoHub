@@ -20,13 +20,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+import os
+from pathlib import Path
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-736_k##n=2nh6m0-zk2=i9y*w)jjo_)cv!)qeh5s6t!+*ki3*1'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-not-for-production-use-this-is-very-weak-and-should-be-changed')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+# Allowed hosts configuration
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+
+# Security settings for production
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if os.environ.get('SECURE_PROXY_SSL_HEADER', '').lower() == 'true' else None
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = os.environ.get('X_FRAME_OPTIONS', 'DENY')
 
 
 # Application definition
@@ -39,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'tinymce',
     'Home',
     'Accounts',
     'blog',
@@ -70,9 +85,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # your custom processor
+                'Home.context_processors.global_pages',
             ],
         },
     },
@@ -84,12 +102,71 @@ WSGI_APPLICATION = 'FactoryInfoHub.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+# Database configuration with environment variable support
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    # Use DATABASE_URL if provided (for PostgreSQL in production)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL)
+    }
+else:
+    # Fallback to SQLite for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# Cache configuration with Redis support
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/1')
+CACHE_REDIS_URL = os.environ.get('CACHE_REDIS_URL', REDIS_URL)
+
+# Redis session configuration
+SESSION_REDIS_HOST = os.environ.get('SESSION_REDIS_HOST', 'localhost')
+SESSION_REDIS_PORT = int(os.environ.get('SESSION_REDIS_PORT', 6379))
+SESSION_REDIS_DB = int(os.environ.get('SESSION_REDIS_DB', 1))
+SESSION_REDIS_PASSWORD = os.environ.get('SESSION_REDIS_PASSWORD', None)
+
+# Build Redis connection string for sessions
+REDIS_SESSION_URL = f"redis://:{SESSION_REDIS_PASSWORD}@" if SESSION_REDIS_PASSWORD else "redis://"
+REDIS_SESSION_URL += f"{SESSION_REDIS_HOST}:{SESSION_REDIS_PORT}/{SESSION_REDIS_DB}"
+
+# Cache configuration - using database cache as fallback for compatibility
+CACHES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        },
     }
 }
+
+# Try to use Redis cache if available, fallback to database cache
+try:
+    import django_redis
+    CACHES['default'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': CACHE_REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'factoryinfohub',
+        'TIMEOUT': 300,
+        'VERSION': 1,
+    }
+except ImportError:
+    # Fallback to database cache if django-redis is not available
+    pass
+
+# Session configuration using database backend for better compatibility
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 
 # Password validation
@@ -134,13 +211,78 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email configuration (using Gmail SMTP)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'arfatur.shaikh@gmail.com'
-EMAIL_HOST_PASSWORD = 'lyfqxmiroiulvoqe'
-DEFAULT_FROM_EMAIL = 'arfatur.shaikh@gmail.com'
+# Try to get email settings from environment variables first
+import os
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+
+# Configure email backend with fallback
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Production email configuration
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    # Additional email settings for better reliability
+    EMAIL_TIMEOUT = 30
+    EMAIL_SSL_CERTFILE = None
+    EMAIL_SSL_KEYFILE = None
+else:
+    # Development fallback - use console backend to see emails in terminal
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_HOST = ''
+    EMAIL_PORT = 25
+    EMAIL_USE_TLS = False
+    EMAIL_HOST_USER = ''
+    EMAIL_HOST_PASSWORD = ''
+    DEFAULT_FROM_EMAIL = 'noreply@factoryinfohub.com'
+
+# Email backend configuration for fallback scenarios
+EMAIL_FALLBACK_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# TinyMCE Configuration
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 500,
+    'width': None,
+    'menubar': True,
+    'plugins': 'advlist autolink lists link image charmap print preview anchor '
+               'searchreplace visualblocks code fullscreen '
+               'insertdatetime media table paste code help wordcount',
+    'toolbar': 'undo redo | formatselect | '
+               'bold italic backcolor | alignleft aligncenter alignright alignjustify | '
+               'bullist numlist outdent indent | image media | removeformat | help',
+    'content_style': 'body { font-family: Arial, sans-serif; font-size: 14px; }',
+    'branding': False,
+    'statusbar': True,
+    'elementpath': False,
+    # Image upload configuration
+    'images_upload_url': '/blog/upload-image/',
+    'images_upload_base_path': '/media/',
+    'images_upload_credentials': True,
+    'automatic_uploads': True,
+    'file_picker_types': 'image',
+    'images_reuse_filename': True,
+    # Image handling options
+    'image_caption': True,
+    'image_advtab': True,
+    'image_class_list': [
+        {'title': 'None', 'value': ''},
+        {'title': 'Responsive', 'value': 'img-fluid'},
+        {'title': 'Thumbnail', 'value': 'img-thumbnail'},
+        {'title': 'Rounded', 'value': 'rounded'},
+        {'title': 'Circle', 'value': 'rounded-circle'},
+    ],
+    # Allowed image file types
+    'images_file_types': 'jpg,jpeg,png,gif,webp',
+    # Image size limits
+    'image_max_width': 1200,
+    'image_max_height': 800,
+    'image_size_mode': 'constrain',
+}
+
+
+
 
 # For development/testing, you can use console backend to see emails in terminal
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -175,7 +317,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 import os
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
+
 # Logging configuration
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+LOG_FILE = os.environ.get('LOG_FILE', str(BASE_DIR / 'logs/django.log'))
+
+# Ensure logs directory exists
+LOG_DIR = os.path.dirname(LOG_FILE)
+os.makedirs(LOG_DIR, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -184,22 +334,63 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'detailed': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'file': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE,
+            'formatter': 'detailed',
+            'maxBytes': 1024*1024*10,  # 10 MB
+            'backupCount': 5,
+            'encoding': 'utf-8',
+        },
+        'console': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'debug.log',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
             'formatter': 'verbose',
         },
     },
     'root': {
-        'handlers': ['file'],
+        'handlers': ['file', 'console'],
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'handlers': ['file', 'console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['mail_admins', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['mail_admins', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'factoryinfohub': {
+            'handlers': ['file', 'console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'payment_system': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
     },
@@ -217,3 +408,7 @@ LOGGING = {
 # CORS_ALLOWED_ORIGINS = [
 #     "https://0429-202-134-177-80.ngrok-free.app",
 # ]
+
+
+# EMAIL_HOST_USER = "arfatur.shaikh@gmail.com"
+# EMAIL_HOST_PASSWORD = "lyfq xmir oiul voqe"

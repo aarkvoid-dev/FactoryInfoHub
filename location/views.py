@@ -39,6 +39,21 @@ def location_dashboard(request):
     return render(request, 'location/dashboard.html', context)
 
 
+def location_hierarchy(request):
+    """
+    Display all countries with their states, cities, districts, and regions.
+    """
+    # Fetch all active countries with their nested locations
+    countries = Country.objects.filter(is_deleted=False).prefetch_related(
+        'states__cities__districts__regions'
+    ).order_by('name')
+    
+    context = {
+        'countries': countries,
+        'title': 'Explore Locations',
+    }
+    return render(request, 'location/location_hierarchy.html', context)
+
 # Country Views
 @login_required
 def country_list(request):

@@ -1,0 +1,178 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{% if action == 'create' %}Add Section{% else %}Edit Section{% endif %} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_pages' %}">Pages</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_page_detail' page_section.page.id %}">{{ page_section.page.title }}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_page_sections' page_section.page.id %}">Sections</a></li>
+                        <li class="breadcrumb-item active">{% if action == 'create' %}Add{% else %}Edit{% endif %}</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">{{ title }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">Section Title *</label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.title.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.order.id_for_label }}" class="form-label">Order *</label>
+                                    {{ form.order }}
+                                    {% if form.order.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.order.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Display order (lower numbers appear first)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.content.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_interface:admin_page_sections' page_section.page.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Sections
+                            </a>
+                            <div>
+                                {% if action == 'edit' %}
+                                    <a href="{% url 'admin_interface:admin_page_detail' page_section.page.id %}" class="btn btn-info me-2">
+                                        <i class="fas fa-eye"></i> View Page
+                                    </a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> {% if action == 'create' %}Add Section{% else %}Update Section{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Section Information</h5>
+                    <div class="mb-3">
+                        <strong>Page:</strong> {{ page_section.page.title }}<br>
+                        <strong>Current Order:</strong> {{ page_section.order }}<br>
+                        <strong>Created:</strong> {{ page_section.created_at|date:"M d, Y H:i" }}<br>
+                        <strong>Updated:</strong> {{ page_section.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Content Guidelines</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Use HTML for rich formatting</li>
+                        <li><i class="fas fa-check text-success"></i> Keep content concise and relevant</li>
+                        <li><i class="fas fa-check text-success"></i> Use appropriate headings (h1, h2, etc.)</li>
+                        <li><i class="fas fa-check text-success"></i> Add images with proper alt text</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Note:</strong> Changes to section order will affect how content is displayed on the page.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TinyMCE editor for content field
+    const contentTextarea = document.getElementById('{{ form.content.id_for_label }}');
+    if (contentTextarea && typeof tinymce !== 'undefined') {
+        // Destroy any existing TinyMCE instance for this element
+        if (tinymce.get(contentTextarea.id)) {
+            tinymce.get(contentTextarea.id).remove();
+        }
+        
+        tinymce.init({
+            selector: '#{{ form.content.id_for_label }}',
+            height: 400,
+            menubar: true,
+            plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | removeformat | code | help',
+            content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }',
+            branding: false,
+            statusbar: true,
+            elementpath: false,
+            images_upload_url: '/blog/upload-image/',
+            images_upload_base_path: '/media/',
+            images_upload_credentials: true,
+            automatic_uploads: true,
+            file_picker_types: 'image',
+            images_reuse_filename: true,
+            image_caption: true,
+            image_advtab: true,
+            image_class_list: [
+                {'title': 'None', 'value': ''},
+                {'title': 'Responsive', 'value': 'img-fluid'},
+                {'title': 'Thumbnail', 'value': 'img-thumbnail'},
+                {'title': 'Rounded', 'value': 'rounded'},
+                {'title': 'Circle', 'value': 'rounded-circle'},
+            ],
+            images_file_types: 'jpg,jpeg,png,gif,webp',
+            image_max_width: 1200,
+            image_max_height: 800,
+            image_size_mode: 'constrain',
+            setup: function(editor) {
+                editor.on('change', function() {
+                    editor.save();
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

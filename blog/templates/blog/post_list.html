@@ -3,404 +3,139 @@
 
 {% block title %}Blog Posts - FactoryInfoHub{% endblock %}
 
-{% block content %}
-
-<section class="hero">
-  <div class="hero__bg">
-    <img src="{% static 'img/hero/1.png' %}" alt="image">
-    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
-  </div>
-  <div class="container">
-    <div class="row justify-center">
-      <div class="col-xl-12">
-        <div class="hero__content ">
-          <h1 class="hero__title text-light-1 ">Know About Local Business Stories & Insights</h1>
-          <p class="hero__text text-light-1 ">Discover tips, success stories, and resources to help our community's businesses thrive.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="d-none lg:d-flex items-center justify-center position-fixed bottom-20 right-20 z-10" style="z-index: 1000;">
-  <button id="mobileFilterToggle" class="button -md bg-accent-1 text-white shadow-lg rounded-12 px-25 py-15">
-    <i class="fas fa-filter mr-10"></i>
-    <span>Show Filters</span>
-  </button>
-</div>
-
-<section class="layout-pt-md layout-pb-xl bg-light-2">
-  <div class="container">
-    <div class="row y-gap-40">
-      
-      <div class="col-lg-3" id="sidebarColumn">
-        <aside class="sidebar -left mobile-sidebar-hidden">
-          
-          <div class="bg-white rounded-16 p-20 mb-30 shadow-sm">
-            <form action="" method="get" class="sidebar-search-input-circular">
-              <i class="fas fa-search text-accent-1"></i>
-              <input type="text" name="search" value="{{ search_query }}" placeholder="Search insights..." class="text-14 fw-500">
-            </form>
-          </div>
-
-          <div class="bg-white rounded-16 p-25 mb-30 shadow-sm" style="padding: 10px; border-radius: 10px; ">
-            <h3 class="text-18 fw-800 text-dark-1 mb-20 d-flex items-center">
-                <i class="fas fa-grid-2 text-accent-1 mr-10 text-16"></i> Categories
-            </h3>
-            <div class="mb-20">
-              <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Select Category</label>
-              <select id="category-select" class="form-select custom-sidebar-select-no-border" onchange="updateCategory(this)">
-                  <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
-                  {% for cat in categories %}
-                      <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
-                  {% endfor %}
-              </select>
-            </div>
-            <div class="mt-15 d-flex gap-10">
-                <button onclick="window.location.href='?'" class="button -sm border-light text-12 w-100 rounded-8">Clear</button>
-                <button id="apply-category-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-16 p-25 shadow-sm" style="padding: 10px; border-radius: 10px; ">
-            <h3 class="text-18 fw-800 text-dark-1 mb-20 d-flex items-center">
-                <i class="fas fa-location-dot text-accent-1 mr-10 text-16"></i> Global Reach
-            </h3>
-            
-            <div class="mb-40">
-              <div class="y-gap-15">
-                  <div class="location-filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Country</label>
-                      <select id="country-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'state')">
-                          <option value="">Select Country</option>
-                          {% for country in countries %}
-                              <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
-                          {% endfor %}
-                      </select>
-                  </div>
-
-                  <div class="location-filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">State</label>
-                      <select id="state-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'city')" disabled>
-                          <option value="">Select State</option>
-                      </select>
-                  </div>
-
-                  <div class="location-filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">City</label>
-                      <select id="city-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'district')" disabled>
-                          <option value="">Select City</option>
-                      </select>
-                  </div>
-
-                  <div class="location-filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">District</label>
-                      <select id="district-select" class="form-select custom-sidebar-select-no-border" onchange="updateLocation(this, 'region')" disabled>
-                          <option value="">Select District</option>
-                      </select>
-                  </div>
-
-                  <div class="location-filter-group">
-                      <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Region</label>
-                      <select id="region-select" class="form-select custom-sidebar-select-no-border" onchange="applyFinalFilter(this)" disabled>
-                          <option value="">Select Region</option>
-                      </select>
-                  </div>
-              </div>
-
-              <div class="mt-20 d-flex gap-10">
-                  <button onclick="window.location.href='?'" class="button -sm border-light text-12 w-100 rounded-8">Clear</button>
-                  <button id="apply-filter-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
-              </div>
-          </div>
-
-            {% if user.is_authenticated %}
-            <div class="mt-25 pt-20 border-top-light">
-                <a href="{% url 'blog:post_create' %}" class="button -sm bg-dark-1 text-white w-100 rounded-12 transition-all hover-bg-accent-1">
-                    <i class="fas fa-plus mr-10"></i> Create Post
-                </a>
-            </div>
-            {% endif %}
-          </div>
-
-        </aside>
-      </div>
-
-      <div class="col-lg-9">
-        <div class="row y-gap-30">
-          {% if posts %}
-            {% for post in posts %}
-              <div class="col-lg-4 col-md-6">
-                <a href="{{ post.get_absolute_url }}" class="blogCard -type-1 hover-shadow-lg transition-all">
-                  <div class="blogCard__image ratio ratio-41:30 position-relative overflow-hidden">
-                    {% if post.get_featured_image %}
-                      <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}" class="img-ratio rounded-12 object-cover">
-                    {% else %}
-                      <img src="{% static 'img/blogCards/1/' %}{{ forloop.counter }}.png" alt="{{ post.title }}" class="img-ratio rounded-12 object-cover">
-                    {% endif %}
-                    
-                    {% if post.subcategory %}
-                      <div class="blogCard__badge bg-accent-1 text-white text-11 fw-700 position-absolute top-15 left-15">{{ post.subcategory.name }}</div>
-                    {% endif %}
-                    
-                    <div class="blogCard__overlay position-absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity hover:opacity-100">
-                      <div class="absolute bottom-15 left-15 right-15">
-                        <span class="text-white text-12 fw-600">Read More</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="blogCard__content mt-20">
-                    <div class="blogCard__info text-13 d-flex items-center text-light-2 mb-10">
-                      <div class="lh-13"><i class="far fa-calendar-alt mr-5 text-accent-1"></i> {{ post.published_at|date:"M d, Y" }}</div>
-                      <div class="mx-10 opacity-30">|</div>
-                      <div class="lh-13"><i class="far fa-user mr-5 text-accent-1"></i> {{ post.author.username }}</div>
-                    </div>
-                    <h3 class="blogCard__title text-17 fw-700 text-dark-1 mt-5 line-clamp-2">{{ post.title }}</h3>
-                    
-                    {% if post.excerpt %}
-                      <p class="text-13 text-light-2 mt-10 line-clamp-3">{{ post.excerpt }}</p>
-                    {% endif %}
-                    
-                    <div class="blogCard__meta mt-15 d-flex items-center justify-between">
-                      {% if post.country %}
-                        <span class="text-12 text-light-2"><i class="fas fa-globe mr-5"></i> {{ post.country.name }}</span>
-                      {% endif %}
-                      <span class="text-12 text-light-2"><i class="fas fa-clock mr-5"></i> {{ post.read_time }} min read</span>
-                    </div>
-                  </div>
-                </a>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="col-12">
-              <div class="empty-state bg-white rounded-16 border-light p-40 text-center">
-                <div class="empty-state__icon mb-20">
-                  <i class="fas fa-newspaper fa-4x text-light-2 opacity-20"></i>
-                </div>
-                <h3 class="text-20 fw-700 text-dark-1 mb-10">No blog posts found</h3>
-                <p class="text-14 mb-20">Try adjusting your filters or check back later for new content.</p>
-                <div class="empty-state__actions">
-                  <a href="{% url 'blog:post_list' %}" class="button -sm bg-accent-1 text-white mr-10">Clear Filters</a>
-                  {% if user.is_authenticated %}
-                    <a href="{% url 'blog:post_create' %}" class="button -sm bg-dark-1 text-white">Create Post</a>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-
-        {% if is_paginated %}
-          <div class="d-flex justify-center flex-column mt-60">
-            <div class="pagination-wrapper">
-              <div class="pagination justify-center">
-                {% if page_obj.has_previous %}
-                  <button class="pagination__button button -accent-1 mr-15 -prev">
-                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                      <i class="icon-arrow-left text-15"></i>
-                    </a>
-                  </button>
-                {% endif %}
-
-                <div class="pagination__count">
-                  {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                      <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="is-active">{{ num }}</a>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                      <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                    {% endif %}
-                  {% endfor %}
-                </div>
-
-                {% if page_obj.has_next %}
-                  <button class="pagination__button button -accent-1 ml-15 -next">
-                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                      <i class="icon-arrow-right text-15"></i>
-                    </a>
-                  </button>
-                {% endif %}
-              </div>
-
-              <div class="pagination-info text-14 text-center mt-20 text-light-2">
-                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
-              </div>
-            </div>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="layout-pt-md layout-pb-md bg-light-2 border-top-light">
-  <div class="container">
-    <div class="row y-gap-20 justify-between items-end mb-40">
-      <div class="col-auto">
-        <h2 class="text-26 fw-800 text-dark-1">Industrial Network</h2>
-        <p class="text-15 text-light-2">Factories matching your current search criteria.</p>
-      </div>
-      <div class="col-auto">
-        <a href="/factories/" class="button -md -outline-accent-1 text-accent-1 rounded-12">View Directory</a>
-      </div>
-    </div>
-
-    <div class="row x-gap-30 y-gap-30 justify-center">
-      {% if related_factories %}
-        {% for factory in related_factories %}
-
-          <div class="col-xl-2 col-lg-3 col-md-4 col-6">
-            <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="factory-circle-card">
-               {% with primary_image=factory.get_primary_image %}
-              <div class="factory-circle-card__image-wrap">
-                {% if primary_image %}
-                  <img src="{{ primary_image }}" alt="{{ factory.name }}">
-                {% else %}
-                  <div class="placeholder center"><i class="fas fa-industry"></i></div>
-                {% endif %}
-              </div>
-              {% endwith %}
-              <h4 class="factory-circle-card__name">{{ factory.name }}</h4>
-            </a>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="col-12 text-center py-40">
-          <p class="text-light-2 italic">No facilities match these filters.</p>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-</section>
-
-{% endblock %}
 {% block extra_css %}
 <style>
-    .center {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    /* Premium Sidebar Styling */
-    .bg-light-2 { background-color: #F8F9FB !important; }
-    .border-dark-thin { border: 1px solid #EAEAEA !important; }
-
-    /* Circular Search Bar */
-    .sidebar-search-input-circular {
+    /* ===== Hero ===== */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 350px;
         display: flex;
         align-items: center;
-        background: #F5F7F9;
-        border-radius: 50px;
-        padding: 8px 16px;
+        justify-content: center;
+    }
+    .hero__bg {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+    .hero__bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2;
+    }
+    .hero__content {
+        position: relative;
+        z-index: 3;
+        color: white;
+        text-align: center;
+        padding: 80px 0;
+    }
+    .hero__title {
+        font-size: 48px;
+        font-weight: 700;
+    }
+    .hero__text {
+        font-size: 18px;
+        margin-top: 15px;
+        opacity: 0.9;
+    }
+
+    /* ===== Search Bar ===== */
+    .search-bar-wrapper {
+        background: white;
+        border-radius: 60px;
+        padding: 6px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .sidebar-search-input-circular:hover {
-        background: #F0F3F6;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    .search-bar-wrapper:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     }
-    .sidebar-search-input-circular input {
+    .search-input {
         border: none;
-        background: transparent;
-        padding: 8px 12px;
+        border-radius: 60px;
+        padding: 12px 20px;
         width: 100%;
         outline: none;
         font-size: 14px;
-        color: #333;
-        border-radius: 50px;
-    }
-    .sidebar-search-input-circular i {
-        font-size: 16px;
-        margin-right: 10px;
-        color: #EB662B;
-        transition: all 0.3s ease;
-    }
-    .sidebar-search-input-circular:hover i {
-        transform: scale(1.1);
     }
 
-    /* Separator Line */
-    .sidebar + .col-lg-9::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -30px;
-        right: -30px;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #EAEAEA, transparent);
-        opacity: 0.5;
-        margin-top: 40px;
+    /* ===== Sidebar Filters (Desktop only) ===== */
+    .sidebar {
+        background: white;
+        border: 1px solid #EDEDED;
+        border-radius: 16px;
+        overflow: hidden;
     }
-
-    /* Navigation Links */
-    .sidebar-nav-link {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 15px;
-        border-radius: 10px;
-        color: #1A1C1E;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none;
+    .sidebar__content {
+        padding: 20px;
     }
-    .sidebar-nav-link:hover {
-        background-color: rgba(235, 102, 43, 0.08);
-        color: #EB662B;
-        transform: translateX(8px);
-        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.15);
+    .filter-group {
+        margin-bottom: 20px;
     }
-    .sidebar-nav-link.is-active {
-        background-color: #EB662B;
-        color: white !important;
-        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.3);
-    }
-    .sidebar-nav-link .count {
-        font-size: 11px;
-        background: #F1F1F1;
-        padding: 2px 8px;
-        border-radius: 6px;
-        color: #666;
-        font-weight: 700;
-        transition: all 0.3s ease;
-    }
-    .sidebar-nav-link.is-active .count { 
-        background: rgba(255,255,255,0.25); 
-        color: white; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-
-    /* Borderless Select Dropdown */
-    .custom-sidebar-select-no-border {
-        appearance: none;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 15px;
-        width: 100%;
-        font-size: 14px;
+    .filter-group label {
+        display: block;
+        font-size: 12px;
         font-weight: 600;
-        cursor: pointer;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .filter-group select {
+        width: 100%;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid #EDEDED;
         background: #F8F9FB;
+        padding: 0 12px;
+        font-weight: 600;
+        color: #1A1C1E;
+        appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23EB662B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 15px center;
-        transition: all 0.3s ease;
-        color: #333;
+        background-position: right 12px center;
     }
-    .custom-sidebar-select-no-border:hover {
-        background: #F0F3F6;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .btn-clear {
+        background: #F8F9FB;
+        color: #666;
+        border: 1px solid #EDEDED;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .btn-apply {
+        background: #EB662B;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .btn-clear:hover, .btn-apply:hover {
         transform: translateY(-1px);
-    }
-    .custom-sidebar-select-no-border:focus {
-        outline: none;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(235, 102, 43, 0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    /* Card Enhancements */
+    /* ===== Blog Cards ===== */
     .blogCard {
         display: block;
         text-decoration: none;
@@ -411,58 +146,72 @@
         overflow: hidden;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         border: 1px solid #F0F0F0;
+        height: 100%;
+        position: relative;
     }
     .blogCard:hover {
-        transform: translateY(-8px);
+        transform: translateY(-5px);
         box-shadow: 0 15px 40px rgba(0,0,0,0.12);
         border-color: #EB662B;
     }
-    
     .blogCard__image {
         position: relative;
         overflow: hidden;
+        aspect-ratio: 41 / 30;
     }
     .blogCard__image img {
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        object-fit: cover;
         width: 100%;
         height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
     }
     .blogCard:hover .blogCard__image img {
         transform: scale(1.05);
     }
-    
     .blogCard__badge {
         position: absolute;
-        top: 15px;
-        left: 15px;
-        padding: 6px 12px;
-        border-radius: 20px;
+        top: 12px;
+        left: 12px;
+        background: #EB662B;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 30px;
         font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        transition: all 0.3s ease;
-        width: 70%;
-        height: 20%;
+        z-index: 2;
     }
-    
-    .blogCard__overlay {
-        opacity: 0;
-        transition: opacity 0.4s ease;
+    /* Share button on card image */
+    .share-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid #EDEDED;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 3;
     }
-    
-    .blogCard:hover .blogCard__overlay {
-        opacity: 1;
+    .share-btn:hover {
+        background: #EB662B;
+        color: white;
+        transform: scale(1.05);
     }
-    
     .blogCard__content {
         padding: 20px;
     }
-    
     .blogCard__title {
+        font-size: 18px;
+        font-weight: 700;
         line-height: 1.4;
-        transition: color 0.3s ease;
+        margin-bottom: 10px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -471,359 +220,806 @@
     .blogCard:hover .blogCard__title {
         color: #EB662B;
     }
-    
-    .blogCard__info {
-        transition: color 0.3s ease;
+    .blogCard__info, .blogCard__meta {
+        color: #6c757d;
+        font-size: 12px;
     }
-    .blogCard:hover .blogCard__info {
-        color: #EB662B !important;
+    .blogCard__info i, .blogCard__meta i {
+        color: #EB662B;
+        margin-right: 4px;
     }
-    
-    .blogCard__meta {
-        opacity: 0.8;
-        transition: opacity 0.3s ease;
+
+    /* ===== Pagination ===== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 40px;
     }
-    .blogCard:hover .blogCard__meta {
-        opacity: 1;
+    .pagination a, .pagination span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid #EDEDED;
+        color: #1A1C1E;
+        transition: all 0.2s;
+        text-decoration: none;
     }
-    
-    /* Line Clamping for Text */
-    .line-clamp-2 {
+    .pagination a:hover {
+        background: #EB662B;
+        color: white;
+        border-color: #EB662B;
+    }
+    .pagination .active {
+        background: #EB662B;
+        color: white;
+        border-color: #EB662B;
+    }
+
+    /* ===== Desktop filter row ===== */
+    .desktop-filter-row {
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #EDEDED;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .desktop-filter-row select {
+        min-width: 140px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid #EDEDED;
+        background: #F8F9FB;
+        padding: 0 12px;
+        font-weight: 600;
+        color: #1A1C1E;
+        appearance: none;
+    }
+    .desktop-filter-row select:focus {
+        outline: none;
+        border-color: #1A1C1E;
+        box-shadow: 0 0 0 3px rgba(26, 28, 30, 0.1);
+    }
+
+    /* ===== Mobile filter collapsible section ===== */
+    .mobile-filter-section {
+        display: none;
+        background: white;
+        border: 1px solid #EDEDED;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 16px;
+    }
+    .mobile-filter-section.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    .mobile-filter-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    /* ===== Factory circle grid ===== */
+    .factory-circle-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .factory-circle-card__image-wrap {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        padding: 6px;
+        border: 2px solid #EDEDED;
+        background: white;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .factory-circle-card__image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        transition: transform 0.5s ease;
+    }
+    .factory-circle-card:hover .factory-circle-card__image-wrap {
+        border-color: #EB662B;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(235, 102, 43, 0.15);
+    }
+    .factory-circle-card__name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1A1C1E;
+        margin: 0;
+        line-height: 1.3;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        line-height: 1.4;
     }
-    
-    .line-clamp-3 {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        line-height: 1.5;
-    }
-    
-    /* Empty State */
-    .empty-state {
-        animation: fadeIn 0.6s ease-out;
-    }
-    
-    .empty-state__icon {
-        animation: float 3s ease-in-out infinite;
-    }
-    
-    .empty-state__actions .button {
-        transition: all 0.3s ease;
-        transform: translateY(0);
-    }
-    
-    .empty-state__actions .button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    
-    /* Pagination Enhancements */
-    .pagination-wrapper {
-        animation: slideUp 0.5s ease-out;
-    }
-    
-    .pagination__button {
-        transition: all 0.3s ease;
-    }
-    
-    .pagination__button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(235, 102, 43, 0.25);
-    }
-    
-    .pagination__count a {
-        transition: all 0.3s ease;
-        display: inline-block;
-    }
-    
-    .pagination__count a:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    /* Animations */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    /* Responsive Enhancements */
     @media (max-width: 768px) {
-        .blogCard__title {
-            -webkit-line-clamp: 3;
-        }
-        
-        .blogCard:hover {
-            transform: none;
-        }
+        .factory-circle-card__image-wrap { width: 100px; height: 100px; }
+        .factory-circle-card__name { font-size: 13px; }
     }
 
-
-    .hero {
-    position: relative;
-    overflow: hidden;
-}
-
-.hero__bg {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-}
-
-.hero__bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.hero__content {
-    position: relative;
-    z-index: 2;
-    color: white;
-    text-align: center;
-    padding: 120px 20px;
-}
-
-/* optional dark overlay for readability */
-.hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 1;
-}
-
-/* Factory Circle Grid Styles */
-.factory-circle-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    text-decoration: none !important;
-    transition: all 0.3s ease;
-}
-
-.factory-circle-card__image-wrap {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    padding: 6px; /* Space for the border gap */
-    border: 2px solid #EDEDED;
-    background: white;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-
-.factory-circle-card__image-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    transition: transform 0.5s ease;
-}
-
-.factory-circle-card__image-wrap .placeholder {
-    width: 100%;
-    height: 100%;
-    background: #f8f9fb;
-    border-radius: 50%;
-    color: #EB662B;
-    font-size: 30px;
-}
-
-/* Hover Effects */
-.factory-circle-card:hover .factory-circle-card__image-wrap {
-    border-color: #EB662B;
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(235, 102, 43, 0.15);
-}
-
-.factory-circle-card:hover img {
-    transform: scale(1.1);
-}
-
-.factory-circle-card__name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1A1C1E;
-    margin: 0;
-    line-height: 1.3;
-    transition: color 0.3s ease;
-    /* Limit name to 2 lines */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.factory-circle-card:hover .factory-circle-card__name {
-    color: #EB662B;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 768px) {
-    .factory-circle-card__image-wrap {
-        width: 100px;
-        height: 100px;
+    /* ===== Share modal styles ===== */
+    .share-modal-icon {
+        font-size: 20px;
+        margin-right: 12px;
+        width: 40px;
+        text-align: center;
     }
-    .factory-circle-card__name {
-        font-size: 13px;
-    }
-}
-@media (max-width: 991px) {
-    /* Hidden state on mobile */
-    #sidebarColumn {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: white;
-        z-index: 1050;
-        overflow-y: auto;
-        padding: 20px;
-    }
-
-    /* Active state when toggled */
-    #sidebarColumn.active {
-        display: block;
-        animation: slideInLeft 0.3s ease-out;
-    }
-
-    /* Close button for mobile sidebar */
-    .mobile-sidebar-close {
+    .share-modal-link {
         display: flex;
-        justify-content: flex-end;
-        margin-bottom: 20px;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        text-decoration: none;
+        color: #333;
     }
-}
-
-@keyframes slideInLeft {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
-}
-
-/* Ensure the floating button only shows on small screens */
-@media (min-width: 992px) {
-    #mobileFilterToggle {
-        display: none !important;
+    .share-modal-link:hover {
+        background: #f8f9fa;
+        text-decoration: none;
     }
-}
+    .copy-success {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        z-index: 2000;
+        animation: fadeOut 2s forwards;
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { opacity: 0; visibility: hidden; }
+    }
 
+    /* ===== Responsive ===== */
+    @media (max-width: 991px) {
+        .hero__title { font-size: 32px; }
+        .hero__text { font-size: 16px; }
+        .desktop-filter-row {
+            display: none !important;
+        }
+        #sidebarColumn {
+            display: none !important; /* hide desktop sidebar */
+        }
+        .mobile-filter-btn {
+            display: inline-flex;
+        }
+    }
+    @media (min-width: 992px) {
+        .mobile-filter-btn {
+            display: none !important;
+        }
+        .mobile-filter-section {
+            display: none !important;
+        }
+        #sidebarColumn {
+            display: block !important;
+        }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 {% endblock %}
 
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero__bg">
+        <img src="{% static 'img/hero/1.png' %}" alt="background">
+        <img src="{% static 'img/hero/1/shape.svg' %}" alt="shape">
+    </div>
+    <div class="container">
+        <div class="row justify-center">
+            <div class="col-xl-12">
+                <div class="hero__content">
+                    <h1 class="hero__title">Know About Local Business Stories & Insights</h1>
+                    <p class="hero__text">Discover tips, success stories, and resources to help our community's businesses thrive.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-1">
+    <div class="container">
+        <!-- Search bar row with mobile filter button -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex gap-3 align-items-center">
+                    <button id="mobileFilterBtn" class="button -md bg-dark-1 text-white px-4 py-2 rounded-8 mobile-filter-btn">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <div class="search-bar-wrapper flex-grow-1">
+                        <form action="" method="get" class="d-flex">
+                            <i class="fas fa-search text-accent-1 position-absolute mt-3 ms-3" style="z-index: 1;"></i>
+                            <input type="text" name="search" value="{{ search_query }}" placeholder="Search blog posts..." class="search-input ps-5">
+                            <button type="submit" class="btn btn-primary rounded-50 px-4 ms-2 d-none d-sm-block" style="background: #EB662B;">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile collapsible filter section (shown when filter button clicked) -->
+        <div id="mobileFilterSection" class="mobile-filter-section mb-4">
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="mobile-category-select" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Country</label>
+                <select id="mobile-country-select" class="form-select">
+                    <option value="">Select Country</option>
+                    {% for country in countries %}
+                        <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>State</label>
+                <select id="mobile-state-select" class="form-select" disabled>
+                    <option value="">Select State</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>City</label>
+                <select id="mobile-city-select" class="form-select" disabled>
+                    <option value="">Select City</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>District</label>
+                <select id="mobile-district-select" class="form-select" disabled>
+                    <option value="">Select District</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Region</label>
+                <select id="mobile-region-select" class="form-select" disabled>
+                    <option value="">Select Region</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                <button id="apply-mobile-filters" class="btn-apply">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Results count row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="fw-semibold text-muted">{{ page_obj.paginator.count }} blog posts found</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Desktop Sidebar Filters (left column, visible only on desktop) -->
+            <div class="col-lg-3" id="sidebarColumn">
+                <div class="sidebar">
+                    <div class="sidebar__content">
+                        <div class="filter-group">
+                            <label>Category</label>
+                            <select id="desktop-category-select" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Country</label>
+                            <select id="desktop-country-select" class="form-select">
+                                <option value="">Select Country</option>
+                                {% for country in countries %}
+                                    <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>State</label>
+                            <select id="desktop-state-select" class="form-select" disabled>
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>City</label>
+                            <select id="desktop-city-select" class="form-select" disabled>
+                                <option value="">Select City</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>District</label>
+                            <select id="desktop-district-select" class="form-select" disabled>
+                                <option value="">Select District</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Region</label>
+                            <select id="desktop-region-select" class="form-select" disabled>
+                                <option value="">Select Region</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                            <button id="apply-desktop-filters" class="btn-apply">Apply Filters</button>
+                        </div>
+                        {% if user.is_authenticated %}
+                        <div class="mt-4 pt-3 border-top">
+                            <a href="{% url 'blog:post_create' %}" class="button -sm bg-dark-1 text-white w-100 rounded-8">
+                                <i class="fas fa-plus mr-10"></i> Create Post
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog Posts Grid -->
+            <div class="col-lg-9">
+                <!-- Desktop filter row (flex row with selects, hidden on mobile) -->
+                <div class="desktop-filter-row d-none d-lg-flex">
+                    <div class="searchForm -type-1 -col-1 -narrow flex-grow-1">
+                        <div class="searchForm__form">
+                            <div class="searchFormItem">
+                                <div class="searchFormItem__button">
+                                    <div class="pl-calendar d-flex items-center">
+                                        <i class="icon-search text-20 mr-15"></i>
+                                        <input type="text" name="search" value="{{ search_query }}" placeholder="Search insights...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <select name="category" class="js-filter-select">
+                        <option value="">Category</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="country" class="js-filter-select" data-next="state">
+                        <option value="">Country</option>
+                        {% for country in countries %}
+                            <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="state" class="js-filter-select" data-next="city" {% if not request.GET.country %}disabled{% endif %}>
+                        <option value="">State</option>
+                    </select>
+                    <select name="city" class="js-filter-select" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
+                        <option value="">City</option>
+                    </select>
+                    <select name="district" class="js-filter-select" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
+                        <option value="">District</option>
+                    </select>
+                    <select name="region" class="js-filter-select" {% if not request.GET.district %}disabled{% endif %}>
+                        <option value="">Region</option>
+                    </select>
+                    <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                    <button id="apply-desktop-filters-top" class="button -sm bg-accent-1 text-white text-12 rounded-8">Apply</button>
+                </div>
+
+                <div class="row g-4">
+                    {% if posts %}
+                        {% for post in posts %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blogCard">
+                                <div class="blogCard__image">
+                                    {% if post.get_featured_image %}
+                                        <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}">
+                                    {% else %}
+                                        <img src="{% static 'img/blogCards/1/1.png' %}" alt="{{ post.title }}">
+                                    {% endif %}
+                                    {% if post.subcategory %}
+                                    <div class="blogCard__badge">{{ post.subcategory.name }}</div>
+                                    {% endif %}
+                                    
+                                    <!-- Share button -->
+                                    <button class="share-btn" data-post-title="{{ post.title }}" data-post-url="{{ post.get_absolute_url }}" onclick="openShareModal(this)">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="blogCard__content">
+                                    <a href="{{ post.get_absolute_url }}" class="text-decoration-none">
+                                        <div class="blogCard__info mb-2">
+                                            <i class="far fa-calendar-alt"></i> {{ post.published_at|date:"M d, Y" }} 
+                                            <span class="mx-1">|</span>
+                                            <i class="far fa-user"></i> {{ post.author.username }}
+                                        </div>
+                                        <h3 class="blogCard__title">{{ post.title }}</h3>
+                                        {% if post.excerpt %}
+                                            <p class="text-13 text-muted mt-2 line-clamp-3">{{ post.excerpt|truncatechars:100 }}</p>
+                                        {% endif %}
+                                        <div class="blogCard__meta mt-3">
+                                            {% if post.country %}<span><i class="fas fa-globe"></i> {{ post.country.name }}</span>{% endif %}
+                                            <span class="ms-3"><i class="fas fa-clock"></i> {{ post.read_time }} min read</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-newspaper fa-4x text-muted mb-3"></i>
+                            <h3>No blog posts found</h3>
+                            <p>Try adjusting your filters or check back later.</p>
+                            <a href="?" class="btn btn-primary mt-2">Clear Filters</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-chevron-left"></i></a>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-chevron-right"></i></a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Factory Network Section (unchanged) -->
+        <section class="mt-5 pt-5 border-top">
+            <div class="row y-gap-20 justify-between items-end mb-40">
+                <div class="col-auto">
+                    <h2 class="text-26 fw-800 text-dark-1">Industrial Network</h2>
+                    <p class="text-15 text-light-2">Factories matching your current search criteria.</p>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'karkahan:dashboard' %}" class="button -md -outline-accent-1 text-accent-1 rounded-12">View Directory</a>
+                </div>
+            </div>
+            <div class="row x-gap-30 y-gap-30 justify-center">
+                {% if related_factories %}
+                    {% for factory in related_factories %}
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                        <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="factory-circle-card">
+                            {% with primary_image=factory.get_primary_image %}
+                            <div class="factory-circle-card__image-wrap">
+                                {% if primary_image %}
+                                    <img src="{{ primary_image }}" alt="{{ factory.name }}">
+                                {% else %}
+                                    <div class="placeholder center"><i class="fas fa-industry"></i></div>
+                                {% endif %}
+                            </div>
+                            {% endwith %}
+                            <h4 class="factory-circle-card__name">{{ factory.name }}</h4>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-40">
+                        <p class="text-light-2 italic">No facilities match these filters.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</section>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareModalLabel">Share this post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="share-links-container">
+                    <!-- Links will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 {% block extra_js %}
- 
- <script>
-  function updateLocation(element, targetType) {
-      const id = element.value;
-      const targets = {
-          'state': { next: 'state-select', url: '/location/ajax/states-by-country/', label: 'State' },
-          'city': { next: 'city-select', url: '/location/ajax/cities-by-state/', label: 'City' },
-          'district': { next: 'district-select', url: '/location/ajax/districts-by-city/', label: 'District' },
-          'region': { next: 'region-select', url: '/location/ajax/regions-by-district/', label: 'Region' }
-      };
+<script>
+    // Function to open share modal and set links
+    function openShareModal(btn) {
+        const postTitle = btn.getAttribute('data-post-title');
+        const postUrl = btn.getAttribute('data-post-url');
+        const fullUrl = window.location.origin + postUrl;
+        const encodedUrl = encodeURIComponent(fullUrl);
+        const encodedTitle = encodeURIComponent(postTitle);
+        
+        const shareLinks = `
+            <a href="https://api.whatsapp.com/send?text=${encodedTitle} - ${encodedUrl}" target="_blank" class="share-modal-link">
+                <i class="fab fa-whatsapp share-modal-icon" style="color:#25D366;"></i>
+                <span>WhatsApp</span>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" class="share-modal-link">
+                <i class="fab fa-facebook-f share-modal-icon" style="color:#1877F2;"></i>
+                <span>Facebook</span>
+            </a>
+            <a href="https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}" target="_blank" class="share-modal-link">
+                <i class="fab fa-twitter share-modal-icon" style="color:#1DA1F2;"></i>
+                <span>Twitter</span>
+            </a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodedTitle}" target="_blank" class="share-modal-link">
+                <i class="fab fa-linkedin-in share-modal-icon" style="color:#0077B5;"></i>
+                <span>LinkedIn</span>
+            </a>
+            <a href="mailto:?subject=${encodedTitle}&body=${encodedUrl}" class="share-modal-link">
+                <i class="fas fa-envelope share-modal-icon" style="color:#EA4335;"></i>
+                <span>Email</span>
+            </a>
+            <div class="share-modal-link" onclick="copyToClipboard('${fullUrl}')" style="cursor:pointer;">
+                <i class="fas fa-link share-modal-icon" style="color:#6c757d;"></i>
+                <span>Copy Link</span>
+            </div>
+        `;
+        
+        document.getElementById('share-links-container').innerHTML = shareLinks;
+        
+        const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+        modal.show();
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show temporary success message
+            const toast = document.createElement('div');
+            toast.className = 'copy-success';
+            toast.innerHTML = '<i class="fas fa-check-circle"></i> Link copied to clipboard!';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy link. Please try again.');
+        });
+    }
 
-      const config = targets[targetType];
-      const nextSelect = document.getElementById(config.next);
-      
-      // Show Apply button since a filter has changed
-      document.getElementById('apply-filter-btn').style.display = 'block';
-      document.getElementById('apply-filter-btn').onclick = () => {
-          const urlParams = new URLSearchParams(window.location.search);
-          urlParams.set(element.id.replace('-select', ''), id);
-          window.location.search = urlParams.toString();
-      };
+    document.addEventListener('DOMContentLoaded', function() {
+        // ===== Mobile filter toggle (collapsible section below search bar) =====
+        const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+        const mobileFilterSection = document.getElementById('mobileFilterSection');
+        if (mobileFilterBtn && mobileFilterSection) {
+            mobileFilterBtn.addEventListener('click', function() {
+                mobileFilterSection.classList.toggle('active');
+                if (mobileFilterSection.classList.contains('active')) {
+                    mobileFilterBtn.innerHTML = '<i class="fas fa-times me-1"></i> Close';
+                } else {
+                    mobileFilterBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Filter';
+                }
+            });
+        }
 
-      if (!id) {
-          nextSelect.disabled = true;
-          nextSelect.innerHTML = `<option value="">Select ${config.label}</option>`;
-          return;
-      }
+        // Helper to load selects
+        function loadSelect(url, targetSelect, label, selectedId = null) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    targetSelect.disabled = false;
+                    targetSelect.innerHTML = `<option value="">Select ${label}</option>`;
+                    data.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = item.name;
+                        if (selectedId && item.id == selectedId) opt.selected = true;
+                        targetSelect.appendChild(opt);
+                    });
+                })
+                .catch(() => {
+                    targetSelect.innerHTML = `<option value="">Error loading ${label}</option>`;
+                    targetSelect.disabled = true;
+                });
+        }
 
-      fetch(`${config.url}${id}/`)
-          .then(response => response.json())
-          .then(data => {
-              nextSelect.disabled = false;
-              nextSelect.innerHTML = `<option value="">Select ${config.label}</option>`;
-              data.forEach(item => {
-                  nextSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
-              });
-          })
-          .catch(error => console.error('Error fetching data:', error));
-  }
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCountry = urlParams.get('country');
+        const currentState = urlParams.get('state');
+        const currentCity = urlParams.get('city');
+        const currentDistrict = urlParams.get('district');
+        const currentRegion = urlParams.get('region');
 
-  function updateCategory(element) {
-      const categoryId = element.value;
-      
-      // Show Apply button since a filter has changed
-      document.getElementById('apply-category-btn').style.display = 'block';
-      document.getElementById('apply-category-btn').onclick = () => {
-          const urlParams = new URLSearchParams(window.location.search);
-          if (categoryId) {
-              urlParams.set('category', categoryId);
-          } else {
-              urlParams.delete('category');
-          }
-          // Remove subcategory if category is changed
-          urlParams.delete('subcategory');
-          window.location.search = urlParams.toString();
-      };
-  }
+        // Desktop select elements
+        const desktopCountry = document.getElementById('desktop-country-select');
+        const desktopState = document.getElementById('desktop-state-select');
+        const desktopCity = document.getElementById('desktop-city-select');
+        const desktopDistrict = document.getElementById('desktop-district-select');
+        const desktopRegion = document.getElementById('desktop-region-select');
+        const desktopCategory = document.getElementById('desktop-category-select');
 
-  function applyFinalFilter(element) {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.set('region', element.value);
-      window.location.search = urlParams.toString();
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-      const toggleBtn = document.getElementById('mobileFilterToggle');
-      const sidebar = document.getElementById('sidebarColumn');
-      
-      if (toggleBtn) {
-          // Create a close button for the mobile view
-          const closeBtnDiv = document.createElement('div');
-          closeBtnDiv.className = 'mobile-sidebar-close lg:d-flex d-none';
-          closeBtnDiv.innerHTML = '<button class="text-20 text-dark-1"><i class="fas fa-times"></i></button>';
-          
-          // Prepend it to the sidebar content
-          const sidebarAside = sidebar.querySelector('aside');
-          sidebarAside.prepend(closeBtnDiv);
+        // Mobile select elements
+        const mobileCountry = document.getElementById('mobile-country-select');
+        const mobileState = document.getElementById('mobile-state-select');
+        const mobileCity = document.getElementById('mobile-city-select');
+        const mobileDistrict = document.getElementById('mobile-district-select');
+        const mobileRegion = document.getElementById('mobile-region-select');
+        const mobileCategory = document.getElementById('mobile-category-select');
 
-          toggleBtn.addEventListener('click', function() {
-              sidebar.classList.add('active');
-              document.body.style.overflow = 'hidden'; // Prevent scrolling background
-          });
+        // Initial load for desktop
+        if (currentCountry) {
+            loadSelect(`/location/ajax/states-by-country/${currentCountry}/`, desktopState, 'State', currentState);
+        }
+        if (currentState) {
+            loadSelect(`/location/ajax/cities-by-state/${currentState}/`, desktopCity, 'City', currentCity);
+        }
+        if (currentCity) {
+            loadSelect(`/location/ajax/districts-by-city/${currentCity}/`, desktopDistrict, 'District', currentDistrict);
+        }
+        if (currentDistrict) {
+            loadSelect(`/location/ajax/regions-by-district/${currentDistrict}/`, desktopRegion, 'Region', currentRegion);
+        }
 
-          closeBtnDiv.addEventListener('click', function() {
-              sidebar.classList.remove('active');
-              document.body.style.overflow = 'auto';
-          });
-      }
-  });
+        // Sync mobile selects with desktop initial values
+        if (currentCountry) {
+            loadSelect(`/location/ajax/states-by-country/${currentCountry}/`, mobileState, 'State', currentState);
+        }
+        if (currentState) {
+            loadSelect(`/location/ajax/cities-by-state/${currentState}/`, mobileCity, 'City', currentCity);
+        }
+        if (currentCity) {
+            loadSelect(`/location/ajax/districts-by-city/${currentCity}/`, mobileDistrict, 'District', currentDistrict);
+        }
+        if (currentDistrict) {
+            loadSelect(`/location/ajax/regions-by-district/${currentDistrict}/`, mobileRegion, 'Region', currentRegion);
+        }
+
+        // Desktop cascading
+        function attachCascade(source, target, urlFn, nextTargets = []) {
+            source.addEventListener('change', function() {
+                const id = this.value;
+                if (id) {
+                    loadSelect(urlFn(id), target, target.getAttribute('data-label') || 'Option');
+                    nextTargets.forEach(t => {
+                        t.disabled = true;
+                        t.innerHTML = `<option value="">Select ${t.getAttribute('data-label') || 'Option'}</option>`;
+                    });
+                } else {
+                    target.disabled = true;
+                    target.innerHTML = `<option value="">Select ${target.getAttribute('data-label') || 'Option'}</option>`;
+                    nextTargets.forEach(t => {
+                        t.disabled = true;
+                        t.innerHTML = `<option value="">Select ${t.getAttribute('data-label') || 'Option'}</option>`;
+                    });
+                }
+            });
+        }
+
+        desktopState.setAttribute('data-label', 'State');
+        desktopCity.setAttribute('data-label', 'City');
+        desktopDistrict.setAttribute('data-label', 'District');
+        desktopRegion.setAttribute('data-label', 'Region');
+
+        attachCascade(desktopCountry, desktopState, (id) => `/location/ajax/states-by-country/${id}/`, [desktopCity, desktopDistrict, desktopRegion]);
+        attachCascade(desktopState, desktopCity, (id) => `/location/ajax/cities-by-state/${id}/`, [desktopDistrict, desktopRegion]);
+        attachCascade(desktopCity, desktopDistrict, (id) => `/location/ajax/districts-by-city/${id}/`, [desktopRegion]);
+        attachCascade(desktopDistrict, desktopRegion, (id) => `/location/ajax/regions-by-district/${id}/`, []);
+
+        // Mobile cascading
+        mobileState.setAttribute('data-label', 'State');
+        mobileCity.setAttribute('data-label', 'City');
+        mobileDistrict.setAttribute('data-label', 'District');
+        mobileRegion.setAttribute('data-label', 'Region');
+
+        attachCascade(mobileCountry, mobileState, (id) => `/location/ajax/states-by-country/${id}/`, [mobileCity, mobileDistrict, mobileRegion]);
+        attachCascade(mobileState, mobileCity, (id) => `/location/ajax/cities-by-state/${id}/`, [mobileDistrict, mobileRegion]);
+        attachCascade(mobileCity, mobileDistrict, (id) => `/location/ajax/districts-by-city/${id}/`, [mobileRegion]);
+        attachCascade(mobileDistrict, mobileRegion, (id) => `/location/ajax/regions-by-district/${id}/`, []);
+
+        // Apply filters for desktop sidebar
+        const applyDesktop = document.getElementById('apply-desktop-filters');
+        if (applyDesktop) {
+            applyDesktop.addEventListener('click', () => {
+                const params = new URLSearchParams();
+                const search = document.querySelector('input[name="search"]').value;
+                if (search) params.set('search', search);
+                if (desktopCategory.value) params.set('category', desktopCategory.value);
+                if (desktopCountry.value) params.set('country', desktopCountry.value);
+                if (desktopState.value) params.set('state', desktopState.value);
+                if (desktopCity.value) params.set('city', desktopCity.value);
+                if (desktopDistrict.value) params.set('district', desktopDistrict.value);
+                if (desktopRegion.value) params.set('region', desktopRegion.value);
+                window.location.search = params.toString();
+            });
+        }
+
+        // Apply filters for mobile collapsible section
+        const applyMobile = document.getElementById('apply-mobile-filters');
+        if (applyMobile) {
+            applyMobile.addEventListener('click', () => {
+                const params = new URLSearchParams();
+                const search = document.querySelector('input[name="search"]').value;
+                if (search) params.set('search', search);
+                if (mobileCategory.value) params.set('category', mobileCategory.value);
+                if (mobileCountry.value) params.set('country', mobileCountry.value);
+                if (mobileState.value) params.set('state', mobileState.value);
+                if (mobileCity.value) params.set('city', mobileCity.value);
+                if (mobileDistrict.value) params.set('district', mobileDistrict.value);
+                if (mobileRegion.value) params.set('region', mobileRegion.value);
+                window.location.search = params.toString();
+            });
+        }
+
+        // Desktop top row apply button (if exists)
+        const applyDesktopTop = document.getElementById('apply-desktop-filters-top');
+        if (applyDesktopTop) {
+            applyDesktopTop.addEventListener('click', () => {
+                const params = new URLSearchParams();
+                const search = document.querySelector('.desktop-filter-row input[name="search"]').value;
+                if (search) params.set('search', search);
+                const cat = document.querySelector('.desktop-filter-row select[name="category"]').value;
+                if (cat) params.set('category', cat);
+                const country = document.querySelector('.desktop-filter-row select[name="country"]').value;
+                if (country) params.set('country', country);
+                const state = document.querySelector('.desktop-filter-row select[name="state"]').value;
+                if (state) params.set('state', state);
+                const city = document.querySelector('.desktop-filter-row select[name="city"]').value;
+                if (city) params.set('city', city);
+                const district = document.querySelector('.desktop-filter-row select[name="district"]').value;
+                if (district) params.set('district', district);
+                const region = document.querySelector('.desktop-filter-row select[name="region"]').value;
+                if (region) params.set('region', region);
+                window.location.search = params.toString();
+            });
+        }
+
+        // Search on Enter key
+        const searchInputs = document.querySelectorAll('input[name="search"]');
+        searchInputs.forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (window.innerWidth < 992) {
+                        if (applyMobile) applyMobile.click();
+                    } else {
+                        if (applyDesktop) applyDesktop.click();
+                    }
+                }
+            });
+        });
+    });
 </script>
-
- {% endblock %}
+{% endblock %}

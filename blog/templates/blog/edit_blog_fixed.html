@@ -1,0 +1,739 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Blog Post - FactoryInfoHub{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="featured-hero-card">
+            <div class="hero-overlay"></div>
+            <img src="{% static 'img/hero/1.png' %}" alt="Featured" class="hero-img" id="hero-preview">
+            <div class="hero-content">
+                <span class="badge-featured">EDIT POST</span>
+                <h1 class="text-white text-40 md:text-30 fw-700 mt-10" id="title-live-preview">{{ object.title }}</h1>
+                <div class="text-white opacity-70">Author: {{ object.author.get_full_name|default:object.author.username }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="layout-pt-md layout-pb-xl">
+    <div class="container">
+        <form method="post" enctype="multipart/form-data" id="blog-form">
+            {% csrf_token %}
+            
+            <div class="row y-gap-30 justify-center">
+                <div class="col-lg-8">
+                    
+                    <div class="form-input mb-20">
+                        {{ form.title }}
+                        <label class="lh-1 text-16">Post Title</label>
+                    </div>
+
+                    <div class="row mb-30 g-3"> 
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label class="label-tech-sm">Blog Category</label>
+                                {{ form.category }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label class="label-tech-sm">Blog Subcategory</label>
+                                {{ form.subcategory }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post-content mt-20">
+                        <div class="form-input">
+                            {{ form.content }}
+                            <label class="lh-1 text-16">Article Content</label>
+                        </div>
+                        
+                        <!-- Inline Image Helper -->
+                        <div class="inline-image-helper mt-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="text-14 fw-600">Insert Inline Images</label>
+                                <small class="text-muted">Add images between your content using these placeholders</small>
+                            </div>
+                            <div class="row g-2" id="inline-image-buttons">
+                                <div class="col-md-3 col-sm-6">
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="insertImagePlaceholder('[image:0]')" disabled>
+                                        <i class="fas fa-image me-2"></i>Image 1
+                                    </button>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="insertImagePlaceholder('[image:1]')" disabled>
+                                        <i class="fas fa-image me-2"></i>Image 2
+                                    </button>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="insertImagePlaceholder('[image:2]')" disabled>
+                                        <i class="fas fa-image me-2"></i>Image 3
+                                    </button>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <button type="button" class="btn btn-outline-warning btn-sm w-100" onclick="insertImagePlaceholder('[image:featured]')" disabled>
+                                        <i class="fas fa-star me-2"></i>Featured
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>How it works:</strong> Upload images below, then use these buttons to insert image placeholders in your content. 
+                                    <code>[image:0]</code> shows the first uploaded image, <code>[image:1]</code> shows the second, etc.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="text-18 fw-600 mb-20">Post Settings</h4>
+                        
+                    <div class="form-input mb-20">
+                        {{ form.excerpt }}
+                        <label class="lh-1 text-14">Short Summary</label>
+                    </div>
+
+                    <div class="line mb-20"></div>
+
+                    <h5 class="text-18 fw-600 mb-20">Target Location</h5>
+                    
+                    <div class="row g-3 mb-20">
+                        <div class="col-md-6">
+                            <label class="label-tech-sm">Country</label>
+                            {{ form.country }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-tech-sm">State</label>
+                            {{ form.state }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="label-tech-sm">City</label>
+                            {{ form.city }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="label-tech-sm">District</label>
+                            {{ form.district }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="label-tech-sm">Region</label>
+                            {{ form.region }}
+                        </div>
+                    </div>
+                       
+                    <div class="line mt-20 mb-20"></div>
+
+                    <h5 class="text-18 fw-600 mb-20">Related Factories</h5>
+                    
+                    <div class="form-group mb-30">
+                        <div class="text-muted mb-15">Select factories that are related to this blog post:</div>
+                        
+                        <!-- Search Bar -->
+                        <div class="mb-15">
+                            <div class="form-input">
+                                <input type="text" id="factory-search" placeholder="Search factories by name..." class="form-control">
+                                <label class="lh-1 text-14">Search Factories</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Sideways Scrollable Factory Cards -->
+                        <div class="factory-cards-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
+                            <div id="factory-cards" class="factory-cards-wrapper" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
+                                {% for factory in factories %}
+                                    <div class="factory-card-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
+                                        <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                            <div class="position-relative">
+                                                {% if factory.get_primary_image %}
+                                                    <img src="{{ factory.get_primary_image }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                                        <i class="icon-building text-40 text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="position-absolute top-0 start-0 m-2">
+                                                    <input type="checkbox" name="related_factories" value="{{ factory.id }}" id="factory_{{ factory.id }}" class="form-check-input" style="width: 18px; height: 18px; accent-color: #EB662B;"
+                                                        {% if factory in object.related_factories.all %}checked{% endif %}>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">{{ factory.name }}</h6>
+                                                <p class="card-text text-muted mb-0" style="font-size: 12px;">{{ factory.city.name }}, {{ factory.state.name }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-muted text-center py-3 w-100">
+                                        No factories found. Please ensure factories are created in the system.
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Selection Controls -->
+                        <div class="mt-15">
+                            <button type="button" id="select-all-factories" class="btn btn-outline-primary btn-sm me-2">
+                                Select All
+                            </button>
+                            <button type="button" id="clear-all-factories" class="btn btn-outline-secondary btn-sm">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="line mt-20 mb-20"></div>
+
+                    <!-- Published Status Indicator
+                    <div class="d-flex items-center mb-30">
+                        <div class="form-checkbox">
+                            {{ object.is_published }}
+                        </div>
+                        <div class="lh-16 ml-15">
+                            Save as Published
+                            {% if not user.is_staff %}
+                                <small class="text-muted d-block">(Only staff can change this setting)</small>
+                            {% endif %}
+                        </div>
+                    </div> -->
+
+                    <!-- Publication Status Marker -->
+                    <div class="d-flex items-center mb-30">
+                        <div class="publication-status">
+                            {% if object.is_published %}
+                                <span class="badge badge-success text-white px-3 py-2 rounded-3 fw-600">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Published
+                                </span>
+                                {% if object.published_at %}
+                                    <small class="text-muted ms-3">
+                                        Published on: {{ object.published_at|date:"F j, Y" }}
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-warning text-white px-3 py-2 rounded-3 fw-600">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Draft
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Blog Management Actions -->
+                    {% if user.is_authenticated and user.profile.role in 'admin' or user == object.author %}
+                    <div class="d-flex items-center mb-30">
+                        <div class="blog-actions">
+                            {% if object.is_deleted %}
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'blog:blog_restore' object.slug %}" class="btn btn-success btn-sm px-3 rounded-pill">
+                                        <i class="fas fa-trash-restore me-2"></i> Restore
+                                    </a>
+                                    <button class="btn btn-danger btn-sm px-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#permanentDeleteModal">
+                                        <i class="fas fa-trash-alt me-2"></i> Permanent Delete
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'blog:blog_soft_delete' object.slug %}" class="btn btn-warning btn-sm px-3 rounded-pill" onclick="return confirm('Are you sure you want to move this post to trash?')">
+                                        <i class="fas fa-trash me-2"></i> Move to Trash
+                                    </a>
+                                    <a href="{% url 'blog:post_update' object.slug %}" class="btn btn-primary btn-sm px-3 rounded-pill">
+                                        <i class="fas fa-edit me-2"></i> Edit
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h2 class="text-24 fw-700 pt-40 mb-20">Post Gallery</h2>
+                    <div class="upload-zone mb-20">
+                        <i class="fas fa-cloud-upload-alt text-30 mb-10 text-accent"></i>
+                        <p>Click to upload multiple images</p>
+                        {{ form.images }}
+                    </div>
+
+                    <div id="image-preview-grid" class="row y-gap-20 pt-20"></div>
+
+                    <!-- Existing Gallery Images -->
+                    {% if object.images.exists %}
+                    <div class="existing-gallery mt-30">
+                        <h5 class="text-18 fw-600 mb-20">Current Gallery Images</h5>
+                        <div class="row y-gap-20" id="existing-images-grid">
+                            {% for image in object.images.all %}
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <img src="{{ image.image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">Image {{ forloop.counter }}</small>
+                                            {% if image.is_featured %}
+                                            <span class="badge bg-warning text-dark">Featured</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row y-gap-15 justify-between items-center pt-40">
+                        <div class="col-auto">
+                            <button type="submit" class="button -md -dark-1 bg-accent-1 text-white">
+                                Update Post <i class="icon-arrow-top-right text-16 ml-10"></i>
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'blog:post_detail' slug=object.slug %}" class="text-muted">Cancel and go back</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div id="blog-form-container" 
+     data-saved-category="{{ object.category.id|default:'' }}"
+     data-saved-subcategory="{{ object.subcategory.id|default:'' }}"
+     data-saved-country="{{ object.country.id|default:'' }}"
+     data-saved-state="{{ object.state.id|default:'' }}"
+     data-saved-city="{{ object.city.id|default:'' }}"
+     data-saved-district="{{ object.district.id|default:'' }}"
+     data-saved-region="{{ object.region.id|default:'' }}">
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 1. DIRECT COPIES FROM BLOG_DETAILS.HTML */
+.bg-dark-transparent {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.featured-hero-card {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: #2c3e50;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.hero-img { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-content { position: absolute; bottom: 40px; left: 40px; z-index: 2; }
+
+.badge-featured {
+  background: #EB662B; /* Using your accent color */
+  color: white;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 2. FORM ELEMENTS REFINED TO FIT THE DESIGN */
+.form-input { position: relative; width: 100%; }
+.form-input input, .form-input textarea, select {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #EAEAEA;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.form-input label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: white;
+    padding: 0 5px;
+    font-size: 12px;
+    color: #EB662B;
+    font-weight: 600;
+}
+
+/* Modern Upload Area (from factory form) */
+.upload-zone {
+    border: 2px dashed #EB662B;
+    padding: 30px;
+    text-align: center;
+    border-radius: 12px;
+    background: #FFF9F6;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-zone input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-zone input[type="file"] + * {
+    pointer-events: none;
+}
+
+/* Image Preview Card */
+.gallery-preview-img {
+    border-radius: 8px;
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Form field styling improvements */
+.form-group-custom {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group-custom select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #EAEAEA;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #EB662B;
+    margin-right: 10px;
+}
+
+/* Disabled checkbox styling (non‑staff) */
+.form-checkbox input[type="checkbox"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Error styling */
+.form-input.error input, .form-input.error textarea, .form-input.error select {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Section spacing improvements */
+.line {
+    height: 1px;
+    background: #EAEAEA;
+    margin: 20px 0;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .form-group-custom {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+    
+    .d-flex.flex-wrap.align-items-center {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .d-flex.flex-wrap.align-items-center > .form-group-custom {
+        margin-bottom: 15px;
+    }
+}
+
+/* Factory Cards Styling */
+.factory-cards-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+.factory-cards-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+.factory-cards-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+.factory-cards-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+.factory-card-item .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.factory-card-item:hover .card {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+.factory-card-item mark {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* Publication Status Marker Styling */
+.publication-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.publication-status .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.publication-status .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.publication-status .badge.badge-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.publication-status .badge.badge-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    border: none;
+    color: #856404;
+}
+
+.publication-status .badge i {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.publication-status small.text-muted {
+    font-size: 12px;
+    color: #6c757d !important;
+    font-weight: 500;
+}
+
+/* Style for the "Tech Labels" above dropdowns */
+.label-tech-sm {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: #EB662B !important; /* Accent Color */
+    margin-bottom: 6px !important;
+    display: block;
+}
+
+/* Spacing for the dropdown groups */
+.form-group-custom {
+    margin-bottom: 20px;
+}
+
+.text-accent { 
+    color: #EB662B; 
+}
+.bg-accent-1 { 
+    background-color: #EB662B; 
+}
+
+/* Outline button hover effects (matching your original intent) */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover {
+    background-color: #EB662B !important;
+    color: white !important;
+    border-color: #EB662B !important;
+}
+.btn-outline-primary {
+    border-width: 2px;
+    font-weight: 600;
+}
+.btn-outline-secondary {
+    border-width: 2px;
+    font-weight: 600;
+}
+
+/* Fix checkbox size and prevent stretching */
+#blog-form .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin: 0 0.5em 0 0;
+    flex-shrink: 0;
+    border: solid #2f48d4;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+// --- THE WATERFALL ENGINE ---
+function updateChain(parent, child, url, targetSelectedId = null, clear = []) {
+    const parentEl = $('#' + parent);
+    const childEl = $('#' + child);
+
+    const loadData = (parentId, selectedId) => {
+        if (parentId && !isNaN(parentId)) {
+            $.getJSON(url.replace('0', parentId), function(data) {
+                let opt = '<option value="">Select or Type New...</option>';
+                data.forEach(i => {
+                    const isSelected = (selectedId && String(i.id) === String(selectedId)) ? 'selected' : '';
+                    opt += `<option value="${i.id}" ${isSelected}>${i.name}</option>`;
+                });
+                childEl.html(opt);
+                childEl.select2({tags:true, width:'100%'});
+                // Move the waterfall to the next level
+                childEl.trigger('change');
+            });
+        } else if (parentId) {
+            childEl.empty().append('<option value="">Type to add new...</option>').trigger('change');
+        }
+    };
+
+    parentEl.on('change', function() {
+        const val = $(this).val();
+        clear.forEach(id => {
+            $('#' + id).empty().append('<option value="">---</option>').trigger('change');
+        });
+        loadData(val, null);
+    });
+
+    // Initial load for Edit view
+    const currentVal = parentEl.val();
+    if (currentVal) loadData(currentVal, targetSelectedId);
+}
+
+$(document).ready(function() {
+    // 1. Initialize Select2
+    $('.select2-searchable').select2({tags:true, width:'100%'});
+
+    // 2. Fetch saved values from Django
+    const savedSubcategory = {{ object.subcategory.id|default:"null" }};
+    const savedState = {{ object.state.id|default:"null" }};
+    const savedCity = {{ object.city.id|default:"null" }};
+    const savedDistrict = {{ object.district.id|default:"null" }};
+    const savedRegion = {{ object.region.id|default:"null" }};
+
+    // 3. Start Chains
+    updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}", savedSubcategory, []);
+    updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", savedState, ['id_city', 'id_district', 'id_region']);
+    updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", savedCity, ['id_district', 'id_region']);
+    updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", savedDistrict, ['id_region']);
+    updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}", savedRegion, []);
+
+    // 4. Live Title Preview
+    $('input[name="title"]').on('input', function() {
+        $('#title-live-preview').text($(this).val() || "Untitled Article");
+    });
+
+    // 5. Image Previews
+    $('input[name="images"]').on('change', function() {
+        const grid = $('#image-preview-grid');
+        grid.empty();
+        const buttons = $('#inline-image-buttons .btn');
+        
+        Array.from(this.files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if(index === 0) $('#hero-preview').attr('src', e.target.result);
+                grid.append(`<div class="col-md-4"><img src="${e.target.result}" class="gallery-preview-img"></div>`);
+                
+                // Enable corresponding inline image button
+                if (index < buttons.length) {
+                    buttons.eq(index).prop('disabled', false);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Enable inline image buttons if there are existing images
+    {% if object.images.exists %}
+    const buttons = $('#inline-image-buttons .btn');
+    const imageCount = {{ object.images.count }};
+    for (let i = 0; i < Math.min(imageCount, buttons.length); i++) {
+        buttons.eq(i).prop('disabled', false);
+    }
+    {% endif %}
+
+    // 6. Factory Search
+    $('#factory-search').on('input', function() {
+        const term = $(this).val().toLowerCase();
+        $('.factory-card-item').each(function() {
+            const name = $(this).data('name');
+            $(this).toggle(name.includes(term));
+        });
+    });
+
+    $('#select-all-factories').click(() => $('.factory-card-item:visible input').prop('checked', true));
+    $('#clear-all-factories').click(() => $('.factory-card-item input').prop('checked', false));
+});
+
+// ========== INLINE IMAGE PLACEHOLDER FUNCTION ==========
+function insertImagePlaceholder(placeholder) {
+    const contentTextarea = document.querySelector('textarea[name="content"]');
+    if (contentTextarea) {
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        const currentValue = contentTextarea.value;
+        const newValue = currentValue.substring(0, start) + placeholder + currentValue.substring(end);
+        contentTextarea.value = newValue;
+        
+        // Move cursor to the end of the inserted placeholder
+        const newPosition = start + placeholder.length;
+        contentTextarea.selectionStart = newPosition;
+        contentTextarea.selectionEnd = newPosition;
+        contentTextarea.focus();
+    }
+}
+
+// Clear error states on input
+document.querySelectorAll('.form-input input, .form-input textarea').forEach(input => {
+    input.addEventListener('input', function() {
+        this.parentElement.classList.remove('error');
+        const error = this.parentElement.querySelector('.form-error');
+        if (error) error.remove();
+    });
+});
+</script>
+{% endblock %}

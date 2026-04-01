@@ -3,6 +3,256 @@
 
 {% block title %}Create Blog Post - FactoryInfoHub{% endblock %}
 
+{% block extra_css %}
+<style>
+
+    .hover-opacity-100 {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .position-relative:hover .hover-opacity-100 {
+        opacity: 1;
+    }
+    .transition-opacity {
+        transition: opacity 0.3s ease;
+    }
+    .clickable-image {
+        cursor: pointer;
+    }
+    /* Modern Upload Area */
+    .upload-area {
+        border: 2px dashed #E5E7EB;
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        background: #F9FAFB;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 1.5rem;
+    }
+    .upload-area:hover,
+    .upload-area.drag-over {
+        border-color: #EB662B;
+        background: #FFF9F6;
+    }
+    .upload-icon {
+        font-size: 2.5rem;
+        color: #EB662B;
+        margin-bottom: 0.5rem;
+    }
+    .image-preview-card {
+        background: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid #eef2f6;
+        transition: transform 0.2s;
+        position: relative;
+    }
+    .image-preview-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .image-preview-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+    .image-preview-card .card-body {
+        padding: 0.75rem;
+    }
+    .image-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: background 0.2s;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-icon.delete {
+        color: #dc2626;
+    }
+    .btn-icon.delete:hover {
+        background: #fee2e2;
+    }
+    .btn-icon.insert {
+        color: #EB662B;
+    }
+    .btn-icon.insert:hover {
+        background: #fff0e6;
+    }
+    /* Toggle Switch Styles */
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 26px;
+    }
+    .switch .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 34px;
+    }
+    .switch .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    .switch.active .slider {
+        background-color: #EB662B;
+    }
+    .switch.active .slider:before {
+        transform: translateX(26px);
+    }
+    .status-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1e293b;
+    }
+    .status-text .published {
+        color: #EB662B;
+        font-weight: 600;
+    }
+    .status-text .draft {
+        color: #64748b;
+    }
+    /* Existing styles (keep your original) */
+    .featured-hero-card { 
+        position: relative; 
+        width: 100%; 
+        height: 350px; 
+        overflow: hidden; 
+        background: #2c3e50; 
+    }
+    .hero-img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
+    .hero-overlay { 
+        position: absolute; 
+        inset: 0; 
+        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%); 
+    }
+    .hero-content { 
+        position: absolute; 
+        bottom: 40px; 
+        left: 40px; 
+        z-index: 2; 
+    }
+    .badge-featured { 
+        background: #EB662B; 
+        color: white; 
+        padding: 4px 12px; 
+        border-radius: 100px; 
+        font-size: 11px; 
+        font-weight: 700; 
+    }
+    .form-input { 
+        position: relative; 
+    }
+    .form-input input, 
+    .form-input textarea { 
+        width: 100%; 
+        padding: 15px; 
+        border: 1px solid #EAEAEA; 
+        border-radius: 8px; 
+    }
+    .form-input label { 
+        position: absolute; 
+        top: -10px; 
+        left: 12px; 
+        background: white; 
+        padding: 0 5px; 
+        font-size: 12px; 
+        color: #EB662B; 
+        font-weight: 600; 
+    }
+    .label-tech-sm {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #EB662B;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .line {
+        height: 1px;
+        background: #EAEAEA;
+        margin: 20px 0;
+    }
+    /* Select2 (keep your existing) */
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #EAEAEA !important;
+        border-radius: 10px !important;
+        height: 52px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #1A1D1F !important;
+        font-size: 15px !important;
+        padding-left: 15px !important;
+        line-height: 50px !important;
+    }
+    /* Factory cards (keep your existing) */
+    .factory-cards-container {
+        border: 1px solid #EAEAEA;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fafafa;
+    }
+    .factory-card-item {
+        min-width: 200px;
+        flex: 0 0 200px;
+    }
+    .factory-card-item .card {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+    .factory-card-item .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .factory-card-item .form-check-input {
+        width: 18px;
+        height: 18px;
+        accent-color: #EB662B;
+        border: 2px solid #EAEAEA;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -35,20 +285,13 @@
                         <div class="col-md-6">
                             <div class="form-group-custom">
                                 <label class="label-tech-sm">Blog Category</label>
-                                <select name="category" id="id_category" class="select2-searchable">
-                                    <option value="">Select Category</option>
-                                    {% for cat in form.category.field.queryset %}
-                                    <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                                    {% endfor %}
-                                </select>
+                                {{ form.category }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group-custom">
                                 <label class="label-tech-sm">Blog Subcategory</label>
-                                <select name="subcategory" id="id_subcategory" class="select2-searchable">
-                                    <option value="">Select Subcategory</option>
-                                </select>
+                                {{ form.subcategory }}
                             </div>
                         </div>
                     </div>
@@ -57,6 +300,22 @@
                         <div class="form-input">
                             {{ form.content }}
                             <label class="lh-1 text-16">Article Content</label>
+                        </div>
+                        
+                        <!-- Inline Image Helper -->
+                        <div class="inline-image-helper mt-4 p-3 bg-light rounded-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="fw-600">📸 Insert Inline Images</label>
+                                <small class="text-muted">Click a button to insert a placeholder at your cursor position</small>
+                            </div>
+                            <div id="inline-image-buttons" class="row g-2">
+                                <!-- Buttons will be generated dynamically for both existing and new images -->
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Tip:</strong> Placeholders like <code>[image:123]</code> will be replaced with actual images when the post is published.
+                                </small>
+                            </div>
                         </div>
                     </div>
 
@@ -72,36 +331,23 @@
                     <div class="row g-3 mb-20">
                         <div class="col-md-6">
                             <label class="label-tech-sm">Country</label>
-                            <select name="country" id="id_country" class="select2-searchable">
-                                <option value="">Select Country</option>
-                                {% for c in form.country.field.queryset %}
-                                <option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.country }}
                         </div>
                         <div class="col-md-6">
                             <label class="label-tech-sm">State</label>
-                            <select name="state" id="id_state" class="select2-searchable">
-                                <option value="">Select State</option>
-                            </select>
+                            {{ form.state }}
                         </div>
                         <div class="col-md-4">
                             <label class="label-tech-sm">City</label>
-                            <select name="city" id="id_city" class="select2-searchable">
-                                <option value="">Select City</option>
-                            </select>
+                            {{ form.city }}
                         </div>
                         <div class="col-md-4">
                             <label class="label-tech-sm">District</label>
-                            <select name="district" id="id_district" class="select2-searchable">
-                                <option value="">Select District</option>
-                            </select>
+                            {{ form.district }}
                         </div>
                         <div class="col-md-4">
                             <label class="label-tech-sm">Region</label>
-                            <select name="region" id="id_region" class="select2-searchable">
-                                <option value="">Select Region</option>
-                            </select>
+                            {{ form.region }}
                         </div>
                     </div>
                        
@@ -116,11 +362,11 @@
                             </div>
                         </div>
                         
-                        <div class="factory-cards-container p-3 bg-light rounded-3">
+                        <div class="factory-cards-container">
                             <div id="factory-cards" class="d-flex gap-3 overflow-auto pb-2">
                                 {% for factory in factories %}
-                                    <div class="factory-card-item" data-name="{{ factory.name|lower }}" style="min-width: 200px;">
-                                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                                    <div class="factory-card-item" data-name="{{ factory.name|lower }}">
+                                        <div class="card h-100 border-0 shadow-sm">
                                             <div class="position-relative">
                                                 {% if factory.get_primary_image %}
                                                     <img src="{{ factory.get_primary_image }}" class="card-img-top" style="height: 100px; object-fit: cover;">
@@ -130,8 +376,7 @@
                                                     </div>
                                                 {% endif %}
                                                 <div class="position-absolute top-0 start-0 m-2">
-                                                    <input type="checkbox" name="related_factories" value="{{ factory.id }}" 
-                                                    class="form-check-input" {% if factory in post.related_factories.all %}checked{% endif %}>
+                                                    <input type="checkbox" name="related_factories" value="{{ factory.id }}" class="form-check-input">
                                                 </div>
                                             </div>
                                             <div class="card-body p-2">
@@ -149,20 +394,62 @@
                         </div>
                     </div>
 
-                    <!-- FIXED is_published checkbox: now inline and properly sized -->
-                    <div class="d-inline-flex align-items-center mb-30 {% if not request.user.is_staff %}d-none{% endif %}">
-                        {{ form.is_published }}
-                        <div class="lh-16 ms-2">Save as Published</div>
-                    </div>
+                    <!-- Modern Published Toggle -->
+                    {% if request.user.is_staff %}
+                        <div class="mb-30">
+                            <div class="toggle-switch-container">
+                                <div style="display: none;">
+                                    {{ form.is_published }}
+                                </div>
+                                <div class="toggle-switch">
+                                    <div class="switch" id="publish-toggle">
+                                        <div class="slider"></div>
+                                    </div>
+                                    <div class="status-text">
+                                        Status: <span id="publish-status-text">Draft</span>
+                                    </div>
+                                </div>
+                                <div class="form-text">
+                                    {% if not request.user.is_staff %}
+                                        <span class="text-muted">Only staff members can publish posts. Your post will be saved as a draft.</span>
+                                    {% else %}
+                                        Toggle to publish the post immediately. Unpublished posts are saved as drafts.
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
 
                     <h2 class="text-24 fw-700 pt-40 mb-20">Post Gallery</h2>
-                    <div class="upload-zone mb-20" onclick="document.getElementById('images-input').click()">
-                        <i class="fas fa-cloud-upload-alt text-30 mb-10 text-accent"></i>
-                        <p>Click to upload multiple images</p>
-                        <input type="file" id="images-input" name="images" multiple accept="image/*" hidden>
+                    <!-- Modern Drag & Drop Upload Area -->
+                    <div class="upload-area" id="dropzone">
+                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <h6 class="fw-bold mt-2">Drag & Drop or Click to Upload</h6>
+                        <p class="text-muted small">Supports JPG, PNG, GIF. Max 5MB per file.</p>
+                        {{ form.images }}
                     </div>
 
-                    <div id="image-preview-grid" class="row y-gap-20 pt-20"></div>
+                    <div id="image-preview-grid" class="row g-3 mt-3"></div>
+
+                    <!-- Existing Gallery Images (if editing) -->
+                    <!-- Existing Gallery Images (if editing) -->
+            
+
+                    <!-- Image Preview Modal (placed OUTSIDE the conditional) -->
+                    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Image Preview</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <img id="modalImage" src="" class="img-fluid" alt="Preview">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
 
                     <div class="row y-gap-15 justify-between items-center pt-40">
                         <div class="col-auto">
@@ -179,202 +466,15 @@
         </form>
     </div>
 </section>
-{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* --- High-End Dropdown Styling --- */
-
-    /* Target the main Select2 container */
-    .select2-container--default .select2-selection--single {
-        background-color: #ffffff !important;
-        border: 1px solid #EAEAEA !important;
-        border-radius: 10px !important;
-        height: 52px !important;
-        transition: all 0.2s ease-in-out !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-
-    /* Hover State */
-    .select2-container--default:hover .select2-selection--single {
-        border-color: #EB662B !important;
-        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.05) !important;
-    }
-
-    /* Focus / Open State */
-    .select2-container--default.select2-container--open .select2-selection--single {
-        border-color: #EB662B !important;
-        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.1) !important;
-        background: #fff !important;
-    }
-
-    /* Adjust the text inside the dropdown */
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #1A1D1F !important;
-        font-size: 15px !important;
-        font-weight: 500 !important;
-        padding-left: 15px !important;
-        line-height: 50px !important;
-    }
-
-    /* Style the Arrow */
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 50px !important;
-        right: 12px !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow b {
-        border-color: #6B7280 transparent transparent transparent !important;
-        border-width: 6px 5px 0 5px !important;
-    }
-
-    /* --- Dropdown Results Menu --- */
-    .select2-dropdown {
-        border: 1px solid #EAEAEA !important;
-        border-radius: 10px !important;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-        overflow: hidden !important;
-        z-index: 9999 !important;
-    }
-
-    .select2-results__option {
-        padding: 12px 15px !important;
-        font-size: 14px !important;
-    }
-
-    /* Highlight color when hovering over options */
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #EB662B !important;
-        color: white !important;
-    }
-
-    /* Style for the "Tech Labels" above dropdowns */
-    .label-tech-sm {
-        font-family: 'Inter', sans-serif;
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.05em !important;
-        text-transform: uppercase !important;
-        color: #EB662B !important; /* Accent Color */
-        margin-bottom: 6px !important;
-        display: block;
-    }
-
-    /* Spacing for the dropdown groups */
-    .form-group-custom {
-        margin-bottom: 20px;
-    }
-
-    .featured-hero-card { 
-        position: relative; 
-        width: 100%; 
-        height: 350px; 
-        overflow: hidden; 
-        background: #2c3e50; 
-    }
-    .hero-img { 
-        width: 100%; 
-        height: 100%; 
-        object-fit: cover; 
-    }
-    .hero-overlay { 
-        position: absolute; 
-        inset: 0; 
-        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%); 
-    }
-    .hero-content { 
-        position: absolute; 
-        bottom: 40px; 
-        left: 40px; 
-        z-index: 2; 
-    }
-    .badge-featured { 
-        background: #EB662B; 
-        color: white; 
-        padding: 4px 12px; 
-        border-radius: 100px; 
-        font-size: 11px; 
-        font-weight: 700; 
-    }
-
-    .form-input { 
-        position: relative; 
-    }
-    .form-input input, 
-    .form-input textarea { 
-        width: 100%; 
-        padding: 15px; 
-        border: 1px solid #EAEAEA; 
-        border-radius: 8px; 
-    }
-    .form-input label { 
-        position: absolute; 
-        top: -10px; 
-        left: 12px; 
-        background: white; 
-        padding: 0 5px; 
-        font-size: 12px; 
-        color: #EB662B; 
-        font-weight: 600; 
-    }
-
-    .upload-zone { 
-        border: 2px dashed #EB662B; 
-        padding: 30px; 
-        text-align: center; 
-        border-radius: 12px; 
-        background: #FFF9F6; 
-        cursor: pointer; 
-    }
-    .gallery-preview-img { 
-        border-radius: 8px; 
-        width: 100%; 
-        height: 200px; 
-        object-fit: cover; 
-    }
-    .label-tech-sm { 
-        font-size: 11px; 
-        font-weight: 700; 
-        color: #6B7280; 
-        text-transform: uppercase; 
-        display: block; 
-        margin-bottom: 5px; 
-    }
-    .text-accent { 
-        color: #EB662B; 
-    }
-    .bg-accent-1 { 
-        background-color: #EB662B; 
-    }
-
-    /* Outline button hover effects (matching your original intent) */
-    .btn-outline-primary:hover,
-    .btn-outline-secondary:hover {
-        background-color: #EB662B !important;
-        color: white !important;
-        border-color: #EB662B !important;
-    }
-    .btn-outline-primary {
-        border-width: 2px;
-        font-weight: 600;
-    }
-    .btn-outline-secondary {
-        border-width: 2px;
-        font-weight: 600;
-    }
-
-    /* Fix checkbox size and prevent stretching */
-    #blog-form .form-check-input {
-        width: 1.2em;
-        height: 1.2em;
-        margin: 0 0.5em 0 0;
-        flex-shrink: 0;
-        border: solid #2f48d4;
-    }
-</style>
+<!-- Hidden data for existing images (used by JS) -->
+<div id="existing-images-data" style="display: none;">
+    {% if post and post.images.exists %}
+        {% for image in post.images.all %}
+            <div class="existing-image-info" data-index="{{ forloop.counter0 }}" data-placeholder="[image:{{ forloop.counter0 }}]" data-url="{{ image.image.url }}"></div>
+        {% endfor %}
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -383,80 +483,273 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-// --- THE WATERFALL ENGINE ---
-function updateChain(parent, child, url, targetSelectedId = null, clear = []) {
-    const parentEl = $('#' + parent);
-    const childEl = $('#' + child);
+// --- THE WATERFALL ENGINE (FIXED) ---
 
-    const loadData = (parentId, selectedId) => {
-        if (parentId && !isNaN(parentId)) {
-            $.getJSON(url.replace('0', parentId), function(data) {
-                let opt = '<option value="">Select or Type New...</option>';
-                data.forEach(i => {
-                    const isSelected = (selectedId && String(i.id) === String(selectedId)) ? 'selected' : '';
-                    opt += `<option value="${i.id}" ${isSelected}>${i.name}</option>`;
-                });
-                childEl.html(opt);
-                childEl.select2({tags:true, width:'100%'});
-                // Move the waterfall to the next level
-                childEl.trigger('change');
-            });
-        } else if (parentId) {
-            childEl.empty().append('<option value="">Type to add new...</option>').trigger('change');
+document.querySelectorAll('.clickable-image').forEach(el => {
+    el.addEventListener('click', function(e) {
+        const imgUrl = this.getAttribute('data-image-url');
+        const imgAlt = this.getAttribute('data-image-alt');
+        const modalImg = document.getElementById('modalImage');
+        const modalTitle = document.querySelector('#imageModal .modal-title');
+        if (modalImg) {
+            modalImg.src = imgUrl;
+            modalImg.alt = imgAlt || 'Image Preview';
+            modalTitle.textContent = imgAlt || 'Image Preview';
         }
-    };
+    });
+});
 
-    parentEl.on('change', function() {
+function setupCascade(parentId, childId, url, clearChildren = [], targetChildId = null) {
+    const $parent = $('#' + parentId);
+    const $child = $('#' + childId);
+
+    function loadChildOptions(parentVal, selectedChildId) {
+        if (parentVal && !isNaN(parentVal)) {
+            $.getJSON(url.replace('0', parentVal), function(data) {
+                let options = '<option value="">Select or Type New...</option>';
+                data.forEach(item => {
+                    const selected = (selectedChildId && String(item.id) === String(selectedChildId)) ? 'selected' : '';
+                    options += `<option value="${item.id}" ${selected}>${item.name}</option>`;
+                });
+                $child.html(options);
+                $child.select2({tags: true, width: '100%'});
+                // Clear deeper levels
+                clearChildren.forEach(child => {
+                    $('#' + child).html('<option value="">---</option>').trigger('change');
+                });
+                // If this child has a selected value, trigger its change to load deeper levels
+                if (selectedChildId) {
+                    $child.val(selectedChildId).trigger('change');
+                } else {
+                    $child.trigger('change');
+                }
+            }).fail(function() {
+                console.error('Failed to load data for', parentId);
+            });
+        } else if (parentVal) {
+            // Parent has a user-typed value – allow tagging in child
+            $child.html('<option value="">Type to add new...</option>').select2({tags: true, width: '100%'});
+            clearChildren.forEach(child => {
+                $('#' + child).html('<option value="">---</option>').trigger('change');
+            });
+            $child.trigger('change');
+        } else {
+            // No parent value – clear child and deeper
+            $child.html('<option value="">Select...</option>').select2({tags: true, width: '100%'});
+            clearChildren.forEach(child => {
+                $('#' + child).html('<option value="">---</option>').trigger('change');
+            });
+        }
+    }
+
+    // Listen to parent changes
+    $parent.on('change', function() {
         const val = $(this).val();
-        clear.forEach(id => {
-            $('#' + id).empty().append('<option value="">---</option>').trigger('change');
-        });
-        loadData(val, null);
+        loadChildOptions(val, null);
     });
 
-    // Initial load for Edit view
-    const currentVal = parentEl.val();
-    if (currentVal) loadData(currentVal, targetSelectedId);
+    // Initial load if editing (parent has a value and targetChildId provided)
+    const initialParentVal = $parent.val();
+    if (initialParentVal && targetChildId !== null) {
+        loadChildOptions(initialParentVal, targetChildId);
+    } else if (initialParentVal) {
+        // Just load child options without pre‑selecting
+        loadChildOptions(initialParentVal, null);
+    } else {
+        // Initialize child with empty state
+        $child.html('<option value="">Select...</option>').select2({tags: true, width: '100%'});
+    }
 }
 
 $(document).ready(function() {
-    // 1. Initialize Select2
-    $('.select2-searchable').select2({tags:true, width:'100%'});
+    // Initialize Select2 for all searchable selects
+    $('.select2-searchable').select2({
+        tags: true,
+        width: '100%',
+        createTag: function(params) {
+            if ($.trim(params.term) === '') return null;
+            return { id: params.term, text: params.term, newTag: true };
+        }
+    });
 
-    // 2. Fetch saved values from Django
+    // Saved values from Django (these are the IDs of the current selections)
     const subId = {{ form.subcategory.value|default_if_none:"null" }};
     const stateId = {{ form.state.value|default_if_none:"null" }};
     const cityId = {{ form.city.value|default_if_none:"null" }};
     const distId = {{ form.district.value|default_if_none:"null" }};
     const regId = {{ form.region.value|default_if_none:"null" }};
 
-    // 3. Start Chains
-    updateChain('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}", subId, []);
-    updateChain('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", stateId, ['id_city', 'id_district', 'id_region']);
-    updateChain('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", cityId, ['id_district', 'id_region']);
-    updateChain('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", distId, ['id_region']);
-    updateChain('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}", regId, []);
+    // Set up cascading selects (all levels) – NOW UNCOMMENTED
+    setupCascade('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}", [], subId);
+    //setupCascade('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region'], stateId);
+    //setupCascade('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region'], cityId);
+    //setupCascade('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region'], distId);
+    setupCascade('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}", [], regId);
 
-    // 4. Live Title Preview
+    // Live Title Preview
     $('input[name="title"]').on('input', function() {
         $('#title-live-preview').text($(this).val() || "Untitled Article");
     });
 
-    // 5. Image Previews
-    $('#images-input').on('change', function() {
-        const grid = $('#image-preview-grid');
-        grid.empty();
-        Array.from(this.files).forEach((file, index) => {
+    // ========== MODERN IMAGE UPLOAD ==========
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.querySelector('#id_images');
+    const previewGrid = document.getElementById('image-preview-grid');
+    const inlineButtonContainer = document.getElementById('inline-image-buttons');
+    let uploadedImages = [];
+
+    function addInlineButton(placeholder, label, imageUrl) {
+        const btnCol = document.createElement('div');
+        btnCol.className = 'col-4 col-sm-3 col-md-2 col-lg-1';
+        btnCol.innerHTML = `
+            <button type="button"
+                onclick="insertImagePlaceholder('${placeholder}')"
+                style="width:100%; aspect-ratio:1/1; background-image:url('${imageUrl}'); background-size:cover; background-position:center; border:none; border-radius:10px; cursor:pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.2)'"
+                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
+            ></button>
+        `;
+        inlineButtonContainer.appendChild(btnCol);
+    }
+
+    function renderImagePreviews() {
+        previewGrid.innerHTML = '';
+        inlineButtonContainer.innerHTML = '';
+
+        const existingInfo = document.querySelectorAll('#existing-images-data .existing-image-info');
+        existingInfo.forEach(info => {
+            const placeholder = info.getAttribute('data-placeholder');
+            const imageUrl = info.getAttribute('data-url');
+            addInlineButton(placeholder, placeholder, imageUrl);
+
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6';
+            col.innerHTML = `
+                <div class="image-preview-card">
+                    <img src="${imageUrl}" alt="Existing Image">
+                    <div class="card-body">
+                        <div class="image-actions">
+                            <button type="button" class="btn-icon insert" data-placeholder="${placeholder}">
+                                <i class="fas fa-image"></i> Insert
+                            </button>
+                            <span class="badge bg-warning text-dark">Existing</span>
+                        </div>
+                        <div class="small text-muted mt-1">Existing Image</div>
+                    </div>
+                </div>
+            `;
+            const insertBtn = col.querySelector('.insert');
+            insertBtn.addEventListener('click', () => insertImagePlaceholder(placeholder));
+            previewGrid.appendChild(col);
+        });
+
+        uploadedImages.forEach((file, index) => {
+            const placeholder = `[image:new:${index}]`;
             const reader = new FileReader();
             reader.onload = function(e) {
-                if(index === 0) $('#hero-preview').attr('src', e.target.result);
-                grid.append(`<div class="col-md-4"><img src="${e.target.result}" class="gallery-preview-img"></div>`);
+                addInlineButton(placeholder, `New ${index+1}`, e.target.result);
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6';
+                col.innerHTML = `
+                    <div class="image-preview-card">
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="card-body">
+                            <div class="image-actions">
+                                <button type="button" class="btn-icon insert" data-placeholder="${placeholder}">
+                                    <i class="fas fa-image"></i> Insert
+                                </button>
+                                <button type="button" class="btn-icon delete" data-index="${index}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            <div class="small text-muted mt-1">${file.name}</div>
+                        </div>
+                    </div>
+                `;
+                const insertBtn = col.querySelector('.insert');
+                const deleteBtn = col.querySelector('.delete');
+                insertBtn.addEventListener('click', () => insertImagePlaceholder(placeholder));
+                deleteBtn.addEventListener('click', () => {
+                    uploadedImages.splice(index, 1);
+                    renderImagePreviews();
+                });
+                previewGrid.appendChild(col);
             };
             reader.readAsDataURL(file);
         });
+
+        if (existingInfo.length === 0 && uploadedImages.length === 0) {
+            inlineButtonContainer.innerHTML = '<div class="col-12"><small class="text-muted">No images available. Upload images above to get insertion buttons.</small></div>';
+        }
+    }
+
+    function handleNewFiles(files) {
+        uploadedImages = [...files];
+        renderImagePreviews();
+        if (uploadedImages.length > 0) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('hero-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(uploadedImages[0]);
+        } else {
+            const firstExisting = document.querySelector('#existing-images-grid img');
+            if (firstExisting) document.getElementById('hero-preview').src = firstExisting.src;
+        }
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        handleNewFiles(Array.from(e.dataTransfer.files));
+    });
+    fileInput.addEventListener('change', (e) => {
+        handleNewFiles(Array.from(e.target.files));
+        fileInput.value = '';
     });
 
-    // 6. Factory Search
+    document.querySelectorAll('.insert-existing').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const placeholder = this.getAttribute('data-placeholder');
+            if (placeholder) insertImagePlaceholder(placeholder);
+        });
+    });
+
+    renderImagePreviews();
+
+    // ========== PUBLISH TOGGLE ==========
+    const originalCheckbox = document.getElementById('{{ form.is_published.id_for_label }}');
+    const toggleSwitch = document.getElementById('publish-toggle');
+    const statusTextSpan = document.getElementById('publish-status-text');
+
+    function updateToggleState() {
+        const isChecked = originalCheckbox.checked;
+        if (isChecked) {
+            toggleSwitch.classList.add('active');
+            statusTextSpan.innerHTML = '<span class="published">Published</span>';
+        } else {
+            toggleSwitch.classList.remove('active');
+            statusTextSpan.innerHTML = '<span class="draft">Draft</span>';
+        }
+    }
+
+    if (originalCheckbox && toggleSwitch) {
+        updateToggleState();
+        toggleSwitch.addEventListener('click', function(e) {
+            e.preventDefault();
+            originalCheckbox.checked = !originalCheckbox.checked;
+            updateToggleState();
+        });
+    }
+
+    // ========== FACTORY SEARCH ==========
     $('#factory-search').on('input', function() {
         const term = $(this).val().toLowerCase();
         $('.factory-card-item').each(function() {
@@ -464,9 +757,63 @@ $(document).ready(function() {
             $(this).toggle(name.includes(term));
         });
     });
-
     $('#select-all-factories').click(() => $('.factory-card-item:visible input').prop('checked', true));
     $('#clear-all-factories').click(() => $('.factory-card-item input').prop('checked', false));
+
+    // ========== FORM SUBMISSION WITH DOUBLE‑SUBMIT GUARD ==========
+    const mainForm = document.getElementById('blog-form');
+    let isSubmitting = false;
+    $('#blog-form').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        console.log('Submitting form, uploadedImages count:', uploadedImages.length);
+        uploadedImages.forEach((file, idx) => {
+            console.log(`  image ${idx}:`, file.name);
+        });
+
+        // Create a FormData object from the original form
+        const formData = new FormData(this);
+
+        // Append all new images from uploadedImages
+        uploadedImages.forEach((file, index) => {
+            formData.append('images', file);
+        });
+        console.log("uploadedImages :",uploadedImages)
+        // Send the form via fetch
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => {
+            if (response.redirected) {
+                console.log('Redirected to:', response.url);
+                window.location.href = response.url;
+            } else {
+                return response.text();
+            }
+        })
+        .catch(error => console.error('Submit error:', error))
+        .finally(() => {
+            isSubmitting = false;
+        });
+    });
 });
+
+function insertImagePlaceholder(placeholder) {
+    const contentTextarea = document.querySelector('textarea[name="content"]');
+    if (contentTextarea) {
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        const newValue = contentTextarea.value.substring(0, start) + placeholder + contentTextarea.value.substring(end);
+        contentTextarea.value = newValue;
+        contentTextarea.selectionStart = contentTextarea.selectionEnd = start + placeholder.length;
+        contentTextarea.focus();
+    }
+}
 </script>
 {% endblock %}

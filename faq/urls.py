@@ -15,6 +15,9 @@ urlpatterns = [
     path('questions/', views.faq_all_questions, name='all_questions'),
     path('question/<slug:slug>/', views.faq_question_detail, name='question_detail'),
     
+    # Category view
+    path('category/<slug:slug>/', views.faq_category_questions, name='category'),
+    
     # Search functionality
     path('search/', views.faq_search, name='search'),
     

@@ -10,6 +10,7 @@ Classes:
     BlogImageFormSet: Formset for managing multiple blog images
 """
 
+import hashlib
 from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -21,6 +22,7 @@ from .mixins import (
     LocationCascadingMixin, UserFormMixin, CategoryCascadingMixin
 )
 from django.forms import ClearableFileInput
+from tinymce.widgets import TinyMCE
 
 # class MultipleFileInput(forms.ClearableFileInput):
 #     allow_multiple_selected = True
@@ -156,55 +158,55 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
     as well as multiple image uploads with proper validation.
     """
     
-    # Using ModelChoiceField for proper cascading functionality
+    # Using ModelChoiceField for proper cascading functionality with Select2 tags support
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(), 
         required=True, 
         empty_label=_("Select Category"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_category'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_category'})
     )
     subcategory = forms.ModelChoiceField(
         queryset=SubCategory.objects.none(), 
         required=False, 
         empty_label=_("Select Sub-Category"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_subcategory'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_subcategory'})
     )
     country = forms.ModelChoiceField(
         queryset=Country.objects.all(), 
         required=False, 
         empty_label=_("Select Country"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_country'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_country'})
     )
     state = forms.ModelChoiceField(
         queryset=State.objects.none(), 
         required=False, 
         empty_label=_("Select State"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_state'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_state'})
     )
     city = forms.ModelChoiceField(
         queryset=City.objects.none(), 
         required=False, 
         empty_label=_("Select City"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_city'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_city'})
     )
     district = forms.ModelChoiceField(
         queryset=District.objects.none(), 
         required=False, 
         empty_label=_("Select District"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_district'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_district'})
     )
     region = forms.ModelChoiceField(
         queryset=Region.objects.none(), 
         required=False, 
         empty_label=_("Select Region"),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_region'})
+        widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_region'})
     )
 
     # Use the custom MultipleFileField
     images = MultipleFileField(
         required=False,
         label=_('Upload Images'),
-        help_text=_('Select multiple images to upload. The first image will be set as featured.')
+        help_text=_('Select multiple images to upload. The first image will be set as featured. Recommended: High-quality images in JPG/PNG format, minimum 800x600 pixels')
     )
     
     # Related factories field
@@ -212,7 +214,7 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         queryset=Factory.objects.filter(is_active=True),
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        help_text=_('Select factories related to this blog post')
+        help_text=_('Select factories that are relevant to your blog post content. This helps readers discover related businesses')
     )
 
     class Meta:
@@ -225,109 +227,177 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control', 
-                'placeholder': _('Blog Title')
+                'placeholder': _('e.g., "Top 10 Textile Manufacturing Trends in 2024"')
             }),
-            'content': forms.Textarea(attrs={
-                'class': 'form-control', 
-                'rows': 10, 
-                'placeholder': _('Write your blog post content here...')
+            'content': TinyMCE(attrs={
+                'class': 'form-control',
+                'rows': 15,
+                'placeholder': _('e.g., Share your insights about the industry, include statistics, examples, and practical tips...')
             }),
             'excerpt': forms.Textarea(attrs={
                 'class': 'form-control', 
                 'rows': 3, 
-                'placeholder': _('Brief summary of your blog post...')
+                'placeholder': _('e.g., Discover the latest trends shaping the textile industry in 2024...')
             }),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        help_texts = {
+            'title': 'Catchy and descriptive title for your blog post (max 200 characters). Make it engaging to attract readers.',
+            'content': 'Main content of your blog post. Use paragraphs, bullet points, and formatting to make it engaging and easy to read. Include relevant keywords for better search visibility.',
+            'excerpt': 'Brief summary of your blog post that appears in search results and listings (150-200 characters recommended). This is what users will see before clicking to read more.',
+            'category': 'Main category that best represents your blog post topic and industry focus.',
+            'subcategory': 'More specific subcategory within the selected main category to help with content organization and discovery.',
+            'country': 'Country related to your blog post content (optional). Select if your content is location-specific.',
+            'state': 'State or province related to your blog post content (optional). Select if your content is region-specific.',
+            'city': 'City or municipality related to your blog post content (optional). Select if your content is city-specific.',
+            'district': 'District or area related to your blog post content (optional). Select for more specific location targeting.',
+            'region': 'Specific region or locality related to your blog post content (optional). Use for hyper-local content.',
+            'related_factories': 'Select factories that are relevant to your blog post content. This helps readers discover related businesses and improves content relevance.',
+            'is_published': 'Check to publish your blog post immediately and make it visible to all users. Uncheck to save as draft for later publishing.',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 1. Populate querysets if we are editing an existing post
-        if self.instance and self.instance.pk:
-            # Category Hierarchy
-            if self.instance.category:
-                self.fields['subcategory'].queryset = SubCategory.objects.filter(
-                    category=self.instance.category
-                )
-            
-            # Location Hierarchy
-            if self.instance.country:
-                self.fields['state'].queryset = State.objects.filter(country=self.instance.country)
-            if self.instance.state:
-                self.fields['city'].queryset = City.objects.filter(state=self.instance.state)
-            if self.instance.city:
-                self.fields['district'].queryset = District.objects.filter(city=self.instance.city)
-            if self.instance.district:
-                self.fields['region'].queryset = Region.objects.filter(district=self.instance.district)
+        # Set all required fields
+        self.fields['title'].required = True
+        self.fields['content'].required = True
+        self.fields['excerpt'].required = True
+        self.fields['category'].required = True
+        self.fields['subcategory'].required = True
+        self.fields['state'].required = True
+        self.fields['city'].required = True
+        self.fields['district'].required = True
+        self.fields['region'].required = True
 
-        # 2. Maintain support for POST data (if validation fails, keep selections)
-        if 'category' in self.data:
-            try:
-                category_id = int(self.data.get('category'))
-                self.fields['subcategory'].queryset = SubCategory.objects.filter(category_id=category_id)
-            except (ValueError, TypeError):
-                pass
-        
-        # Set up initial values for edit mode
+        # For edit mode, set initial values but keep querysets unrestricted
+        # This allows JavaScript to handle the cascading properly
         if self.instance.pk:
-            initial_values = self.get_category_initial_values()
-            initial_values.update(self.get_location_initial_values())
-            for field, value in initial_values.items():
-                if field in self.fields:
-                    self.fields[field].initial = value
+            if self.instance.region:
+                region = self.instance.region
+                district = region.district
+                city = district.city
+                state = city.state
+                country = state.country
+                
+                # Set initial values explicitly
+                self.fields['country'].initial = country
+                self.fields['state'].initial = state
+                self.fields['city'].initial = city
+                self.fields['district'].initial = district
+                self.fields['region'].initial = region
+            elif self.instance.district:
+                district = self.instance.district
+                city = district.city
+                state = city.state
+                country = state.country
+                
+                self.fields['country'].initial = country
+                self.fields['state'].initial = state
+                self.fields['city'].initial = city
+                self.fields['district'].initial = district
+            elif self.instance.city:
+                city = self.instance.city
+                state = city.state
+                country = state.country
+                
+                self.fields['country'].initial = country
+                self.fields['state'].initial = state
+                self.fields['city'].initial = city
+            elif self.instance.state:
+                state = self.instance.state
+                country = state.country
+                
+                self.fields['country'].initial = country
+                self.fields['state'].initial = state
+            elif self.instance.country:
+                self.fields['country'].initial = self.instance.country
 
-        # Set up dynamic querysets based on form data
-        self.setup_category_fields()
-        self.setup_location_fields()
+        # Keep all querysets unrestricted to allow JavaScript cascading
+        # The JavaScript will handle loading the correct options via AJAX
+        self.fields['country'].queryset = Country.objects.all()
+        self.fields['state'].queryset = State.objects.all()
+        self.fields['city'].queryset = City.objects.all()
+        self.fields['district'].queryset = District.objects.all()
+        self.fields['region'].queryset = Region.objects.all()
+        self.fields['subcategory'].queryset = SubCategory.objects.filter(is_active=True)
+
 
     def save(self, commit=True, author=None):
-        """
-        Save the form instance with user association and proper field assignment.
-        
-        Args:
-            commit (bool): Whether to save to database immediately
-            author (User): User to associate with the instance
-        
-        Returns:
-            BlogPost: The saved blog post instance
-        """
         instance = super().save(commit=False)
-        data = self.cleaned_data
-
-        # Assign the selected instances directly since we're using ModelChoiceField
-        instance.category = data.get('category')
-        instance.subcategory = data.get('subcategory')
-        instance.country = data.get('country')
-        instance.state = data.get('state')
-        instance.city = data.get('city')
-        instance.district = data.get('district')
-        instance.region = data.get('region')
-
-        # Set the author if provided
         if author:
             instance.author = author
 
         if commit:
             instance.save()
-
             self.save_m2m()
-            
-            # Handle multiple images
-            images = data.get('images', [])
+
+            # Handle new images - only if images were uploaded
+            images = self.cleaned_data.get('images', [])
             if images:
-                # Clear existing images if this is an edit
-                if self.instance.pk:
-                    self.instance.images.all().delete()
+                # Use content-based deduplication to prevent duplicates
+                # This works even when Django generates unique filenames
                 
-                # Create new image entries
-                for i, image in enumerate(images):
-                    BlogImage.objects.create(
-                        blog_post=instance,
-                        image=image,
-                        order=i,
-                        is_featured=(i == 0)  # First image is featured by default
-                    )
-        
+                # Get existing image content hashes from database
+                existing_hashes = set()
+                for blog_image in instance.images.all():
+                    try:
+                        with blog_image.image.open('rb') as f:
+                            content = f.read()
+                            file_hash = hashlib.md5(content).hexdigest()
+                            existing_hashes.add(file_hash)
+                    except Exception as e:
+                        print(f"Error reading existing image {blog_image.image.name}: {e}")
+                        continue
+                
+                # Log image processing for debugging
+                print(f"Processing {len(images)} images for blog post: {instance.title}")
+                print(f"Existing image hashes: {existing_hashes}")
+                
+                # Filter out images that already exist based on content hash
+                new_images = []
+                for image in images:
+                    try:
+                        # Read image content and calculate hash
+                        image.seek(0)  # Reset file pointer to beginning
+                        content = image.read()
+                        file_hash = hashlib.md5(content).hexdigest()
+                        
+                        if file_hash not in existing_hashes:
+                            new_images.append((image, file_hash))
+                            print(f"New image to save: {image.name} (hash: {file_hash})")
+                            existing_hashes.add(file_hash)  # Add to set to prevent processing same file multiple times in this request
+                        else:
+                            print(f"Image content already exists, skipping: {image.name} (hash: {file_hash})")
+                    except Exception as e:
+                        print(f"Error processing image {image.name}: {e}")
+                        continue
+                
+                if not new_images:
+                    print("No new images to save")
+                    return instance
+                
+                # For new blog posts, create images starting from order 0
+                if not instance.pk:
+                    for i, (image, file_hash) in enumerate(new_images):
+                        BlogImage.objects.create(
+                            blog_post=instance,
+                            image=image,
+                            order=i,
+                            is_featured=(i == 0)  # First image is featured by default
+                        )
+                # For existing blog posts, append new images to existing ones
+                else:
+                    # Get the next order number after existing images
+                    next_order = instance.images.count()
+                    print(f"Appending {len(new_images)} new images to existing blog post. Next order: {next_order}")
+                    for i, (image, file_hash) in enumerate(new_images):
+                        BlogImage.objects.create(
+                            blog_post=instance,
+                            image=image,
+                            order=next_order + i,
+                            is_featured=False  # Don't set as featured when appending to existing images
+                        )
+
         return instance
 
 

@@ -1,0 +1,289 @@
+{% extends 'CustomAdmin/base.html' %}
+
+{% block title %}Category Details: {{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Category Details</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-dark mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_categories' %}">Categories</a></li>
+                            <li class="breadcrumb-item active">Category Details</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'admin_interface:admin_categories' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                    <a href="{% url 'admin_interface:admin_category_edit' category.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Category
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Overview -->
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Category Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-layer-group fa-3x text-primary mb-3"></i>
+                        <h4>{{ category.name }}</h4>
+                        <p class="text-muted">{{ category.description|default:"No description provided" }}</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Status:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            {% if category.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Created:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted">{{ category.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Updated:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted">{{ category.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-layer-group fa-2x text-info mb-2"></i>
+                            <h5>{{ subcategories.count }}</h5>
+                            <p class="text-muted mb-0">Subcategories</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-industry fa-2x text-success mb-2"></i>
+                            <h5>{{ factories.count }}</h5>
+                            <p class="text-muted mb-0">Factories</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-2x text-warning mb-2"></i>
+                            <h5>{{ workers.count }}</h5>
+                            <p class="text-muted mb-0">Workers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Associated Data -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Subcategories</h5>
+                </div>
+                <div class="card-body">
+                    {% if subcategories %}
+                        <div class="list-group list-group-flush">
+                            {% for subcategory in subcategories %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ subcategory.name }}</strong>
+                                        <small class="text-muted d-block">{{ subcategory.description|truncatewords:10 }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge badge-secondary">{{ subcategory.factories.count }} factories</span>
+                                        <span class="badge badge-warning ms-2">{{ subcategory.workers.count }} workers</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-layer-group fa-2x mb-2"></i>
+                            <p>No subcategories found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Factories</h5>
+                </div>
+                <div class="card-body">
+                    {% if factories %}
+                        <div class="list-group list-group-flush">
+                            {% for factory in factories %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ factory.name }}</strong>
+                                        <small class="text-muted d-block">{{ factory.get_full_location }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if factory.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-industry fa-2x mb-2"></i>
+                            <p>No factories found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Workers</h5>
+                </div>
+                <div class="card-body">
+                    {% if workers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Worker Name</th>
+                                        <th>Experience</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for worker in workers %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ worker.full_name }}</strong>
+                                                <br><small class="text-muted">{{ worker.category.name }}</small>
+                                            </td>
+                                            <td>{{ worker.get_experience_display }}</td>
+                                            <td>{{ worker.get_full_location }}</td>
+                                            <td>
+                                                {% if worker.is_active %}
+                                                    <span class="badge badge-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <p>No workers found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.badge {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add hover effects to table rows
+        const tableRows = document.querySelectorAll('.table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+    });
+</script>
+{% endblock %}

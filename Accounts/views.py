@@ -98,7 +98,13 @@ def login_view(request):
         minutes, seconds = divmod(int(remaining_time), 60)
         messages.error(request, 
             _('Too many login attempts. Please try again in {} minutes and {} seconds.').format(minutes, seconds))
-        return render(request, 'accounts/login.html')
+        # Pass remaining time to template for countdown display
+        context = {
+            'remaining_time': int(remaining_time),
+            'minutes': minutes,
+            'seconds': seconds
+        }
+        return render(request, 'accounts/login.html', context)
     
     if request.method == 'POST':
         username = request.POST.get('username')

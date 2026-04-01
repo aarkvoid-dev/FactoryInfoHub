@@ -4,18 +4,23 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import csv
+import json
 from django.contrib.auth.models import User
 from Workers.models import Worker, WorkExperience
-from Karkahan.models import Factory, FactoryImage
+from Karkahan.models import Factory, FactoryImage,Order,PaymentGateway,OrderItem,Cart,FactoryViewTracker,FactoryViewStats
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from blog.models import BlogPost, BlogImage
 from Accounts.models import Profile
-from Home.models import ContactMessage, HomePageVideo
-from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm
+from Home.models import ContactMessage, HomePageVideo, ContactReply, Page, PageSection
+from .models import PaymentIssueReport
+from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm, AdminPaymentGatewayForm, AdminPageForm, AdminPageSectionForm
 from faq.models import FAQQuestion
+from Karkahan.views import send_order_receipt
+from django.db import transaction
+from django.core.paginator import Paginator
 
 @login_required
 def admin_dashboard(request):
@@ -463,6 +468,72 @@ def admin_user_delete(request, user_id):
     return render(request, 'CustomAdmin/users/user_delete.html', context)
 
 @login_required
+def admin_user_reset_password(request, user_id):
+    """
+    Admin-initiated password reset for users.
+    
+    Allows admin and staff users to reset any user's password.
+    Includes proper validation and security measures.
+    """
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    user = get_object_or_404(User, id=user_id)
+    
+    # Prevent admin from resetting their own password (optional security measure)
+    # You can remove this check if you want admins to be able to reset their own passwords
+    if user == request.user:
+        messages.error(request, 'You cannot reset your own password from this interface. Please use the regular password change form.')
+        return redirect('admin_interface:admin_users')
+    
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        
+        # Validation
+        if not password or not password_confirm:
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'CustomAdmin/users/user_reset_password.html', {
+                'user_obj': user,
+                'title': f'Reset Password: {user.username}'
+            })
+        
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'CustomAdmin/users/user_reset_password.html', {
+                'user_obj': user,
+                'title': f'Reset Password: {user.username}'
+            })
+        
+        # Password policy validation (you can customize this based on your requirements)
+        if len(password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'CustomAdmin/users/user_reset_password.html', {
+                'user_obj': user,
+                'title': f'Reset Password: {user.username}'
+            })
+        
+        # Reset the password
+        user.set_password(password)
+        user.save()
+        
+        # Log the action for audit purposes
+        from Accounts.utils import log_user_activity
+        log_user_activity(request.user, 'password_reset_by_admin', f'Reset password for user {user.username}', request)
+        
+        messages.success(request, f'Password for user "{user.username}" has been reset successfully!')
+        return redirect('admin_interface:admin_users')
+    
+    context = {
+        'user_obj': user,
+        'title': f'Reset Password: {user.username}'
+    }
+    return render(request, 'CustomAdmin/users/user_reset_password.html', context)
+
+@login_required
 def admin_factories(request):
     profile = request.user.profile
     if profile.role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
@@ -551,7 +622,7 @@ def admin_workers(request):
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    # 1. Capture Filter Parameters
+    # ----- Capture all filter parameters -----
     category_id = request.GET.get('category')
     subcategory_id = request.GET.get('subcategory')
     experience_min = request.GET.get('experience_min')
@@ -559,23 +630,20 @@ def admin_workers(request):
     status = request.GET.get('status')
     gender = request.GET.get('gender')
     availability = request.GET.get('availability')
-    
-    # Location Parameters
     country_id = request.GET.get('country')
     state_id = request.GET.get('state')
     city_id = request.GET.get('city')
     district_id = request.GET.get('district')
-    region_id = request.GET.get('region') # Added Region support
-    
+    region_id = request.GET.get('region')
     deleted_view = request.GET.get('deleted', 'active')
+    search_query = request.GET.get('search', '')
 
-    # 2. Queryset Optimization
-    # Added 'district' and 'region' to select_related for speed
+    # ----- Base queryset (optimized) -----
     workers = Worker.objects.all().select_related(
         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
     )
 
-    # 3. Soft Delete Logic
+    # ----- Soft delete handling -----
     if deleted_view == 'deleted':
         workers = Worker.objects.all_with_deleted().filter(is_deleted=True)
     elif deleted_view == 'all':
@@ -583,35 +651,57 @@ def admin_workers(request):
     else:
         workers = workers.filter(is_deleted=False)
 
-    # 4. Apply Filters (using the captured IDs)
-    if category_id: workers = workers.filter(category_id=category_id)
-    if subcategory_id: workers = workers.filter(subcategory_id=subcategory_id)
-    if country_id: workers = workers.filter(country_id=country_id)
-    if state_id: workers = workers.filter(state_id=state_id)
-    if city_id: workers = workers.filter(city_id=city_id)
-    if district_id: workers = workers.filter(district_id=district_id)
-    if region_id: workers = workers.filter(region_id=region_id) # Filter by Region
-
-    if gender: workers = workers.filter(gender=gender)
-    if availability: workers = workers.filter(availability=availability)
-    
-    if experience_min: workers = workers.filter(years_of_experience__gte=experience_min)
-    if experience_max: workers = workers.filter(years_of_experience__lte=experience_max)
-
+    # ----- Apply filters -----
+    if category_id:
+        workers = workers.filter(category_id=category_id)
+    if subcategory_id:
+        workers = workers.filter(subcategory_id=subcategory_id)
+    if country_id:
+        workers = workers.filter(country_id=country_id)
+    if state_id:
+        workers = workers.filter(state_id=state_id)
+    if city_id:
+        workers = workers.filter(city_id=city_id)
+    if district_id:
+        workers = workers.filter(district_id=district_id)
+    if region_id:
+        workers = workers.filter(region_id=region_id)
+    if gender:
+        workers = workers.filter(gender=gender)
+    if availability:
+        workers = workers.filter(availability=availability)
+    if experience_min:
+        workers = workers.filter(years_of_experience__gte=experience_min)
+    if experience_max:
+        workers = workers.filter(years_of_experience__lte=experience_max)
     if status == 'active':
         workers = workers.filter(is_active=True)
     elif status == 'inactive':
         workers = workers.filter(is_active=False)
 
-    # 5. CSV Export
+    # ----- Search -----
+    if search_query:
+        workers = workers.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone_number__icontains=search_query) |
+            Q(skills__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(subcategory__name__icontains=search_query)
+        )
+
+    # ----- CSV Export -----
     if 'download' in request.GET:
         return export_workers_to_csv(workers)
 
-    # 6. Optimized Context
-    # We remove 'cities', 'states', etc. from context because JS loads them.
-    # This makes the initial page load much lighter.
+    # ----- Pagination (10 per page) -----
+    paginator = Paginator(workers, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # ----- Context data -----
     context = {
-        'workers': workers,
+        'workers': page_obj,                     # paginated workers
         'categories': Category.objects.all(),
         'countries': Country.objects.all(),
         'gender_choices': Worker.GENDER_CHOICES,
@@ -630,9 +720,11 @@ def admin_workers(request):
             'district': district_id,
             'region': region_id,
             'deleted': deleted_view,
-        }
+        },
+        'search_query': search_query,
     }
     return render(request, 'CustomAdmin/workers/workers.html', context)
+
 
 @login_required
 def admin_worker_create(request):
@@ -645,7 +737,9 @@ def admin_worker_create(request):
     if request.method == 'POST':
         form = AdminWorkerForm(request.POST)
         if form.is_valid():
-            worker = form.save()
+            worker = form.save(commit=False)
+            worker.created_by = request.user   # <-- This is the key line
+            worker.save()
             messages.success(request, f'Worker "{worker.full_name}" created successfully!')
             return redirect('admin_interface:admin_workers')
         else:
@@ -660,6 +754,7 @@ def admin_worker_create(request):
     }
     return render(request, 'CustomAdmin/workers/worker_form.html', context)
 
+
 @login_required
 def admin_worker_edit(request, worker_id):
     profile = request.user.profile
@@ -669,7 +764,7 @@ def admin_worker_edit(request, worker_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     worker = get_object_or_404(Worker, id=worker_id, is_deleted=False)
-    
+
     if request.method == 'POST':
         form = AdminWorkerForm(request.POST, instance=worker)
         if form.is_valid():
@@ -685,7 +780,7 @@ def admin_worker_edit(request, worker_id):
         'form': form,
         'action': 'edit',
         'title': f'Edit Worker: {worker.full_name}',
-        'worker': worker
+        'worker': worker,
     }
     return render(request, 'CustomAdmin/workers/worker_form.html', context)
 
@@ -732,6 +827,28 @@ def admin_worker_restore(request, worker_id):
         'title': f'Restore Worker: {worker.full_name}'
     }
     return render(request, 'CustomAdmin/workers/worker_restore.html', context)
+
+@login_required
+def admin_worker_hard_delete(request, worker_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    worker = get_object_or_404(Worker.objects.all_with_deleted(), id=worker_id)
+    
+    if request.method == 'POST':
+        worker_name = worker.full_name
+        worker.hard_delete()
+        messages.success(request, f'Worker "{worker_name}" permanently deleted successfully!')
+        return redirect('admin_interface:admin_workers')
+
+    context = {
+        'worker': worker,
+        'title': f'Permanently Delete Worker: {worker.full_name}'
+    }
+    return render(request, 'CustomAdmin/workers/worker_permanent_delete.html', context)
 
 @login_required
 def admin_worker_detail(request, worker_id):
@@ -825,20 +942,129 @@ def admin_countries(request):
 
     countries = Country.objects.filter(is_deleted=False)
     
+    return render(request, 'CustomAdmin/locations/countries.html', {
+        'countries': countries,
+        'location_type': 'Country'
+    })
+
+@login_required
+def admin_country_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminCountryForm(request.POST)
         if form.is_valid():
             country = form.save()
             messages.success(request, f'Country "{country.name}" created successfully!')
             return redirect('admin_interface:admin_countries')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminCountryForm()
 
-    return render(request, 'CustomAdmin/locations/countries.html', {
-        'countries': countries,
+    context = {
         'form': form,
-        'location_type': 'Country'
-    })
+        'action': 'create',
+        'title': 'Create New Country'
+    }
+    return render(request, 'CustomAdmin/locations/country_form.html', context)
+
+@login_required
+def admin_country_edit(request, country_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    country = get_object_or_404(Country, id=country_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminCountryForm(request.POST, instance=country)
+        if form.is_valid():
+            country = form.save()
+            messages.success(request, f'Country "{country.name}" updated successfully!')
+            return redirect('admin_interface:admin_countries')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminCountryForm(instance=country)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Country: {country.name}',
+        'country': country
+    }
+    return render(request, 'CustomAdmin/locations/country_form.html', context)
+
+@login_required
+def admin_country_delete(request, country_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    country = get_object_or_404(Country, id=country_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        country_name = country.name
+        country.delete()
+        messages.success(request, f'Country "{country_name}" deleted successfully!')
+        return redirect('admin_interface:admin_countries')
+
+    context = {
+        'country': country,
+        'title': f'Delete Country: {country.name}'
+    }
+    return render(request, 'CustomAdmin/locations/country_delete.html', context)
+
+@login_required
+def admin_country_restore(request, country_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    country = get_object_or_404(Country.objects.all_with_deleted(), id=country_id)
+    
+    if request.method == 'POST':
+        country_name = country.name
+        country.restore()
+        messages.success(request, f'Country "{country_name}" restored successfully!')
+        return redirect('admin_interface:admin_countries')
+
+    context = {
+        'country': country,
+        'title': f'Restore Country: {country.name}'
+    }
+    return render(request, 'CustomAdmin/locations/country_restore.html', context)
+
+@login_required
+def admin_country_detail(request, country_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    country = get_object_or_404(Country, id=country_id, is_deleted=False)
+    states = country.state_set.filter(is_deleted=False)
+    cities = country.city_set.filter(is_deleted=False)
+
+    context = {
+        'country': country,
+        'states': states,
+        'cities': cities,
+        'title': f'Country Details: {country.name}'
+    }
+    return render(request, 'CustomAdmin/locations/country_detail.html', context)
 
 @login_required
 def admin_states(request):
@@ -850,20 +1076,127 @@ def admin_states(request):
 
     states = State.objects.filter(is_deleted=False)
     
+    return render(request, 'CustomAdmin/locations/states.html', {
+        'states': states,
+        'location_type': 'State'
+    })
+
+@login_required
+def admin_state_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminStateForm(request.POST)
         if form.is_valid():
             state = form.save()
             messages.success(request, f'State "{state.name}" created successfully!')
             return redirect('admin_interface:admin_states')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminStateForm()
 
-    return render(request, 'CustomAdmin/locations/states.html', {
-        'states': states,
+    context = {
         'form': form,
-        'location_type': 'State'
-    })
+        'action': 'create',
+        'title': 'Create New State'
+    }
+    return render(request, 'CustomAdmin/locations/state_form.html', context)
+
+@login_required
+def admin_state_edit(request, state_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    state = get_object_or_404(State, id=state_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminStateForm(request.POST, instance=state)
+        if form.is_valid():
+            state = form.save()
+            messages.success(request, f'State "{state.name}" updated successfully!')
+            return redirect('admin_interface:admin_states')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminStateForm(instance=state)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit State: {state.name}',
+        'state': state
+    }
+    return render(request, 'CustomAdmin/locations/state_form.html', context)
+
+@login_required
+def admin_state_delete(request, state_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    state = get_object_or_404(State, id=state_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        state_name = state.name
+        state.delete()
+        messages.success(request, f'State "{state_name}" deleted successfully!')
+        return redirect('admin_interface:admin_states')
+
+    context = {
+        'state': state,
+        'title': f'Delete State: {state.name}'
+    }
+    return render(request, 'CustomAdmin/locations/state_delete.html', context)
+
+@login_required
+def admin_state_restore(request, state_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    state = get_object_or_404(State.objects.all_with_deleted(), id=state_id)
+    
+    if request.method == 'POST':
+        state_name = state.name
+        state.restore()
+        messages.success(request, f'State "{state_name}" restored successfully!')
+        return redirect('admin_interface:admin_states')
+
+    context = {
+        'state': state,
+        'title': f'Restore State: {state.name}'
+    }
+    return render(request, 'CustomAdmin/locations/state_restore.html', context)
+
+@login_required
+def admin_state_detail(request, state_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    state = get_object_or_404(State, id=state_id, is_deleted=False)
+    cities = state.city_set.filter(is_deleted=False)
+
+    context = {
+        'state': state,
+        'cities': cities,
+        'title': f'State Details: {state.name}'
+    }
+    return render(request, 'CustomAdmin/locations/state_detail.html', context)
 
 @login_required
 def admin_cities(request):
@@ -875,20 +1208,129 @@ def admin_cities(request):
 
     cities = City.objects.filter(is_deleted=False)
     
+    return render(request, 'CustomAdmin/locations/cities.html', {
+        'cities': cities,
+        'location_type': 'City'
+    })
+
+@login_required
+def admin_city_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminCityForm(request.POST)
         if form.is_valid():
             city = form.save()
             messages.success(request, f'City "{city.name}" created successfully!')
             return redirect('admin_interface:admin_cities')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminCityForm()
 
-    return render(request, 'CustomAdmin/locations/cities.html', {
-        'cities': cities,
+    context = {
         'form': form,
-        'location_type': 'City'
-    })
+        'action': 'create',
+        'title': 'Create New City'
+    }
+    return render(request, 'CustomAdmin/locations/city_form.html', context)
+
+@login_required
+def admin_city_edit(request, city_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    city = get_object_or_404(City, id=city_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminCityForm(request.POST, instance=city)
+        if form.is_valid():
+            city = form.save()
+            messages.success(request, f'City "{city.name}" updated successfully!')
+            return redirect('admin_interface:admin_cities')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminCityForm(instance=city)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit City: {city.name}',
+        'city': city
+    }
+    return render(request, 'CustomAdmin/locations/city_form.html', context)
+
+@login_required
+def admin_city_delete(request, city_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    city = get_object_or_404(City, id=city_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        city_name = city.name
+        city.delete()
+        messages.success(request, f'City "{city_name}" deleted successfully!')
+        return redirect('admin_interface:admin_cities')
+
+    context = {
+        'city': city,
+        'title': f'Delete City: {city.name}'
+    }
+    return render(request, 'CustomAdmin/locations/city_delete.html', context)
+
+@login_required
+def admin_city_restore(request, city_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    city = get_object_or_404(City.objects.all_with_deleted(), id=city_id)
+    
+    if request.method == 'POST':
+        city_name = city.name
+        city.restore()
+        messages.success(request, f'City "{city_name}" restored successfully!')
+        return redirect('admin_interface:admin_cities')
+
+    context = {
+        'city': city,
+        'title': f'Restore City: {city.name}'
+    }
+    return render(request, 'CustomAdmin/locations/city_restore.html', context)
+
+@login_required
+def admin_city_detail(request, city_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    city = get_object_or_404(City, id=city_id, is_deleted=False)
+    districts = city.district_set.filter(is_deleted=False)
+    regions = city.region_set.filter(is_deleted=False)
+
+    context = {
+        'city': city,
+        'districts': districts,
+        'regions': regions,
+        'title': f'City Details: {city.name}'
+    }
+    return render(request, 'CustomAdmin/locations/city_detail.html', context)
 
 @login_required
 def admin_districts(request):
@@ -900,20 +1342,127 @@ def admin_districts(request):
 
     districts = District.objects.filter(is_deleted=False)
     
+    return render(request, 'CustomAdmin/locations/districts.html', {
+        'districts': districts,
+        'location_type': 'District'
+    })
+
+@login_required
+def admin_district_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminDistrictForm(request.POST)
         if form.is_valid():
             district = form.save()
             messages.success(request, f'District "{district.name}" created successfully!')
             return redirect('admin_interface:admin_districts')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminDistrictForm()
 
-    return render(request, 'CustomAdmin/locations/districts.html', {
-        'districts': districts,
+    context = {
         'form': form,
-        'location_type': 'District'
-    })
+        'action': 'create',
+        'title': 'Create New District'
+    }
+    return render(request, 'CustomAdmin/locations/district_form.html', context)
+
+@login_required
+def admin_district_edit(request, district_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    district = get_object_or_404(District, id=district_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminDistrictForm(request.POST, instance=district)
+        if form.is_valid():
+            district = form.save()
+            messages.success(request, f'District "{district.name}" updated successfully!')
+            return redirect('admin_interface:admin_districts')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminDistrictForm(instance=district)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit District: {district.name}',
+        'district': district
+    }
+    return render(request, 'CustomAdmin/locations/district_form.html', context)
+
+@login_required
+def admin_district_delete(request, district_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    district = get_object_or_404(District, id=district_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        district_name = district.name
+        district.delete()
+        messages.success(request, f'District "{district_name}" deleted successfully!')
+        return redirect('admin_interface:admin_districts')
+
+    context = {
+        'district': district,
+        'title': f'Delete District: {district.name}'
+    }
+    return render(request, 'CustomAdmin/locations/district_delete.html', context)
+
+@login_required
+def admin_district_restore(request, district_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    district = get_object_or_404(District.objects.all_with_deleted(), id=district_id)
+    
+    if request.method == 'POST':
+        district_name = district.name
+        district.restore()
+        messages.success(request, f'District "{district_name}" restored successfully!')
+        return redirect('admin_interface:admin_districts')
+
+    context = {
+        'district': district,
+        'title': f'Restore District: {district.name}'
+    }
+    return render(request, 'CustomAdmin/locations/district_restore.html', context)
+
+@login_required
+def admin_district_detail(request, district_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    district = get_object_or_404(District, id=district_id, is_deleted=False)
+    regions = district.region_set.filter(is_deleted=False)
+
+    context = {
+        'district': district,
+        'regions': regions,
+        'title': f'District Details: {district.name}'
+    }
+    return render(request, 'CustomAdmin/locations/district_detail.html', context)
 
 @login_required
 def admin_regions(request):
@@ -925,20 +1474,125 @@ def admin_regions(request):
 
     regions = Region.objects.filter(is_deleted=False)
     
+    return render(request, 'CustomAdmin/locations/regions.html', {
+        'regions': regions,
+        'location_type': 'Region'
+    })
+
+@login_required
+def admin_region_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminRegionForm(request.POST)
         if form.is_valid():
             region = form.save()
             messages.success(request, f'Region "{region.name}" created successfully!')
             return redirect('admin_interface:admin_regions')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminRegionForm()
 
-    return render(request, 'CustomAdmin/locations/regions.html', {
-        'regions': regions,
+    context = {
         'form': form,
-        'location_type': 'Region'
-    })
+        'action': 'create',
+        'title': 'Create New Region'
+    }
+    return render(request, 'CustomAdmin/locations/region_form.html', context)
+
+@login_required
+def admin_region_edit(request, region_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    region = get_object_or_404(Region, id=region_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminRegionForm(request.POST, instance=region)
+        if form.is_valid():
+            region = form.save()
+            messages.success(request, f'Region "{region.name}" updated successfully!')
+            return redirect('admin_interface:admin_regions')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminRegionForm(instance=region)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Region: {region.name}',
+        'region': region
+    }
+    return render(request, 'CustomAdmin/locations/region_form.html', context)
+
+@login_required
+def admin_region_delete(request, region_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    region = get_object_or_404(Region, id=region_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        region_name = region.name
+        region.delete()
+        messages.success(request, f'Region "{region_name}" deleted successfully!')
+        return redirect('admin_interface:admin_regions')
+
+    context = {
+        'region': region,
+        'title': f'Delete Region: {region.name}'
+    }
+    return render(request, 'CustomAdmin/locations/region_delete.html', context)
+
+@login_required
+def admin_region_restore(request, region_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    region = get_object_or_404(Region.objects.all_with_deleted(), id=region_id)
+    
+    if request.method == 'POST':
+        region_name = region.name
+        region.restore()
+        messages.success(request, f'Region "{region_name}" restored successfully!')
+        return redirect('admin_interface:admin_regions')
+
+    context = {
+        'region': region,
+        'title': f'Restore Region: {region.name}'
+    }
+    return render(request, 'CustomAdmin/locations/region_restore.html', context)
+
+@login_required
+def admin_region_detail(request, region_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    region = get_object_or_404(Region, id=region_id, is_deleted=False)
+
+    context = {
+        'region': region,
+        'title': f'Region Details: {region.name}'
+    }
+    return render(request, 'CustomAdmin/locations/region_detail.html', context)
 
 # Category Management Views
 @login_required
@@ -957,13 +1611,35 @@ def admin_categories(request):
     workers_total = sum(category.workers.count() for category in categories)
     
     if request.method == 'POST':
+        # Handle edit category
+        category_id = request.POST.get('category_id')
+        if category_id:
+            category = get_object_or_404(Category, id=category_id, is_deleted=False)
+            category.name = request.POST.get('name', category.name)
+            category.description = request.POST.get('description', category.description)
+            category.save()
+            messages.success(request, f'Category "{category.name}" updated successfully!')
+            return redirect('admin_interface:admin_categories')
+        
+        # Handle add category
         form = AdminCategoryForm(request.POST)
         if form.is_valid():
             category = form.save()
             messages.success(request, f'Category "{category.name}" created successfully!')
             return redirect('admin_interface:admin_categories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminCategoryForm()
+
+    # Handle delete category
+    delete_category_id = request.GET.get('delete_category')
+    if delete_category_id:
+        category = get_object_or_404(Category, id=delete_category_id, is_deleted=False)
+        category_name = category.name
+        category.delete()
+        messages.success(request, f'Category "{category_name}" deleted successfully!')
+        return redirect('admin_interface:admin_categories')
 
     return render(request, 'CustomAdmin/locations/categories.html', {
         'categories': categories,
@@ -982,22 +1658,308 @@ def admin_subcategories(request):
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
+    # Filter subcategories
     subcategories = SubCategory.objects.filter(is_deleted=False)
     
+    # Apply category filter if provided
+    category_filter = request.GET.get('category')
+    if category_filter:
+        subcategories = subcategories.filter(category_id=category_filter)
+    
+    # Apply search filter
+    search_filter = request.GET.get('search')
+    if search_filter:
+        subcategories = subcategories.filter(
+            Q(name__icontains=search_filter) | Q(description__icontains=search_filter)
+        )
+    
+    # Calculate summary statistics
+    categories = Category.objects.filter(is_deleted=False)
+    factories_total = sum(subcategory.factories.count() for subcategory in subcategories)
+    workers_total = sum(subcategory.workers.count() for subcategory in subcategories)
+    
+    if request.method == 'POST':
+        # Handle edit subcategory
+        subcategory_id = request.POST.get('subcategory_id')
+        if subcategory_id:
+            subcategory = get_object_or_404(SubCategory, id=subcategory_id, is_deleted=False)
+            subcategory.name = request.POST.get('name', subcategory.name)
+            subcategory.description = request.POST.get('description', subcategory.description)
+            category_id = request.POST.get('category')
+            if category_id:
+                subcategory.category_id = category_id
+            subcategory.save()
+            messages.success(request, f'Subcategory "{subcategory.name}" updated successfully!')
+            return redirect('admin_interface:admin_subcategories')
+        
+        # Handle add subcategory
+        form = AdminSubCategoryForm(request.POST)
+        if form.is_valid():
+            subcategory = form.save()
+            messages.success(request, f'Subcategory "{subcategory.name}" created successfully!')
+            return redirect('admin_interface:admin_subcategories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminSubCategoryForm()
+
+    # Handle delete subcategory
+    delete_subcategory_id = request.GET.get('delete_subcategory')
+    if delete_subcategory_id:
+        subcategory = get_object_or_404(SubCategory, id=delete_subcategory_id, is_deleted=False)
+        subcategory_name = subcategory.name
+        subcategory.delete()
+        messages.success(request, f'Subcategory "{subcategory_name}" deleted successfully!')
+        return redirect('admin_interface:admin_subcategories')
+
+    return render(request, 'CustomAdmin/locations/subcategories.html', {
+        'subcategories': subcategories,
+        'form': form,
+        'category_type': 'Subcategory',
+        'categories': categories,
+        'factories_total': factories_total,
+        'workers_total': workers_total,
+    })
+
+@login_required
+def admin_category_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    if request.method == 'POST':
+        form = AdminCategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Category "{category.name}" created successfully!')
+            return redirect('admin_interface:admin_categories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminCategoryForm()
+
+    context = {
+        'form': form,
+        'action': 'create',
+        'title': 'Create New Category'
+    }
+    return render(request, 'CustomAdmin/locations/category_form.html', context)
+
+@login_required
+def admin_category_edit(request, category_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    category = get_object_or_404(Category, id=category_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminCategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Category "{category.name}" updated successfully!')
+            return redirect('admin_interface:admin_categories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminCategoryForm(instance=category)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Category: {category.name}',
+        'category': category
+    }
+    return render(request, 'CustomAdmin/locations/category_form.html', context)
+
+@login_required
+def admin_category_delete(request, category_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    category = get_object_or_404(Category, id=category_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        category_name = category.name
+        category.delete()
+        messages.success(request, f'Category "{category_name}" deleted successfully!')
+        return redirect('admin_interface:admin_categories')
+
+    context = {
+        'category': category,
+        'title': f'Delete Category: {category.name}'
+    }
+    return render(request, 'CustomAdmin/locations/category_delete.html', context)
+
+@login_required
+def admin_category_restore(request, category_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    category = get_object_or_404(Category.objects.all_with_deleted(), id=category_id)
+    
+    if request.method == 'POST':
+        category_name = category.name
+        category.restore()
+        messages.success(request, f'Category "{category_name}" restored successfully!')
+        return redirect('admin_interface:admin_categories')
+
+    context = {
+        'category': category,
+        'title': f'Restore Category: {category.name}'
+    }
+    return render(request, 'CustomAdmin/locations/category_restore.html', context)
+
+@login_required
+def admin_category_detail(request, category_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    category = get_object_or_404(Category, id=category_id, is_deleted=False)
+    subcategories = category.subcategories.filter(is_deleted=False)
+    factories = category.factories.filter(is_deleted=False)
+    workers = category.workers.filter(is_deleted=False)
+
+    context = {
+        'category': category,
+        'subcategories': subcategories,
+        'factories': factories,
+        'workers': workers,
+        'title': f'Category Details: {category.name}'
+    }
+    return render(request, 'CustomAdmin/locations/category_detail.html', context)
+
+@login_required
+def admin_subcategory_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
     if request.method == 'POST':
         form = AdminSubCategoryForm(request.POST)
         if form.is_valid():
             subcategory = form.save()
             messages.success(request, f'Subcategory "{subcategory.name}" created successfully!')
             return redirect('admin_interface:admin_subcategories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminSubCategoryForm()
 
-    return render(request, 'CustomAdmin/locations/subcategories.html', {
-        'subcategories': subcategories,
+    context = {
         'form': form,
-        'category_type': 'Subcategory'
-    })
+        'action': 'create',
+        'title': 'Create New Subcategory'
+    }
+    return render(request, 'CustomAdmin/locations/subcategory_form.html', context)
+
+@login_required
+def admin_subcategory_edit(request, subcategory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    subcategory = get_object_or_404(SubCategory, id=subcategory_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminSubCategoryForm(request.POST, instance=subcategory)
+        if form.is_valid():
+            subcategory = form.save()
+            messages.success(request, f'Subcategory "{subcategory.name}" updated successfully!')
+            return redirect('admin_interface:admin_subcategories')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminSubCategoryForm(instance=subcategory)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Subcategory: {subcategory.name}',
+        'subcategory': subcategory
+    }
+    return render(request, 'CustomAdmin/locations/subcategory_form.html', context)
+
+@login_required
+def admin_subcategory_delete(request, subcategory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    subcategory = get_object_or_404(SubCategory, id=subcategory_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        subcategory_name = subcategory.name
+        subcategory.delete()
+        messages.success(request, f'Subcategory "{subcategory_name}" deleted successfully!')
+        return redirect('admin_interface:admin_subcategories')
+
+    context = {
+        'subcategory': subcategory,
+        'title': f'Delete Subcategory: {subcategory.name}'
+    }
+    return render(request, 'CustomAdmin/locations/subcategory_delete.html', context)
+
+@login_required
+def admin_subcategory_restore(request, subcategory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    subcategory = get_object_or_404(SubCategory.objects.all_with_deleted(), id=subcategory_id)
+    
+    if request.method == 'POST':
+        subcategory_name = subcategory.name
+        subcategory.restore()
+        messages.success(request, f'Subcategory "{subcategory_name}" restored successfully!')
+        return redirect('admin_interface:admin_subcategories')
+
+    context = {
+        'subcategory': subcategory,
+        'title': f'Restore Subcategory: {subcategory.name}'
+    }
+    return render(request, 'CustomAdmin/locations/subcategory_restore.html', context)
+
+@login_required
+def admin_subcategory_detail(request, subcategory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    subcategory = get_object_or_404(SubCategory, id=subcategory_id, is_deleted=False)
+    factories = subcategory.factories.filter(is_deleted=False)
+    workers = subcategory.workers.filter(is_deleted=False)
+
+    context = {
+        'subcategory': subcategory,
+        'factories': factories,
+        'workers': workers,
+        'title': f'Subcategory Details: {subcategory.name}'
+    }
+    return render(request, 'CustomAdmin/locations/subcategory_detail.html', context)
 
 def export_factories_to_csv(factories):
     response = HttpResponse(content_type='text/csv')
@@ -1197,10 +2159,103 @@ def admin_factory_edit(request, factory_id):
 
     factory = get_object_or_404(Factory, id=factory_id)
     
+    # Add view statistics to context
+    try:
+        view_stats = factory.view_stats
+    except:
+        # Create stats if they don't exist
+        from Karkahan.models import FactoryViewStats
+        view_stats = FactoryViewStats.objects.create(factory=factory)
+    
     if request.method == 'POST':
+        # Handle featured image removal
+        if 'remove_featured_image' in request.POST:
+            if factory.featured_image:
+                factory.featured_image = None
+                factory.save()
+                messages.success(request, f'Featured image removed successfully from factory "{factory.name}"!')
+                return redirect('admin_interface:admin_factory_edit', factory_id=factory.id)
+        
+        # Handle FactoryImage removal
+        if 'remove_factory_image' in request.POST:
+            image_id = request.POST.get('image_id')
+            if image_id:
+                try:
+                    factory_image = factory.images.get(id=image_id)
+                    factory_image.delete()
+                    messages.success(request, f'Image removed successfully from factory "{factory.name}"!')
+                except:
+                    messages.error(request, 'Image not found.')
+                return redirect('admin_interface:admin_factory_edit', factory_id=factory.id)
+        
+        # Handle setting primary image
+        if 'set_primary_image' in request.POST:
+            image_id = request.POST.get('image_id')
+            if image_id:
+                try:
+                    # Remove primary status from all images
+                    factory.images.update(is_primary=False)
+                    # Set new primary image
+                    factory_image = factory.images.get(id=image_id)
+                    factory_image.is_primary = True
+                    factory_image.save()
+                    messages.success(request, f'Primary image set successfully for factory "{factory.name}"!')
+                except:
+                    messages.error(request, 'Image not found.')
+                return redirect('admin_interface:admin_factory_edit', factory_id=factory.id)
+        
         form = AdminFactoryForm(request.POST, request.FILES, instance=factory)
         if form.is_valid():
             factory = form.save()
+            
+            # Handle image upload if an image was provided
+            image_file = request.FILES.get('image')
+            if image_file:
+                # Validate image file
+                import os
+                from django.core.exceptions import ValidationError
+                
+                # Check file size (max 5MB)
+                if image_file.size > 5 * 1024 * 1024:
+                    messages.error(request, 'Image file size must be less than 5MB.')
+                    return render(request, 'CustomAdmin/factories/factory_form.html', {
+                        'form': form,
+                        'action': 'edit',
+                        'title': f'Edit Factory: {factory.name}',
+                        'factory': factory,
+                        'view_stats': view_stats,
+                        'factory_images': factory.images.all()
+                    })
+                
+                # Check file extension
+                valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+                file_extension = os.path.splitext(image_file.name)[1].lower()
+                if file_extension not in valid_extensions:
+                    messages.error(request, 'Invalid image file format. Please upload JPG, PNG, or GIF files.')
+                    return render(request, 'CustomAdmin/factories/factory_form.html', {
+                        'form': form,
+                        'action': 'edit',
+                        'title': f'Edit Factory: {factory.name}',
+                        'factory': factory,
+                        'view_stats': view_stats,
+                        'factory_images': factory.images.all()
+                    })
+                
+                # Create a FactoryImage record for the uploaded image
+                from Karkahan.models import FactoryImage
+                new_image = FactoryImage.objects.create(
+                    factory=factory,
+                    image=image_file,
+                    caption=f"Image uploaded via admin form - {factory.name}"
+                )
+                
+                # Set as primary if no primary image exists
+                if not factory.images.filter(is_primary=True).exists():
+                    new_image.is_primary = True
+                    new_image.save()
+                
+                messages.success(request, f'Image uploaded successfully for factory "{factory.name}"!')
+            
             messages.success(request, f'Factory "{factory.name}" updated successfully!')
             return redirect('admin_interface:admin_factories')
         else:
@@ -1208,11 +2263,16 @@ def admin_factory_edit(request, factory_id):
     else:
         form = AdminFactoryForm(instance=factory)
 
+    # Get existing images for display
+    factory_images = factory.images.all()
+
     context = {
         'form': form,
         'action': 'edit',
         'title': f'Edit Factory: {factory.name}',
-        'factory': factory
+        'factory': factory,
+        'view_stats': view_stats,
+        'factory_images': factory_images
     }
     return render(request, 'CustomAdmin/factories/factory_form.html', context)
 
@@ -1261,6 +2321,28 @@ def admin_factory_restore(request, factory_id):
     return render(request, 'CustomAdmin/factories/factory_restore.html', context)
 
 @login_required
+def admin_factory_hard_delete(request, factory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    factory = get_object_or_404(Factory.objects.all_with_deleted(), id=factory_id)
+    
+    if request.method == 'POST':
+        factory_name = factory.name
+        factory.hard_delete()
+        messages.success(request, f'Factory "{factory_name}" permanently deleted successfully!')
+        return redirect('admin_interface:admin_factories')
+
+    context = {
+        'factory': factory,
+        'title': f'Permanently Delete Factory: {factory.name}'
+    }
+    return render(request, 'CustomAdmin/factories/factory_permanent_delete.html', context)
+
+@login_required
 def admin_factory_detail(request, factory_id):
     profile = request.user.profile
     role = profile.role
@@ -1270,10 +2352,19 @@ def admin_factory_detail(request, factory_id):
 
     factory = get_object_or_404(Factory, id=factory_id)
     images = factory.images.all()
+    
+    # Add view statistics to context
+    try:
+        view_stats = factory.view_stats
+    except:
+        # Create stats if they don't exist
+        from Karkahan.models import FactoryViewStats
+        view_stats = FactoryViewStats.objects.create(factory=factory)
 
     context = {
         'factory': factory,
         'images': images,
+        'view_stats': view_stats,
         'title': f'Factory Details: {factory.name}'
     }
     return render(request, 'CustomAdmin/factories/factory_detail.html', context)
@@ -1477,6 +2568,72 @@ def admin_blog_detail(request, blog_id):
     return render(request, 'CustomAdmin/blogs/blog_detail.html', context)
 
 @login_required
+def admin_blog_soft_delete(request, blog_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    blog = get_object_or_404(BlogPost, id=blog_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        blog_title = blog.title
+        blog.delete()
+        messages.success(request, f'Blog post "{blog_title}" soft deleted successfully!')
+        return redirect('admin_interface:admin_blogs')
+
+    context = {
+        'blog': blog,
+        'title': f'Soft Delete Blog Post: {blog.title}'
+    }
+    return render(request, 'admin_interface/blogs/blog_soft_delete.html', context)
+
+@login_required
+def admin_blog_hard_delete(request, blog_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    blog = get_object_or_404(BlogPost.objects.all_with_deleted(), id=blog_id)
+    
+    if request.method == 'POST':
+        blog_title = blog.title
+        blog.hard_delete()
+        messages.success(request, f'Blog post "{blog_title}" permanently deleted successfully!')
+        return redirect('admin_interface:admin_blogs')
+
+    context = {
+        'blog': blog,
+        'title': f'Permanently Delete Blog Post: {blog.title}'
+    }
+    return render(request, 'admin_interface/blogs/blog_hard_delete.html', context)
+
+@login_required
+def admin_blog_permanent_delete(request, blog_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    blog = get_object_or_404(BlogPost.objects.all_with_deleted(), id=blog_id)
+    
+    if request.method == 'POST':
+        blog_title = blog.title
+        blog.hard_delete()
+        messages.success(request, f'Blog post "{blog_title}" permanently deleted successfully!')
+        return redirect('admin_interface:admin_blogs')
+
+    context = {
+        'blog': blog,
+        'title': f'Permanently Delete Blog Post: {blog.title}'
+    }
+    return render(request, 'admin_interface/blogs/blog_permanent_delete.html', context)
+
+@login_required
 def admin_blog_images(request, blog_id):
     profile = request.user.profile
     role = profile.role
@@ -1507,169 +2664,142 @@ def admin_blog_images(request, blog_id):
     }
     return render(request, 'CustomAdmin/blogs/blog_images.html', context)
 
-# FAQ CRUD Views
+
 @login_required
-def admin_faq(request):
+def admin_faq_list(request):
     profile = request.user.profile
     role = profile.role
-
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
-
-    # 1. Capture Filter Parameters
-    f_category = request.GET.get('category')
-    f_status = request.GET.get('status')
-    f_search = request.GET.get('search', '')
-    f_deleted = request.GET.get('deleted', 'active')  # 'active', 'deleted', 'all'
-
-    # 2. Build Queryset
-    questions = FAQQuestion.objects.all_with_deleted().select_related('category')
-
-    if f_category: questions = questions.filter(category_id=f_category)
-    if f_search: questions = questions.filter(
-        Q(title__icontains=f_search) | Q(question_text__icontains=f_search) | Q(answer_text__icontains=f_search)
-    )
     
-    if f_status == 'published':
-        questions = questions.filter(is_published=True)
-    elif f_status == 'draft':
-        questions = questions.filter(is_published=False)
-
-    # Filter by deleted status
-    if f_deleted == 'deleted':
-        questions = questions.filter(is_deleted=True)
-    elif f_deleted == 'active':
-        questions = questions.filter(is_deleted=False)
-
-    # 3. Persistent Dropdowns
-    categories = Category.objects.filter(is_deleted=False)
-
+    questions = FAQQuestion.objects.all().select_related('category', 'created_by')
+    
+    # Filtering
+    category = request.GET.get('category')
+    status = request.GET.get('status')
+    if category:
+        questions = questions.filter(category_id=category)
+    if status:
+        questions = questions.filter(status=status)
+    
+    # Search
+    q = request.GET.get('q')
+    if q:
+        questions = questions.filter(
+            Q(title__icontains=q) | 
+            Q(question_text__icontains=q) | 
+            Q(answer_text__icontains=q)
+        )
+    
+    # Pagination
+    paginator = Paginator(questions, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'questions': questions,
-        'categories': categories,
-        'filters': {
-            'category': f_category,
-            'status': f_status,
-            'search': f_search,
-            'deleted': f_deleted,
-        }
+        'page_obj': page_obj,
+        'categories': Category.objects.all(),
+        'status_choices': FAQQuestion.STATUS_CHOICES,
+        'search_query': q,
+        'selected_category': category,
+        'selected_status': status,
     }
-    return render(request, 'CustomAdmin/faq/faq.html', context)
+    return render(request, 'CustomAdmin/faq/faq_list.html', context)
+
 
 @login_required
 def admin_faq_create(request):
     profile = request.user.profile
     role = profile.role
-
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
-
+    
     if request.method == 'POST':
         form = AdminFAQQuestionForm(request.POST)
         if form.is_valid():
-            question = form.save()
-            messages.success(request, f'FAQ question "{question.title}" created successfully!')
+            question = form.save(commit=False)
+            question.created_by = request.user
+            # Sync is_published with status
+            question.is_published = (question.status == 'published')
+            question.is_deleted = False
+            if question.is_published and not question.published_at:
+                question.published_at = timezone.now()
+            question.save()
+            messages.success(request, f'FAQ "{question.title}" created successfully.')
             return redirect('admin_interface:admin_faq')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = AdminFAQQuestionForm()
-
+    
     context = {
         'form': form,
-        'action': 'create',
-        'title': 'Create New FAQ Question'
+        'title': 'Create FAQ Question'
     }
     return render(request, 'CustomAdmin/faq/faq_form.html', context)
 
+
 @login_required
-def admin_faq_edit(request, question_id):
+def admin_faq_edit(request, pk):
     profile = request.user.profile
     role = profile.role
-
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
-
-    question = get_object_or_404(FAQQuestion, id=question_id, is_deleted=False)
+    
+    question = get_object_or_404(FAQQuestion, pk=pk)
     
     if request.method == 'POST':
         form = AdminFAQQuestionForm(request.POST, instance=question)
         if form.is_valid():
-            question = form.save()
-            messages.success(request, f'FAQ question "{question.title}" updated successfully!')
+            q = form.save(commit=False)
+            q.updated_by = request.user
+            # Sync is_published with status
+            q.is_published = (q.status == 'published')
+            if q.is_published and not q.published_at:
+                q.published_at = timezone.now()
+            q.save()
+            messages.success(request, f'FAQ "{q.title}" updated successfully.')
             return redirect('admin_interface:admin_faq')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = AdminFAQQuestionForm(instance=question)
-
+    
     context = {
         'form': form,
-        'action': 'edit',
-        'title': f'Edit FAQ Question: {question.title}',
-        'question': question
+        'title': 'Edit FAQ Question',
+        'question': question,
     }
     return render(request, 'CustomAdmin/faq/faq_form.html', context)
 
+
 @login_required
-def admin_faq_delete(request, question_id):
+def admin_faq_delete(request, pk):
     profile = request.user.profile
     role = profile.role
-
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
-
-    question = get_object_or_404(FAQQuestion, id=question_id, is_deleted=False)
+    
+    question = get_object_or_404(FAQQuestion, pk=pk)
     
     if request.method == 'POST':
-        question_title = question.title
-        question.delete()
-        messages.success(request, f'FAQ question "{question_title}" deleted successfully!')
+        question.is_deleted = True
+        question.save()
+        messages.success(request, f'FAQ "{question.title}" moved to trash.')
         return redirect('admin_interface:admin_faq')
-
-    context = {
-        'question': question,
-        'title': f'Delete FAQ Question: {question.title}'
-    }
-    return render(request, 'CustomAdmin/faq/faq_delete.html', context)
-
-@login_required
-def admin_faq_restore(request, question_id):
-    profile = request.user.profile
-    role = profile.role
-
-    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
-        return render(request, 'CustomAdmin/permission_denied.html')
-
-    question = get_object_or_404(FAQQuestion.objects.all_with_deleted(), id=question_id)
     
-    if request.method == 'POST':
-        question_title = question.title
-        question.restore()
-        messages.success(request, f'FAQ question "{question_title}" restored successfully!')
-        return redirect('admin_interface:admin_faq')
-
+    # GET request – show confirmation page
     context = {
         'question': question,
-        'title': f'Restore FAQ Question: {question.title}'
+        'title': 'Delete FAQ Question',
     }
-    return render(request, 'CustomAdmin/faq/faq_restore.html', context)
+    return render(request, 'CustomAdmin/faq/faq_confirm_delete.html', context)
 
-@login_required
-def admin_faq_detail(request, question_id):
-    profile = request.user.profile
-    role = profile.role
 
-    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
-        return render(request, 'CustomAdmin/permission_denied.html')
-
-    question = get_object_or_404(FAQQuestion, id=question_id, is_deleted=False)
-
-    context = {
-        'question': question,
-        'title': f'FAQ Question Details: {question.title}'
-    }
-    return render(request, 'CustomAdmin/faq/faq_detail.html', context)
 
 @login_required
 def admin_contacts(request):
@@ -1786,16 +2916,25 @@ def delete_message(request, message_id):
     role = profile.role
 
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
-        return render(request, 'CustomAdmin/permission_denied.html')
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
 
     message = get_object_or_404(ContactMessage, id=message_id)
     
     if request.method == 'POST':
-        message_name = message.name
-        message.delete()
-        messages.success(request, f'Message from {message_name} deleted successfully.')
-        return redirect('admin_interface:admin_contacts')
-
+        try:
+            message_name = message.name
+            message.delete()
+            return JsonResponse({
+                'success': True,
+                'message': f'Message from {message_name} deleted successfully.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    # For GET requests, return the delete confirmation page
     context = {
         'message': message,
         'title': f'Delete Message: {message.subject}'
@@ -2096,3 +3235,1589 @@ def export_homepage_videos_to_csv(videos):
     return response
 
 
+def mark_messages_api(request):
+    """API endpoint for marking messages as read/unread"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            message_ids = data.get('message_ids', [])
+            action = data.get('action', '')
+            
+            if not message_ids or not action:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid request data'
+                }, status=400)
+            
+            messages_to_update = ContactMessage.objects.filter(id__in=message_ids)
+            
+            if action == 'mark-read':
+                updated_count = messages_to_update.update(
+                    is_read=True,
+                    read_at=timezone.now()
+                )
+                message = f'Successfully marked {updated_count} message(s) as read'
+            elif action == 'mark-unread':
+                updated_count = messages_to_update.update(
+                    is_read=False,
+                    read_at=None
+                )
+                message = f'Successfully marked {updated_count} message(s) as unread'
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid action'
+                }, status=400)
+            
+            return JsonResponse({
+                'success': True,
+                'message': message
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Method not allowed'
+    }, status=405)
+
+
+@login_required
+def admin_reply_to_contact(request, message_id):
+    """Display reply form for a specific contact message"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    message = get_object_or_404(ContactMessage, id=message_id, is_deleted=False)
+    
+    # Prepare initial reply subject
+    if message.subject.lower().startswith('re:'):
+        reply_subject = message.subject
+    else:
+        reply_subject = f"Re: {message.subject}"
+    
+    context = {
+        'message': message,
+        'reply_subject': reply_subject,
+        'title': f'Reply to Message: {message.subject}'
+    }
+    return render(request, 'CustomAdmin/contacts/reply_form.html', context)
+
+
+@login_required
+def send_contact_reply(request):
+    """Send a reply to a contact message"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            message_id = data.get('message_id')
+            subject = data.get('subject')
+            message_content = data.get('message')
+            mark_as_read = data.get('mark_as_read', True)
+            
+            if not all([message_id, subject, message_content]):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Missing required fields'
+                }, status=400)
+            
+            # Get the contact message
+            contact_message = get_object_or_404(ContactMessage, id=message_id, is_deleted=False)
+            
+            # Create the reply record
+            reply = ContactReply.objects.create(
+                contact_message=contact_message,
+                admin_user=request.user,
+                subject=subject,
+                message=message_content,
+                recipient_email=contact_message.email,
+                email_status='pending'
+            )
+            
+            # Send the email
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                # Create email content
+                email_subject = subject
+                email_message = f"""
+Dear {contact_message.name},
+
+Thank you for your message. Here is our response:
+
+{message_content}
+
+Best regards,
+Factory InfoHub Team
+
+---
+Original Message:
+Subject: {contact_message.subject}
+From: {contact_message.name} ({contact_message.email})
+Date: {contact_message.created_at.strftime('%B %d, %Y at %I:%M %p')}
+
+{contact_message.message}
+                """
+                
+                # Send email
+                send_mail(
+                    subject=email_subject,
+                    message=email_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[contact_message.email],
+                    fail_silently=False,
+                )
+                
+                # Mark reply as sent
+                reply.mark_as_sent()
+                
+                # Mark message as read if requested
+                if mark_as_read:
+                    contact_message.mark_as_read()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Reply sent successfully!',
+                    'reply_id': reply.id
+                })
+                
+            except Exception as email_error:
+                # Mark reply as failed
+                reply.mark_as_failed(str(email_error))
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Failed to send email: {str(email_error)}'
+                }, status=500)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Method not allowed'
+    }, status=405)
+
+
+@login_required
+def admin_reply_history(request, message_id):
+    """Display reply history for a specific contact message"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    message = get_object_or_404(ContactMessage, id=message_id, is_deleted=False)
+    replies = message.replies.filter(is_deleted=False).order_by('-sent_at')
+    
+    context = {
+        'message': message,
+        'replies': replies,
+        'title': f'Reply History: {message.subject}'
+    }
+    return render(request, 'CustomAdmin/contacts/reply_history.html', context)
+
+
+def admin_contact_detail(request, message_id):
+    """
+    Display detailed view of a contact message with reply functionality
+    """
+    message = get_object_or_404(ContactMessage, id=message_id)
+    
+    # Get all replies for this message
+    replies = ContactReply.objects.filter(
+        contact_message=message, 
+        is_deleted=False
+    ).select_related('admin_user').order_by('sent_at')
+    
+    # Get user information
+    user_info = None
+    if message.user:
+        user_info = {
+            'username': message.user.username,
+            'email': message.user.email,
+            'first_name': message.user.first_name,
+            'last_name': message.user.last_name,
+            'is_active': message.user.is_active,
+            'date_joined': message.user.date_joined,
+        }
+    
+    context = {
+        'message': message,
+        'replies': replies,
+        'user_info': user_info,
+        'total_replies': replies.count(),
+    }
+    
+    return render(request, 'CustomAdmin/contacts/contact_detail.html', context)
+
+
+# Payment Management Views
+@login_required
+def admin_payments(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    # 1. Capture Filter Parameters
+    payment_status = request.GET.get('payment_status')
+    payment_method = request.GET.get('payment_method')
+    order_status = request.GET.get('order_status')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search = request.GET.get('search', '')
+    user_filter = request.GET.get('user')
+    min_amount = request.GET.get('min_amount')
+    max_amount = request.GET.get('max_amount')
+    
+    # 2. Build Queryset
+    payments = Order.objects.select_related('user').order_by('-order_date')
+
+    # Apply filters
+    if payment_status:
+        payments = payments.filter(payment_status=payment_status)
+    if payment_method:
+        payments = payments.filter(payment_method=payment_method)
+    if order_status:
+        payments = payments.filter(payment_status=order_status)
+    if start_date:
+        from django.utils import timezone
+        from datetime import datetime
+        # Convert naive date to timezone-aware datetime
+        start_datetime = timezone.make_aware(datetime.combine(datetime.strptime(start_date, '%Y-%m-%d').date(), datetime.min.time()))
+        payments = payments.filter(order_date__date__gte=start_datetime.date())
+    if end_date:
+        from django.utils import timezone
+        from datetime import datetime
+        # Convert naive date to timezone-aware datetime
+        end_datetime = timezone.make_aware(datetime.combine(datetime.strptime(end_date, '%Y-%m-%d').date(), datetime.max.time()))
+        payments = payments.filter(order_date__date__lte=end_datetime.date())
+    if search:
+        payments = payments.filter(
+            Q(order_number__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(transaction_id__icontains=search)
+        )
+    if user_filter:
+        payments = payments.filter(user_id=user_filter)
+    if min_amount:
+        payments = payments.filter(total_amount__gte=min_amount)
+    if max_amount:
+        payments = payments.filter(total_amount__lte=max_amount)
+
+    # 3. Calculate Summary Statistics
+    total_payments = payments.count()
+    completed_payments = payments.filter(payment_status='completed').count()
+    pending_payments = payments.filter(payment_status='pending').count()
+    failed_payments = payments.filter(payment_status='failed').count()
+
+    # 4. CSV Export
+    if 'download' in request.GET:
+        return export_payments_to_csv(payments)
+
+    # 5. Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(payments, 20)  # Show 20 payments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 6. Get Users for Filter Dropdown
+    users = User.objects.filter(orders__isnull=False).distinct()
+
+    context = {
+        'payments': page_obj,
+        'users': users,
+        'summary': {
+            'total_payments': total_payments,
+            'completed_payments': completed_payments,
+            'pending_payments': pending_payments,
+            'failed_payments': failed_payments,
+        },
+        'filters': {
+            'payment_status': payment_status,
+            'payment_method': payment_method,
+            'order_status': order_status,
+            'start_date': start_date,
+            'end_date': end_date,
+            'search': search,
+            'user': user_filter,
+            'min_amount': min_amount,
+            'max_amount': max_amount,
+        }
+    }
+    return render(request, 'CustomAdmin/payments/payments.html', context)
+
+@login_required
+def admin_payment_detail(request, order_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    order = get_object_or_404(Order, id=order_id)
+
+    # Since there's no separate Payment model, we'll use the payment information from the Order model
+    # Create a mock payment object using the order's payment fields
+    class MockPayment:
+        def __init__(self, order):
+            self.order = order
+            self.amount = order.total_amount
+            self.currency = 'INR'  # Default currency
+            self.transaction_id = order.transaction_id
+            self.payment_method = order.payment_method
+            self.status = order.payment_status
+            self.created_at = order.order_date
+            self.completed_at = order.order_date if order.payment_status == 'completed' else None
+        
+        def get_payment_method_display(self):
+            payment_methods = {
+                'card': 'Card',
+                'upi': 'UPI',
+                'netbanking': 'Net Banking',
+                'cod': 'Cash on Delivery',
+            }
+            return payment_methods.get(self.payment_method, self.payment_method)
+        
+        def get_status_display(self):
+            status_display = {
+                'pending': 'Pending',
+                'completed': 'Completed',
+                'failed': 'Failed',
+            }
+            return status_display.get(self.status, self.status)
+
+    payment = MockPayment(order)
+
+    context = {
+        'order': order,
+        'payment': payment,
+        'title': f'Payment Details - {order.order_number}'
+    }
+    return render(request, 'CustomAdmin/payments/payment_detail.html', context)
+
+def export_payments_to_csv(payments):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="payments.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'Transaction ID', 'User', 'Email', 'Amount', 'Currency', 
+        'Payment Method', 'Payment Status', 'Order Status', 'Created At', 'Completed At'
+    ])
+
+    for payment in payments:
+        writer.writerow([
+            payment.order.order_number,
+            payment.transaction_id,
+            payment.order.user.username,
+            payment.order.user.email,
+            payment.amount,
+            payment.currency,
+            payment.get_payment_method_display(),
+            payment.get_status_display(),
+            payment.order.get_payment_status_display(),
+            payment.created_at,
+            payment.completed_at if payment.completed_at else '',
+        ])
+
+    return response
+
+@login_required
+def admin_payment_gateways(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    
+    gateways = PaymentGateway.objects.all()
+    
+    context = {
+        'gateways': gateways,
+        'title': 'Payment Gateways'
+    }
+    return render(request, 'CustomAdmin/payments/gateways.html', context)
+
+@login_required
+def admin_payment_gateway_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+   
+   
+    
+    if request.method == 'POST':
+        form = AdminPaymentGatewayForm(request.POST)
+        if form.is_valid():
+            gateway = form.save()
+            messages.success(request, f'Payment gateway "{gateway.get_name_display()}" created successfully!')
+            return redirect('admin_interface:admin_payment_gateways')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPaymentGatewayForm()
+
+    context = {
+        'form': form,
+        'action': 'create',
+        'title': 'Create Payment Gateway'
+    }
+    return render(request, 'CustomAdmin/payments/gateway_form.html', context)
+
+@login_required
+def admin_payment_gateway_edit(request, gateway_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        form = AdminPaymentGatewayForm(request.POST, instance=gateway)
+        if form.is_valid():
+            gateway = form.save()
+            messages.success(request, f'Payment gateway "{gateway.get_name_display()}" updated successfully!')
+            return redirect('admin_interface:admin_payment_gateways')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPaymentGatewayForm(instance=gateway)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Payment Gateway: {gateway.get_name_display()}',
+        'gateway': gateway
+    }
+    return render(request, 'CustomAdmin/payments/gateway_form.html', context)
+
+@login_required
+def admin_payment_gateway_delete(request, gateway_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        gateway_name = gateway.get_name_display()
+        gateway.delete()
+        messages.success(request, f'Payment gateway "{gateway_name}" deleted successfully!')
+        return redirect('admin_interface:admin_payment_gateways')
+
+    context = {
+        'gateway': gateway,
+        'title': f'Delete Payment Gateway: {gateway.get_name_display()}'
+    }
+    return render(request, 'CustomAdmin/payments/gateway_delete.html', context)
+
+@login_required
+def admin_payment_gateway_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    if request.method == 'POST':
+        form = AdminPaymentGatewayForm(request.POST)
+        if form.is_valid():
+            gateway = form.save()
+            messages.success(request, f'Payment gateway "{gateway.get_name_display()}" created successfully!')
+            return redirect('admin_interface:admin_payment_gateways')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPaymentGatewayForm()
+
+    context = {
+        'form': form,
+        'action': 'create',
+        'title': 'Create Payment Gateway'
+    }
+    return render(request, 'CustomAdmin/payments/gateway_form.html', context)
+
+@login_required
+def admin_payment_gateway_edit(request, gateway_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        form = AdminPaymentGatewayForm(request.POST, instance=gateway)
+        if form.is_valid():
+            gateway = form.save()
+            messages.success(request, f'Payment gateway "{gateway.get_name_display()}" updated successfully!')
+            return redirect('admin_interface:admin_payment_gateways')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPaymentGatewayForm(instance=gateway)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Payment Gateway: {gateway.get_name_display()}',
+        'gateway': gateway
+    }
+    return render(request, 'CustomAdmin/payments/gateway_form.html', context)
+
+@login_required
+def admin_payment_gateway_delete(request, gateway_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        gateway_name = gateway.get_name_display()
+        gateway.delete()
+        messages.success(request, f'Payment gateway "{gateway_name}" deleted successfully!')
+        return redirect('admin_interface:admin_payment_gateways')
+
+    context = {
+        'gateway': gateway,
+        'title': f'Delete Payment Gateway: {gateway.get_name_display()}'
+    }
+    return render(request, 'CustomAdmin/payments/gateway_delete.html', context)
+
+@login_required
+def admin_orders(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+   
+    
+
+    # 1. Capture Filter Parameters
+    payment_status = request.GET.get('payment_status')
+    order_status = request.GET.get('order_status')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search = request.GET.get('search', '')
+    user_filter = request.GET.get('user')
+    min_amount = request.GET.get('min_amount')
+    max_amount = request.GET.get('max_amount')
+    
+    # 2. Build Queryset
+    orders = Order.objects.select_related('user').order_by('-order_date')
+
+    # Apply filters
+    if payment_status:
+        orders = orders.filter(payment_status=payment_status)
+    if order_status:
+        orders = orders.filter(payment_status=order_status)  # Using payment_status as order status
+    if start_date:
+        orders = orders.filter(order_date__date__gte=start_date)
+    if end_date:
+        orders = orders.filter(order_date__date__lte=end_date)
+    if search:
+        orders = orders.filter(
+            Q(order_number__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(transaction_id__icontains=search)
+        )
+    if user_filter:
+        orders = orders.filter(user_id=user_filter)
+    if min_amount:
+        orders = orders.filter(total_amount__gte=min_amount)
+    if max_amount:
+        orders = orders.filter(total_amount__lte=max_amount)
+
+    # 3. CSV Export
+    if 'download' in request.GET:
+        return export_orders_to_csv(orders)
+
+    # 4. Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(orders, 20)  # Show 20 orders per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 5. Get Users for Filter Dropdown
+    users = User.objects.filter(orders__isnull=False).distinct()
+
+    context = {
+        'orders': page_obj,
+        'users': users,
+        'filters': {
+            'payment_status': payment_status,
+            'order_status': order_status,
+            'start_date': start_date,
+            'end_date': end_date,
+            'search': search,
+            'user': user_filter,
+            'min_amount': min_amount,
+            'max_amount': max_amount,
+        }
+    }
+    return render(request, 'CustomAdmin/payments/orders.html', context)
+
+@login_required
+def admin_order_detail(request, order_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    order = get_object_or_404(Order, id=order_id)
+
+    context = {
+        'order': order,
+        'title': f'Order Details - {order.id}'
+    }
+    return render(request, 'CustomAdmin/payments/order_detail.html', context)
+
+@login_required
+def admin_order_complete(request, order_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+   
+    
+    
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            # Mark order as completed
+            order.payment_status = 'completed'
+            order.save()
+            
+            # Clear cart
+            cart = Cart.objects.get(user=order.user)
+            cart.items.all().delete()
+            
+            # Send receipt
+            factories = [item.factory for item in order.items.all()]
+            send_order_receipt(order.user, order, factories)
+            
+            messages.success(request, f'Order {order.order_number} has been successfully completed.')
+            return redirect('admin_interface:admin_payment_detail', order_id=order.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error processing order: {str(e)}')
+            return redirect('admin_interface:admin_payment_detail', order_id=order.id)
+
+    context = {
+        'order': order,
+        'title': f'Complete Order - {order.order_number}'
+    }
+    return render(request, 'CustomAdmin/payments/order_complete.html', context)
+
+@login_required
+def admin_order_delete(request, order_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            order_number = order.order_number
+            order.delete()
+            messages.success(request, f'Order {order_number} has been successfully deleted.')
+            return redirect('admin_interface:admin_orders')
+        except Exception as e:
+            messages.error(request, f'Error deleting order: {str(e)}')
+            return redirect('admin_interface:admin_order_detail', order_id=order.id)
+
+    context = {
+        'order': order,
+        'title': f'Delete Order - {order.order_number}'
+    }
+    return render(request, 'CustomAdmin/payments/order_delete.html', context)
+
+@login_required
+def admin_order_item_delete(request, item_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    order_item = get_object_or_404(OrderItem, id=item_id)
+    
+    if request.method == 'POST':
+        try:
+            factory_name = order_item.factory.name
+            order_item.delete()
+            messages.success(request, f'Order item for factory "{factory_name}" has been successfully deleted.')
+            return redirect('admin_interface:admin_order_items')
+        except Exception as e:
+            messages.error(request, f'Error deleting order item: {str(e)}')
+            return redirect('admin_interface:admin_order_item_detail', item_id=item_id)
+
+    context = {
+        'order_item': order_item,
+        'title': f'Delete Order Item - {order_item.factory.name}'
+    }
+    return render(request, 'CustomAdmin/payments/order_item_delete.html', context)
+
+@login_required
+def admin_payment_gateway_delete(request, gateway_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        try:
+            gateway_name = gateway.get_name_display()
+            gateway.delete()
+            messages.success(request, f'Payment gateway "{gateway_name}" has been successfully deleted.')
+            return redirect('admin_interface:admin_payment_gateways')
+        except Exception as e:
+            messages.error(request, f'Error deleting payment gateway: {str(e)}')
+            return redirect('admin_interface:admin_payment_gateway_edit', gateway_id=gateway.id)
+
+    context = {
+        'gateway': gateway,
+        'title': f'Delete Payment Gateway - {gateway.get_name_display()}'
+    }
+    return render(request, 'CustomAdmin/payments/gateway_delete.html', context)
+
+@login_required
+def admin_order_items(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+   
+
+    # 1. Capture Filter Parameters
+    order_filter = request.GET.get('order')
+    factory_filter = request.GET.get('factory')
+    search = request.GET.get('search', '')
+    
+    # 2. Build Queryset
+    order_items = OrderItem.objects.select_related('order', 'factory', 'order__user').order_by('-order__order_date')
+
+    # Apply filters
+    if order_filter:
+        order_items = order_items.filter(order_id=order_filter)
+    if factory_filter:
+        order_items = order_items.filter(factory_id=factory_filter)
+    if search:
+        order_items = order_items.filter(
+            Q(order__order_number__icontains=search) |
+            Q(factory__name__icontains=search) |
+            Q(order__user__username__icontains=search)
+        )
+
+    # 3. CSV Export
+    if 'download' in request.GET:
+        return export_order_items_to_csv(order_items)
+
+    # 4. Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(order_items, 20)  # Show 20 order items per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 5. Get Orders and Factories for Filter Dropdown
+    orders = Order.objects.all()
+    factories = Factory.objects.all()
+
+    context = {
+        'order_items': page_obj,
+        'orders': orders,
+        'factories': factories,
+        'filters': {
+            'order': order_filter,
+            'factory': factory_filter,
+            'search': search,
+        }
+    }
+    return render(request, 'CustomAdmin/payments/order_items.html', context)
+
+@login_required
+def admin_order_item_detail(request, item_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+    
+    order_item = get_object_or_404(OrderItem, id=item_id)
+
+    context = {
+        'order_item': order_item,
+        'title': f'Order Item Details - {order_item.factory.name}'
+    }
+    return render(request, 'CustomAdmin/payments/order_item_detail.html', context)
+
+def export_orders_to_csv(orders):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'User', 'Email', 'Total Amount', 'Payment Status', 
+        'Payment Method', 'Gateway Used', 'Transaction ID', 'Order Date', 'Receipt Sent'
+    ])
+
+    for order in orders:
+        writer.writerow([
+            order.order_number,
+            order.user.username,
+            order.user.email,
+            order.total_amount,
+            order.get_payment_status_display(),
+            order.payment_method,
+            order.gateway_used.get_name_display() if order.gateway_used else '',
+            order.transaction_id,
+            order.order_date,
+            'Yes' if order.receipt_sent else 'No',
+        ])
+
+    return response
+
+def export_order_items_to_csv(order_items):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="order_items.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'Factory Name', 'Category', 'Price at Purchase', 'Order Date', 'User'
+    ])
+
+    for item in order_items:
+        writer.writerow([
+            item.order.order_number,
+            item.factory.name,
+            item.factory.category.name,
+            item.price_at_purchase,
+            item.order.order_date,
+            item.order.user.username,
+        ])
+
+    return response
+
+def export_payments_csv(request):
+    """Export payments to CSV"""
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="payments_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'Customer', 'Email', 'Amount', 'Currency', 'Status', 
+        'Payment Method', 'Gateway', 'Transaction ID', 'Created At', 'Completed At'
+    ])
+    
+    # Get filtered payments
+    payments = PaymentGateway.objects.all().select_related('order', 'order__user', 'gateway_used')
+    
+    # Apply filters if present
+    if request.GET.get('status'):
+        payments = payments.filter(status=request.GET.get('status'))
+    if request.GET.get('gateway'):
+        payments = payments.filter(gateway_used_id=request.GET.get('gateway'))
+    if request.GET.get('payment_method'):
+        payments = payments.filter(payment_method=request.GET.get('payment_method'))
+    if request.GET.get('search'):
+        search_term = request.GET.get('search')
+        payments = payments.filter(
+            Q(order__order_number__icontains=search_term) |
+            Q(order__user__username__icontains=search_term) |
+            Q(order__user__email__icontains=search_term) |
+            Q(transaction_id__icontains=search_term)
+        )
+    
+    for payment in payments:
+        writer.writerow([
+            payment.order.order_number,
+            payment.order.user.get_full_name() or payment.order.user.username,
+            payment.order.user.email,
+            payment.amount,
+            payment.currency,
+            payment.get_status_display(),
+            payment.get_payment_method_display(),
+            payment.gateway_used.name if payment.gateway_used else '',
+            payment.transaction_id or '',
+            payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            payment.completed_at.strftime('%Y-%m-%d %H:%M:%S') if payment.completed_at else ''
+        ])
+    
+    return response
+
+def export_orders_csv(request):
+    """Export orders to CSV"""
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'Customer', 'Email', 'Total Amount', 'Payment Status', 
+        'Payment Method', 'Transaction ID', 'Order Date', 'Items Count'
+    ])
+    
+    # Get filtered orders
+    orders = Order.objects.all().select_related('user')
+    
+    # Apply filters if present
+    if request.GET.get('status'):
+        orders = orders.filter(payment_status=request.GET.get('status'))
+    if request.GET.get('payment_method'):
+        orders = orders.filter(payment_method=request.GET.get('payment_method'))
+    if request.GET.get('search'):
+        search_term = request.GET.get('search')
+        orders = orders.filter(
+            Q(order_number__icontains=search_term) |
+            Q(user__username__icontains=search_term) |
+            Q(user__email__icontains=search_term) |
+            Q(transaction_id__icontains=search_term)
+        )
+    
+    for order in orders:
+        writer.writerow([
+            order.order_number,
+            order.user.get_full_name() or order.user.username,
+            order.user.email,
+            order.total_amount,
+            order.get_payment_status_display(),
+            order.payment_method or '',
+            order.transaction_id or '',
+            order.order_date.strftime('%Y-%m-%d %H:%M:%S'),
+            order.items.count()
+        ])
+    
+    return response
+
+def export_order_items_csv(request):
+    """Export order items to CSV"""
+  
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="order_items_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order Number', 'Customer', 'Factory Name', 'Factory Location', 
+        'Category', 'Price at Purchase', 'Order Date'
+    ])
+    
+    # Get filtered order items
+    order_items = OrderItem.objects.all().select_related('order', 'order__user', 'factory', 'factory__category')
+    
+    # Apply filters if present
+    if request.GET.get('order'):
+        order_items = order_items.filter(order_id=request.GET.get('order'))
+    if request.GET.get('factory'):
+        order_items = order_items.filter(factory_id=request.GET.get('factory'))
+    if request.GET.get('search'):
+        search_term = request.GET.get('search')
+        order_items = order_items.filter(
+            Q(order__order_number__icontains=search_term) |
+            Q(order__user__username__icontains=search_term) |
+            Q(order__user__email__icontains=search_term) |
+            Q(factory__name__icontains=search_term)
+        )
+    
+    for item in order_items:
+        writer.writerow([
+            item.order.order_number,
+            item.order.user.get_full_name() or item.order.user.username,
+            item.factory.name,
+            f"{item.factory.city.name}, {item.factory.state.name}",
+            item.factory.category.name,
+            item.price_at_purchase,
+            item.order.order_date.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+    
+    return response
+
+
+@login_required
+def admin_complete_order_with_email(request, order_id):
+    """Complete an order and send email confirmation"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            # Complete the order
+            order.payment_status = 'completed'
+            order.save()
+            
+            # Clear the user's cart
+            try:
+                cart = Cart.objects.get(user=order.user)
+                cart.items.all().delete()
+            except Cart.DoesNotExist:
+                pass
+            
+            # Send email confirmation
+            factories = [item.factory for item in order.items.all()]
+            email_sent = send_order_receipt(order.user, order, factories)
+            
+            if email_sent:
+                messages.success(request, f'Order {order.order_number} completed and email sent successfully!')
+            else:
+                messages.warning(request, f'Order {order.order_number} completed but email failed to send. You can retry sending the email from the order details page.')
+            
+            return redirect('admin_interface:admin_order_detail', order_id=order.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error completing order: {str(e)}')
+            return redirect('admin_interface:admin_order_detail', order_id=order.id)
+    
+    context = {
+        'order': order,
+        'title': f'Complete Order with Email - {order.order_number}'
+    }
+    return render(request, 'CustomAdmin/payments/order_complete_with_email.html', context)
+
+
+@login_required
+def admin_retry_order_email(request, order_id):
+    """Retry sending order confirmation email"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            factories = [item.factory for item in order.items.all()]
+            email_sent = send_order_receipt(order.user, order, factories)
+            
+            if email_sent:
+                messages.success(request, f'Email sent successfully for order {order.order_number}!')
+            else:
+                messages.error(request, f'Failed to send email for order {order.order_number}. Please check email configuration.')
+            
+        except Exception as e:
+            messages.error(request, f'Error sending email: {str(e)}')
+        
+        return redirect('admin_interface:admin_order_detail', order_id=order.id)
+    
+    context = {
+        'order': order,
+        'title': f'Retry Email - {order.order_number}'
+    }
+    return render(request, 'CustomAdmin/payments/retry_email.html', context)
+
+
+@login_required
+def admin_pending_orders(request):
+    """Display pending orders that need attention"""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    pending_orders = Order.objects.filter(payment_status='pending').order_by('-order_date')
+    
+    # Add email status information
+    for order in pending_orders:
+        order.email_status_display = dict(order._meta.get_field('email_status').choices).get(order.email_status, 'Unknown')
+    
+    context = {
+        'pending_orders': pending_orders,
+        'title': 'Pending Orders'
+    }
+    return render(request, 'CustomAdmin/payments/pending_orders.html', context)
+
+ 
+
+@login_required
+def factory_stats(request):
+    """Display aggregated view statistics for all factories."""
+    # Permission check (admin or staff)
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('admin_interface:admin_dashboard')
+
+    # Optionally recalc all stats if requested
+    if request.GET.get('recalc') == '1':
+        with transaction.atomic():
+            for stats in FactoryViewStats.objects.select_related('factory'):
+                stats.update_all_stats()
+        messages.success(request, "All factory statistics have been recalculated.")
+        return redirect('admin_interface:factory_stats')
+
+    # Get all stats, ordered by total_views descending
+    stats = FactoryViewStats.objects.select_related('factory').order_by('-total_views')
+
+    context = {
+        'stats': stats,
+        'title': 'Factory View Statistics',
+    }
+    return render(request, 'CustomAdmin/FactoryStat/factory_stats.html', context)
+
+@login_required
+def factory_tracker_detail(request, factory_id):
+    """Display detailed view trackers for a specific factory."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('admin_interface:admin_dashboard')
+
+    factory = get_object_or_404(Factory, id=factory_id)
+    trackers = FactoryViewTracker.objects.filter(factory=factory).order_by('-viewed_at')[:100]  # limit to 100 most recent
+    context = {
+        'factory': factory,
+        'trackers': trackers,
+        'title': f'View Trackers for {factory.name}',
+    }
+    return render(request, 'CustomAdmin/FactoryStat/factory_tracker_detail.html', context)
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from datetime import timedelta
+from Karkahan.models import Factory, FactoryViewStats, FactoryViewTracker
+
+@login_required
+def factory_stats_charts(request):
+    """Display visual charts for factory view statistics."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('admin_interface:admin_dashboard')
+
+    # Get selected factory for line chart (default to first factory with stats)
+    selected_factory_id = request.GET.get('factory')
+    selected_factory = None
+    if selected_factory_id:
+        try:
+            selected_factory = Factory.objects.get(id=selected_factory_id)
+        except Factory.DoesNotExist:
+            pass
+
+    # If no factory selected, pick the one with the most views
+    if not selected_factory:
+        top_stats = FactoryViewStats.objects.select_related('factory').order_by('-total_views').first()
+        if top_stats:
+            selected_factory = top_stats.factory
+
+    # Prepare data for the line chart (daily views for the last 30 days)
+    line_chart_labels = []
+    line_chart_data = []
+    if selected_factory:
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=30)
+        # Query trackers for the factory, grouped by day
+        from django.db.models import Count
+        from django.db.models.functions import TruncDate
+
+        daily_counts = (
+            FactoryViewTracker.objects
+            .filter(factory=selected_factory, viewed_at__date__gte=start_date)
+            .annotate(day=TruncDate('viewed_at'))
+            .values('day')
+            .annotate(count=Count('id'))
+            .order_by('day')
+        )
+        # Build lists for all 31 days (including days with zero views)
+        date_dict = {d['day']: d['count'] for d in daily_counts}
+        current = start_date
+        while current <= end_date:
+            line_chart_labels.append(current.strftime('%b %d'))
+            line_chart_data.append(date_dict.get(current, 0))
+            current += timedelta(days=1)
+
+    # Prepare bar chart data for top 10 factories by total views
+    top_factories = FactoryViewStats.objects.select_related('factory').order_by('-total_views')[:10]
+    bar_labels = [stat.factory.name[:30] for stat in top_factories]  # truncate long names
+    bar_data = [stat.total_views for stat in top_factories]
+
+    context = {
+        'title': 'Factory View Charts',
+        'bar_labels': bar_labels,
+        'bar_data': bar_data,
+        'line_labels': line_chart_labels,
+        'line_data': line_chart_data,
+        'selected_factory': selected_factory,
+        'factories': Factory.objects.filter(view_stats__isnull=False).order_by('name'),
+    }
+    return render(request, 'CustomAdmin/FactoryStat/factory_stats_charts.html', context)
+
+
+# Page Management Views
+@login_required
+def admin_pages(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    # 1. Capture Filter Parameters
+    page_type = request.GET.get('page_type')
+    is_published = request.GET.get('is_published')
+    search = request.GET.get('search', '')
+    deleted_view = request.GET.get('deleted', 'active')  # 'active', 'deleted', 'all'
+
+    # 2. Build Queryset
+    pages = Page.objects.all_with_deleted().select_related()
+
+    if page_type:
+        pages = pages.filter(page_type=page_type)
+    if is_published == 'published':
+        pages = pages.filter(is_published=True)
+    elif is_published == 'unpublished':
+        pages = pages.filter(is_published=False)
+    if search:
+        pages = pages.filter(
+            Q(title__icontains=search) |
+            Q(slug__icontains=search) |
+            Q(content__icontains=search) |
+            Q(meta_title__icontains=search) |
+            Q(meta_description__icontains=search)
+        )
+
+    # Filter by deleted status
+    if deleted_view == 'deleted':
+        pages = pages.filter(is_deleted=True)
+    elif deleted_view == 'active':
+        pages = pages.filter(is_deleted=False)
+
+    # 3. CSV Export
+    if 'download' in request.GET:
+        return export_pages_to_csv(pages)
+
+    # 4. Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(pages, 20)  # Show 20 pages per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'pages': page_obj,
+        'page_types': Page.PAGE_TYPES,
+        'filters': {
+            'page_type': page_type,
+            'is_published': is_published,
+            'search': search,
+            'deleted': deleted_view,
+        }
+    }
+    return render(request, 'CustomAdmin/pages/pages.html', context)
+
+@login_required
+def admin_page_create(request):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    if request.method == 'POST':
+        form = AdminPageForm(request.POST)
+        if form.is_valid():
+            page = form.save()
+            messages.success(request, f'Page "{page.title}" created successfully!')
+            return redirect('admin_interface:admin_pages')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPageForm()
+
+    context = {
+        'form': form,
+        'action': 'create',
+        'title': 'Create New Page'
+    }
+    return render(request, 'CustomAdmin/pages/page_form.html', context)
+
+@login_required
+def admin_page_edit(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page, id=page_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminPageForm(request.POST, instance=page)
+        if form.is_valid():
+            page = form.save()
+            messages.success(request, f'Page "{page.title}" updated successfully!')
+            return redirect('admin_interface:admin_pages')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPageForm(instance=page)
+
+    # Get page sections for display
+    page_sections = page.sections.all().order_by('order')
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Page: {page.title}',
+        'page': page,
+        'page_sections': page_sections
+    }
+    return render(request, 'CustomAdmin/pages/page_form.html', context)
+
+@login_required
+def admin_page_delete(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page, id=page_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        page_title = page.title
+        page.delete()
+        messages.success(request, f'Page "{page_title}" deleted successfully!')
+        return redirect('admin_interface:admin_pages')
+
+    context = {
+        'page': page,
+        'title': f'Delete Page: {page.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_delete.html', context)
+
+@login_required
+def admin_page_restore(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page.objects.all_with_deleted(), id=page_id)
+    
+    if request.method == 'POST':
+        page_title = page.title
+        page.restore()
+        messages.success(request, f'Page "{page_title}" restored successfully!')
+        return redirect('admin_interface:admin_pages')
+
+    context = {
+        'page': page,
+        'title': f'Restore Page: {page.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_restore.html', context)
+
+@login_required
+def admin_page_permanent_delete(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page.objects.all_with_deleted(), id=page_id)
+    
+    if request.method == 'POST':
+        page_title = page.title
+        page.hard_delete()
+        messages.success(request, f'Page "{page_title}" permanently deleted successfully!')
+        return redirect('admin_interface:admin_pages')
+
+    context = {
+        'page': page,
+        'title': f'Permanently Delete Page: {page.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_permanent_delete.html', context)
+
+@login_required
+def admin_page_detail(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page, id=page_id, is_deleted=False)
+    page_sections = page.sections.all().order_by('order')
+
+    context = {
+        'page': page,
+        'page_sections': page_sections,
+        'title': f'Page Details: {page.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_detail.html', context)
+
+@login_required
+def admin_page_sections(request, page_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page = get_object_or_404(Page, id=page_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        form = AdminPageSectionForm(request.POST)
+        if form.is_valid():
+            page_section = form.save()
+            messages.success(request, f'Page section "{page_section.title}" added successfully!')
+            return redirect('admin_interface:admin_page_sections', page_id=page.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPageSectionForm(initial={'page': page})
+
+    page_sections = page.sections.all().order_by('order')
+
+    context = {
+        'page': page,
+        'form': form,
+        'page_sections': page_sections,
+        'title': f'Manage Sections: {page.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_sections.html', context)
+
+@login_required
+def admin_page_section_edit(request, section_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page_section = get_object_or_404(PageSection, id=section_id)
+    
+    if request.method == 'POST':
+        form = AdminPageSectionForm(request.POST, instance=page_section)
+        if form.is_valid():
+            page_section = form.save()
+            messages.success(request, f'Page section "{page_section.title}" updated successfully!')
+            return redirect('admin_interface:admin_page_sections', page_id=page_section.page.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AdminPageSectionForm(instance=page_section)
+
+    context = {
+        'form': form,
+        'action': 'edit',
+        'title': f'Edit Section: {page_section.title}',
+        'page_section': page_section
+    }
+    return render(request, 'CustomAdmin/pages/page_section_form.html', context)
+
+@login_required
+def admin_page_section_delete(request, section_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    page_section = get_object_or_404(PageSection, id=section_id)
+    
+    if request.method == 'POST':
+        section_title = page_section.title
+        page_section.delete()
+        messages.success(request, f'Page section "{section_title}" deleted successfully!')
+        return redirect('admin_interface:admin_page_sections', page_id=page_section.page.id)
+
+    context = {
+        'page_section': page_section,
+        'title': f'Delete Section: {page_section.title}'
+    }
+    return render(request, 'CustomAdmin/pages/page_section_delete.html', context)
+
+def export_pages_to_csv(pages):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pages.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Title', 'Slug', 'Page Type', 'Published', 'Created At', 'Updated At'
+    ])
+
+    for page in pages:
+        writer.writerow([
+            page.id,
+            page.title,
+            page.slug,
+            page.get_page_type_display(),
+            'Yes' if page.is_published else 'No',
+            page.created_at,
+            page.updated_at,
+        ])
+
+    return response

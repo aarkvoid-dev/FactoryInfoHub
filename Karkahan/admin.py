@@ -1,34 +1,36 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from django.urls import path
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils.html import format_html
 from django.db import transaction
-from django.utils import timezone
-from decimal import Decimal
-from .models import Factory, FactoryImage, ShoppingCart, FactoryPurchase, PurchaseHistory, Order, OrderItem, Payment
-from .forms import OrderStatusForm, RefundForm
+from django.http import HttpResponse
+import logging
 
+from .models import Factory, FactoryImage, Cart, CartItem, Order, OrderItem, PaymentGateway, FactoryViewTracker, FactoryViewStats
+from .views import send_order_receipt
+
+logger = logging.getLogger(__name__)
 
 class FactoryImageInline(admin.TabularInline):
     model = FactoryImage
     extra = 1
-    fields = ['image', 'alt_text', 'is_primary']
-    readonly_fields = ['image_preview']
+    fields = ['image', 'alt_text', 'is_primary', 'image_tag']
+    readonly_fields = ['image_tag']
 
-    def image_preview(self, obj):
+    def image_tag(self, obj):
         if obj.image:
-            return format_html('<img src="{}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;" />', obj.image.url)
+            return format_html('<img src="{}" width="80" height="80" style="border-radius: 6px;" />', obj.image.url)
         return "No image"
-    image_preview.short_description = 'Preview'
+    image_tag.short_description = 'Preview'
 
 
 @admin.register(Factory)
 class FactoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'city', 'state', 'price', 'is_active', 'is_verified', 'created_at']
-    list_filter = ['category', 'subcategory', 'country', 'state', 'city', 'is_active', 'is_verified']
+    list_display = ['name', 'category', 'city', 'state', 'country', 'price', 'is_active', 'is_verified', 'created_at']
+    list_filter = ['is_active', 'is_verified', 'category', 'country', 'state', 'city']
     search_fields = ['name', 'description', 'address', 'contact_person']
-    readonly_fields = ['created_at', 'updated_at', 'slug']
+    readonly_fields = ['created_at', 'updated_at', 'get_primary_image']
     inlines = [FactoryImageInline]
     fieldsets = (
         ('Basic Information', {
@@ -44,200 +46,237 @@ class FactoryAdmin(admin.ModelAdmin):
             'fields': ('factory_type', 'production_capacity', 'working_hours', 'holidays', 'established_year', 'employee_count', 'annual_turnover')
         }),
         ('Media', {
-            'fields': ('video_url',)
+            'fields': ('video_url', 'get_primary_image')
         }),
         ('Status', {
-            'fields': ('is_active', 'is_verified', 'created_by')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
+            'fields': ('is_active', 'is_verified', 'created_by', 'created_at', 'updated_at')
         }),
     )
-    actions = ['make_active', 'make_inactive', 'mark_verified', 'mark_unverified']
-
-    def make_active(self, request, queryset):
-        updated = queryset.update(is_active=True)
-        self.message_user(request, f'{updated} factories were successfully marked as active.')
-    make_active.short_description = "Mark selected factories as active"
-
-    def make_inactive(self, request, queryset):
-        updated = queryset.update(is_active=False)
-        self.message_user(request, f'{updated} factories were successfully marked as inactive.')
-    make_inactive.short_description = "Mark selected factories as inactive"
-
-    def mark_verified(self, request, queryset):
-        updated = queryset.update(is_verified=True)
-        self.message_user(request, f'{updated} factories were successfully marked as verified.')
-    mark_verified.short_description = "Mark selected factories as verified"
-
-    def mark_unverified(self, request, queryset):
-        updated = queryset.update(is_verified=False)
-        self.message_user(request, f'{updated} factories were successfully marked as unverified.')
-    mark_unverified.short_description = "Mark selected factories as unverified"
+    prepopulated_fields = {'slug': ('name',)}
+    
+    def get_primary_image(self, obj):
+        if obj.get_primary_image():
+            return format_html('<img src="{}" width="100" height="100" style="border-radius: 6px;" />', obj.get_primary_image())
+        return "No primary image"
+    get_primary_image.short_description = 'Primary Image'
 
 
-@admin.register(FactoryImage)
-class FactoryImageAdmin(admin.ModelAdmin):
-    list_display = ['factory', 'image_preview', 'alt_text', 'is_primary', 'created_at']
-    list_filter = ['is_primary', 'factory']
-    search_fields = ['factory__name', 'alt_text']
-    readonly_fields = ['image_preview', 'created_at', 'updated_at']
-
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" />', obj.image.url)
-        return "No image"
-    image_preview.short_description = 'Preview'
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ['user', 'total_price', 'total_items', 'created_at', 'updated_at']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def total_items(self, obj):
+        return obj.items.count()
+    total_items.short_description = 'Items Count'
 
 
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['user', 'factory', 'quantity', 'total_price', 'added_at']
-    list_filter = ['added_at', 'factory']
-    search_fields = ['user__username', 'factory__name']
-    readonly_fields = ['total_price', 'added_at', 'updated_at']
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ['cart', 'factory', 'added_at']
+    list_filter = ['added_at']
+    search_fields = ['cart__user__username', 'factory__name']
 
-    def total_price(self, obj):
-        return f"Rs. {obj.total_price}"
-    total_price.short_description = 'Total Price'
+
+@admin.register(PaymentGateway)
+class PaymentGatewayAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_active', 'mode', 'created_at']
+    list_filter = ['is_active', 'mode', 'name']
+    search_fields = ['name']
+    
+    def save_model(self, request, obj, form, change):
+        if obj.is_active:
+            # Deactivate all other gateways
+            PaymentGateway.objects.exclude(pk=obj.pk).update(is_active=False)
+        super().save_model(request, obj, form, change)
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ['factory_name', 'price_at_purchase']
+    
+    def factory_name(self, obj):
+        return obj.factory.name
+    factory_name.short_description = 'Factory'
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_number', 'user', 'customer_name', 'total_amount', 'status', 'payment_status', 'created_at']
-    list_filter = ['status', 'payment_status', 'payment_method', 'created_at']
-    search_fields = ['order_number', 'user__username', 'customer_name', 'customer_email']
-    readonly_fields = ['order_number', 'created_at', 'updated_at', 'completed_at']
-    actions = ['mark_completed', 'mark_cancelled', 'mark_refunded']
+    list_display = ['id', 'user', 'total_amount', 'payment_status', 'payment_method', 'gateway_used', 'order_date', 'receipt_sent']
+    list_filter = ['payment_status', 'payment_method', 'gateway_used', 'order_date', 'receipt_sent']
+    search_fields = ['user__username', 'user__email', 'transaction_id']
+    readonly_fields = ['order_date', 'transaction_id', 'stripe_payment_intent']
+    inlines = [OrderItemInline]
+    actions = ['mark_as_completed', 'resend_receipt']
     
-    fieldsets = (
-        ('Order Information', {
-            'fields': ('order_number', 'user', 'customer_name', 'customer_email', 'customer_phone')
-        }),
-        ('Order Details', {
-            'fields': ('subtotal', 'tax_amount', 'service_fee', 'total_amount', 'payment_method')
-        }),
-        ('Status', {
-            'fields': ('status', 'payment_status', 'tracking_number', 'notes')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at', 'completed_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-    def mark_completed(self, request, queryset):
-        updated = queryset.update(status='completed', payment_status='completed', completed_at=timezone.now())
-        self.message_user(request, f'{updated} orders were successfully marked as completed.')
-    mark_completed.short_description = "Mark selected orders as completed"
-
-    def mark_cancelled(self, request, queryset):
-        updated = queryset.update(status='cancelled', payment_status='cancelled')
-        self.message_user(request, f'{updated} orders were successfully marked as cancelled.')
-    mark_cancelled.short_description = "Mark selected orders as cancelled"
-
-    def mark_refunded(self, request, queryset):
+    def mark_as_completed(self, request, queryset):
+        """Admin action to manually mark orders as completed"""
+        updated = 0
         for order in queryset:
-            order.status = 'refunded'
-            order.payment_status = 'refunded'
-            order.save()
-            
-            # Process refunds for payments
-            for payment in order.payments.all():
-                payment.status = 'refunded'
-                payment.refunded_amount = payment.amount
-                payment.refunded_at = timezone.now()
-                payment.save()
+            if order.payment_status != 'completed':
+                order.payment_status = 'completed'
+                order.save()
+                
+                # Clear cart and send email
+                try:
+                    cart = Cart.objects.get(user=order.user)
+                    cart.items.all().delete()
+                    
+                    factories = [item.factory for item in order.items.all()]
+                    send_order_receipt(order.user, order, factories)
+                    
+                    updated += 1
+                except Exception as e:
+                    logger.error(f"Error processing order {order.id}: {str(e)}")
         
-        self.message_user(request, f'{queryset.count()} orders were successfully marked as refunded.')
-    mark_refunded.short_description = "Mark selected orders as refunded"
+        if updated > 0:
+            messages.success(request, f'Successfully marked {updated} orders as completed and sent receipts.')
+        else:
+            messages.info(request, 'No orders were updated (already completed).')
+    
+    mark_as_completed.short_description = "Mark selected orders as completed"
+    
+    def resend_receipt(self, request, queryset):
+        """Admin action to resend order receipts"""
+        sent = 0
+        failed = 0
+        
+        for order in queryset:
+            try:
+                factories = [item.factory for item in order.items.all()]
+                if send_order_receipt(order.user, order, factories):
+                    sent += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                logger.error(f"Error resending receipt for order {order.id}: {str(e)}")
+                failed += 1
+        
+        if sent > 0:
+            messages.success(request, f'Successfully sent {sent} receipts.')
+        if failed > 0:
+            messages.error(request, f'Failed to send {failed} receipts.')
+    
+    resend_receipt.short_description = "Resend receipt for selected orders"
 
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['order', 'factory', 'quantity', 'price_at_purchase', 'total_price']
-    list_filter = ['order', 'factory']
-    search_fields = ['order__order_number', 'factory__name']
-    readonly_fields = ['total_price']
+    list_display = ['order', 'factory', 'price_at_purchase']
+    list_filter = ['order__order_date']
+    search_fields = ['order__user__username', 'factory__name']
 
 
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['order', 'payment_method', 'amount', 'currency', 'status', 'transaction_id', 'created_at']
-    list_filter = ['status', 'payment_method', 'currency', 'created_at']
-    search_fields = ['order__order_number', 'transaction_id', 'gateway_response']
-    readonly_fields = ['transaction_id', 'gateway_response', 'gateway_error', 'completed_at', 'refunded_at']
-    
-    fieldsets = (
-        ('Payment Information', {
-            'fields': ('order', 'payment_method', 'amount', 'currency', 'transaction_id')
-        }),
-        ('Status', {
-            'fields': ('status', 'refunded_amount', 'refund_reason')
-        }),
-        ('Gateway Information', {
-            'fields': ('gateway_response', 'gateway_error'),
-            'classes': ('collapse',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at', 'completed_at', 'refunded_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    actions = ['mark_completed', 'mark_failed', 'mark_refunded']
+# Custom admin views for payment monitoring
+class PaymentAdminSite(admin.AdminSite):
+    site_header = 'Factory InfoHub Payment Administration'
+    site_title = 'Payment Admin'
+    index_title = 'Payment System Monitoring'
 
-    def mark_completed(self, request, queryset):
-        updated = queryset.update(status='completed', completed_at=timezone.now())
-        self.message_user(request, f'{updated} payments were successfully marked as completed.')
-    mark_completed.short_description = "Mark selected payments as completed"
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path('payment-dashboard/', self.admin_view(self.payment_dashboard), name='payment_dashboard'),
+            path('fix-order/<int:order_id>/', self.admin_view(self.fix_order), name='fix_order'),
+        ]
+        return custom_urls + urls
 
-    def mark_failed(self, request, queryset):
-        updated = queryset.update(status='failed')
-        self.message_user(request, f'{updated} payments were successfully marked as failed.')
-    mark_failed.short_description = "Mark selected payments as failed"
-
-    def mark_refunded(self, request, queryset):
-        for payment in queryset:
-            payment.status = 'refunded'
-            payment.refunded_amount = payment.amount
-            payment.refunded_at = timezone.now()
-            payment.save()
+    def payment_dashboard(self, request):
+        """Custom admin dashboard for payment monitoring"""
+        orders = Order.objects.all().order_by('-order_date')[:50]
         
-        self.message_user(request, f'{queryset.count()} payments were successfully marked as refunded.')
-    mark_refunded.short_description = "Mark selected payments as refunded"
+        # Payment status summary
+        total_orders = Order.objects.count()
+        completed_orders = Order.objects.filter(payment_status='completed').count()
+        pending_orders = Order.objects.filter(payment_status='pending').count()
+        failed_orders = Order.objects.filter(payment_status='failed').count()
+        
+        # Recent failed orders
+        recent_failed_orders = Order.objects.filter(payment_status='failed').order_by('-order_date')[:10]
+        
+        context = {
+            **self.each_context(request),
+            'orders': orders,
+            'total_orders': total_orders,
+            'completed_orders': completed_orders,
+            'pending_orders': pending_orders,
+            'failed_orders': failed_orders,
+            'recent_failed_orders': recent_failed_orders,
+        }
+        
+        return render(request, 'admin/payment_dashboard.html', context)
 
+    def fix_order(self, request, order_id):
+        """Manual order completion tool"""
+        order = get_object_or_404(Order, id=order_id)
+        
+        if request.method == 'POST':
+            try:
+                with transaction.atomic():
+                    # Mark order as completed
+                    order.payment_status = 'completed'
+                    order.save()
+                    
+                    # Clear cart
+                    cart = Cart.objects.get(user=order.user)
+                    cart.items.all().delete()
+                    
+                    # Send receipt
+                    factories = [item.factory for item in order.items.all()]
+                    send_order_receipt(order.user, order, factories)
+                    
+                    messages.success(request, f'Order {order.id} has been successfully completed.')
+                    return redirect('admin:karkahan_order_changelist')
+                    
+            except Exception as e:
+                messages.error(request, f'Error processing order: {str(e)}')
+        
+        context = {
+            **self.each_context(request),
+            'order': order,
+        }
+        return render(request, 'admin/fix_order.html', context)
 
-@admin.register(FactoryPurchase)
-class FactoryPurchaseAdmin(admin.ModelAdmin):
-    list_display = ['user', 'factory', 'quantity', 'price_at_purchase', 'payment_status', 'purchased_at']
-    list_filter = ['payment_status', 'purchased_at', 'factory']
-    search_fields = ['user__username', 'factory__name']
-    readonly_fields = ['purchased_at', 'email_sent_at']
-    actions = ['mark_completed', 'mark_failed', 'mark_cancelled']
+# Create the custom admin site instance
+payment_admin_site = PaymentAdminSite(name='payment_admin')
 
-    def mark_completed(self, request, queryset):
-        updated = queryset.update(payment_status='completed')
-        for purchase in queryset:
-            purchase.send_factory_details_email()
-        self.message_user(request, f'{updated} purchases were successfully marked as completed.')
-    mark_completed.short_description = "Mark selected purchases as completed"
+# Register models with the custom admin site
+payment_admin_site.register(Factory, FactoryAdmin)
+payment_admin_site.register(Cart, CartAdmin)
+payment_admin_site.register(CartItem, CartItemAdmin)
+payment_admin_site.register(Order, OrderAdmin)
+payment_admin_site.register(OrderItem, OrderItemAdmin)
+payment_admin_site.register(PaymentGateway, PaymentGatewayAdmin)
 
-    def mark_failed(self, request, queryset):
-        updated = queryset.update(payment_status='failed')
-        self.message_user(request, f'{updated} purchases were successfully marked as failed.')
-    mark_failed.short_description = "Mark selected purchases as failed"
+@admin.register(FactoryViewTracker)
+class FactoryViewTrackerAdmin(admin.ModelAdmin):
+    list_display = ['factory', 'ip_address', 'user', 'viewed_at']
+    list_filter = ['viewed_at', 'factory']
+    search_fields = ['ip_address', 'factory__name']
 
-    def mark_cancelled(self, request, queryset):
-        updated = queryset.update(payment_status='cancelled')
-        self.message_user(request, f'{updated} purchases were successfully marked as cancelled.')
-    mark_cancelled.short_description = "Mark selected purchases as cancelled"
+    def has_add_permission(self, request):
+        return False  # Disable adding new records via admin
 
+    def has_change_permission(self, request, obj=None):
+        return False  # Disable editing existing records
 
-@admin.register(PurchaseHistory)
-class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'factory_name', 'purchase_price', 'purchase_quantity', 'purchase_date', 'email_delivered']
-    list_filter = ['purchase_date', 'email_delivered']
-    search_fields = ['user__username', 'factory_name', 'factory_contact_email']
-    readonly_fields = ['purchase_date', 'email_delivered_at']
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disable deleting records
+    
+@admin.register(FactoryViewStats)
+class FactoryViewStatsAdmin(admin.ModelAdmin):
+    list_display = ['factory', 'total_views', 'today_views', 'weekly_views', 'monthly_views', 'last_updated']
+    readonly_fields = ['total_views', 'today_views', 'weekly_views', 'monthly_views', 'last_updated']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

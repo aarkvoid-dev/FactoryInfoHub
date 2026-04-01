@@ -1,0 +1,404 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{{ city.name }} Details{% endblock %}
+
+{% block content %}
+<div class="city-detail-page">
+    <!-- Header with gradient -->
+    <div class="page-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+            <div>
+                <h1 class="h2 fw-bold text-white mb-1">{{ city.name }}</h1>
+                <p class="text-white-80 mb-0">City Code: {{ city.code }} | State: {{ city.state.name }} | Country: {{ city.state.country.name }}</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Cities
+                </a>
+                <a href="{% url 'admin_interface:admin_city_edit' city.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- City Information -->
+    <div class="content-card">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-primary-soft me-3">
+                <i class="fas fa-city text-primary"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">City Information</h5>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <span class="detail-label">City Name:</span>
+                    <span class="detail-value">{{ city.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">City Code:</span>
+                    <span class="detail-value">{{ city.code|default:"N/A" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Is Capital:</span>
+                    <span class="detail-value">{{ city.is_capital|yesno:"Yes,No" }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <span class="detail-label">State:</span>
+                    <span class="detail-value">{{ city.state.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Country:</span>
+                    <span class="detail-value">{{ city.state.country.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value">{{ city.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geographic Information -->
+    {% if city.latitude or city.longitude %}
+        <div class="content-card mt-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="icon-shape bg-info-soft me-3">
+                    <i class="fas fa-map-marker-alt text-info"></i>
+                </div>
+                <h5 class="fw-semibold mb-0">Geographic Information</h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail-item">
+                        <span class="detail-label">Latitude:</span>
+                        <span class="detail-value">{{ city.latitude|default:"N/A" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="detail-item">
+                        <span class="detail-label">Longitude:</span>
+                        <span class="detail-value">{{ city.longitude|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Related Districts -->
+    <div class="content-card mt-4">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-warning-soft me-3">
+                <i class="fas fa-building text-warning"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">Districts in {{ city.name }}</h5>
+            <div class="ms-auto">
+                <a href="{% url 'admin_interface:admin_districts' %}?city={{ city.id }}" class="btn btn-outline-primary btn-sm">
+                    View All Districts
+                </a>
+            </div>
+        </div>
+
+        {% if districts %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>District Name</th>
+                            <th>District Code</th>
+                            <th>Regions</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for district in districts %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'admin_interface:admin_district_detail' district.id %}" class="text-decoration-none fw-semibold">
+                                        {{ district.name }}
+                                    </a>
+                                </td>
+                                <td>{{ district.code|default:"N/A" }}</td>
+                                <td>{{ district.regions.count }}</td>
+                                <td>{{ district.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'admin_interface:admin_district_edit' district.id %}" class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'admin_interface:admin_district_detail' district.id %}" class="btn btn-outline-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info border-0">
+                <i class="fas fa-info-circle me-2"></i>
+                No districts have been added for this city yet.
+                <a href="{% url 'admin_interface:admin_district_create' %}?city={{ city.id }}" class="btn btn-primary btn-sm ms-2">
+                    Add First District
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="content-card mt-4">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-success-soft me-3">
+                <i class="fas fa-bolt text-success"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">Quick Actions</h5>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <a href="{% url 'admin_interface:admin_district_create' %}?city={{ city.id }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-plus me-2"></i>Add District
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin_interface:admin_districts' %}?city={{ city.id }}" class="btn btn-info w-100 mb-2">
+                    <i class="fas fa-list me-2"></i>View Districts
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin_interface:admin_city_edit' city.id %}" class="btn btn-warning w-100 mb-2">
+                    <i class="fas fa-edit me-2"></i>Edit City
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin_interface:admin_city_delete' city.id %}" class="btn btn-danger w-100 mb-2">
+                    <i class="fas fa-trash me-2"></i>Delete City
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    {% if districts %}
+        <div class="content-card mt-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="icon-shape bg-warning-soft me-3">
+                    <i class="fas fa-chart-bar text-warning"></i>
+                </div>
+                <h5 class="fw-semibold mb-0">Statistics</h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ districts.count }}</div>
+                        <div class="stat-label">Total Districts</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_regions }}</div>
+                        <div class="stat-label">Total Regions</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ districts|dictsort:"name"|first.name|default:"N/A" }}</div>
+                        <div class="stat-label">First District</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ city.is_capital|yesno:"Yes,No" }}</div>
+                        <div class="stat-label">Is Capital</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Global page styles */
+    .city-detail-page {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Header with gradient */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .text-white-80 {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Content card */
+    .content-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    /* Icon shape */
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Detail styling */
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        width: 40%;
+    }
+    .detail-value {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Table styling */
+    .table {
+        margin-bottom: 0;
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    /* Button styling */
+    .btn {
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+        background: transparent;
+    }
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+
+    /* Stat card styling */
+    .stat-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Soft backgrounds */
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.1); color: #0d6efd; }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1.5rem;
+        }
+        .content-card {
+            padding: 1rem;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth transitions for hover effects
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

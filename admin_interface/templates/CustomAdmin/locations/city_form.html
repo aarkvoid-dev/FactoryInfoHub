@@ -1,0 +1,479 @@
+{% extends 'CustomAdmin/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="city-form-page">
+    <!-- Header with gradient -->
+    <div class="page-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+            <div>
+                <h1 class="h2 fw-bold text-white mb-1">{{ title }}</h1>
+                <p class="text-white-80 mb-0">Add or edit city information within a state</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Cities
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="content-card">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-primary-soft me-3">
+                <i class="fas fa-plus-circle text-primary"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">{{ title }}</h5>
+        </div>
+
+        <form method="post" class="admin-form">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ form.non_field_errors }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">{{ form.name.label }} <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter the full name of the city</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.code.id_for_label }}" class="form-label fw-semibold">{{ form.code.label }}</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="text-danger small mt-1">{{ form.code.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter city code (e.g., MUM for Mumbai)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="{{ form.state.id_for_label }}" class="form-label fw-semibold">{{ form.state.label }} <span class="text-danger">*</span></label>
+                        {{ form.state }}
+                        {% if form.state.errors %}
+                            <div class="text-danger small mt-1">{{ form.state.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Select the state this city belongs to</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.is_capital.id_for_label }}" class="form-label fw-semibold">{{ form.is_capital.label }}</label>
+                        <div class="form-check">
+                            {{ form.is_capital }}
+                            <label class="form-check-label" for="{{ form.is_capital.id_for_label }}">
+                                {{ form.is_capital.label }}
+                            </label>
+                        </div>
+                        {% if form.is_capital.errors %}
+                            <div class="text-danger small mt-1">{{ form.is_capital.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Check if this is the capital city of the state</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.population.id_for_label }}" class="form-label fw-semibold">{{ form.population.label }}</label>
+                        {{ form.population }}
+                        {% if form.population.errors %}
+                            <div class="text-danger small mt-1">{{ form.population.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter population in numbers (optional)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.area.id_for_label }}" class="form-label fw-semibold">{{ form.area.label }}</label>
+                        {{ form.area }}
+                        {% if form.area.errors %}
+                            <div class="text-danger small mt-1">{{ form.area.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter area in square kilometers (optional)</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.latitude.id_for_label }}" class="form-label fw-semibold">{{ form.latitude.label }}</label>
+                        {{ form.latitude }}
+                        {% if form.latitude.errors %}
+                            <div class="text-danger small mt-1">{{ form.latitude.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter latitude coordinates (optional)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.longitude.id_for_label }}" class="form-label fw-semibold">{{ form.longitude.label }}</label>
+                        {{ form.longitude }}
+                        {% if form.longitude.errors %}
+                            <div class="text-danger small mt-1">{{ form.longitude.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Enter longitude coordinates (optional)</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.created_by.id_for_label }}" class="form-label fw-semibold">{{ form.created_by.label }}</label>
+                        {{ form.created_by }}
+                        {% if form.created_by.errors %}
+                            <div class="text-danger small mt-1">{{ form.created_by.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Select the admin user who created this city</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {% if action == 'create' %}
+                                <i class="fas fa-plus me-2"></i>Create City
+                            {% else %}
+                                <i class="fas fa-save me-2"></i>Update City
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'admin_interface:admin_cities' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Information Card -->
+    <div class="content-card mt-4">
+        <div class="d-flex align-items-center mb-3">
+            <div class="icon-shape bg-info-soft me-3">
+                <i class="fas fa-info-circle text-info"></i>
+            </div>
+            <h5 class="fw-semibold mb-0">City Management Guidelines</h5>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Required Fields:</strong> City name and state are mandatory
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>City Code:</strong> Optional but recommended for identification
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Coordinates:</strong> Optional latitude/longitude for mapping
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Uniqueness:</strong> City names must be unique within each state
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <strong>Hierarchy:</strong> Cities belong to states, districts belong to cities
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <strong>Dependencies:</strong> Create states before adding cities
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <strong>Capital:</strong> Mark cities as capital if they are state capitals
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <strong>Validation:</strong> All entries are validated for data integrity
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Global page styles */
+    .city-form-page {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Header with gradient */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .text-white-80 {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Content card */
+    .content-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    /* Icon shape */
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Form styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .admin-form input[type="text"],
+    .admin-form input[type="email"],
+    .admin-form input[type="number"],
+    .admin-form select,
+    .admin-form textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .admin-form input:focus,
+    .admin-form select:focus,
+    .admin-form textarea:focus {
+        outline: none;
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        transform: translateY(-1px);
+    }
+    
+    .admin-form select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+        cursor: pointer;
+    }
+    
+    .form-check {
+        padding-left: 0;
+    }
+    .form-check-input {
+        width: 1.25em;
+        height: 1.25em;
+        margin-top: 0.125em;
+        vertical-align: top;
+        background-color: #fff;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        appearance: none;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    /* Button styling */
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        background: transparent;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+    /* List styling */
+    .list-unstyled li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .list-unstyled li:last-child {
+        border-bottom: none;
+    }
+
+    /* Soft backgrounds */
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.1); color: #0d6efd; }
+
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1.5rem;
+        }
+        .content-card {
+            padding: 1rem;
+        }
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form validation and enhancement
+    const nameField = document.getElementById('{{ form.name.id_for_label }}');
+    const codeField = document.getElementById('{{ form.code.id_for_label }}');
+    const populationField = document.getElementById('{{ form.population.id_for_label }}');
+    const areaField = document.getElementById('{{ form.area.id_for_label }}');
+    const latitudeField = document.getElementById('{{ form.latitude.id_for_label }}');
+    const longitudeField = document.getElementById('{{ form.longitude.id_for_label }}');
+    
+    if (nameField) {
+        nameField.addEventListener('input', function() {
+            // Capitalize first letter of each word
+            const words = this.value.toLowerCase().split(' ');
+            for (let i = 0; i < words.length; i++) {
+                words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+            }
+            this.value = words.join(' ');
+        });
+    }
+    
+    if (codeField) {
+        codeField.addEventListener('input', function() {
+            // Convert to uppercase and limit to 10 characters
+            this.value = this.value.toUpperCase().slice(0, 10);
+        });
+    }
+    
+    if (populationField) {
+        populationField.addEventListener('input', function() {
+            // Only allow numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+    
+    if (areaField) {
+        areaField.addEventListener('input', function() {
+            // Only allow numbers and decimal point
+            this.value = this.value.replace(/[^0-9.]/g, '');
+        });
+    }
+    
+    if (latitudeField) {
+        latitudeField.addEventListener('input', function() {
+            // Only allow numbers and decimal point
+            this.value = this.value.replace(/[^0-9.-]/g, '');
+        });
+    }
+    
+    if (longitudeField) {
+        longitudeField.addEventListener('input', function() {
+            // Only allow numbers and decimal point
+            this.value = this.value.replace(/[^0-9.-]/g, '');
+        });
+    }
+    
+    // Add confirmation for form submission
+    const form = document.querySelector('.admin-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

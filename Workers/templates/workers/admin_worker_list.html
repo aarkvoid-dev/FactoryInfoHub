@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin: All Workers - FactoryInfoHub{% endblock %}
+
+{% block content %}
+<section class="layout-pt-xl layout-pb-xl">
+    <div class="container">
+        <div class="row justify-center">
+            <div class="col-lg-12">
+                <div class="card rounded-24 shadow-2 mb-30">
+                    <div class="card__body p-40">
+                        <div class="d-flex justify-between items-center mb-30">
+                            <div>
+                                <h2 class="text-30 fw-700">Admin: All Workers</h2>
+                                <p class="text-16 mt-10">Manage all workers (verified and unverified)</p>
+                            </div>
+                            <div>
+                                <a href="{% url 'workers:worker_list' %}" class="button -outline-primary">Public View</a>
+                                <a href="{% url 'workers:my_workers' %}" class="button -outline-secondary">My Workers</a>
+                            </div>
+                        </div>
+
+                        <!-- Search and Filter Form -->
+                        <form method="get" class="mb-30">
+                            <div class="row y-gap-15">
+                                <div class="col-md-3">
+                                    <input type="text" name="q" class="form-control" placeholder="Search by name, skills, category, or username" value="{{ search_query }}">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <select name="category" class="form-control">
+                                        <option value="">All Categories</option>
+                                        {% for category in filter_form.category.field.queryset %}
+                                            <option value="{{ category.id }}" {% if filter_form.category.value == category.id|stringformat:"i" %}selected{% endif %}>{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <select name="subcategory" class="form-control">
+                                        <option value="">All Specializations</option>
+                                        {% for subcategory in filter_form.subcategory.field.queryset %}
+                                            <option value="{{ subcategory.id }}" {% if filter_form.subcategory.value == subcategory.id|stringformat:"i" %}selected{% endif %}>{{ subcategory.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <select name="country" class="form-control">
+                                        <option value="">All Countries</option>
+                                        {% for country in filter_form.country.field.queryset %}
+                                            <option value="{{ country.id }}" {% if filter_form.country.value == country.id|stringformat:"i" %}selected{% endif %}>{{ country.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <select name="state" class="form-control">
+                                        <option value="">All States</option>
+                                        {% for state in filter_form.state.field.queryset %}
+                                            <option value="{{ state.id }}" {% if filter_form.state.value == state.id|stringformat:"i" %}selected{% endif %}>{{ state.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button type="submit" class="button -primary w-full">Search</button>
+                                </div>
+                            </div>
+
+                            <!-- Additional Filters -->
+                            <div class="row y-gap-15 mt-15">
+                                <div class="col-md-2">
+                                    <select name="availability" class="form-control">
+                                        <option value="">All Availability</option>
+                                        {% for value, label in filter_form.availability.field.choices %}
+                                            <option value="{{ value }}" {% if filter_form.availability.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <input type="number" name="min_experience" class="form-control" placeholder="Min experience" value="{{ filter_form.min_experience.value|default:'' }}">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <input type="number" name="max_wage" class="form-control" placeholder="Max daily rate" value="{{ filter_form.max_wage.value|default:'' }}">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" name="is_active" value="True" {% if filter_form.is_active.value %}checked{% endif %}>
+                                        Active only
+                                    </label>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <button type="button" class="button -outline-secondary w-full" onclick="clearFilters()">Clear Filters</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if page_obj %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Worker</th>
+                                            <th>Category</th>
+                                            <th>Location</th>
+                                            <th>Experience</th>
+                                            <th>Wage</th>
+                                            <th>Status</th>
+                                            <th>Created By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for worker in page_obj %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ worker.full_name }}</strong>
+                                                    <br><small class="text-muted">{{ worker.phone_number }} | {{ worker.email }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <span class="badge -primary">{{ worker.category }}</span>
+                                                    <br><small class="text-muted">{{ worker.subcategory }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <span>{{ worker.get_full_location }}</span>
+                                                    <br><small class="text-muted">{{ worker.address|truncatechars:50 }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span>{{ worker.years_of_experience }} years</span>
+                                                <br><small class="text-muted">{{ worker.availability_display }}</small>
+                                            </td>
+                                            <td>
+                                                <span>&#8377; {{ worker.expected_daily_wage }}/day</span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <span class="badge {% if worker.is_verified %}-success{% else %}-warning{% endif %} mb-5">
+                                                        {% if worker.is_verified %}✓ Verified{% else %}✗ Unverified{% endif %}
+                                                    </span>
+                                                    <br>
+                                                    <span class="badge {% if worker.is_active %}-primary{% else %}-danger{% endif %}">
+                                                        {% if worker.is_active %}Active{% else %}Inactive{% endif %}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ worker.created_by.username }}</strong>
+                                                    <br><small class="text-muted">{{ worker.created_by.email }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group-vertical" role="group">
+                                                    <a href="{% url 'workers:worker_detail' worker.slug %}" class="btn btn-outline-primary btn-sm">View</a>
+                                                    <a href="{% url 'workers:edit_worker_profile' worker.slug %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                                                    {% if worker.is_active %}
+                                                        <button class="btn btn-outline-warning btn-sm" onclick="toggleWorkerStatus('{{ worker.slug }}', false)">Deactivate</button>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-success btn-sm" onclick="toggleWorkerStatus('{{ worker.slug }}', true)">Activate</button>
+                                                    {% endif %}
+                                                    {% if worker.is_verified %}
+                                                        <button class="btn btn-outline-danger btn-sm" onclick="toggleWorkerVerification('{{ worker.slug }}', false)">Unverify</button>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-info btn-sm" onclick="toggleWorkerVerification('{{ worker.slug }}', true)">Verify</button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if page_obj.has_other_pages %}
+                                <div class="pagination mt-40">
+                                    {% if page_obj.has_previous %}
+                                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="pagination__button">Previous</a>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <span class="pagination__button -active">{{ num }}</span>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="pagination__button">{{ num }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="pagination__button">Next</a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-60">
+                                <div class="mb-20">
+                                    <i class="icon-users text-60 text-muted"></i>
+                                </div>
+                                <h3 class="text-20 fw-500 mb-10">No workers found</h3>
+                                <p class="text-16 text-muted">No workers are registered in the system yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function clearFilters() {
+    window.location.href = '{% url "workers:admin_worker_list" %}';
+}
+
+function toggleWorkerStatus(workerSlug, isActive) {
+    if (confirm('Are you sure you want to ' + (isActive ? 'activate' : 'deactivate') + ' this worker?')) {
+        // This would need to be implemented with a proper endpoint
+        alert('Status toggle functionality would be implemented here');
+    }
+}
+
+function toggleWorkerVerification(workerSlug, isVerified) {
+    if (confirm('Are you sure you want to ' + (isVerified ? 'verify' : 'unverify') + ' this worker?')) {
+        // This would need to be implemented with a proper endpoint
+        alert('Verification toggle functionality would be implemented here');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Restore Factory - {{ factory.name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__bg">
+    <img src="{% static 'img/hero/1.png' %}" alt="image">
+    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
+  </div>
+  <div class="container">
+    <div class="row justify-center">
+      <div class="col-xl-12">
+        <div class="hero__content">
+          <h1 class="hero__title text-light-1">Restore Factory</h1>
+          <p class="hero__text text-light-1">Restore the factory "{{ factory.name }}" from soft deletion</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-xl bg-light-surface">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="editor-main-canvas shadow-soft rounded-4 bg-white">
+          <div class="canvas-header p-4 border-bottom">
+            <h5 class="mb-0 fw-bold">Factory Restoration</h5>
+          </div>
+          <div class="p-4 p-md-5">
+            <div class="alert alert-warning border-0 bg-warning-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle text-warning fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">Factory is Soft Deleted</h6>
+                  <p class="mb-0">This factory has been soft deleted and is currently hidden from users. Restoring it will make it visible again.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Factory Name</label>
+                  <input type="text" class="form-control" value="{{ factory.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Category</label>
+                  <input type="text" class="form-control" value="{{ factory.category.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Location</label>
+                  <input type="text" class="form-control" value="{{ factory.city.name }}, {{ factory.state.name }}" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-custom">
+                  <label class="label-tech">Status</label>
+                  <input type="text" class="form-control" value="Soft Deleted" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info border-0 bg-info-subtle">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle text-info fs-4 me-3"></i>
+                <div>
+                  <h6 class="mb-1">What happens when you restore?</h6>
+                  <ul class="mb-0">
+                    <li>The factory will become visible to users again</li>
+                    <li>All factory data and images will be restored</li>
+                    <li>The factory will retain its original creation date</li>
+                    <li>View statistics will be preserved</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3">
+              <form method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success px-4 py-2 fw-bold">
+                  <i class="fas fa-undo me-2"></i> Restore Factory
+                </button>
+              </form>
+              <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" class="btn btn-outline-secondary px-4 py-2 fw-bold">
+                <i class="fas fa-times me-2"></i> Cancel
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
