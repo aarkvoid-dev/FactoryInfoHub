@@ -20,6 +20,8 @@ Functions:
     blog_admin_dashboard: Admin dashboard for blog management
 """
 
+import os
+import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
@@ -33,9 +35,13 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.http import Http404
 from django.db.models import Q
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 from .models import BlogPost, BlogImage
 from .forms import BlogPostForm, BlogImageForm, BlogImageFormSet, BlogPostFilterForm
 from Karkahan.models import Factory
+from django.urls import reverse
 from .utils import (
     handle_multiple_images, get_location_cascading_data, 
     set_featured_image, delete_blog_image, get_blog_statistics
@@ -503,7 +509,7 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
     context_object_name = 'post'
     slug_field = 'slug'
     slug_url_kwarg = 'slug'
-    success_url = reverse_lazy('blog:post_list')
+    # success_url = reverse_lazy('blog:post_detail')
 
     def get_queryset(self):
         return BlogPost.objects.filter(Q(author=self.request.user)) if not self.request.user.is_staff else BlogPost.objects.all()
@@ -512,6 +518,9 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
         # Use the form's save method which handles images automatically
         blog = form.save(commit=True, author=self.request.user)
         return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('blog:post_detail', kwargs={'slug': self.object.slug})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -714,3 +723,52 @@ def admin_blog_permanent_delete(request, blog_id):
         'action': 'permanent_delete'
     }
     return render(request, 'admin_interface/blogs/blog_permanent_delete.html', context)
+
+
+@login_required
+def tinymce_image_upload(request):
+    """
+    Handle image uploads from TinyMCE editor.
+    
+    This view processes image uploads from the TinyMCE editor and returns
+    the URL of the uploaded image so it can be inserted into the content.
+    
+    Returns:
+        JsonResponse: JSON response with location of uploaded file or error
+    """
+    if request.method == 'POST' and request.FILES.get('file'):
+        try:
+            image_file = request.FILES['file']
+            
+            # Validate file type
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+            file_extension = os.path.splitext(image_file.name)[1].lower()
+            
+            if file_extension not in allowed_extensions:
+                return JsonResponse({
+                    'error': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'
+                }, status=400)
+            
+            # Validate file size (max 10MB)
+            max_size = 10 * 1024 * 1024  # 10MB
+            if image_file.size > max_size:
+                return JsonResponse({
+                    'error': 'File too large. Maximum size is 10MB.'
+                }, status=400)
+            
+            # Generate unique filename
+            import uuid
+            unique_filename = f"blog_images/{uuid.uuid4().hex}_{image_file.name}"
+            
+            # Save the file
+            file_path = default_storage.save(unique_filename, ContentFile(image_file.read()))
+            file_url = settings.MEDIA_URL + file_path
+            
+            return JsonResponse({'location': file_url})
+            
+        except Exception as e:
+            return JsonResponse({
+                'error': f'Upload failed: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({'error': 'No file provided'}, status=400)

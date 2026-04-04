@@ -105,17 +105,26 @@ WSGI_APPLICATION = 'FactoryInfoHub.wsgi.application'
 # Database configuration with environment variable support
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    # Use DATABASE_URL if provided (for PostgreSQL in production)
+    # Use DATABASE_URL if provided (for PostgreSQL in production via URL)
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL)
     }
 else:
-    # Fallback to SQLite for development
+    # PostgreSQL configuration using individual environment variables
+    # Defaults to the server setup values if not specified
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'factoryhub'),
+            'USER': os.environ.get('DB_USER', 'factoryhubuser'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'strongpassword'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 600,  # Persistent connections
+            'OPTIONS': {
+                'sslmode': os.environ.get('DB_SSLMODE', 'prefer'),
+            },
         }
     }
 
@@ -241,21 +250,102 @@ else:
 # Email backend configuration for fallback scenarios
 EMAIL_FALLBACK_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# TinyMCE Configuration
+# TinyMCE Configuration - Enhanced for Blog Editor
 TINYMCE_DEFAULT_CONFIG = {
-    'height': 500,
-    'width': None,
+    'height': 600,
+    'width': '100%',
     'menubar': True,
-    'plugins': 'advlist autolink lists link image charmap print preview anchor '
-               'searchreplace visualblocks code fullscreen '
-               'insertdatetime media table paste code help wordcount',
-    'toolbar': 'undo redo | formatselect | '
-               'bold italic backcolor | alignleft aligncenter alignright alignjustify | '
-               'bullist numlist outdent indent | image media | removeformat | help',
-    'content_style': 'body { font-family: Arial, sans-serif; font-size: 14px; }',
+    'resize': True,
+    'plugins': [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'paste', 'code', 'help', 'wordcount',
+        'directionality', 'emoticons', 'pagebreak', 'nonbreaking', 'save',
+        'toc', 'visualchars'
+    ],
+    'toolbar': [
+        'undo redo | formatselect | bold italic backcolor | forecolor backcolor |',
+        'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |',
+        'removeformat | image media link | table | code | fullscreen | help',
+        'ltr rtl | emoticons | pagebreak | nonbreaking | save'
+    ],
+    'toolbar_mode': 'sliding',
+    'toolbar_sticky': True,
+    'content_style': '''
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
+            font-size: 16px; 
+            line-height: 1.8;
+            color: #1e293b;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { font-size: 2em; font-weight: 700; margin: 1.5em 0 0.5em; color: #1e293b; }
+        h2 { font-size: 1.5em; font-weight: 600; margin: 1.2em 0 0.4em; color: #334155; }
+        h3 { font-size: 1.25em; font-weight: 600; margin: 1em 0 0.3em; color: #475569; }
+        p { margin: 0 0 1em; }
+        ul, ol { padding-left: 2em; margin: 1em 0; }
+        li { margin: 0.5em 0; }
+        blockquote {
+            border-left: 4px solid #EB662B;
+            padding-left: 1em;
+            margin: 1em 0;
+            font-style: italic;
+            color: #64748b;
+        }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75em;
+            text-align: left;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .img-fluid { max-width: 100%; height: auto; }
+        .img-thumbnail { border: 1px solid #dee2e6; padding: 4px; }
+        .rounded { border-radius: 8px; }
+        .rounded-circle { border-radius: 50%; }
+        a { color: #EB662B; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        hr { border: none; border-top: 1px solid #e2e8f0; margin: 2em 0; }
+    ''',
     'branding': False,
     'statusbar': True,
-    'elementpath': False,
+    'elementpath': True,
+    'path_powered_by': False,
+    
     # Image upload configuration
     'images_upload_url': '/blog/upload-image/',
     'images_upload_base_path': '/media/',
@@ -263,23 +353,143 @@ TINYMCE_DEFAULT_CONFIG = {
     'automatic_uploads': True,
     'file_picker_types': 'image',
     'images_reuse_filename': True,
-    # Image handling options
-    'image_caption': True,
     'image_advtab': True,
+    'image_caption': True,
+    'image_title': True,
+    'image_description': True,
     'image_class_list': [
         {'title': 'None', 'value': ''},
         {'title': 'Responsive', 'value': 'img-fluid'},
         {'title': 'Thumbnail', 'value': 'img-thumbnail'},
         {'title': 'Rounded', 'value': 'rounded'},
         {'title': 'Circle', 'value': 'rounded-circle'},
+        {'title': 'Full Width', 'value': 'img-full-width'},
     ],
     # Allowed image file types
-    'images_file_types': 'jpg,jpeg,png,gif,webp',
+    'images_file_types': 'jpg,jpeg,png,gif,webp,svg',
     # Image size limits
-    'image_max_width': 1200,
-    'image_max_height': 800,
+    'image_max_width': 1920,
+    'image_max_height': 1080,
     'image_size_mode': 'constrain',
+    'image_dimensions': True,
+    
+    # Link settings
+    'link_default_target': '_blank',
+    'link_default_protocol': 'https',
+    'link_assume_external_targets': True,
+    'link_list': [
+        {'title': 'My page 1', 'value': 'https://www.example.com/page1'},
+        {'title': 'My page 2', 'value': 'https://www.example.com/page2'},
+    ],
+    
+    # Table settings
+    'table_toolbar': 'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol',
+    'table_column_resizing': 'resizetable',
+    'table_default_border': '1',
+    'table_default_cellpadding': '10',
+    
+    # Format settings
+    'format_nonbreaking_selector': 'td',
+    'entity_encoding': 'raw',
+    'valid_elements': '*[*]',
+    'extended_valid_elements': 'iframe[src|style|width|height|scrolling|marginwidth|marginheight|frameborder],script[src|type]',
+    
+    # Paste settings
+    'paste_data_images': True,
+    'paste_webkit_styles': 'all',
+    'paste_merge_formats': True,
+    'paste_remove_styles_if_webkit': False,
+    
+    # Save settings
+    'save_enablewhendirty': True,
+    'save_onsavecallback': None,
+    
+    # Directionality
+    'directionality': 'ltr',
+    
+    # Language
+    'language': 'en',
+    
+    # Content CSS (additional custom styles)
+    'content_css': [
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+    ],
+    
+    # External styles
+    'importcss_append': True,
+    
+    # Templates (optional - for reusable content blocks)
+    'templates': [
+        {'title': 'Call to Action', 'description': 'Call to action block', 'content': '<div class="cta-box" style="background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;"><h3>Call to Action</h3><p>Your content here...</p></div>'},
+        {'title': 'Info Box', 'description': 'Information box', 'content': '<div class="info-box" style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 15px 0;"><p><strong>Info:</strong> Your information here...</p></div>'},
+        {'title': 'Warning Box', 'description': 'Warning box', 'content': '<div class="warning-box" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 15px 0;"><p><strong>Warning:</strong> Your warning here...</p></div>'},
+    ],
+    
+    # Style formats
+    'style_formats': [
+        {'title': 'Headings', 'items': [
+            {'title': 'Heading 1', 'format': 'h1'},
+            {'title': 'Heading 2', 'format': 'h2'},
+            {'title': 'Heading 3', 'format': 'h3'},
+            {'title': 'Heading 4', 'format': 'h4'},
+        ]},
+        {'title': 'Inline', 'items': [
+            {'title': 'Bold', 'icon': 'bold', 'format': 'bold'},
+            {'title': 'Italic', 'icon': 'italic', 'format': 'italic'},
+            {'title': 'Underline', 'icon': 'underline', 'format': 'underline'},
+            {'title': 'Strikethrough', 'icon': 'strikethrough', 'format': 'strikethrough'},
+            {'title': 'Superscript', 'icon': 'superscript', 'format': 'superscript'},
+            {'title': 'Subscript', 'icon': 'subscript', 'format': 'subscript'},
+            {'title': 'Code', 'icon': 'code', 'format': 'code'},
+        ]},
+        {'title': 'Blocks', 'items': [
+            {'title': 'Paragraph', 'format': 'p'},
+            {'title': 'Blockquote', 'format': 'blockquote'},
+            {'title': 'Div', 'format': 'div'},
+            {'title': 'Pre', 'format': 'pre'},
+        ]},
+        {'title': 'Alignment', 'items': [
+            {'title': 'Left', 'icon': 'alignleft', 'format': 'alignleft'},
+            {'title': 'Center', 'icon': 'aligncenter', 'format': 'aligncenter'},
+            {'title': 'Right', 'icon': 'alignright', 'format': 'alignright'},
+            {'title': 'Justify', 'icon': 'alignjustify', 'format': 'alignjustify'},
+        ]},
+    ],
+    
+    # Custom colors
+    'color_map': [
+        'EB662B', 'Primary Orange',
+        '1e293b', 'Dark Text',
+        '64748b', 'Gray Text',
+        '3b82f6', 'Blue',
+        '10b981', 'Green',
+        'ef4444', 'Red',
+        'f59e0b', 'Amber',
+        '8b5cf6', 'Purple',
+        'ffffff', 'White',
+        '000000', 'Black',
+    ],
+    
+    # Font list
+    'font_family_formats': 'Inter=inter, sans-serif; Arial=arial,helvetica,sans-serif; Georgia=georgia,times,times new roman,serif; Courier New=courier new,courier,monospace;',
+    'font_size_formats': '10px 11px 12px 14px 16px 18px 24px 36px 48px',
+    
+    # Word count
+    'wordcount_countregex': r'[\w\']+,[\w\']+',
+    
+    # Mobile settings
+    'mobile': {
+        'plugins': ['autolink', 'lists', 'link', 'image', 'table'],
+        'toolbar': 'undo redo | styles | bold italic | alignleft aligncenter alignright | bullist numlist',
+    },
 }
+
+# TinyMCE compressor settings
+TINYMCE_COMPRESSOR = False
+
+# TinyMCE spellchecker settings
+TINYMCE_SPELLCHECKER = True
+TINYMCE_SPELLCHECKER_DEFAULT_LANGUAGE = 'en'
 
 
 

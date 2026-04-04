@@ -8,6 +8,7 @@ urlpatterns = [
     path('create/', views.create_blog_post_form, name='post_create'),
     path('create-manual/', views.create_blog_post, name='post_create_manual'),
     path('admin/', views.blog_admin_dashboard, name='admin_dashboard'),
+    path('upload-image/', views.tinymce_image_upload, name='upload_image'),
     path('<slug:slug>/', views.BlogPostDetailView.as_view(), name='post_detail'),
     path('<slug:slug>/update/', views.BlogPostUpdateView.as_view(), name='post_update'),
     path('<slug:slug>/delete/', views.BlogPostDeleteView.as_view(), name='post_delete'),

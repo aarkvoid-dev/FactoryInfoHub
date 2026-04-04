@@ -302,6 +302,16 @@
                             <label class="lh-1 text-16">Article Content</label>
                         </div>
                         
+                        <!-- Link Insertion Tool -->
+                        <div class="link-tools mt-3 p-3 bg-light rounded-3">
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLink()">
+                                    <i class="fas fa-link"></i> Add Link
+                                </button>
+                                <small class="text-muted">Select text in the editor, then click "Add Link" to create a hyperlink</small>
+                            </div>
+                        </div>
+                        
                         <!-- Inline Image Helper -->
                         <div class="inline-image-helper mt-4 p-3 bg-light rounded-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -477,13 +487,170 @@
 </div>
 {% endblock %}
 
+{% load static %}
 {% block extra_js %}
+<!-- jQuery and Select2 -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<!-- TinyMCE from local static files -->
+<script src="{% static 'tinymce/js/tinymce/tinymce.min.js' %}"></script>
+
 <script>
-// --- THE WATERFALL ENGINE (FIXED) ---
+// ==========================================
+// TinyMCE Advanced Rich Text Editor Setup
+// (Using local static files - completely FREE)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TinyMCE with enhanced configuration
+    tinymce.init({
+        selector: '#id_content',  // Target the content textarea by its ID
+        height: 600,
+        license_key: 'gpl',  // Open source license
+        menubar: 'file edit view insert format table tools',
+        plugins: [
+            'advlist autolink lists link image charmap preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
+        ],
+        toolbar: [
+            'undo redo | formatselect | bold italic backcolor | link unlink',
+            'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+            'removeformat | image | table | code | fullscreen | help'
+        ],
+        toolbar_mode: 'sliding',
+        toolbar_sticky: false,
+        branding: false,
+        statusbar: true,
+        elementpath: true,
+        resize: true,
+        
+        // Image upload configuration
+        images_upload_url: '{% url "blog:upload_image" %}',
+        images_upload_base_path: '/media/',
+        automatic_uploads: true,
+        file_picker_types: 'image',
+        image_advtab: true,
+        image_caption: true,
+        image_class_list: [
+            {title: 'None', value: ''},
+            {title: 'Responsive', value: 'img-fluid'},
+            {title: 'Thumbnail', value: 'img-thumbnail'},
+            {title: 'Rounded', value: 'rounded'},
+        ],
+        
+        // Link settings
+        link_default_target: '_blank',
+        link_default_protocol: 'https',
+        
+        // Content styling
+        content_style: `
+            body { 
+                font-family: Arial, sans-serif; 
+                font-size: 16px; 
+                line-height: 1.8;
+                color: #1e293b;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1 { font-size: 2em; font-weight: 700; margin: 1.5em 0 0.5em; }
+            h2 { font-size: 1.5em; font-weight: 600; margin: 1.2em 0 0.4em; }
+            h3 { font-size: 1.25em; font-weight: 600; margin: 1em 0 0.3em; }
+            p { margin: 0 0 1em; }
+            blockquote {
+                border-left: 4px solid #EB662B;
+                padding-left: 1em;
+                margin: 1em 0;
+                font-style: italic;
+                color: #64748b;
+            }
+            code {
+                background: #f1f5f9;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: monospace;
+            }
+            pre {
+                background: #1e293b;
+                color: #e2e8f0;
+                padding: 1em;
+                border-radius: 8px;
+                overflow-x: auto;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 1em 0;
+            }
+            th, td {
+                border: 1px solid #e2e8f0;
+                padding: 0.75em;
+                text-align: left;
+            }
+            th { background: #f8fafc; font-weight: 600; }
+            img { max-width: 100%; height: auto; border-radius: 8px; }
+            a { color: #EB662B; text-decoration: none; }
+        `,
+        
+        // Style formats
+        style_formats: [
+            {title: 'Headings', items: [
+                {title: 'Heading 1', format: 'h1'},
+                {title: 'Heading 2', format: 'h2'},
+                {title: 'Heading 3', format: 'h3'},
+            ]},
+            {title: 'Inline', items: [
+                {title: 'Bold', format: 'bold'},
+                {title: 'Italic', format: 'italic'},
+                {title: 'Underline', format: 'underline'},
+                {title: 'Strikethrough', format: 'strikethrough'},
+                {title: 'Code', format: 'code'},
+            ]},
+            {title: 'Blocks', items: [
+                {title: 'Paragraph', format: 'p'},
+                {title: 'Blockquote', format: 'blockquote'},
+                {title: 'Pre', format: 'pre'},
+            ]},
+        ],
+        
+        // Custom colors
+        color_map: [
+            'EB662B', 'Primary Orange',
+            '1e293b', 'Dark Text',
+            '64748b', 'Gray Text',
+            '3b82f6', 'Blue',
+            '10b981', 'Green',
+            'ef4444', 'Red',
+            'f59e0b', 'Amber',
+            'ffffff', 'White',
+            '000000', 'Black',
+        ],
+        
+        // Font settings
+        font_family_formats: 'Arial=arial,helvetica,sans-serif; Georgia=georgia,times,serif; Courier New=courier new,courier,monospace;',
+        font_size_formats: '10px 11px 12px 14px 16px 18px 24px 36px 48px',
+        
+        // Paste settings
+        paste_data_images: true,
+        
+        // Setup callback
+        setup: function(editor) {
+            editor.on('change', function() {
+                editor.save();  // Sync content back to textarea
+            });
+            
+            editor.on('init', function() {
+                console.log('TinyMCE editor initialized successfully');
+            });
+        }
+    });
+});
+
+// ==========================================
+// THE WATERFALL ENGINE (Cascading Selects)
+// ==========================================
 
 document.querySelectorAll('.clickable-image').forEach(el => {
     el.addEventListener('click', function(e) {
@@ -805,14 +972,22 @@ $(document).ready(function() {
 });
 
 function insertImagePlaceholder(placeholder) {
-    const contentTextarea = document.querySelector('textarea[name="content"]');
-    if (contentTextarea) {
-        const start = contentTextarea.selectionStart;
-        const end = contentTextarea.selectionEnd;
-        const newValue = contentTextarea.value.substring(0, start) + placeholder + contentTextarea.value.substring(end);
-        contentTextarea.value = newValue;
-        contentTextarea.selectionStart = contentTextarea.selectionEnd = start + placeholder.length;
-        contentTextarea.focus();
+    // Get the TinyMCE editor instance
+    const editor = tinymce.get('id_content');
+    if (editor) {
+        // Insert the placeholder at the current cursor position
+        editor.insertContent(placeholder);
+    }
+}
+
+// ==========================================
+// Add Link Function - Works with TinyMCE
+// ==========================================
+function addLink() {
+    const editor = tinymce.get('id_content');
+    if (editor) {
+        // Open TinyMCE's built-in link dialog
+        editor.execCommand('mceLink');
     }
 }
 </script>
