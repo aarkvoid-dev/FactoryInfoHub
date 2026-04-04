@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api_views
 
 app_name = 'admin_interface'
 
@@ -174,4 +175,8 @@ urlpatterns = [
     path('pages/<int:page_id>/sections/', views.admin_page_sections, name='admin_page_sections'),
     path('pages/sections/<int:section_id>/edit/', views.admin_page_section_edit, name='admin_page_section_edit'),
     path('pages/sections/<int:section_id>/delete/', views.admin_page_section_delete, name='admin_page_section_delete'),
+    
+    # Utility API endpoints
+    path('api/folders/', api_views.list_folders_api, name='api_list_folders'),
+    path('api/folders/delete/', api_views.delete_folder_api, name='api_delete_folder'),
 ]
