@@ -29,12 +29,12 @@ def home(request):
     # Get category statistics
     category_stats = Category.objects.annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
-    ).order_by('-factory_count')[:4]
+    ).order_by('?')   # '?' means random order
 
-    # Get city statistics
+    # Get all cities, randomly ordered
     city_stats = City.objects.annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
-    ).order_by('-factory_count')[:8]
+    ).order_by('?')
 
     # Get overall statistics
     total_factories = Factory.objects.filter(is_deleted=False).count()
