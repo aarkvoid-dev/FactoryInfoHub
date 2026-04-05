@@ -369,11 +369,13 @@
                         <div class="mb-4">
                             <label class="form-label">Blog Images</label>
                             <div class="row g-3">
+                                {% if blog.id %}
                                 <div class="col-md-6">
                                     <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary w-100">
                                         <i class="fas fa-images me-2"></i>Manage Images
                                     </a>
                                 </div>
+                                {% endif %}
                                 <div class="col-md-6">
                                     {% if blog.get_featured_image %}
                                     <div class="border rounded p-2 text-center">
@@ -480,14 +482,18 @@
                     <div class="mb-3">
                         <h6 class="fw-semibold">Actions</h6>
                         <div class="d-grid gap-2">
+                            {% if blog.id %}
                             <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-images me-2"></i>Manage Images
                             </a>
+                            {% endif %}
                             
                             {% if blog.is_deleted %}
-                                <a href="{% url 'admin_interface:admin_blog_restore' blog.id %}" class="btn btn-success btn-sm">
-                                    <i class="fas fa-trash-restore me-2"></i>Restore Blog
-                                </a>
+                                {% if blog.id %}
+                                    <a href="{% url 'admin_interface:admin_blog_restore' blog.id %}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-trash-restore me-2"></i>Restore Blog
+                                    </a>
+                                {% endif %}
                                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#permanentDeleteModal">
                                     <i class="fas fa-trash-alt me-2"></i>Permanent Delete
                                 </button>
@@ -545,6 +551,7 @@
                     <i class="fas fa-exclamation-triangle me-2"></i> This action cannot be undone. All associated data will be removed.
                 </div>
             </div>
+            {% if blog.id %}
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form method="POST" action="{% url 'admin_interface:admin_blog_hard_delete' blog.id %}" class="d-inline">
@@ -552,6 +559,7 @@
                     <button type="submit" class="btn btn-danger">Permanently Delete</button>
                 </form>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
