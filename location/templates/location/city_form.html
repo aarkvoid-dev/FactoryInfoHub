@@ -1,4 +1,5 @@
 {% extends 'location/base.html' %}
+{% load static %}
 
 {% block page_title %}{{ title }}{% endblock %}
 
@@ -16,7 +17,7 @@
                 <h5 class="mb-0">{{ title }}</h5>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -81,6 +82,22 @@
                         {% if form.longitude.errors %}
                             <div class="text-danger small">{{ form.longitude.errors.0 }}</div>
                         {% endif %}
+                    </div>
+
+                    <!-- City Image Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">City Image</label>
+                        {% if form.instance.image %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" class="img-thumbnail" style="max-height: 150px;">
+                                <div class="form-text mt-1">Current image: {{ form.instance.image.name }}</div>
+                            </div>
+                        {% endif %}
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <div class="text-danger small">{{ form.image.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Upload an image representing this city (e.g., landmark, skyline). Supported formats: JPG, PNG, GIF.</div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
