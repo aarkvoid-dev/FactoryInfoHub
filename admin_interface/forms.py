@@ -29,12 +29,19 @@ class AdminProfileForm(forms.ModelForm):
             'in_app_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+class MultipleFileInput(forms.FileInput):
+    """Custom widget that supports multiple file uploads"""
+    def __init__(self, attrs=None):
+        # Initialize without the multiple attribute first
+        super().__init__(attrs)
+        # Then add the multiple attribute directly
+        self.attrs['multiple'] = 'multiple'
+
 class AdminFactoryForm(forms.ModelForm):
     # Add image field for factory images with multiple file support
-    image = forms.ImageField(required=False, widget=forms.FileInput(attrs={
+    image = forms.ImageField(required=False, widget=MultipleFileInput(attrs={
         'class': 'form-control',
         'accept': 'image/*',
-        'multiple': True
     }))
     
     def __init__(self, *args, **kwargs):

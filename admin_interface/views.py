@@ -2160,7 +2160,7 @@ def admin_factory_create(request):
                     new_image = FactoryImage.objects.create(
                         factory=factory,
                         image=image_file,
-                        caption=f"Image uploaded via admin form - {factory.name}"
+                        alt_text=f"Image uploaded via admin form - {factory.name}"
                     )
                     
                     # Set as primary if no primary image exists
@@ -2265,7 +2265,7 @@ def admin_factory_edit(request, factory_id):
                     new_image = FactoryImage.objects.create(
                         factory=factory,
                         image=image_file,
-                        caption=f"Image uploaded via admin form - {factory.name}"
+                        alt_text=f"Image uploaded via admin form - {factory.name}"
                     )
                     
                     # Set as primary if no primary image exists
