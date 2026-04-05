@@ -521,10 +521,12 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                {% if blog.id %}
                 <form method="POST" action="{% url 'admin_interface:admin_blog_soft_delete' blog.id %}" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-warning">Move to Trash</button>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>
