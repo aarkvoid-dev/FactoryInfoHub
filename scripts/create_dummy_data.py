@@ -4,10 +4,10 @@ Script to create dummy data for FactoryInfoHub project.
 Creates a superuser and optional sample data.
 
 Usage:
-    python manage.py shell < scripts/create_dummy_data.py
+    python3 manage.py shell < scripts/create_dummy_data.py
     
 Or run directly:
-    python scripts/create_dummy_data.py
+    python3 scripts/create_dummy_data.py
 """
 
 import os
@@ -22,11 +22,11 @@ django.setup()
 from django.contrib.auth.models import User
 from Accounts.models import Profile
 from location.models import Country, State, City, District
-from category.models import Category
-from blog.models import BlogPost
+from category.models import Category, SubCategory
+from blog.models import Post
 from Karkahan.models import Factory
 from Workers.models import Worker
-from faq.models import FAQ, FAQCategory
+from faq.models import FAQQuestion
 
 
 def create_superuser():
@@ -68,397 +68,359 @@ def create_location_data():
     india, created = Country.objects.get_or_create(
         name='India',
         code='IN',
-        defaults={'name_hi': 'भारत'}
     )
     
     # Indian States and Union Territories with their major cities
-    # Format: {state_name: {state_code, name_hi, cities: [city_name, name_hi, is_capital, districts: [district_names]]}}
     indian_states = {
         'Andhra Pradesh': {
             'code': 'AP',
-            'name_hi': 'आंध्र प्रदेश',
             'cities': [
-                {'name': 'Visakhapatnam', 'name_hi': 'विशाखपत्तनम', 'is_capital': True, 'districts': ['Visakhapatnam', 'Anakapalli']},
-                {'name': 'Vijayawada', 'name_hi': 'विजयवाड़ा', 'is_capital': False, 'districts': ['NTR', 'Krishna']},
-                {'name': 'Guntur', 'name_hi': 'गुंटूर', 'is_capital': False, 'districts': ['Guntur', 'Palnadu']},
-                {'name': 'Tirupati', 'name_hi': 'तिरुपति', 'is_capital': False, 'districts': ['Tirupati', 'Chittoor']},
-                {'name': 'Nellore', 'name_hi': 'नेल्लोर', 'is_capital': False, 'districts': ['Nellore', 'Sri Potti Sriramulu']},
+                {'name': 'Visakhapatnam', 'is_capital': True, 'districts': ['Visakhapatnam', 'Anakapalli']},
+                {'name': 'Vijayawada', 'is_capital': False, 'districts': ['NTR', 'Krishna']},
+                {'name': 'Guntur', 'is_capital': False, 'districts': ['Guntur', 'Palnadu']},
+                {'name': 'Tirupati', 'is_capital': False, 'districts': ['Tirupati', 'Chittoor']},
+                {'name': 'Nellore', 'is_capital': False, 'districts': ['Nellore', 'Sri Potti Sriramulu']},
             ]
         },
         'Arunachal Pradesh': {
             'code': 'AR',
-            'name_hi': 'अरुणाचल प्रदेश',
             'cities': [
-                {'name': 'Itanagar', 'name_hi': 'इटानगर', 'is_capital': True, 'districts': ['Papum Pare', 'Lower Subansiri']},
-                {'name': 'Naharlagun', 'name_hi': 'नहरलागुन', 'is_capital': False, 'districts': ['Papum Pare']},
-                {'name': 'Pasighat', 'name_hi': 'पासीघाट', 'is_capital': False, 'districts': ['East Siang']},
+                {'name': 'Itanagar', 'is_capital': True, 'districts': ['Papum Pare', 'Lower Subansiri']},
+                {'name': 'Naharlagun', 'is_capital': False, 'districts': ['Papum Pare']},
+                {'name': 'Pasighat', 'is_capital': False, 'districts': ['East Siang']},
             ]
         },
         'Assam': {
             'code': 'AS',
-            'name_hi': 'असम',
             'cities': [
-                {'name': 'Dispur', 'name_hi': 'दिसपुर', 'is_capital': True, 'districts': ['Kamrup Metropolitan']},
-                {'name': 'Guwahati', 'name_hi': 'गुवाहाटी', 'is_capital': False, 'districts': ['Kamrup Metropolitan', 'Kamrup']},
-                {'name': 'Silchar', 'name_hi': 'सिलचर', 'is_capital': False, 'districts': ['Cachar', 'Hailakandi']},
-                {'name': 'Dibrugarh', 'name_hi': 'डिब्रूगढ़', 'is_capital': False, 'districts': ['Dibrugarh', 'Tinsukia']},
-                {'name': 'Jorhat', 'name_hi': 'जोरहाट', 'is_capital': False, 'districts': ['Jorhat', 'Majuli']},
+                {'name': 'Dispur', 'is_capital': True, 'districts': ['Kamrup Metropolitan']},
+                {'name': 'Guwahati', 'is_capital': False, 'districts': ['Kamrup Metropolitan', 'Kamrup']},
+                {'name': 'Silchar', 'is_capital': False, 'districts': ['Cachar', 'Hailakandi']},
+                {'name': 'Dibrugarh', 'is_capital': False, 'districts': ['Dibrugarh', 'Tinsukia']},
+                {'name': 'Jorhat', 'is_capital': False, 'districts': ['Jorhat', 'Majuli']},
             ]
         },
         'Bihar': {
             'code': 'BR',
-            'name_hi': 'बिहार',
             'cities': [
-                {'name': 'Patna', 'name_hi': 'पटना', 'is_capital': True, 'districts': ['Patna', 'Nalanda']},
-                {'name': 'Gaya', 'name_hi': 'गया', 'is_capital': False, 'districts': ['Gaya', 'Nawada']},
-                {'name': 'Bhagalpur', 'name_hi': 'भागलपुर', 'is_capital': False, 'districts': ['Bhagalpur', 'Banka']},
-                {'name': 'Muzaffarpur', 'name_hi': 'मुजफ्फरपुर', 'is_capital': False, 'districts': ['Muzaffarpur', 'Vaishali']},
-                {'name': 'Darbhanga', 'name_hi': 'दरभंगा', 'is_capital': False, 'districts': ['Darbhanga', 'Madhubani']},
+                {'name': 'Patna', 'is_capital': True, 'districts': ['Patna', 'Nalanda']},
+                {'name': 'Gaya', 'is_capital': False, 'districts': ['Gaya', 'Nawada']},
+                {'name': 'Bhagalpur', 'is_capital': False, 'districts': ['Bhagalpur', 'Banka']},
+                {'name': 'Muzaffarpur', 'is_capital': False, 'districts': ['Muzaffarpur', 'Vaishali']},
+                {'name': 'Darbhanga', 'is_capital': False, 'districts': ['Darbhanga', 'Madhubani']},
             ]
         },
         'Chhattisgarh': {
             'code': 'CG',
-            'name_hi': 'छत्तीसगढ़',
             'cities': [
-                {'name': 'Raipur', 'name_hi': 'रायपुर', 'is_capital': True, 'districts': ['Raipur', 'Durg']},
-                {'name': 'Bhilai', 'name_hi': 'भिलाई', 'is_capital': False, 'districts': ['Durg']},
-                {'name': 'Bilaspur', 'name_hi': 'बिलासपुर', 'is_capital': False, 'districts': ['Bilaspur', 'Korba']},
-                {'name': 'Korba', 'name_hi': 'कोरबा', 'is_capital': False, 'districts': ['Korba']},
-                {'name': 'Durg', 'name_hi': 'दुर्ग', 'is_capital': False, 'districts': ['Durg', 'Bemetara']},
+                {'name': 'Raipur', 'is_capital': True, 'districts': ['Raipur', 'Durg']},
+                {'name': 'Bhilai', 'is_capital': False, 'districts': ['Durg']},
+                {'name': 'Bilaspur', 'is_capital': False, 'districts': ['Bilaspur', 'Korba']},
+                {'name': 'Korba', 'is_capital': False, 'districts': ['Korba']},
+                {'name': 'Durg', 'is_capital': False, 'districts': ['Durg', 'Bemetara']},
             ]
         },
         'Goa': {
             'code': 'GA',
-            'name_hi': 'गोवा',
             'cities': [
-                {'name': 'Panaji', 'name_hi': 'पणजी', 'is_capital': True, 'districts': ['North Goa']},
-                {'name': 'Margao', 'name_hi': 'मडगांव', 'is_capital': False, 'districts': ['South Goa']},
-                {'name': 'Vasco da Gama', 'name_hi': 'वासको द गामा', 'is_capital': False, 'districts': ['South Goa']},
-                {'name': 'Mapusa', 'name_hi': 'मपुसा', 'is_capital': False, 'districts': ['North Goa']},
+                {'name': 'Panaji', 'is_capital': True, 'districts': ['North Goa']},
+                {'name': 'Margao', 'is_capital': False, 'districts': ['South Goa']},
+                {'name': 'Vasco da Gama', 'is_capital': False, 'districts': ['South Goa']},
+                {'name': 'Mapusa', 'is_capital': False, 'districts': ['North Goa']},
             ]
         },
         'Gujarat': {
             'code': 'GJ',
-            'name_hi': 'गुजरात',
             'cities': [
-                {'name': 'Gandhinagar', 'name_hi': 'गांधीनगर', 'is_capital': True, 'districts': ['Gandhinagar']},
-                {'name': 'Ahmedabad', 'name_hi': 'अहमदाबाद', 'is_capital': False, 'districts': ['Ahmedabad', 'Ahmedabad Rural']},
-                {'name': 'Surat', 'name_hi': 'सूरत', 'is_capital': False, 'districts': ['Surat', 'Tapi']},
-                {'name': 'Vadodara', 'name_hi': 'वडोदरा', 'is_capital': False, 'districts': ['Vadodara']},
-                {'name': 'Rajkot', 'name_hi': 'राजकोट', 'is_capital': False, 'districts': ['Rajkot']},
-                {'name': 'Bhavnagar', 'name_hi': 'भावनगर', 'is_capital': False, 'districts': ['Bhavnagar']},
-                {'name': 'Jamnagar', 'name_hi': 'जामनगर', 'is_capital': False, 'districts': ['Jamnagar', 'Devbhoomi Dwarka']},
+                {'name': 'Gandhinagar', 'is_capital': True, 'districts': ['Gandhinagar']},
+                {'name': 'Ahmedabad', 'is_capital': False, 'districts': ['Ahmedabad', 'Ahmedabad Rural']},
+                {'name': 'Surat', 'is_capital': False, 'districts': ['Surat', 'Tapi']},
+                {'name': 'Vadodara', 'is_capital': False, 'districts': ['Vadodara']},
+                {'name': 'Rajkot', 'is_capital': False, 'districts': ['Rajkot']},
+                {'name': 'Bhavnagar', 'is_capital': False, 'districts': ['Bhavnagar']},
+                {'name': 'Jamnagar', 'is_capital': False, 'districts': ['Jamnagar', 'Devbhoomi Dwarka']},
             ]
         },
         'Haryana': {
             'code': 'HR',
-            'name_hi': 'हरियाणा',
             'cities': [
-                {'name': 'Chandigarh', 'name_hi': 'चंडीगढ़', 'is_capital': True, 'districts': ['Chandigarh']},
-                {'name': 'Faridabad', 'name_hi': 'फरीदाबाद', 'is_capital': False, 'districts': ['Faridabad', 'Nuh']},
-                {'name': 'Gurugram', 'name_hi': 'गुरुग्राम', 'is_capital': False, 'districts': ['Gurugram', 'Rewari']},
-                {'name': 'Panipat', 'name_hi': 'पानीपत', 'is_capital': False, 'districts': ['Panipat']},
-                {'name': 'Ambala', 'name_hi': 'अंबाला', 'is_capital': False, 'districts': ['Ambala']},
-                {'name': 'Karnal', 'name_hi': 'करनाल', 'is_capital': False, 'districts': ['Karnal']},
+                {'name': 'Chandigarh', 'is_capital': True, 'districts': ['Chandigarh']},
+                {'name': 'Faridabad', 'is_capital': False, 'districts': ['Faridabad', 'Nuh']},
+                {'name': 'Gurugram', 'is_capital': False, 'districts': ['Gurugram', 'Rewari']},
+                {'name': 'Panipat', 'is_capital': False, 'districts': ['Panipat']},
+                {'name': 'Ambala', 'is_capital': False, 'districts': ['Ambala']},
+                {'name': 'Karnal', 'is_capital': False, 'districts': ['Karnal']},
             ]
         },
         'Himachal Pradesh': {
             'code': 'HP',
-            'name_hi': 'हिमाचल प्रदेश',
             'cities': [
-                {'name': 'Shimla', 'name_hi': 'शिमला', 'is_capital': True, 'districts': ['Shimla']},
-                {'name': 'Dharamshala', 'name_hi': 'धर्मशाला', 'is_capital': False, 'districts': ['Kangra']},
-                {'name': 'Manali', 'name_hi': 'मनाली', 'is_capital': False, 'districts': ['Kullu']},
-                {'name': 'Kullu', 'name_hi': 'कुल्लू', 'is_capital': False, 'districts': ['Kullu', 'Lahaul and Spiti']},
-                {'name': 'Mandi', 'name_hi': 'मंडी', 'is_capital': False, 'districts': ['Mandi']},
+                {'name': 'Shimla', 'is_capital': True, 'districts': ['Shimla']},
+                {'name': 'Dharamshala', 'is_capital': False, 'districts': ['Kangra']},
+                {'name': 'Manali', 'is_capital': False, 'districts': ['Kullu']},
+                {'name': 'Kullu', 'is_capital': False, 'districts': ['Kullu', 'Lahaul and Spiti']},
+                {'name': 'Mandi', 'is_capital': False, 'districts': ['Mandi']},
             ]
         },
         'Jharkhand': {
             'code': 'JH',
-            'name_hi': 'झारखंड',
             'cities': [
-                {'name': 'Ranchi', 'name_hi': 'रांची', 'is_capital': True, 'districts': ['Ranchi', 'Khunti']},
-                {'name': 'Jamshedpur', 'name_hi': 'जमशेदपुर', 'is_capital': False, 'districts': ['East Singhbhum']},
-                {'name': 'Dhanbad', 'name_hi': 'धनबाद', 'is_capital': False, 'districts': ['Dhanbad', 'Bokaro']},
-                {'name': 'Bokaro', 'name_hi': 'बोकारो', 'is_capital': False, 'districts': ['Bokaro']},
-                {'name': 'Deoghar', 'name_hi': 'देवघर', 'is_capital': False, 'districts': ['Deoghar', 'Dumka']},
+                {'name': 'Ranchi', 'is_capital': True, 'districts': ['Ranchi', 'Khunti']},
+                {'name': 'Jamshedpur', 'is_capital': False, 'districts': ['East Singhbhum']},
+                {'name': 'Dhanbad', 'is_capital': False, 'districts': ['Dhanbad', 'Bokaro']},
+                {'name': 'Bokaro', 'is_capital': False, 'districts': ['Bokaro']},
+                {'name': 'Deoghar', 'is_capital': False, 'districts': ['Deoghar', 'Dumka']},
             ]
         },
         'Karnataka': {
             'code': 'KA',
-            'name_hi': 'कर्नाटक',
             'cities': [
-                {'name': 'Bengaluru', 'name_hi': 'बेंगलुरु', 'is_capital': True, 'districts': ['Bengaluru Urban', 'Bengaluru Rural']},
-                {'name': 'Mysuru', 'name_hi': 'मैसूर', 'is_capital': False, 'districts': ['Mysuru', 'Chamarajanagar']},
-                {'name': 'Mangaluru', 'name_hi': 'मंगलुरु', 'is_capital': False, 'districts': ['Dakshina Kannada']},
-                {'name': 'Hubballi', 'name_hi': 'हुब्बल्ली', 'is_capital': False, 'districts': ['Dharwad']},
-                {'name': 'Belagavi', 'name_hi': 'बेलागवी', 'is_capital': False, 'districts': ['Belagavi']},
-                {'name': 'Kalaburagi', 'name_hi': 'कलबुर्गी', 'is_capital': False, 'districts': ['Kalaburagi', 'Yadgir']},
+                {'name': 'Bengaluru', 'is_capital': True, 'districts': ['Bengaluru Urban', 'Bengaluru Rural']},
+                {'name': 'Mysuru', 'is_capital': False, 'districts': ['Mysuru', 'Chamarajanagar']},
+                {'name': 'Mangaluru', 'is_capital': False, 'districts': ['Dakshina Kannada']},
+                {'name': 'Hubballi', 'is_capital': False, 'districts': ['Dharwad']},
+                {'name': 'Belagavi', 'is_capital': False, 'districts': ['Belagavi']},
+                {'name': 'Kalaburagi', 'is_capital': False, 'districts': ['Kalaburagi', 'Yadgir']},
             ]
         },
         'Kerala': {
             'code': 'KL',
-            'name_hi': 'केरल',
             'cities': [
-                {'name': 'Thiruvananthapuram', 'name_hi': 'तिरुवनंतपुरम', 'is_capital': True, 'districts': ['Thiruvananthapuram']},
-                {'name': 'Kochi', 'name_hi': 'कोच्चि', 'is_capital': False, 'districts': ['Ernakulam']},
-                {'name': 'Kozhikode', 'name_hi': 'कोझिकोड', 'is_capital': False, 'districts': ['Kozhikode', 'Malappuram']},
-                {'name': 'Thrissur', 'name_hi': 'त्रिस्सूर', 'is_capital': False, 'districts': ['Thrissur']},
-                {'name': 'Kollam', 'name_hi': 'कोल्लम', 'is_capital': False, 'districts': ['Kollam']},
-                {'name': 'Alappuzha', 'name_hi': 'आलप्पुझा', 'is_capital': False, 'districts': ['Alappuzha']},
+                {'name': 'Thiruvananthapuram', 'is_capital': True, 'districts': ['Thiruvananthapuram']},
+                {'name': 'Kochi', 'is_capital': False, 'districts': ['Ernakulam']},
+                {'name': 'Kozhikode', 'is_capital': False, 'districts': ['Kozhikode', 'Malappuram']},
+                {'name': 'Thrissur', 'is_capital': False, 'districts': ['Thrissur']},
+                {'name': 'Kollam', 'is_capital': False, 'districts': ['Kollam']},
+                {'name': 'Alappuzha', 'is_capital': False, 'districts': ['Alappuzha']},
             ]
         },
         'Madhya Pradesh': {
             'code': 'MP',
-            'name_hi': 'मध्य प्रदेश',
             'cities': [
-                {'name': 'Bhopal', 'name_hi': 'भोपाल', 'is_capital': True, 'districts': ['Bhopal', 'Raisen']},
-                {'name': 'Indore', 'name_hi': 'इंदौर', 'is_capital': False, 'districts': ['Indore', 'Dhar']},
-                {'name': 'Gwalior', 'name_hi': 'ग्वालियर', 'is_capital': False, 'districts': ['Gwalior', 'Bhind']},
-                {'name': 'Jabalpur', 'name_hi': 'जबलपुर', 'is_capital': False, 'districts': ['Jabalpur', 'Narsinghpur']},
-                {'name': 'Ujjain', 'name_hi': 'उज्जैन', 'is_capital': False, 'districts': ['Ujjain']},
-                {'name': 'Sagar', 'name_hi': 'सागर', 'is_capital': False, 'districts': ['Sagar', 'Damoh']},
+                {'name': 'Bhopal', 'is_capital': True, 'districts': ['Bhopal', 'Raisen']},
+                {'name': 'Indore', 'is_capital': False, 'districts': ['Indore', 'Dhar']},
+                {'name': 'Gwalior', 'is_capital': False, 'districts': ['Gwalior', 'Bhind']},
+                {'name': 'Jabalpur', 'is_capital': False, 'districts': ['Jabalpur', 'Narsinghpur']},
+                {'name': 'Ujjain', 'is_capital': False, 'districts': ['Ujjain']},
+                {'name': 'Sagar', 'is_capital': False, 'districts': ['Sagar', 'Damoh']},
             ]
         },
         'Maharashtra': {
             'code': 'MH',
-            'name_hi': 'महाराष्ट्र',
             'cities': [
-                {'name': 'Mumbai', 'name_hi': 'मुंबई', 'is_capital': True, 'districts': ['Mumbai City', 'Mumbai Suburban']},
-                {'name': 'Pune', 'name_hi': 'पुणे', 'is_capital': False, 'districts': ['Pune']},
-                {'name': 'Nagpur', 'name_hi': 'नागपुर', 'is_capital': False, 'districts': ['Nagpur', 'Wardha']},
-                {'name': 'Nashik', 'name_hi': 'नाशिक', 'is_capital': False, 'districts': ['Nashik', 'Dhule']},
-                {'name': 'Aurangabad', 'name_hi': 'औरंगाबाद', 'is_capital': False, 'districts': ['Aurangabad', 'Jalna']},
-                {'name': 'Solapur', 'name_hi': 'सोलापुर', 'is_capital': False, 'districts': ['Solapur']},
-                {'name': 'Kolhapur', 'name_hi': 'कोल्हापुर', 'is_capital': False, 'districts': ['Kolhapur', 'Sangli']},
-                {'name': 'Amravati', 'name_hi': 'अमरावती', 'is_capital': False, 'districts': ['Amravati', 'Akola']},
+                {'name': 'Mumbai', 'is_capital': True, 'districts': ['Mumbai City', 'Mumbai Suburban']},
+                {'name': 'Pune', 'is_capital': False, 'districts': ['Pune']},
+                {'name': 'Nagpur', 'is_capital': False, 'districts': ['Nagpur', 'Wardha']},
+                {'name': 'Nashik', 'is_capital': False, 'districts': ['Nashik', 'Dhule']},
+                {'name': 'Aurangabad', 'is_capital': False, 'districts': ['Aurangabad', 'Jalna']},
+                {'name': 'Solapur', 'is_capital': False, 'districts': ['Solapur']},
+                {'name': 'Kolhapur', 'is_capital': False, 'districts': ['Kolhapur', 'Sangli']},
+                {'name': 'Amravati', 'is_capital': False, 'districts': ['Amravati', 'Akola']},
             ]
         },
         'Manipur': {
             'code': 'MN',
-            'name_hi': 'मणिपुर',
             'cities': [
-                {'name': 'Imphal', 'name_hi': 'इंफाल', 'is_capital': True, 'districts': ['Imphal West', 'Imphal East']},
-                {'name': 'Thoubal', 'name_hi': 'थौबल', 'is_capital': False, 'districts': ['Thoubal']},
-                {'name': 'Bishnupur', 'name_hi': 'विष्णुपुर', 'is_capital': False, 'districts': ['Bishnupur']},
+                {'name': 'Imphal', 'is_capital': True, 'districts': ['Imphal West', 'Imphal East']},
+                {'name': 'Thoubal', 'is_capital': False, 'districts': ['Thoubal']},
+                {'name': 'Bishnupur', 'is_capital': False, 'districts': ['Bishnupur']},
             ]
         },
         'Meghalaya': {
             'code': 'ML',
-            'name_hi': 'मेघालय',
             'cities': [
-                {'name': 'Shillong', 'name_hi': 'शिलांग', 'is_capital': True, 'districts': ['East Khasi Hills']},
-                {'name': 'Tura', 'name_hi': 'तुरा', 'is_capital': False, 'districts': ['West Garo Hills']},
-                {'name': 'Jowai', 'name_hi': 'जोवाई', 'is_capital': False, 'districts': ['West Jaintia Hills']},
+                {'name': 'Shillong', 'is_capital': True, 'districts': ['East Khasi Hills']},
+                {'name': 'Tura', 'is_capital': False, 'districts': ['West Garo Hills']},
+                {'name': 'Jowai', 'is_capital': False, 'districts': ['West Jaintia Hills']},
             ]
         },
         'Mizoram': {
             'code': 'MZ',
-            'name_hi': 'मिजोरम',
             'cities': [
-                {'name': 'Aizawl', 'name_hi': 'आइजोल', 'is_capital': True, 'districts': ['Aizawl']},
-                {'name': 'Lunglei', 'name_hi': 'लुंगलई', 'is_capital': False, 'districts': ['Lunglei']},
-                {'name': 'Champhai', 'name_hi': 'चम्फई', 'is_capital': False, 'districts': ['Champhai']},
+                {'name': 'Aizawl', 'is_capital': True, 'districts': ['Aizawl']},
+                {'name': 'Lunglei', 'is_capital': False, 'districts': ['Lunglei']},
+                {'name': 'Champhai', 'is_capital': False, 'districts': ['Champhai']},
             ]
         },
         'Nagaland': {
             'code': 'NL',
-            'name_hi': 'नागालैंड',
             'cities': [
-                {'name': 'Kohima', 'name_hi': 'कोहिमा', 'is_capital': True, 'districts': ['Kohima']},
-                {'name': 'Dimapur', 'name_hi': 'दिमापुर', 'is_capital': False, 'districts': ['Dimapur']},
-                {'name': 'Mokokchung', 'name_hi': 'मोकोकचुंग', 'is_capital': False, 'districts': ['Mokokchung']},
+                {'name': 'Kohima', 'is_capital': True, 'districts': ['Kohima']},
+                {'name': 'Dimapur', 'is_capital': False, 'districts': ['Dimapur']},
+                {'name': 'Mokokchung', 'is_capital': False, 'districts': ['Mokokchung']},
             ]
         },
         'Odisha': {
             'code': 'OR',
-            'name_hi': 'ओडिशा',
             'cities': [
-                {'name': 'Bhubaneswar', 'name_hi': 'भुवनेश्वर', 'is_capital': True, 'districts': ['Khordha', 'Puri']},
-                {'name': 'Cuttack', 'name_hi': 'कटक', 'is_capital': False, 'districts': ['Cuttack', 'Jagatsinghpur']},
-                {'name': 'Rourkela', 'name_hi': 'रूरकेला', 'is_capital': False, 'districts': ['Sundargarh']},
-                {'name': 'Berhampur', 'name_hi': 'बरहामपुर', 'is_capital': False, 'districts': ['Ganjam']},
-                {'name': 'Sambalpur', 'name_hi': 'संभलपुर', 'is_capital': False, 'districts': ['Sambalpur', 'Jharsuguda']},
+                {'name': 'Bhubaneswar', 'is_capital': True, 'districts': ['Khordha', 'Puri']},
+                {'name': 'Cuttack', 'is_capital': False, 'districts': ['Cuttack', 'Jagatsinghpur']},
+                {'name': 'Rourkela', 'is_capital': False, 'districts': ['Sundargarh']},
+                {'name': 'Berhampur', 'is_capital': False, 'districts': ['Ganjam']},
+                {'name': 'Sambalpur', 'is_capital': False, 'districts': ['Sambalpur', 'Jharsuguda']},
             ]
         },
         'Punjab': {
             'code': 'PB',
-            'name_hi': 'पंजाब',
             'cities': [
-                {'name': 'Chandigarh', 'name_hi': 'चंडीगढ़', 'is_capital': True, 'districts': ['Chandigarh']},
-                {'name': 'Ludhiana', 'name_hi': 'लुधियाना', 'is_capital': False, 'districts': ['Ludhiana']},
-                {'name': 'Amritsar', 'name_hi': 'अमृतसर', 'is_capital': False, 'districts': ['Amritsar', 'Tarn Taran']},
-                {'name': 'Jalandhar', 'name_hi': 'जालंधर', 'is_capital': False, 'districts': ['Jalandhar', 'Kapurthala']},
-                {'name': 'Patiala', 'name_hi': 'पटियाला', 'is_capital': False, 'districts': ['Patiala', 'Fatehgarh Sahib']},
-                {'name': 'Bathinda', 'name_hi': 'भटिंडा', 'is_capital': False, 'districts': ['Bathinda', 'Mansa']},
+                {'name': 'Chandigarh', 'is_capital': True, 'districts': ['Chandigarh']},
+                {'name': 'Ludhiana', 'is_capital': False, 'districts': ['Ludhiana']},
+                {'name': 'Amritsar', 'is_capital': False, 'districts': ['Amritsar', 'Tarn Taran']},
+                {'name': 'Jalandhar', 'is_capital': False, 'districts': ['Jalandhar', 'Kapurthala']},
+                {'name': 'Patiala', 'is_capital': False, 'districts': ['Patiala', 'Fatehgarh Sahib']},
+                {'name': 'Bathinda', 'is_capital': False, 'districts': ['Bathinda', 'Mansa']},
             ]
         },
         'Rajasthan': {
             'code': 'RJ',
-            'name_hi': 'राजस्थान',
             'cities': [
-                {'name': 'Jaipur', 'name_hi': 'जयपुर', 'is_capital': True, 'districts': ['Jaipur', 'Dausa']},
-                {'name': 'Jodhpur', 'name_hi': 'जोधपुर', 'is_capital': False, 'districts': ['Jodhpur', 'Nagaur']},
-                {'name': 'Udaipur', 'name_hi': 'उदयपुर', 'is_capital': False, 'districts': ['Udaipur', 'Rajsamand']},
-                {'name': 'Kota', 'name_hi': 'कोटा', 'is_capital': False, 'districts': ['Kota', 'Bundi']},
-                {'name': 'Ajmer', 'name_hi': 'अजमेर', 'is_capital': False, 'districts': ['Ajmer', 'Tonk']},
-                {'name': 'Bikaner', 'name_hi': 'बीकानेर', 'is_capital': False, 'districts': ['Bikaner']},
-                {'name': 'Alwar', 'name_hi': 'अलवर', 'is_capital': False, 'districts': ['Alwar']},
+                {'name': 'Jaipur', 'is_capital': True, 'districts': ['Jaipur', 'Dausa']},
+                {'name': 'Jodhpur', 'is_capital': False, 'districts': ['Jodhpur', 'Nagaur']},
+                {'name': 'Udaipur', 'is_capital': False, 'districts': ['Udaipur', 'Rajsamand']},
+                {'name': 'Kota', 'is_capital': False, 'districts': ['Kota', 'Bundi']},
+                {'name': 'Ajmer', 'is_capital': False, 'districts': ['Ajmer', 'Tonk']},
+                {'name': 'Bikaner', 'is_capital': False, 'districts': ['Bikaner']},
+                {'name': 'Alwar', 'is_capital': False, 'districts': ['Alwar']},
             ]
         },
         'Sikkim': {
             'code': 'SK',
-            'name_hi': 'सिक्किम',
             'cities': [
-                {'name': 'Gangtok', 'name_hi': 'गंगटोक', 'is_capital': True, 'districts': ['East Sikkim']},
-                {'name': 'Namchi', 'name_hi': 'नामची', 'is_capital': False, 'districts': ['South Sikkim']},
-                {'name': 'Gyalshing', 'name_hi': 'ग्यालशिंग', 'is_capital': False, 'districts': ['West Sikkim']},
+                {'name': 'Gangtok', 'is_capital': True, 'districts': ['East Sikkim']},
+                {'name': 'Namchi', 'is_capital': False, 'districts': ['South Sikkim']},
+                {'name': 'Gyalshing', 'is_capital': False, 'districts': ['West Sikkim']},
             ]
         },
         'Tamil Nadu': {
             'code': 'TN',
-            'name_hi': 'तमिलनाडु',
             'cities': [
-                {'name': 'Chennai', 'name_hi': 'चेन्नई', 'is_capital': True, 'districts': ['Chennai', 'Kanchipuram']},
-                {'name': 'Coimbatore', 'name_hi': 'कोयंबटूर', 'is_capital': False, 'districts': ['Coimbatore', 'Tiruppur']},
-                {'name': 'Madurai', 'name_hi': 'मदुरै', 'is_capital': False, 'districts': ['Madurai', 'Theni']},
-                {'name': 'Tiruchirappalli', 'name_hi': 'तिरुचिरापल्ली', 'is_capital': False, 'districts': ['Tiruchirappalli', 'Karur']},
-                {'name': 'Salem', 'name_hi': 'सेलम', 'is_capital': False, 'districts': ['Salem', 'Namakkal']},
-                {'name': 'Tirunelveli', 'name_hi': 'तिरुनेलवेली', 'is_capital': False, 'districts': ['Tirunelveli', 'Tenkasi']},
-                {'name': 'Vellore', 'name_hi': 'वेल्लोर', 'is_capital': False, 'districts': ['Vellore', 'Ranipet']},
+                {'name': 'Chennai', 'is_capital': True, 'districts': ['Chennai', 'Kanchipuram']},
+                {'name': 'Coimbatore', 'is_capital': False, 'districts': ['Coimbatore', 'Tiruppur']},
+                {'name': 'Madurai', 'is_capital': False, 'districts': ['Madurai', 'Theni']},
+                {'name': 'Tiruchirappalli', 'is_capital': False, 'districts': ['Tiruchirappalli', 'Karur']},
+                {'name': 'Salem', 'is_capital': False, 'districts': ['Salem', 'Namakkal']},
+                {'name': 'Tirunelveli', 'is_capital': False, 'districts': ['Tirunelveli', 'Tenkasi']},
+                {'name': 'Vellore', 'is_capital': False, 'districts': ['Vellore', 'Ranipet']},
             ]
         },
         'Telangana': {
             'code': 'TG',
-            'name_hi': 'तेलंगाना',
             'cities': [
-                {'name': 'Hyderabad', 'name_hi': 'हैदराबाद', 'is_capital': True, 'districts': ['Hyderabad', 'Rangareddy']},
-                {'name': 'Warangal', 'name_hi': 'वारंगल', 'is_capital': False, 'districts': ['Warangal Urban', 'Warangal Rural']},
-                {'name': 'Nizamabad', 'name_hi': 'निजामाबाद', 'is_capital': False, 'districts': ['Nizamabad']},
-                {'name': 'Karimnagar', 'name_hi': 'करिमनगर', 'is_capital': False, 'districts': ['Karimnagar']},
-                {'name': 'Khammam', 'name_hi': 'खम्मम', 'is_capital': False, 'districts': ['Khammam', 'Bhadradri']},
+                {'name': 'Hyderabad', 'is_capital': True, 'districts': ['Hyderabad', 'Rangareddy']},
+                {'name': 'Warangal', 'is_capital': False, 'districts': ['Warangal Urban', 'Warangal Rural']},
+                {'name': 'Nizamabad', 'is_capital': False, 'districts': ['Nizamabad']},
+                {'name': 'Karimnagar', 'is_capital': False, 'districts': ['Karimnagar']},
+                {'name': 'Khammam', 'is_capital': False, 'districts': ['Khammam', 'Bhadradri']},
             ]
         },
         'Tripura': {
             'code': 'TR',
-            'name_hi': 'त्रिपुरा',
             'cities': [
-                {'name': 'Agartala', 'name_hi': 'अगरतला', 'is_capital': True, 'districts': ['West Tripura']},
-                {'name': 'Udaipur', 'name_hi': 'उदयपुर', 'is_capital': False, 'districts': ['Gomati']},
-                {'name': 'Dharmanagar', 'name_hi': 'धर्मनगर', 'is_capital': False, 'districts': ['North Tripura']},
+                {'name': 'Agartala', 'is_capital': True, 'districts': ['West Tripura']},
+                {'name': 'Udaipur', 'is_capital': False, 'districts': ['Gomati']},
+                {'name': 'Dharmanagar', 'is_capital': False, 'districts': ['North Tripura']},
             ]
         },
         'Uttar Pradesh': {
             'code': 'UP',
-            'name_hi': 'उत्तर प्रदेश',
             'cities': [
-                {'name': 'Lucknow', 'name_hi': 'लखनऊ', 'is_capital': True, 'districts': ['Lucknow', 'Unnao']},
-                {'name': 'Kanpur', 'name_hi': 'कानपुर', 'is_capital': False, 'districts': ['Kanpur Nagar', 'Kanpur Dehat']},
-                {'name': 'Varanasi', 'name_hi': 'वाराणसी', 'is_capital': False, 'districts': ['Varanasi', 'Chandauli']},
-                {'name': 'Prayagraj', 'name_hi': 'प्रयागराज', 'is_capital': False, 'districts': ['Prayagraj', 'Kaushambi']},
-                {'name': 'Agra', 'name_hi': 'आगरा', 'is_capital': False, 'districts': ['Agra', 'Firozabad']},
-                {'name': 'Meerut', 'name_hi': 'मेरठ', 'is_capital': False, 'districts': ['Meerut', 'Baghpat']},
-                {'name': 'Bareilly', 'name_hi': 'बरेली', 'is_capital': False, 'districts': ['Bareilly', 'Pilibhit']},
-                {'name': 'Aligarh', 'name_hi': 'अलीगढ़', 'is_capital': False, 'districts': ['Aligarh', 'Hathras']},
-                {'name': 'Moradabad', 'name_hi': 'मोरादाबाद', 'is_capital': False, 'districts': ['Moradabad', 'Rampur']},
-                {'name': 'Saharanpur', 'name_hi': 'सहारनपुर', 'is_capital': False, 'districts': ['Saharanpur', 'Shamli']},
+                {'name': 'Lucknow', 'is_capital': True, 'districts': ['Lucknow', 'Unnao']},
+                {'name': 'Kanpur', 'is_capital': False, 'districts': ['Kanpur Nagar', 'Kanpur Dehat']},
+                {'name': 'Varanasi', 'is_capital': False, 'districts': ['Varanasi', 'Chandauli']},
+                {'name': 'Prayagraj', 'is_capital': False, 'districts': ['Prayagraj', 'Kaushambi']},
+                {'name': 'Agra', 'is_capital': False, 'districts': ['Agra', 'Firozabad']},
+                {'name': 'Meerut', 'is_capital': False, 'districts': ['Meerut', 'Baghpat']},
+                {'name': 'Bareilly', 'is_capital': False, 'districts': ['Bareilly', 'Pilibhit']},
+                {'name': 'Aligarh', 'is_capital': False, 'districts': ['Aligarh', 'Hathras']},
+                {'name': 'Moradabad', 'is_capital': False, 'districts': ['Moradabad', 'Rampur']},
+                {'name': 'Saharanpur', 'is_capital': False, 'districts': ['Saharanpur', 'Shamli']},
             ]
         },
         'Uttarakhand': {
             'code': 'UK',
-            'name_hi': 'उत्तराखंड',
             'cities': [
-                {'name': 'Dehradun', 'name_hi': 'देहरादून', 'is_capital': True, 'districts': ['Dehradun']},
-                {'name': 'Haridwar', 'name_hi': 'हरिद्वार', 'is_capital': False, 'districts': ['Haridwar']},
-                {'name': 'Rishikesh', 'name_hi': 'ऋषिकेश', 'is_capital': False, 'districts': ['Dehradun']},
-                {'name': 'Nainital', 'name_hi': 'नैनीताल', 'is_capital': False, 'districts': ['Nainital', 'Almora']},
-                {'name': 'Mussoorie', 'name_hi': 'मसूरी', 'is_capital': False, 'districts': ['Dehradun']},
+                {'name': 'Dehradun', 'is_capital': True, 'districts': ['Dehradun']},
+                {'name': 'Haridwar', 'is_capital': False, 'districts': ['Haridwar']},
+                {'name': 'Rishikesh', 'is_capital': False, 'districts': ['Dehradun']},
+                {'name': 'Nainital', 'is_capital': False, 'districts': ['Nainital', 'Almora']},
+                {'name': 'Mussoorie', 'is_capital': False, 'districts': ['Dehradun']},
             ]
         },
         'West Bengal': {
             'code': 'WB',
-            'name_hi': 'पश्चिम बंगाल',
             'cities': [
-                {'name': 'Kolkata', 'name_hi': 'कोलकाता', 'is_capital': True, 'districts': ['Kolkata', 'North 24 Parganas']},
-                {'name': 'Howrah', 'name_hi': 'हावड़ा', 'is_capital': False, 'districts': ['Howrah']},
-                {'name': 'Durgapur', 'name_hi': 'दुर्गापुर', 'is_capital': False, 'districts': ['Paschim Bardhaman']},
-                {'name': 'Asansol', 'name_hi': 'आसनसोल', 'is_capital': False, 'districts': ['Paschim Bardhaman']},
-                {'name': 'Siliguri', 'name_hi': 'सिलीगुड़ी', 'is_capital': False, 'districts': ['Darjeeling', 'Jalpaiguri']},
-                {'name': 'Malda', 'name_hi': 'मालदा', 'is_capital': False, 'districts': ['Malda', 'Dakshin Dinajpur']},
+                {'name': 'Kolkata', 'is_capital': True, 'districts': ['Kolkata', 'North 24 Parganas']},
+                {'name': 'Howrah', 'is_capital': False, 'districts': ['Howrah']},
+                {'name': 'Durgapur', 'is_capital': False, 'districts': ['Paschim Bardhaman']},
+                {'name': 'Asansol', 'is_capital': False, 'districts': ['Paschim Bardhaman']},
+                {'name': 'Siliguri', 'is_capital': False, 'districts': ['Darjeeling', 'Jalpaiguri']},
+                {'name': 'Malda', 'is_capital': False, 'districts': ['Malda', 'Dakshin Dinajpur']},
             ]
         },
         # Union Territories
         'Andaman and Nicobar Islands': {
             'code': 'AN',
-            'name_hi': 'अंडमान और निकोबार द्वीप',
             'cities': [
-                {'name': 'Port Blair', 'name_hi': 'पोर्ट ब्लेयर', 'is_capital': True, 'districts': ['South Andaman']},
-                {'name': 'Diglipur', 'name_hi': 'डिगलीपुर', 'is_capital': False, 'districts': ['North and Middle Andaman']},
+                {'name': 'Port Blair', 'is_capital': True, 'districts': ['South Andaman']},
+                {'name': 'Diglipur', 'is_capital': False, 'districts': ['North and Middle Andaman']},
             ]
         },
         'Chandigarh': {
             'code': 'CH',
-            'name_hi': 'चंडीगढ़',
             'cities': [
-                {'name': 'Chandigarh', 'name_hi': 'चंडीगढ़', 'is_capital': True, 'districts': ['Chandigarh']},
+                {'name': 'Chandigarh', 'is_capital': True, 'districts': ['Chandigarh']},
             ]
         },
         'Dadra and Nagar Haveli and Daman and Diu': {
             'code': 'DN',
-            'name_hi': 'दादरा और नगर हवेली और दमन और दीव',
             'cities': [
-                {'name': 'Daman', 'name_hi': 'दमन', 'is_capital': True, 'districts': ['Daman']},
-                {'name': 'Silvassa', 'name_hi': 'सिलवासा', 'is_capital': False, 'districts': ['Dadra and Nagar Haveli']},
-                {'name': 'Diu', 'name_hi': 'दीव', 'is_capital': False, 'districts': ['Diu']},
+                {'name': 'Daman', 'is_capital': True, 'districts': ['Daman']},
+                {'name': 'Silvassa', 'is_capital': False, 'districts': ['Dadra and Nagar Haveli']},
+                {'name': 'Diu', 'is_capital': False, 'districts': ['Diu']},
             ]
         },
         'Delhi': {
             'code': 'DL',
-            'name_hi': 'दिल्ली',
             'cities': [
-                {'name': 'New Delhi', 'name_hi': 'नई दिल्ली', 'is_capital': True, 'districts': ['New Delhi', 'South Delhi']},
-                {'name': 'Central Delhi', 'name_hi': 'मध्य दिल्ली', 'is_capital': False, 'districts': ['Central Delhi', 'North Delhi']},
-                {'name': 'East Delhi', 'name_hi': 'पूर्वी दिल्ली', 'is_capital': False, 'districts': ['East Delhi', 'Shahdara']},
-                {'name': 'West Delhi', 'name_hi': 'पश्चिमी दिल्ली', 'is_capital': False, 'districts': ['West Delhi']},
-                {'name': 'Dwarka', 'name_hi': 'द्वारका', 'is_capital': False, 'districts': ['South West Delhi']},
-                {'name': 'Rohini', 'name_hi': 'रोहिणी', 'is_capital': False, 'districts': ['North West Delhi']},
+                {'name': 'New Delhi', 'is_capital': True, 'districts': ['New Delhi', 'South Delhi']},
+                {'name': 'Central Delhi', 'is_capital': False, 'districts': ['Central Delhi', 'North Delhi']},
+                {'name': 'East Delhi', 'is_capital': False, 'districts': ['East Delhi', 'Shahdara']},
+                {'name': 'West Delhi', 'is_capital': False, 'districts': ['West Delhi']},
+                {'name': 'Dwarka', 'is_capital': False, 'districts': ['South West Delhi']},
+                {'name': 'Rohini', 'is_capital': False, 'districts': ['North West Delhi']},
             ]
         },
         'Jammu and Kashmir': {
             'code': 'JK',
-            'name_hi': 'जम्मू और कश्मीर',
             'cities': [
-                {'name': 'Srinagar', 'name_hi': 'श्रीनगर', 'is_capital': True, 'districts': ['Srinagar', 'Ganderbal']},
-                {'name': 'Jammu', 'name_hi': 'जम्मू', 'is_capital': False, 'districts': ['Jammu', 'Samba']},
-                {'name': 'Anantnag', 'name_hi': 'अनंतनाग', 'is_capital': False, 'districts': ['Anantnag', 'Kulgam']},
-                {'name': 'Baramulla', 'name_hi': 'बारामूला', 'is_capital': False, 'districts': ['Baramulla', 'Kupwara']},
-                {'name': 'Udhampur', 'name_hi': 'उधमपुर', 'is_capital': False, 'districts': ['Udhampur', 'Reasi']},
+                {'name': 'Srinagar', 'is_capital': True, 'districts': ['Srinagar', 'Ganderbal']},
+                {'name': 'Jammu', 'is_capital': False, 'districts': ['Jammu', 'Samba']},
+                {'name': 'Anantnag', 'is_capital': False, 'districts': ['Anantnag', 'Kulgam']},
+                {'name': 'Baramulla', 'is_capital': False, 'districts': ['Baramulla', 'Kupwara']},
+                {'name': 'Udhampur', 'is_capital': False, 'districts': ['Udhampur', 'Reasi']},
             ]
         },
         'Ladakh': {
             'code': 'LA',
-            'name_hi': 'लद्दाख',
             'cities': [
-                {'name': 'Leh', 'name_hi': 'लेह', 'is_capital': True, 'districts': ['Leh']},
-                {'name': 'Kargil', 'name_hi': 'कारगिल', 'is_capital': False, 'districts': ['Kargil']},
+                {'name': 'Leh', 'is_capital': True, 'districts': ['Leh']},
+                {'name': 'Kargil', 'is_capital': False, 'districts': ['Kargil']},
             ]
         },
         'Lakshadweep': {
             'code': 'LD',
-            'name_hi': 'लक्षद्वीप',
             'cities': [
-                {'name': 'Kavaratti', 'name_hi': 'कवरत्ती', 'is_capital': True, 'districts': ['Lakshadweep']},
-                {'name': 'Agatti', 'name_hi': 'अगत्ती', 'is_capital': False, 'districts': ['Lakshadweep']},
+                {'name': 'Kavaratti', 'is_capital': True, 'districts': ['Lakshadweep']},
+                {'name': 'Agatti', 'is_capital': False, 'districts': ['Lakshadweep']},
             ]
         },
         'Puducherry': {
             'code': 'PY',
-            'name_hi': 'पुदुचेरी',
             'cities': [
-                {'name': 'Puducherry', 'name_hi': 'पुदुचेरी', 'is_capital': True, 'districts': ['Puducherry']},
-                {'name': 'Karaikal', 'name_hi': 'करैकल', 'is_capital': False, 'districts': ['Karaikal']},
-                {'name': 'Yanam', 'name_hi': 'यानम', 'is_capital': False, 'districts': ['Yanam']},
-                {'name': 'Mahe', 'name_hi': 'माहे', 'is_capital': False, 'districts': ['Mahe']},
+                {'name': 'Puducherry', 'is_capital': True, 'districts': ['Puducherry']},
+                {'name': 'Karaikal', 'is_capital': False, 'districts': ['Karaikal']},
+                {'name': 'Yanam', 'is_capital': False, 'districts': ['Yanam']},
+                {'name': 'Mahe', 'is_capital': False, 'districts': ['Mahe']},
             ]
         },
     }
@@ -472,7 +434,6 @@ def create_location_data():
             country=india,
             name=state_name,
             defaults={
-                'name_hi': state_data['name_hi'],
                 'code': state_data['code'],
             }
         )
@@ -484,7 +445,6 @@ def create_location_data():
                 state=state,
                 name=city_data['name'],
                 defaults={
-                    'name_hi': city_data['name_hi'],
                     'is_capital': city_data['is_capital'],
                 }
             )
@@ -495,7 +455,6 @@ def create_location_data():
                 district, district_created = District.objects.get_or_create(
                     city=city,
                     name=district_name,
-                    defaults={}
                 )
                 if district_created:
                     total_districts += 1
@@ -507,31 +466,71 @@ def create_location_data():
 
 
 def create_category_data():
-    """Create sample category data."""
+    """Create sample category and subcategory data."""
     print("\nCreating category data...")
     
-    categories = [
-        {'name': 'Textile', 'name_hi': 'कपड़ा', 'description': 'Textile and fabric manufacturing'},
-        {'name': 'Automotive', 'name_hi': 'ऑटोमोटिव', 'description': 'Automotive parts and manufacturing'},
-        {'name': 'Electronics', 'name_hi': 'इलेक्ट्रॉनिक्स', 'description': 'Electronics and technology'},
-        {'name': 'Pharmaceuticals', 'name_hi': 'फार्मास्यूटिकल्स', 'description': 'Pharmaceutical and healthcare'},
-        {'name': 'Food Processing', 'name_hi': 'खाद्य प्रसंस्करण', 'description': 'Food and beverage processing'},
-        {'name': 'Chemicals', 'name_hi': 'रसायन', 'description': 'Chemical manufacturing'},
-        {'name': 'Metal Works', 'name_hi': 'धातु कार्य', 'description': 'Metal fabrication and works'},
-        {'name': 'Plastics', 'name_hi': 'प्लास्टिक', 'description': 'Plastic manufacturing and products'},
+    categories_data = [
+        {
+            'name': 'Textile',
+            'description': 'Textile and fabric manufacturing',
+            'subcategories': ['Cotton Textiles', 'Synthetic Textiles', 'Handloom', 'Garments']
+        },
+        {
+            'name': 'Automotive',
+            'description': 'Automotive parts and manufacturing',
+            'subcategories': ['Auto Parts', 'Two Wheelers', 'Commercial Vehicles', 'Electric Vehicles']
+        },
+        {
+            'name': 'Electronics',
+            'description': 'Electronics and technology',
+            'subcategories': ['Consumer Electronics', 'Semiconductors', 'IoT Devices', 'Home Appliances']
+        },
+        {
+            'name': 'Pharmaceuticals',
+            'description': 'Pharmaceutical and healthcare',
+            'subcategories': ['Generic Drugs', 'Vaccines', 'Medical Devices', 'Ayurvedic']
+        },
+        {
+            'name': 'Food Processing',
+            'description': 'Food and beverage processing',
+            'subcategories': ['Packaged Foods', 'Beverages', 'Dairy Products', 'Snacks']
+        },
+        {
+            'name': 'Chemicals',
+            'description': 'Chemical manufacturing',
+            'subcategories': ['Industrial Chemicals', 'Agrochemicals', 'Specialty Chemicals', 'Petrochemicals']
+        },
+        {
+            'name': 'Metal Works',
+            'description': 'Metal fabrication and works',
+            'subcategories': ['Steel Fabrication', 'Aluminum Products', 'Copper Products', 'Casting']
+        },
+        {
+            'name': 'Plastics',
+            'description': 'Plastic manufacturing and products',
+            'subcategories': ['Plastic Packaging', 'Plastic Pipes', 'Plastic Molding', 'Recycled Plastics']
+        },
     ]
     
-    for cat_data in categories:
-        Category.objects.get_or_create(
+    for cat_data in categories_data:
+        category, created = Category.objects.get_or_create(
             name=cat_data['name'],
             defaults={
-                'name_hi': cat_data['name_hi'],
                 'description': cat_data['description'],
-                'slug': cat_data['name'].lower().replace(' ', '-')
             }
         )
+        
+        # Create subcategories
+        for subcat_name in cat_data['subcategories']:
+            SubCategory.objects.get_or_create(
+                category=category,
+                name=subcat_name,
+                defaults={
+                    'description': f'{subcat_name} under {cat_data["name"]}',
+                }
+            )
     
-    print(f"Created {len(categories)} categories")
+    print(f"Created {len(categories_data)} categories with subcategories")
 
 
 def create_factory_data(user):
@@ -544,41 +543,73 @@ def create_factory_data(user):
             print("No categories found. Run create_category_data() first.")
             return
         
-        district = District.objects.first()
-        if not district:
-            print("No districts found. Run create_location_data() first.")
+        subcategory = SubCategory.objects.first()
+        if not subcategory:
+            print("No subcategories found. Run create_category_data() first.")
             return
+        
+        # Get location data
+        india = Country.objects.first()
+        if not india:
+            print("No country found. Run create_location_data() first.")
+            return
+        
+        state = State.objects.first()
+        if not state:
+            print("No state found. Run create_location_data() first.")
+            return
+        
+        city = City.objects.first()
+        if not city:
+            print("No city found. Run create_location_data() first.")
+            return
+        
+        district = District.objects.first()
         
         factories = [
             {
                 'name': 'ABC Textiles Pvt Ltd',
-                'name_hi': 'एबीसी टेक्सटाइल्स प्राइवेट लिमिटेड',
                 'description': 'Leading textile manufacturer specializing in cotton fabrics and garments.',
-                'description_hi': 'कपड़ा और परिधान में विशेषज्ञता प्राप्त प्रमुख कपड़ा निर्माता।',
                 'category': category,
+                'subcategory': subcategory,
+                'country': india,
+                'state': state,
+                'city': city,
                 'district': district,
-                'address': 'Plot No. 123, MIDC Industrial Area, Mumbai',
-                'contact_number': '+91 9876543211',
+                'address': 'Plot No. 123, MIDC Industrial Area',
+                'pincode': '400001',
+                'contact_person': 'Rajesh Sharma',
+                'contact_phone': '+91 9876543211',
                 'contact_email': 'info@abctextiles.com',
                 'website': 'https://abctextiles.com',
                 'established_year': 2005,
                 'employee_count': 250,
-                'owner': user,
+                'created_by': user,
+                'factory_type': 'Manufacturing',
+                'production_capacity': '10000 units/month',
+                'working_hours': '9:00 AM - 6:00 PM',
             },
             {
                 'name': 'XYZ Automotive Components',
-                'name_hi': 'XYZ ऑटोमोटिव घटक',
                 'description': 'Precision automotive parts manufacturer for leading car companies.',
-                'description_hi': 'प्रमुख कार कंपनियों के लिए सटीक ऑटोमोटिव पुर्जे निर्माता।',
                 'category': category,
+                'subcategory': subcategory,
+                'country': india,
+                'state': state,
+                'city': city,
                 'district': district,
-                'address': 'Survey No. 456, Industrial Estate, Pune',
-                'contact_number': '+91 9876543212',
+                'address': 'Survey No. 456, Industrial Estate',
+                'pincode': '411001',
+                'contact_person': 'Amit Patel',
+                'contact_phone': '+91 9876543212',
                 'contact_email': 'contact@xyzauto.com',
                 'website': 'https://xyzauto.com',
                 'established_year': 2010,
                 'employee_count': 180,
-                'owner': user,
+                'created_by': user,
+                'factory_type': 'Assembly',
+                'production_capacity': '5000 units/month',
+                'working_hours': '8:00 AM - 5:00 PM',
             },
         ]
         
@@ -598,6 +629,11 @@ def create_worker_data():
     print("\nCreating worker data...")
     
     try:
+        category = Category.objects.first()
+        if not category:
+            print("No categories found. Run create_category_data() first.")
+            return
+        
         factory = Factory.objects.first()
         if not factory:
             print("No factories found. Run create_factory_data() first.")
@@ -605,46 +641,46 @@ def create_worker_data():
         
         workers = [
             {
-                'name': 'Rajesh Kumar',
-                'name_hi': 'राजेश कुमार',
-                'father_name': 'Mohan Kumar',
-                'father_name_hi': 'मोहन कुमार',
-                'aadhar_number': '123456789012',
-                'mobile': '+91 9876543213',
-                'address': 'Room No. 12, Worker Colony, Mumbai',
+                'full_name': 'Rajesh Kumar',
                 'date_of_birth': '1985-05-15',
-                'gender': 'Male',
-                'education': '10th Pass',
-                'education_hi': '10वीं पास',
-                'experience': '8 years',
-                'experience_hi': '8 साल',
-                'skills': 'Machine Operation, Quality Control',
-                'skills_hi': 'मशीन संचालन, गुणवत्ता नियंत्रण',
-                'factory': factory,
+                'gender': 'M',
+                'phone_number': '+91 9876543213',
+                'email': 'rajesh@example.com',
+                'category': category,
+                'years_of_experience': 8,
+                'skills': 'Machine Operation, Quality Control, Textile Manufacturing',
+                'availability': 'FT',
+                'expected_daily_wage': 800.00,
+                'country': factory.country,
+                'state': factory.state,
+                'city': factory.city,
+                'district': factory.district,
+                'address': 'Room No. 12, Worker Colony',
+                'created_by': factory.created_by,
             },
             {
-                'name': 'Sunita Devi',
-                'name_hi': 'सुनीता देवी',
-                'father_name': 'Ram Prasad',
-                'father_name_hi': 'राम प्रसाद',
-                'aadhar_number': '123456789013',
-                'mobile': '+91 9876543214',
-                'address': 'Room No. 15, Worker Colony, Mumbai',
+                'full_name': 'Sunita Devi',
                 'date_of_birth': '1990-08-20',
-                'gender': 'Female',
-                'education': '12th Pass',
-                'education_hi': '12वीं पास',
-                'experience': '5 years',
-                'experience_hi': '5 साल',
-                'skills': 'Assembly, Packaging',
-                'skills_hi': 'असेंबली, पैकेजिंग',
-                'factory': factory,
+                'gender': 'F',
+                'phone_number': '+91 9876543214',
+                'email': 'sunita@example.com',
+                'category': category,
+                'years_of_experience': 5,
+                'skills': 'Assembly, Packaging, Quality Inspection',
+                'availability': 'FT',
+                'expected_daily_wage': 600.00,
+                'country': factory.country,
+                'state': factory.state,
+                'city': factory.city,
+                'district': factory.district,
+                'address': 'Room No. 15, Worker Colony',
+                'created_by': factory.created_by,
             },
         ]
         
         for worker_data in workers:
             Worker.objects.get_or_create(
-                name=worker_data['name'],
+                full_name=worker_data['full_name'],
                 defaults=worker_data
             )
         
@@ -687,7 +723,7 @@ def create_blog_data(user):
                 'slug': 'how-to-use-factoryinfohub-effectively',
                 'content': '''
                     <h2>Getting Started with FactoryInfoHub</h2>
-                    <p>FactoryInfoHub offers a comprehensive platform for exploring India's manufacturing landscape. Here's how to make the most of it:</p>
+                    <p>FactoryInfoHub offers a comprehensive platform for exploring India\'s manufacturing landscape. Here\'s how to make the most of it:</p>
                     
                     <h3>For Buyers</h3>
                     <ol>
@@ -712,7 +748,7 @@ def create_blog_data(user):
         ]
         
         for post_data in posts:
-            BlogPost.objects.get_or_create(
+            Post.objects.get_or_create(
                 slug=post_data['slug'],
                 defaults=post_data
             )
@@ -723,64 +759,62 @@ def create_blog_data(user):
 
 
 def create_faq_data():
-    """Create sample FAQ data."""
+    """Create sample FAQ data using FAQQuestion model."""
     print("\nCreating FAQ data...")
     
     try:
-        # Create FAQ categories
-        categories = [
-            {'name': 'General', 'name_hi': 'सामान्य', 'description': 'General questions about FactoryInfoHub'},
-            {'name': 'For Manufacturers', 'name_hi': 'निर्माताओं के लिए', 'description': 'Questions for factory owners and manufacturers'},
-            {'name': 'For Buyers', 'name_hi': 'खरीदारों के लिए', 'description': 'Questions for buyers and purchasers'},
-        ]
+        # Get or create a category for FAQs
+        general_category, created = Category.objects.get_or_create(
+            name='General',
+            defaults={'description': 'General questions about FactoryInfoHub'}
+        )
+        manufacturers_category, created = Category.objects.get_or_create(
+            name='For Manufacturers',
+            defaults={'description': 'Questions for factory owners and manufacturers'}
+        )
+        buyers_category, created = Category.objects.get_or_create(
+            name='For Buyers',
+            defaults={'description': 'Questions for buyers and purchasers'}
+        )
         
-        faq_categories = []
-        for cat_data in categories:
-            cat, created = FAQCategory.objects.get_or_create(
-                name=cat_data['name'],
-                defaults={
-                    'name_hi': cat_data['name_hi'],
-                    'description': cat_data['description'],
-                    'slug': cat_data['name'].lower().replace(' ', '-')
-                }
-            )
-            faq_categories.append(cat)
-        
-        # Create FAQs
+        # Create FAQ questions
         faqs = [
             {
-                'question': 'What is FactoryInfoHub?',
-                'question_hi': 'FactoryInfoHub क्या है?',
-                'answer': 'FactoryInfoHub is a comprehensive platform that provides information about manufacturing units across India, including their capabilities, workforce, and contact details.',
-                'answer_hi': 'FactoryInfoHub एक व्यापक मंच है जो भारत भर में विनिर्माण इकाइयों के बारे में जानकारी प्रदान करता है, जिसमें उनकी क्षमताएं, कार्यबल और संपर्क विवरण शामिल हैं।',
-                'category': faq_categories[0],
+                'title': 'What is FactoryInfoHub?',
+                'category': general_category,
+                'question_text': 'What is FactoryInfoHub and what does it do?',
+                'answer_text': 'FactoryInfoHub is a comprehensive platform that provides information about manufacturing units across India, including their capabilities, workforce, and contact details. It helps buyers find manufacturers and manufacturers showcase their capabilities.',
+                'status': 'published',
+                'is_featured': True,
                 'order': 1,
             },
             {
-                'question': 'How can I register my factory?',
-                'question_hi': 'मैं अपनी फैक्ट्री कैसे पंजीकृत कर सकता हूं?',
-                'answer': 'You can register your factory by creating an account on FactoryInfoHub and submitting your factory details through the registration form. Our team will verify the information before publishing.',
-                'answer_hi': 'आप FactoryInfoHub पर खाता बनाकर और पंजीकरण फ़ॉर्म के माध्यम से अपनी फैक्ट्री का विवरण जमा करके अपनी फैक्ट्री पंजीकृत कर सकते हैं। प्रकाशित करने से पहले हमारी टीम जानकारी की पुष्टि करेगी।',
-                'category': faq_categories[1],
+                'title': 'How can I register my factory?',
+                'category': manufacturers_category,
+                'question_text': 'How can I register my factory on FactoryInfoHub?',
+                'answer_text': 'You can register your factory by creating an account on FactoryInfoHub and submitting your factory details through the registration form. Our team will verify the information before publishing your listing.',
+                'status': 'published',
+                'is_featured': True,
                 'order': 2,
             },
             {
-                'question': 'Is it free to use FactoryInfoHub?',
-                'question_hi': 'FactoryInfoHub का उपयोग करना मुफ्त है?',
-                'answer': 'Yes, basic usage of FactoryInfoHub is completely free. We offer premium features for manufacturers who want enhanced visibility and additional tools.',
-                'answer_hi': 'हाँ, FactoryInfoHub का बुनियादी उपयोग पूरी तरह से मुफ्त है। हम उन निर्माताओं के लिए प्रीमियम सुविधाएं प्रदान करते हैं जो बेहतर दृश्यता और अतिरिक्त उपकरण चाहते हैं।',
-                'category': faq_categories[2],
+                'title': 'Is it free to use FactoryInfoHub?',
+                'category': buyers_category,
+                'question_text': 'Is it free to use FactoryInfoHub?',
+                'answer_text': 'Yes, basic usage of FactoryInfoHub is completely free. Buyers can search and contact manufacturers at no cost. We offer premium features for manufacturers who want enhanced visibility and additional tools.',
+                'status': 'published',
+                'is_featured': True,
                 'order': 3,
             },
         ]
         
         for faq_data in faqs:
-            FAQ.objects.get_or_create(
-                question=faq_data['question'],
+            FAQQuestion.objects.get_or_create(
+                title=faq_data['title'],
                 defaults=faq_data
             )
         
-        print(f"Created {len(faqs)} FAQs in {len(faq_categories)} categories")
+        print(f"Created {len(faqs)} FAQ questions in {3} categories")
     except Exception as e:
         print(f"Error creating FAQ data: {e}")
 
