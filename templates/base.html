@@ -94,6 +94,27 @@
   <!-- CSRF Token -->
   <meta name="csrf-token" content="{{ csrf_token }}">
 
+  <!-- SEO Meta Tags -->
+  {% block meta_tags %}
+    <meta name="description" content="{% block meta_description %}Fashion Chemistry - Establishment Management System{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}factory, manufacturing, establishment, management{% endblock %}">
+    <meta name="author" content="Fashion Chemistry">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% endblock %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{% endblock %}">
+  {% endblock %}
+
   <title>{% block title %}Fashion Chemistry{% endblock %}</title>
   
   {% block extra_css %}{% endblock %}

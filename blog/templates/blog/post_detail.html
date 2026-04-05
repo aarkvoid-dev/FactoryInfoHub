@@ -4,6 +4,18 @@
 
 {% block title %}{{ post.title }} - FactoryInfoHub Blog{% endblock %}
 
+{% block meta_description %}{{ post.excerpt|default:post.title|truncatechars:160 }}{% endblock %}
+{% block meta_keywords %}{% if post.category %}{{ post.category.name }}, {% endif %}{{ post.title }}, factory, manufacturing, blog{% endblock %}
+
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.excerpt|default:post.title|truncatechars:160 }}{% endblock %}
+{% block og_image %}{% if post.get_featured_image %}{{ post.get_featured_image.image.url }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ post.title }}{% endblock %}
+{% block twitter_description %}{{ post.excerpt|default:post.title|truncatechars:160 }}{% endblock %}
+{% block twitter_image %}{% if post.get_featured_image %}{{ post.get_featured_image.image.url }}{% endif %}{% endblock %}
+
 {% block content %}
 
 <div class="row">
