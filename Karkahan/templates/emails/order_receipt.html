@@ -126,8 +126,9 @@
             <h3>Factory Information</h3>
             {% for factory in factories %}
             <div class="factory-item">
-                <div class="factory-name">{{ factory.name }}</div>
+                <div class="factory-name">{{ factory.name }} <span style="font-size: 14px; color: #666; font-weight: normal;">(Code: {{ factory.factory_code }})</span></div>
                 <div class="factory-details">
+                    <p><strong>Factory Code:</strong> <span style="background-color: #EB662B; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold;">{{ factory.factory_code }}</span></p>
                     <p><strong>Category:</strong> {{ factory.category.name }}</p>
                     <p><strong>Location:</strong> {{ factory.full_address }}</p>
                     {% if factory.factory_type %}

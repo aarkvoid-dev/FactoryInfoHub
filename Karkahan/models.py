@@ -15,6 +15,8 @@ import uuid
 class Factory(SoftDeleteModel):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
+    factory_code = models.CharField(max_length=20, unique=True, blank=True, editable=False, 
+                                     help_text="Auto-generated unique factory identification code")
     description = models.TextField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='factories')
     subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='factories', blank=True, null=True)
@@ -66,7 +68,30 @@ class Factory(SoftDeleteModel):
             while Factory.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
                 self.slug = f"{base_slug}-{counter}"
                 counter += 1
+        
+        # Auto-generate factory code if not set
+        if not self.factory_code:
+            self.factory_code = self._generate_factory_code()
+        
         super().save(*args, **kwargs)
+    
+    def _generate_factory_code(self):
+        """Generate a unique factory code in format FIH-XXXXXX"""
+        import random
+        import string
+        
+        prefix = "FIH"  # FactoryInfoHub prefix
+        
+        while True:
+            # Generate 6 random alphanumeric characters
+            random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            code = f"{prefix}-{random_part}"
+            
+            # Check if code is unique
+            if not Factory.objects.filter(factory_code=code).exists():
+                return code
+        
+        return code
 
     def __str__(self):
         return f"{self.name} - {self.city.name}, {self.state.name}"
