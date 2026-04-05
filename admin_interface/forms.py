@@ -504,10 +504,20 @@ class AdminBlogForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Auto-generated slug'
             }),
-            'content': forms.Textarea(attrs={
+            'content': TinyMCE(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter blog post content',
-                'rows': 8
+                'placeholder': 'Enter blog post content with inline images',
+                'rows': 12,
+                # TinyMCE configuration for image upload and inline editing
+                'width': '100%',
+                'height': 500,
+                'toolbar': 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image media link | code',
+                'plugins': 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen media table help',
+                'image_title': True,
+                'automatic_uploads': True,
+                'file_picker_types': 'image',
+                'relative_urls': False,
+                'remove_script_host': False,
             }),
             'excerpt': forms.Textarea(attrs={
                 'class': 'form-control',
