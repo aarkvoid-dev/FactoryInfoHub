@@ -23,7 +23,7 @@ from django.contrib.auth.models import User
 from Accounts.models import Profile
 from location.models import Country, State, City, District
 from category.models import Category, SubCategory
-from blog.models import Post
+from blog.models import BlogPost
 from Karkahan.models import Factory
 from Workers.models import Worker
 from faq.models import FAQQuestion
@@ -748,7 +748,7 @@ def create_blog_data(user):
         ]
         
         for post_data in posts:
-            Post.objects.get_or_create(
+            BlogPost.objects.get_or_create(
                 slug=post_data['slug'],
                 defaults=post_data
             )
