@@ -81,6 +81,18 @@
                                 {{ form.slug }}
                                 <div class="form-text extra-small">Auto-generated from name.</div>
                             </div>
+                            {% if form.instance.pk and form.instance.factory_code %}
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">Factory Code</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control fw-bold" value="{{ form.instance.factory_code }}" readonly style="background-color: #f8f9fa; font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;">
+                                    <button class="btn btn-outline-primary" type="button" onclick="navigator.clipboard.writeText('{{ form.instance.factory_code }}'); this.innerHTML='<i class=\'fas fa-check me-1\'></i>Copied!'; setTimeout(() => this.innerHTML='<i class=\'fas fa-copy me-1\'></i>Copy\'', 2000);">
+                                        <i class="fas fa-copy me-1"></i>Copy
+                                    </button>
+                                </div>
+                                <div class="form-text extra-small">Unique identifier for this factory. Use this code for quick reference in communications.</div>
+                            </div>
+                            {% endif %}
                             <div class="col-12 mb-3">
                                 {{ form.description.label_tag }}
                                 {{ form.description }}
