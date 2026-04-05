@@ -9,8 +9,8 @@ from .models import Worker, WorkExperience
 from .forms import WorkerForm, WorkExperienceForm, WorkerFilterForm, WorkerProfileForm
 from Accounts.decorators import allow_unverified
 
-@allow_unverified
-@login_required
+# @allow_unverified
+# @login_required
 def register_worker(request):
     if request.method == 'POST':
         form = WorkerForm(request.POST)
@@ -24,8 +24,8 @@ def register_worker(request):
         form = WorkerForm()
     return render(request, 'workers/register.html', {'form': form, 'title': 'Register as Worker'})
 
-@allow_unverified
-@login_required
+# @allow_unverified
+# @login_required
 def worker_profile(request):
     # Get workers created by the current user
     workers = Worker.objects.filter(created_by=request.user, is_deleted=False).select_related(
@@ -55,7 +55,7 @@ def edit_worker_profile(request, slug):
         form = WorkerProfileForm(instance=worker)
     return render(request, 'workers/edit_profile.html', {'form': form, 'worker': worker})
 
-@login_required
+# @login_required
 def add_work_experience(request, worker_slug):
     worker = get_object_or_404(Worker, slug=worker_slug)
     # Check if user can add experience to this worker
@@ -75,7 +75,7 @@ def add_work_experience(request, worker_slug):
         form = WorkExperienceForm()
     return render(request, 'workers/add_experience.html', {'form': form, 'worker': worker})
 
-@login_required
+# @login_required
 def edit_work_experience(request, experience_id):
     experience = get_object_or_404(WorkExperience, id=experience_id)
     worker = experience.worker
@@ -94,7 +94,7 @@ def edit_work_experience(request, experience_id):
         form = WorkExperienceForm(instance=experience)
     return render(request, 'workers/edit_experience.html', {'form': form, 'experience': experience, 'worker': worker})
 
-@login_required
+# @login_required
 def delete_work_experience(request, experience_id):
     experience = get_object_or_404(WorkExperience, id=experience_id)
     worker = experience.worker

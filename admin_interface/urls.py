@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import api_views
+from . import ajax_views
 
 app_name = 'admin_interface'
 
@@ -179,4 +180,11 @@ urlpatterns = [
     # Utility API endpoints
     path('api/folders/', api_views.list_folders_api, name='api_list_folders'),
     path('api/folders/delete/', api_views.delete_folder_api, name='api_delete_folder'),
+    
+    # AJAX endpoints for factory image management
+    path('ajax/upload-factory-image/', ajax_views.upload_factory_image, name='ajax_upload_factory_image'),
+    path('ajax/update-image-caption/', ajax_views.update_image_caption, name='ajax_update_image_caption'),
+    path('ajax/set-primary-image/', ajax_views.set_primary_image, name='ajax_set_primary_image'),
+    path('ajax/delete-image/', ajax_views.delete_image, name='ajax_delete_image'),
+    path('ajax/reorder-images/', ajax_views.reorder_images, name='ajax_reorder_images'),
 ]
