@@ -249,11 +249,17 @@
             <div class="factories-section">
                 {% for factory in factories %}
                 <div class="factory-card">
-                    <h3>{{ factory.name }}</h3>
+                    <h3>
+                        {{ factory.name }}
+                        <span style="font-size: 0.85rem; color: #64748B; font-weight: normal; margin-left: 10px;">
+                            Code: {{ factory.factory_code }}
+                        </span>
+                    </h3>
                     
                     <table class="factory-table">
                         <thead>
                             <tr>
+                                <th>Factory Code</th>
                                 <th>Category</th>
                                 <th>Location</th>
                                 <th>Type</th>
@@ -262,6 +268,7 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td style="font-weight: bold; color: #EB662B;">{{ factory.factory_code }}</td>
                                 <td>{{ factory.category }}</td>
                                 <td>{{ factory.location }}</td>
                                 <td>{{ factory.factory_type }}</td>

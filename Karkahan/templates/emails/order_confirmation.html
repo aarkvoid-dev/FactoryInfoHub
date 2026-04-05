@@ -295,7 +295,10 @@
                     <tbody>
                         {% for item in items %}
                         <tr>
-                            <td>{{ item.factory.name }}</td>
+                            <td>
+                                <strong>{{ item.factory.name }}</strong>
+                                <br><small style="color: #64748B;">Code: {{ item.factory.factory_code }}</small>
+                            </td>
                             <td>{{ item.quantity }}</td>
                             <td>Rs. {{ item.price_at_purchase }}</td>
                             <td>Rs. {{ item.total_price }}</td>

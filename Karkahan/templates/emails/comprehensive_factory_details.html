@@ -270,12 +270,16 @@
         <div class="factory-section">
             <div class="factory-header">
                 <h2 class="factory-title">{{ factory.name }}</h2>
-                <span class="factory-meta">{{ factory.category }} • {{ factory.location }}</span>
+                <span class="factory-meta">Code: <strong style="color: #EB662B;">{{ factory.factory_code }}</strong> • {{ factory.category }} • {{ factory.location }}</span>
             </div>
 
             <div class="factory-details">
                 <div class="detail-card">
                     <h4>Factory Overview</h4>
+                    <div class="detail-item">
+                        <span class="detail-label">Factory Code:</span>
+                        <span class="detail-value" style="font-weight: bold; color: #EB662B;">{{ factory.factory_code }}</span>
+                    </div>
                     <div class="detail-item">
                         <span class="detail-label">Factory Type:</span>
                         <span class="detail-value">{{ factory.factory_type|default:"Not specified" }}</span>
