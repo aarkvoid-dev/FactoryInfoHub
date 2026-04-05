@@ -102,31 +102,14 @@ WSGI_APPLICATION = 'FactoryInfoHub.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database configuration with environment variable support
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    # Use DATABASE_URL if provided (for PostgreSQL in production via URL)
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL)
+# Database configuration
+# Using SQLite for simplicity - switch to PostgreSQL for production
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    # PostgreSQL configuration using individual environment variables
-    # Defaults to the server setup values if not specified
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'factoryhub'),
-            'USER': os.environ.get('DB_USER', 'factoryhubuser'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'strongpassword'),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 600,  # Persistent connections
-            'OPTIONS': {
-                'sslmode': os.environ.get('DB_SSLMODE', 'prefer'),
-            },
-        }
-    }
+}
 
 # Cache configuration with Redis support
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/1')
