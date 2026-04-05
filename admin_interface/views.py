@@ -2135,6 +2135,39 @@ def admin_factory_create(request):
         form = AdminFactoryForm(request.POST, request.FILES)
         if form.is_valid():
             factory = form.save()
+            
+            # Handle multiple image uploads
+            image_files = request.FILES.getlist('image')
+            if image_files:
+                from Karkahan.models import FactoryImage
+                import os
+                
+                for idx, image_file in enumerate(image_files):
+                    # Validate image file
+                    # Check file size (max 5MB)
+                    if image_file.size > 5 * 1024 * 1024:
+                        messages.error(request, f'Image "{image_file.name}" is too large. Max size is 5MB.')
+                        continue
+                    
+                    # Check file extension
+                    valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+                    file_extension = os.path.splitext(image_file.name)[1].lower()
+                    if file_extension not in valid_extensions:
+                        messages.error(request, f'Invalid format for "{image_file.name}". Please upload JPG, PNG, GIF, or WebP files.')
+                        continue
+                    
+                    # Create a FactoryImage record for the uploaded image
+                    new_image = FactoryImage.objects.create(
+                        factory=factory,
+                        image=image_file,
+                        caption=f"Image uploaded via admin form - {factory.name}"
+                    )
+                    
+                    # Set as primary if no primary image exists
+                    if not factory.images.filter(is_primary=True).exists():
+                        new_image.is_primary = True
+                        new_image.save()
+            
             messages.success(request, f'Factory "{factory.name}" created successfully!')
             return redirect('admin_interface:admin_factories')
         else:
@@ -2208,53 +2241,39 @@ def admin_factory_edit(request, factory_id):
         if form.is_valid():
             factory = form.save()
             
-            # Handle image upload if an image was provided
-            image_file = request.FILES.get('image')
-            if image_file:
-                # Validate image file
-                import os
-                from django.core.exceptions import ValidationError
-                
-                # Check file size (max 5MB)
-                if image_file.size > 5 * 1024 * 1024:
-                    messages.error(request, 'Image file size must be less than 5MB.')
-                    return render(request, 'CustomAdmin/factories/factory_form.html', {
-                        'form': form,
-                        'action': 'edit',
-                        'title': f'Edit Factory: {factory.name}',
-                        'factory': factory,
-                        'view_stats': view_stats,
-                        'factory_images': factory.images.all()
-                    })
-                
-                # Check file extension
-                valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
-                file_extension = os.path.splitext(image_file.name)[1].lower()
-                if file_extension not in valid_extensions:
-                    messages.error(request, 'Invalid image file format. Please upload JPG, PNG, or GIF files.')
-                    return render(request, 'CustomAdmin/factories/factory_form.html', {
-                        'form': form,
-                        'action': 'edit',
-                        'title': f'Edit Factory: {factory.name}',
-                        'factory': factory,
-                        'view_stats': view_stats,
-                        'factory_images': factory.images.all()
-                    })
-                
-                # Create a FactoryImage record for the uploaded image
+            # Handle multiple image uploads
+            image_files = request.FILES.getlist('image')
+            if image_files:
                 from Karkahan.models import FactoryImage
-                new_image = FactoryImage.objects.create(
-                    factory=factory,
-                    image=image_file,
-                    caption=f"Image uploaded via admin form - {factory.name}"
-                )
+                import os
                 
-                # Set as primary if no primary image exists
-                if not factory.images.filter(is_primary=True).exists():
-                    new_image.is_primary = True
-                    new_image.save()
+                for image_file in image_files:
+                    # Validate image file
+                    # Check file size (max 5MB)
+                    if image_file.size > 5 * 1024 * 1024:
+                        messages.error(request, f'Image "{image_file.name}" is too large. Max size is 5MB.')
+                        continue
+                    
+                    # Check file extension
+                    valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+                    file_extension = os.path.splitext(image_file.name)[1].lower()
+                    if file_extension not in valid_extensions:
+                        messages.error(request, f'Invalid format for "{image_file.name}". Please upload JPG, PNG, GIF, or WebP files.')
+                        continue
+                    
+                    # Create a FactoryImage record for the uploaded image
+                    new_image = FactoryImage.objects.create(
+                        factory=factory,
+                        image=image_file,
+                        caption=f"Image uploaded via admin form - {factory.name}"
+                    )
+                    
+                    # Set as primary if no primary image exists
+                    if not factory.images.filter(is_primary=True).exists():
+                        new_image.is_primary = True
+                        new_image.save()
                 
-                messages.success(request, f'Image uploaded successfully for factory "{factory.name}"!')
+                messages.success(request, f'{len(image_files)} image(s) uploaded successfully for factory "{factory.name}"!')
             
             messages.success(request, f'Factory "{factory.name}" updated successfully!')
             return redirect('admin_interface:admin_factories')

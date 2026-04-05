@@ -30,10 +30,11 @@ class AdminProfileForm(forms.ModelForm):
         }
 
 class AdminFactoryForm(forms.ModelForm):
-    # Add image field for factory images
-    image = forms.ImageField(required=False, widget=forms.FileInput(attrs={
+    # Add image field for factory images with multiple file support
+    image = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={
         'class': 'form-control',
-        'accept': 'image/*'
+        'accept': 'image/*',
+        'multiple': True
     }))
     
     def __init__(self, *args, **kwargs):
