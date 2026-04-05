@@ -336,7 +336,7 @@ class AdminStateForm(forms.ModelForm):
 class AdminCityForm(forms.ModelForm):
     class Meta:
         model = City
-        fields = ['name', 'code', 'state']
+        fields = ['name', 'code', 'state', 'is_capital', 'population', 'area', 'latitude', 'longitude', 'image']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -348,7 +348,32 @@ class AdminCityForm(forms.ModelForm):
             }),
             'state': forms.Select(attrs={
                 'class': 'form-control'
-            })
+            }),
+            'is_capital': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'population': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter population'
+            }),
+            'area': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter area in sq km'
+            }),
+            'latitude': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter latitude',
+                'step': '0.000001'
+            }),
+            'longitude': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter longitude',
+                'step': '0.000001'
+            }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
         }
 
 class AdminDistrictForm(forms.ModelForm):
