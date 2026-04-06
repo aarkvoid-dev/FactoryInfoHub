@@ -55,6 +55,7 @@ from location.models import Country, State, City, District, Region
 from Karkahan.views import process_hierarchical_fields
 from Accounts.decorators import email_verified_required
 
+
 class BlogPostListView(ListView):
     model = BlogPost
     template_name = 'blog/post_list.html'
