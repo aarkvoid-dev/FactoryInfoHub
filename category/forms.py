@@ -5,7 +5,7 @@ from .models import Category, SubCategory
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ['name', 'description', 'is_active']
+        fields = ['name', 'description', 'image', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -16,6 +16,10 @@ class CategoryForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Enter category description (optional)'
+            }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'

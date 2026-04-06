@@ -67,7 +67,7 @@ def category_detail(request, slug):
 @login_required
 def category_create(request):
     if request.method == 'POST':
-        form = CategoryForm(request.POST)
+        form = CategoryForm(request.POST, request.FILES)
         if form.is_valid():
             category = form.save()
             messages.success(request, f'Category "{category.name}" created successfully!')
@@ -81,7 +81,7 @@ def category_create(request):
 def category_update(request, slug):
     category = get_object_or_404(Category, slug=slug)
     if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
+        form = CategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             category = form.save()
             messages.success(request, f'Category "{category.name}" updated successfully!')

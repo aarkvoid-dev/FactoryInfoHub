@@ -111,10 +111,10 @@
                             <span class="badge bg-secondary-soft text-secondary">{{ country.code|upper }}</span>
                         </td>
                         <td>
-                            <span class="badge bg-warning-soft text-warning">{{ country.state_set.count }} states</span>
+                            <span class="badge bg-warning-soft text-warning">{{ country.states.count }} states</span>
                         </td>
                         <td>
-                            <span class="badge bg-info-soft text-info">{{ country.city_set.count }} cities</span>
+                            <span class="badge bg-info-soft text-info">{{ country.states.count }} cities</span>
                         </td>
                         <td>
                             <span class="text-muted small">{{ country.created_at|date:"M d, Y" }}</span>

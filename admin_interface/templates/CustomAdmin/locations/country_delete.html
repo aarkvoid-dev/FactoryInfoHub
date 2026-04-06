@@ -81,8 +81,8 @@
                     <span class="detail-value">{{ country.created_at|date:"M d, Y H:i" }}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Created By:</span>
-                    <span class="detail-value">{{ country.created_by.get_full_name|default:country.created_by.username }}</span>
+                    <span class="detail-label">Updated:</span>
+                    <span class="detail-value">{{ country.updated_at|date:"M d, Y H:i" }}</span>
                 </div>
             </div>
         </div>

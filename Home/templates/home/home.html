@@ -1,6 +1,7 @@
 {% extends 'home/base.html' %}
 {% load static %}
 {% load humanize %}
+{% load home_filter %}
 
 {% block extra_css %}
 <!-- Swiper CSS -->
@@ -522,7 +523,11 @@ html { font-size: 14px; }
                             <div class="swiper-slide">
                                 <a href="{% url 'karkahan:factory_list' %}?category={{ category.id }}" class="featureImage -type-1 text-center -hover-image-scale">
                                     <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                                        <img src="{% static 'img/features/6/' %}{{ forloop.counter }}.jpg" alt="image" class="size-130 object-cover rounded-full">
+                                        {% if category.image %}
+                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="size-130 object-cover rounded-full">
+                                        {% else %}
+                                          <img src="{% static 'img/features/6/' %}{{ forloop.counter|image_index:8 }}.jpg" alt="image" class="size-130 object-cover rounded-full">
+                                        {% endif %}
                                     </div>
                                     <h3 class="featureImage__title text-16 fw-500 mt-20">{{ category.name }}</h3>
                                     <p class="text-14">{{ category.factory_count }}+ Factories</p>
@@ -567,7 +572,11 @@ html { font-size: 14px; }
                             <div class="swiper-slide">
                                 <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="featureImage -type-1 text-center -hover-image-scale">
                                     <div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">
-                                        <img src="{% static 'img/destinationCards/1/' %}{{ forloop.counter }}.png" alt="image" class="size-130 object-cover rounded-full">
+                                      {% if city.image %}
+                                          <img src="{{ city.image.url }}" alt="{{ city.name }}" class="size-130 object-cover rounded-full">
+                                      {% else %}
+                                        <img src="{% static 'img/destinationCards/1/' %}{{ forloop.counter|image_index:8 }}.png" alt="image" class="size-130 object-cover rounded-full">
+                                      {% endif %}
                                     </div>
                                     <h3 class="featureImage__title text-16 fw-500 mt-20">{{ city.name }}</h3>
                                     <p class="text-14">{{ city.factory_count }}+ Factories</p>

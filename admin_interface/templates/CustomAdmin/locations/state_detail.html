@@ -190,10 +190,12 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ cities|dictsort:"name"|first.name|default:"N/A" }}</div>
-                        <div class="stat-label">First City</div>
-                    </div>
+                        <div class="stat-card">
+                            {% with first_city=cities|dictsort:"name"|first %}
+                            <div class="stat-number">{{ first_city.name|default:"N/A" }}</div>
+                            {% endwith %}
+                            <div class="stat-label">First City</div>
+                        </div>
                 </div>
             </div>
         </div>

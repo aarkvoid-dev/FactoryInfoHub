@@ -416,7 +416,7 @@ class AdminRegionForm(forms.ModelForm):
 class AdminCategoryForm(forms.ModelForm):
     class Meta:
         model = Category  # Default to Category, will be overridden in views
-        fields = ['name', 'description', 'is_active']
+        fields = ['name', 'description', 'image', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -426,6 +426,10 @@ class AdminCategoryForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Enter category description',
                 'rows': 3
+            }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
             }),
         }
 

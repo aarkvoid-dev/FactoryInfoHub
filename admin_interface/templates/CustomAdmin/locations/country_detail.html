@@ -33,26 +33,26 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6">
-                <div class="detail-item">
-                    <span class="detail-label">Country Name:</span>
-                    <span class="detail-value">{{ country.name }}</span>
+                <div class="col-md-6">
+                    <div class="detail-item">
+                        <span class="detail-label">Country Name:</span>
+                        <span class="detail-value">{{ country.name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">ISO Code:</span>
+                        <span class="detail-value">{{ country.code|default:"N/A" }}</span>
+                    </div>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">ISO Code:</span>
-                    <span class="detail-value">{{ country.code }}</span>
+                <div class="col-md-6">
+                    <div class="detail-item">
+                        <span class="detail-label">Created:</span>
+                        <span class="detail-value">{{ country.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Updated:</span>
+                        <span class="detail-value">{{ country.updated_at|date:"M d, Y H:i" }}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="detail-item">
-                    <span class="detail-label">Created:</span>
-                    <span class="detail-value">{{ country.created_at|date:"M d, Y H:i" }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Created By:</span>
-                    <span class="detail-value">{{ country.created_by.get_full_name|default:country.created_by.username }}</span>
-                </div>
-            </div>
         </div>
     </div>
 

@@ -34,6 +34,11 @@
 
         <div class="row">
             <div class="col-md-6">
+                {% if city.image %}
+                    <div class="text-center mb-3">
+                        <img src="{{ city.image.url }}" alt="{{ city.name }}" class="img-fluid rounded" style="max-height: 150px; object-fit: cover;">
+                    </div>
+                {% endif %}
                 <div class="detail-item">
                     <span class="detail-label">City Name:</span>
                     <span class="detail-value">{{ city.name }}</span>
@@ -212,7 +217,9 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-number">{{ districts|dictsort:"name"|first.name|default:"N/A" }}</div>
+                        {% with first_district=districts|dictsort:"name"|first %}
+                        <div class="stat-number">{{ first_district.name|default:"N/A" }}</div>
+                        {% endwith %}
                         <div class="stat-label">First District</div>
                     </div>
                 </div>

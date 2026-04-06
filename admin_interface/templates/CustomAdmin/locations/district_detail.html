@@ -181,19 +181,21 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-number">{{ regions|filter:"is_active=True"|length }}</div>
+                        <div class="stat-number">{{ active_regions_count }}</div>
                         <div class="stat-label">Active Regions</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-number">{{ regions|filter:"is_active=False"|length }}</div>
+                        <div class="stat-number">{{ inactive_regions_count }}</div>
                         <div class="stat-label">Inactive Regions</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-number">{{ regions|dictsort:"name"|first.name|default:"N/A" }}</div>
+                        {% with first_region=regions|dictsort:"name"|first %}
+                        <div class="stat-number">{{ first_region.name|default:"N/A" }}</div>
+                        {% endwith %}
                         <div class="stat-label">First Region</div>
                     </div>
                 </div>

@@ -59,12 +59,12 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Created By</label>
-                        <input type="text" class="form-control" value="{{ country.created_by.get_full_name|default:country.created_by.username }}" readonly>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label fw-semibold">Created At</label>
                         <input type="text" class="form-control" value="{{ country.created_at|date:"M d, Y H:i" }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Updated At</label>
+                        <input type="text" class="form-control" value="{{ country.updated_at|date:"M d, Y H:i" }}" readonly>
                     </div>
                 </div>
             </div>

@@ -1061,13 +1061,18 @@ def admin_country_detail(request, country_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     country = get_object_or_404(Country, id=country_id, is_deleted=False)
-    states = country.state_set.filter(is_deleted=False)
-    cities = country.city_set.filter(is_deleted=False)
+    states = country.states.filter(is_deleted=False)
+    cities = City.objects.filter(state__in=states, is_deleted=False)
+    districts = District.objects.filter(city__in=cities, is_deleted=False)
+    regions = Region.objects.filter(district__in=districts, is_deleted=False)
 
     context = {
         'country': country,
         'states': states,
         'cities': cities,
+        'total_cities': cities.count(),
+        'total_districts': districts.count(),
+        'total_regions': regions.count(),
         'title': f'Country Details: {country.name}'
     }
     return render(request, 'CustomAdmin/locations/country_detail.html', context)
@@ -1201,7 +1206,7 @@ def admin_state_detail(request, state_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     state = get_object_or_404(State, id=state_id, is_deleted=False)
-    cities = state.city_set.filter(is_deleted=False)
+    cities = state.cities.filter(is_deleted=False)
 
     context = {
         'state': state,
@@ -1268,7 +1273,7 @@ def admin_city_edit(request, city_id):
     city = get_object_or_404(City, id=city_id, is_deleted=False)
     
     if request.method == 'POST':
-        form = AdminCityForm(request.POST, instance=city)
+        form = AdminCityForm(request.POST, request.FILES, instance=city)
         if form.is_valid():
             city = form.save()
             messages.success(request, f'City "{city.name}" updated successfully!')
@@ -1339,8 +1344,8 @@ def admin_city_detail(request, city_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     city = get_object_or_404(City, id=city_id, is_deleted=False)
-    districts = city.district_set.filter(is_deleted=False)
-    regions = city.region_set.filter(is_deleted=False)
+    districts = city.districts.filter(is_deleted=False)
+    regions = Region.objects.filter(district__city=city, is_deleted=False)
 
     context = {
         'city': city,
@@ -1479,11 +1484,15 @@ def admin_district_detail(request, district_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     district = get_object_or_404(District, id=district_id, is_deleted=False)
-    regions = district.region_set.filter(is_deleted=False)
+    regions = district.regions.filter(is_deleted=False)
+    active_regions_count = regions.filter(is_active=True).count()
+    inactive_regions_count = regions.filter(is_active=False).count()
 
     context = {
         'district': district,
         'regions': regions,
+        'active_regions_count': active_regions_count,
+        'inactive_regions_count': inactive_regions_count,
         'title': f'District Details: {district.name}'
     }
     return render(request, 'CustomAdmin/locations/district_detail.html', context)
@@ -1772,7 +1781,7 @@ def admin_category_create(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     if request.method == 'POST':
-        form = AdminCategoryForm(request.POST)
+        form = AdminCategoryForm(request.POST, request.FILES)
         if form.is_valid():
             category = form.save()
             messages.success(request, f'Category "{category.name}" created successfully!')
@@ -1800,7 +1809,7 @@ def admin_category_edit(request, category_id):
     category = get_object_or_404(Category, id=category_id, is_deleted=False)
     
     if request.method == 'POST':
-        form = AdminCategoryForm(request.POST, instance=category)
+        form = AdminCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
             category = form.save()
             messages.success(request, f'Category "{category.name}" updated successfully!')
