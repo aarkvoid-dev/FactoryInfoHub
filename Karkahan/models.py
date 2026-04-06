@@ -97,7 +97,7 @@ class Factory(SoftDeleteModel):
         return f"{self.name} - {self.city.name}, {self.state.name}"
 
     def get_absolute_url(self):
-        return f"/karkahan/{self.slug}/"
+        return f"/karkahan/factories/{self.slug}/"
 
     @property
     def full_address(self):

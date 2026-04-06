@@ -797,7 +797,7 @@ html { font-size: 14px; }
 
               {% for factory in featured_factories %}
               <div class="swiper-slide">
-                <a href="{{ factory.get_absolute_url }}" class="tourCard -type-3 -hover-image-scale">
+                <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" class="tourCard -type-3 -hover-image-scale">
                   <div class="tourCard__image ratio ratio-41:45 rounded-12 -hover-image-scale__image">
                     {% with primary_image=factory.get_primary_image %}
                       {% if primary_image %}           
