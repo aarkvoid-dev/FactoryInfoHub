@@ -389,6 +389,11 @@
             {% endif %}
         </div>
         <h1 class="factory-title">{{ factory.name }}</h1>
+        {% if factory.code %}
+        <div class="text-white opacity-75 mt-1">
+          <i class="fas fa-hashtag text-accent me-2"></i> Factory Code: <strong>{{ factory.code }}</strong>
+        </div>
+        {% endif %}
         <div class="text-white opacity-75"><i class="fas fa-map-marker-alt text-accent me-2"></i> {{ factory.city.name }}, {{ factory.state.name }}</div>
         
         <!-- Social Sharing Section -->
