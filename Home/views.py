@@ -10,8 +10,9 @@ from blog.models import BlogPost
 from category.models import Category
 from location.models import Country,City
 from .models import HomePageVideo, ContactMessage,Page
+from Accounts.decorators import profile_complete_required
 
-
+@profile_complete_required
 def home(request):
     # Fetch featured factories (verified and active)
     featured_factories = Factory.objects.filter(
@@ -77,11 +78,13 @@ def home(request):
     }
     return render(request, 'home/home.html', context)
 
+@profile_complete_required
 def contact(request):
     if request.method == 'POST':
         # Handle contact form submission
         name = request.POST.get('name')
         email = request.POST.get('email')
+        mobile_number = request.POST.get('mobile_number', '')
         subject = request.POST.get('subject')
         message = request.POST.get('message')
         
@@ -91,6 +94,7 @@ def contact(request):
             return render(request, 'home/contact.html', {
                 'name': name,
                 'email': email,
+                'mobile_number': mobile_number,
                 'subject': subject,
                 'message': message
             })
@@ -100,6 +104,7 @@ def contact(request):
             contact_message = ContactMessage.objects.create(
                 name=name,
                 email=email,
+                mobile_number=mobile_number,
                 subject=subject,
                 message=message,
                 user=request.user if request.user.is_authenticated else None
@@ -114,6 +119,7 @@ New contact form submission received:
 
 Name: {name}
 Email: {email}
+Mobile Number: {mobile_number if mobile_number else 'Not provided'}
 Subject: {subject}
 User: {request.user.username if request.user.is_authenticated else 'Anonymous'}
 Date: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')}
@@ -186,12 +192,16 @@ Phone: +91 22 1234 5678
     context = {}
     if request.user.is_authenticated:
         context['user_email'] = request.user.email
+        # Get mobile number from user profile if available
+        if hasattr(request.user, 'profile') and request.user.profile.phone_number:
+            context['user_mobile'] = request.user.profile.phone_number
     
     # Add pages for footer
     context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
     
     return render(request, 'home/contact.html', context)
 
+@profile_complete_required
 def products(request):
     """Products page - Coming Soon"""
     return render(request, 'home/products.html')

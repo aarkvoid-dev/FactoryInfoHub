@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Count
 from .models import Country, State, District, City, Region
 from .forms import CountryForm, StateForm, DistrictForm, CityForm, RegionForm
-
+from Accounts.decorators import profile_complete_required
 
 @login_required
 def location_dashboard(request):
@@ -38,7 +38,7 @@ def location_dashboard(request):
     }
     return render(request, 'location/dashboard.html', context)
 
-
+@profile_complete_required
 def location_hierarchy(request):
     """
     Display all countries with their states, cities, districts, and regions.

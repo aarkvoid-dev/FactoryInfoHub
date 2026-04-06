@@ -154,6 +154,12 @@ class ContactMessage(SoftDeleteModel):
     """Model to store contact form submissions"""
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=254)
+    mobile_number = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Contact phone number (optional)"
+    )
     subject = models.CharField(max_length=200)
     message = models.TextField()
     user = models.ForeignKey(

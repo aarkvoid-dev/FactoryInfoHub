@@ -149,3 +149,122 @@ def require_verified_or_admin(view_func):
         return view_func(request, *args, **kwargs)
     
     return _wrapped_view
+
+
+def profile_complete_required(f=None, redirect_url=None, required_fields=None):
+    """
+    Decorator to check if user profile is complete before accessing a view.
+    If profile is incomplete, redirects to profile page with a message.
+    
+    This decorator can be combined with email_verified_required.
+    
+    Args:
+        f: The view function (for direct decoration)
+        redirect_url (str, optional): URL to redirect to. Defaults to 'accounts:profile'
+        required_fields (list, optional): List of required field names. 
+                                         Defaults to ['phone_number', 'address']
+    
+    Usage:
+        @profile_complete_required
+        def my_view(request):
+            pass
+        
+        @email_verified_required
+        @profile_complete_required
+        def my_view(request):
+            # Both checks will be performed
+            pass
+        
+        @profile_complete_required(redirect_url='accounts:edit_profile')
+        def my_view(request):
+            pass
+        
+        @profile_complete_required(required_fields=['phone_number', 'address', 'date_of_birth'])
+        def my_view(request):
+            pass
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            # Only check for authenticated users
+            if not request.user.is_authenticated:
+                return view_func(request, *args, **kwargs)
+            
+            # Get or check profile
+            if not hasattr(request.user, 'profile'):
+                # No profile exists, redirect to create one
+                messages.warning(
+                    request, 
+                    'Please complete your profile before proceeding.'
+                )
+                return redirect(redirect_url or 'accounts:profile')
+            
+            profile = request.user.profile
+            
+            # Default required fields
+            if required_fields is None:
+                fields_to_check = ['phone_number', 'address']
+            else:
+                fields_to_check = required_fields
+            
+            # Check if any required field is missing
+            missing_fields = []
+            for field_name in fields_to_check:
+                field_value = getattr(profile, field_name, None)
+                print("field_value :",field_value)
+                if not field_value:
+                    # Get verbose field name
+                    field_verbose = field_name.replace('_', ' ').title()
+                    missing_fields.append(field_verbose)
+            
+            if missing_fields:
+                # Store missing fields in session for the profile page
+                request.session['profile_redirect_message'] = (
+                    f'Please complete your profile. Missing: {", ".join(missing_fields)}'
+                )
+                
+                messages.warning(
+                    request,
+                    f'Please complete your profile before proceeding. Missing: {", ".join(missing_fields)}'
+                )
+                
+                return redirect(redirect_url or 'profile')
+            
+            # Profile is complete, proceed with the view
+            return view_func(request, *args, **kwargs)
+        
+        return _wrapped_view
+    
+    # Handle both @profile_complete_required and @profile_complete_required()
+    if f:
+        return decorator(f)
+    return decorator
+
+
+def check_profile_completion(user):
+    """
+    Utility function to check if a user's profile is complete.
+    
+    Args:
+        user: Django User instance
+    
+    Returns:
+        tuple: (is_complete: bool, missing_fields: list)
+    """
+    if not user.is_authenticated:
+        return True, []
+    
+    if not hasattr(user, 'profile'):
+        return False, ['profile']
+    
+    profile = user.profile
+    required_fields = ['phone_number', 'address']
+    
+    missing_fields = []
+    for field_name in required_fields:
+        field_value = getattr(profile, field_name, None)
+        if not field_value:
+            field_verbose = field_name.replace('_', ' ').title()
+            missing_fields.append(field_verbose)
+    
+    return len(missing_fields) == 0, missing_fields

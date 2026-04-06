@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.http import JsonResponse
 from .models import Category, SubCategory
 from .forms import CategoryForm, SubCategoryForm
-
+from Accounts.decorators import profile_complete_required
 from django.db.models import Prefetch
 
 
@@ -23,7 +23,7 @@ def category_dashboard(request):
     return render(request, 'category/dashboard.html', context)
 
 
-
+@profile_complete_required
 def user_category_list(request):
     """
     Display all categories and their subcategories.

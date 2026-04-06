@@ -677,6 +677,145 @@
 <script>
     // Enhanced JavaScript for Profile Management
     
+    // Check for profile redirect message from decorator
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if request.session.profile_redirect_message %}
+        // Show popup for incomplete profile
+        const message = "{{ request.session.profile_redirect_message|escapejs }}";
+        showProfileCompletionPopup(message);
+        
+        // Clear the session message after showing
+        // We use a fetch to clear it server-side
+        fetch("{% url 'clear_profile_redirect_message' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).catch(err => console.log('Could not clear session message'));
+        {% endif %}
+    });
+    
+    function showProfileCompletionPopup(message) {
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'profile-popup-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        `;
+        
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'profile-popup-modal';
+        modal.style.cssText = `
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            animation: slideUp 0.4s ease-out;
+        `;
+        
+        modal.innerHTML = `
+            <div class="popup-icon mb-25">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: rgba(235, 102, 43, 0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                ">
+                    <i class="fa-solid fa-user-pen" style="font-size: 32px; color: #EB662B;"></i>
+                </div>
+            </div>
+            <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #1a1e22;">
+                Complete Your Profile
+            </h3>
+            <p style="font-size: 16px; color: #64748b; margin-bottom: 25px; line-height: 1.6;">
+                ${message}
+            </p>
+            <div class="popup-features mb-30" style="text-align: left; background: #f8fafc; padding: 20px; border-radius: 16px;">
+                <h4 style="font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-lightbulb mr-8"></i> Why complete your profile?
+                </h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="display: flex; align-items: center; margin-bottom: 10px; font-size: 14px; color: #475569;">
+                        <i class="fa-solid fa-check-circle" style="color: #10b981; margin-right: 10px;"></i>
+                        Faster communication with our team
+                    </li>
+                    <li style="display: flex; align-items: center; margin-bottom: 10px; font-size: 14px; color: #475569;">
+                        <i class="fa-solid fa-check-circle" style="color: #10b981; margin-right: 10px;"></i>
+                        Access to all platform features
+                    </li>
+                    <li style="display: flex; align-items: center; font-size: 14px; color: #475569;">
+                        <i class="fa-solid fa-check-circle" style="color: #10b981; margin-right: 10px;"></i>
+                        Receive important updates
+                    </li>
+                </ul>
+            </div>
+            <button onclick="closeProfilePopup()" style="
+                background: linear-gradient(135deg, #EB662B 0%, #F28555 100%);
+                color: white;
+                border: none;
+                padding: 16px 40px;
+                border-radius: 50px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 14px rgba(235, 102, 43, 0.3);
+            " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(235, 102, 43, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(235, 102, 43, 0.3)'">
+                Got it, I'll complete it now
+            </button>
+        `;
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        // Add animation keyframes
+        if (!document.getElementById('popup-styles')) {
+            const style = document.createElement('style');
+            style.id = 'popup-styles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(30px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    function closeProfilePopup() {
+        const overlay = document.querySelector('.profile-popup-overlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                overlay.remove();
+            }, 300);
+        }
+    }
+    
     // Avatar Upload Functionality
     let isDragging = false;
     

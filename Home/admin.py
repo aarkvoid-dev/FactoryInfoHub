@@ -27,15 +27,15 @@ class HomePageVideoAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
-    list_display = ['name', 'email', 'subject', 'is_read', 'user', 'created_at']
+    list_display = ['name', 'email', 'mobile_number', 'subject', 'is_read', 'user', 'created_at']
     list_filter = ['is_read', 'created_at', 'user']
-    search_fields = ['name', 'email', 'subject', 'message']
+    search_fields = ['name', 'email', 'mobile_number', 'subject', 'message']
     readonly_fields = ['created_at', 'updated_at', 'read_at']
     actions = ['mark_as_read_selected', 'mark_as_unread_selected']
 
     fieldsets = (
         ('Message Details', {
-            'fields': ('name', 'email', 'subject', 'message', 'user')
+            'fields': ('name', 'email', 'mobile_number', 'subject', 'message', 'user')
         }),
         ('Status', {
             'fields': ('is_read', 'read_at')

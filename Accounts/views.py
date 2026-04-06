@@ -446,3 +446,29 @@ def resend_verification_email(request):
         'success': False,
         'message': _('Invalid request method.')
     }, status=405)
+
+
+@login_required
+def clear_profile_redirect_message(request):
+    """
+    Clear the profile redirect message from session.
+    
+    This view is called via AJAX when the profile completion popup is shown
+    to clear the session message so it doesn't show again on page refresh.
+    
+    Args:
+        request (HttpRequest): HTTP request object
+    
+    Returns:
+        HttpResponse: JSON response indicating success
+    """
+    from django.http import JsonResponse
+    from django.views.decorators.http import require_POST
+    
+    if request.method == 'POST':
+        if 'profile_redirect_message' in request.session:
+            del request.session['profile_redirect_message']
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
