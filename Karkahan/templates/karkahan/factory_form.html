@@ -1027,7 +1027,7 @@ function showMissingFieldsModal(missingFields) {
                         <ul class="list-group list-group-flush mb-3">
                             ${missingFields.map(field => `<li class="list-group-item border-0 px-0"><i class="fas fa-dot-circle text-danger me-2"></i>${field}</li>`).join('')}
                         </ul>
-                        <p class="text-muted small">These fields are marked with red borders. Please complete them before submitting.</p>
+                        <p class="text-muted small">These fields are marked with red borders. Please complete them before submitting. (If no data is available, enter a dash "-")</p>
                     </div>
                     <div class="modal-footer border-0">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
