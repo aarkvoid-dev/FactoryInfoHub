@@ -213,7 +213,7 @@
                                         <li><strong>Created By:</strong> {{ factory.created_by.username }}</li>
                                         {% endif %}
                                         <li><strong>Slug:</strong> <code>{{ factory.slug }}</code></li>
-                                        <li><strong>Views:</strong> {{ view_stats.total_views|intcomma if view_stats else 0 }}</li>
+                                        <li><strong>Views:</strong> {% if view_stats %}{{ view_stats.total_views|intcomma }}{% else %}0{% endif %}</li>
                                     </ul>
                                 </div>
                             </div>

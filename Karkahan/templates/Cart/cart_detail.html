@@ -5,435 +5,463 @@
 
 {% block title %}Shopping Cart - Factory Chemistry{% endblock %}
 
-{% block content %}
-<!-- Breadcrumb Section -->
-<section class="hero">
-  <div class="hero__bg">
-    <img src="{% static 'img/hero/1.png' %}" alt="image">
-    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
-  </div>
-  <div class="container">
-    <div class="row justify-center">
-      <div class="col-xl-12">
-        <div class="hero__content ">
-          <h1 class="hero__title text-light-1 ">Your <span class="text-accent-1">Shopping Cart</span></h1>
-          <p class="hero__text text-light-1 ">Review your factory selections before checkout.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Cart Content -->
-<section class="pt-40 pb-80">
-  <div class="container">
-    {% if cart.items.exists %}
-      <div class="row">
-        <!-- Cart Items -->
-        <div class="col-xl-8">
-          <div class="card shadow-lg border-0 rounded-16">
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead class="bg-light-2">
-                    <tr>
-                      <th class="ps-30">Factory</th>
-                      <th class="text-center">Category</th>
-                      <th class="text-center">Price</th>
-                      <th class="text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for item in cart.items.all %}
-                    <tr class="border-bottom">
-                      <td class="ps-30 py-30">
-                        <div class="d-flex align-items-center">
-                          <div class="flex-shrink-0">
-                            <div class="cart-item-image rounded-12 overflow-hidden">
-                              {% if item.factory.get_primary_image %}
-                                <img src="{{ item.factory.get_primary_image }}" class="img-fluid" alt="{{ item.factory.name }}" style="width: 120px; height: 90px; object-fit: cover;">
-                              {% else %}
-                                <img src="https://via.placeholder.com/120x90/f5f5f5/666666?text=No+Image" class="img-fluid" alt="No Image" style="width: 120px; height: 90px; object-fit: cover;">
-                              {% endif %}
-                            </div>
-                          </div>
-                          <div class="flex-grow-1 ms-20">
-                            <h5 class="mb-5 fw-600">{{ item.factory.name }}</h5>
-                            <p class="text-13 text-light-2 mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
-                              {{ item.factory.description|truncatewords:15 }}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="text-center py-30">
-                        <span class="badge bg-accent-1 text-white px-12 py-6 rounded-8">{{ item.factory.category.name }}</span>
-                      </td>
-                      <td class="text-center py-30">
-                        <span class="text-18 fw-600 text-accent-1">₹{{ item.factory.price|floatformat:2 }}</span>
-                      </td>
-                      <td class="text-center py-30">
-                        <form method="post" action="{% url 'karkahan:remove_from_cart' item.id %}" class="d-inline">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-danger btn-sm rounded-8" onclick="return confirm('Remove this factory from cart?')">
-                            <i class="fas fa-trash me-8"></i>Remove
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Continue Shopping -->
-          <div class="mt-30 text-center">
-            <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-accent-1 rounded-12 px-32 py-14">
-              <i class="fas fa-arrow-left me-8"></i>Continue Shopping
-            </a>
-          </div>
-        </div>
-
-        <!-- Cart Summary -->
-        <div class="col-xl-4">
-          <div class="card shadow-lg border-0 rounded-16">
-            <div class="card-body p-30">
-              <h4 class="mb-20 fw-700">Order Summary</h4>
-              
-              <div class="d-flex justify-content-between mb-30">
-                <span class="text-18 fw-700">Total Amount</span>
-                <span class="text-20 fw-700 text-accent-1">₹{{ cart.total_price|floatformat:2 }}</span>
-              </div> 
-              
-              <!-- Policy Modal Trigger -->
-              <button type="button" class="btn btn-accent-1 rounded-12 w-100 py-16 fw-600" data-bs-toggle="modal" data-bs-target="#policyModal">
-                <i class="fas fa-credit-card me-8"></i>Proceed to Checkout
-              </button>
-              
-              <div class="text-center mt-15">
-                <small class="text-12 text-light-2">By proceeding, you agree to our <a href="{% url 'terms_and_conditions' %}" class="text-accent-1">Terms of Service</a></small>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Security Badges -->
-          <div class="mt-30">
-            <div class="card border-0 rounded-12">
-              <div class="card-body p-20">
-                <div class="row text-center">
-                  <div class="col-4">
-                    <i class="fas fa-shield-alt text-accent-1 fs-24"></i>
-                    <div class="text-12 mt-8">Secure Payment</div>
-                  </div>
-                  <div class="col-4">
-                    <i class="fas fa-lock text-accent-1 fs-24"></i>
-                    <div class="text-12 mt-8">SSL Encrypted</div>
-                  </div>
-                  <div class="col-4">
-                    <i class="fas fa-undo text-accent-1 fs-24"></i>
-                    <div class="text-12 mt-8">24hr Support</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    {% else %}
-      <!-- Empty Cart -->
-      <div class="row justify-content-center">
-        <div class="col-xl-6 col-lg-8">
-          <div class="text-center py-80">
-            <div class="mb-30">
-              <i class="fas fa-shopping-cart text-accent-1 fs-80 opacity-50"></i>
-            </div>
-            <h2 class="text-30 fw-700 mb-15">Your cart is empty</h2>
-            <p class="text-16 text-light-1 mb-40">Add some factories to your cart to get started</p>
-            
-            <div class="d-flex flex-column flex-md-row gap-16 justify-content-center">
-              <a href="{% url 'karkahan:factory_list' %}" class="btn btn-accent-1 rounded-12 px-32 py-16 fw-600">
-                <i class="fas fa-search me-8"></i>Browse Factories
-              </a>
-              <a href="{% url 'home' %}" class="btn btn-outline-accent-1 rounded-12 px-32 py-16 fw-600">
-                <i class="fas fa-home me-8"></i>Back to Home
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-</section>
-
-<!-- Updated Policy Modal with Links in One Line -->
-<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="policyModalLabel">Important Information</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-          <h6 class="text-18 fw-600 mb-15">Disclaimer</h6>
-          <p class="text-14 mb-20">We provide information about factories based on available data. We do not guarantee the accuracy or completeness of the information. You should verify all details independently before making business decisions.</p>
-          
-          <h6 class="text-18 fw-600 mb-15">Refund Policy</h6>
-          <p class="text-14 mb-20">Due to the nature of digital information, all sales are final. No refunds will be issued after purchase. Please ensure you have reviewed the factory details carefully before completing your purchase.</p>
-        
-        <!-- Links in one line -->
-        <div class="d-flex justify-content-center gap-3 mb-30 flex-wrap">
-          <a href="{% url 'disclaimer' %}" class="text-accent-1 fw-600" target="_blank">
-            <i class="fas fa-external-link-alt me-8"></i>Disclaimer
-          </a>
-          <span class="text-light-2">|</span>
-          <a href="{% url 'terms_and_conditions' %}" class="text-accent-1 fw-600" target="_blank">
-            <i class="fas fa-external-link-alt me-8"></i>Terms & Conditions
-          </a>
-          <span class="text-light-2">|</span>
-          <a href="{% url 'refund_policy' %}" class="text-accent-1 fw-600" target="_blank">
-            <i class="fas fa-external-link-alt me-8"></i>Refund Policy
-          </a>
-        </div>
-        
-        <div class="custom-checkbox mb-20">
-          <input type="checkbox" id="acceptPolicy" class="checkbox-input">
-          <label for="acceptPolicy" class="checkbox-label">
-            <span class="checkbox-custom"></span>
-            <span class="label-text">I have read and agree to the Disclaimer, Terms & Conditions, and Refund Policy.</span>
-          </label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary rounded-8" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-accent-1 rounded-8" id="proceedCheckoutBtn" disabled>Proceed to Checkout</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+{% block extra_css %}
 <style>
-  .hero { position: relative; overflow: hidden; min-height: 450px; display: flex; align-items: center; justify-content: center; }
-  .hero__bg { position: absolute; inset: 0; z-index: 1; }
-  .hero__bg img { width: 100%; height: 100%; object-fit: cover; }
-  .hero::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 2; }
-  .hero__content { position: relative; z-index: 3; color: white; text-align: center; padding: 100px 0; }
-  .hero__title { font-size: 60px; font-weight: 700; }
-  .hero__text { font-size: 20px; margin-top: 15px; opacity: 0.9; }
+    :root {
+        --accent: #EB662B;
+        --accent-dark: #d45b23;
+        --accent-light: #fef3ee;
+        --dark: #1A1C1E;
+        --gray: #64748B;
+        --light-bg: #F8FAFC;
+        --border: #E2E8F0;
+    }
 
-  .cart-item-image {
-    transition: transform 0.3s ease;
-  }
-  .cart-item-image:hover {
-    transform: scale(1.05);
-  }
-  
-  .btn-accent-1 {
-    background: linear-gradient(135deg, #EB662B, #F28555);
-    border: none;
-    box-shadow: 0 4px 15px rgba(235, 102, 43, 0.3);
-  }
-  .btn-accent-1:hover {
-    background: linear-gradient(135deg, #F28555, #EB662B);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(235, 102, 43, 0.4);
-  }
-  .btn-accent-1:disabled {
-    background: #ccc;
-    box-shadow: none;
-    pointer-events: none;
-  }
-  
-  .table-hover tbody tr:hover {
-    background-color: rgba(235, 102, 43, 0.05);
-  }
-  
-  .badge {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-  
-  .card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Custom Checkbox Styles */
-  .custom-checkbox {
-    display: flex;
-    align-items: center;
-  }
-  .checkbox-input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-  }
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-    user-select: none;
-  }
-  .checkbox-custom {
-    position: relative;
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border: 2px solid #EB662B;
-    border-radius: 4px;
-    margin-right: 10px;
-    transition: all 0.2s ease;
-  }
-  .checkbox-input:checked + .checkbox-label .checkbox-custom {
-    background: #EB662B;
-    border-color: #EB662B;
-  }
-  .checkbox-input:checked + .checkbox-label .checkbox-custom::after {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 1px;
-    width: 6px;
-    height: 12px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-  }
-  .checkbox-input:focus + .checkbox-label .checkbox-custom {
-    box-shadow: 0 0 0 2px rgba(235, 102, 43, 0.3);
-  }
-  .label-text {
-    color: #333;
-  }
-  @media (max-width: 768px) {
-      .hero { min-height: 350px; }
-      .hero__title { font-size: 32px; }
-      .hero__text { font-size: 16px; }
-  }
+    /* Hero Section */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    }
+    .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(235,102,43,0.08)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+        opacity: 0.4;
+        pointer-events: none;
+    }
+    .hero__content {
+        position: relative;
+        z-index: 3;
+        text-align: center;
+        padding: 60px 0;
+    }
+    .hero__title {
+        font-size: 48px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 12px;
+    }
+    .hero__text {
+        font-size: 18px;
+        color: rgba(255,255,255,0.85);
+    }
+    @media (max-width: 768px) {
+        .hero__title { font-size: 32px; }
+        .hero__text { font-size: 16px; }
+    }
+
+    /* Cart Item Card */
+    .cart-item-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .cart-item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        border-color: var(--accent);
+    }
+    .cart-item-image {
+        width: 140px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+    }
+    .cart-item-image:hover {
+        transform: scale(1.02);
+    }
+    .cart-item-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 6px;
+    }
+    .cart-item-meta {
+        font-size: 13px;
+        color: var(--gray);
+    }
+    .category-badge {
+        background: var(--accent-light);
+        color: var(--accent);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .price-tag {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent);
+    }
+    .btn-remove {
+        background: transparent;
+        border: 1px solid #FEE2E2;
+        color: #EF4444;
+        border-radius: 40px;
+        padding: 8px 16px;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    .btn-remove:hover {
+        background: #EF4444;
+        color: white;
+        border-color: #EF4444;
+    }
+
+    /* Order Summary Card */
+    .summary-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        position: sticky;
+        top: 100px;
+    }
+    .summary-card .card-body {
+        padding: 28px;
+    }
+    .summary-title {
+        font-size: 20px;
+        font-weight: 700;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        font-size: 15px;
+    }
+    .summary-total {
+        border-top: 2px solid var(--border);
+        padding-top: 16px;
+        margin-top: 8px;
+        font-size: 18px;
+        font-weight: 700;
+    }
+    .btn-checkout {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        border: none;
+        border-radius: 50px;
+        padding: 14px;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(235,102,43,0.3);
+    }
+    .btn-checkout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(235,102,43,0.4);
+    }
+
+    /* Empty Cart */
+    .empty-cart {
+        background: white;
+        border-radius: 32px;
+        padding: 60px 40px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
+    .empty-icon {
+        width: 120px;
+        height: 120px;
+        background: var(--accent-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+    .empty-icon i {
+        font-size: 48px;
+        color: var(--accent);
+    }
+    .btn-primary-custom {
+        background: var(--accent);
+        border: none;
+        border-radius: 50px;
+        padding: 12px 28px;
+        font-weight: 600;
+    }
+
+    /* Modal improvements */
+    .modal-content {
+        border-radius: 24px;
+        border: none;
+    }
+    .modal-header {
+        border-bottom: 1px solid var(--border);
+        padding: 20px 28px;
+    }
+    .modal-body {
+        padding: 28px;
+    }
+    .modal-footer {
+        border-top: 1px solid var(--border);
+        padding: 20px 28px;
+    }
+
+    /* Responsive */
+    @media (max-width: 991px) {
+        .cart-item-image { width: 100px; height: 70px; }
+        .cart-item-title { font-size: 16px; }
+        .price-tag { font-size: 18px; }
+        .summary-card { margin-top: 30px; }
+    }
+    @media (max-width: 576px) {
+        .cart-item-card .row { flex-direction: column; text-align: center; }
+        .cart-item-image { margin-bottom: 12px; }
+        .price-tag { margin-top: 12px; }
+    }
 </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Animation for cart items
-    const cartItems = document.querySelectorAll('.table tbody tr');
-    cartItems.forEach((item, index) => {
-      item.style.opacity = '0';
-      item.style.transform = 'translateY(20px)';
-      item.style.transition = 'all 0.5s ease';
-      
-      setTimeout(() => {
-        item.style.opacity = '1';
-        item.style.transform = 'translateY(0)';
-      }, index * 100);
-    });
-    
-    // Policy modal handling
-    const acceptCheckbox = document.getElementById('acceptPolicy');
-    const proceedBtn = document.getElementById('proceedCheckoutBtn');
-    const policyModal = document.getElementById('policyModal');
-
-    if (acceptCheckbox) {
-        acceptCheckbox.addEventListener('change', function() {
-            proceedBtn.disabled = !this.checked;
-        });
-    }
-
-    if (proceedBtn) {
-        proceedBtn.addEventListener('click', function() {
-            if (!acceptCheckbox || !acceptCheckbox.checked) return;
-
-            // Show loading state
-            proceedBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-8"></i>Processing...';
-            proceedBtn.disabled = true;
-
-            fetch("{% url 'karkahan:initiate_checkout' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    location.reload();
-                } else if (data.gateway === 'stripe') {
-                    // Redirect to Stripe Checkout
-                    window.location.href = data.session_url;
-                } else if (data.gateway === 'razorpay') {
-                    // Open Razorpay modal
-                    const options = {
-                        key: data.key_id,
-                        amount: data.amount * 100,  // Razorpay expects paise
-                        currency: data.currency,
-                        name: data.name,
-                        description: data.description,
-                        image: data.image,
-                        order_id: data.order_id,
-                        prefill: data.prefill,
-                        theme: data.theme,
-                        handler: function(response) {
-                            // Redirect to success page with payment ID
-                            window.location.href = "{% url 'karkahan:checkout_success' %}?razorpay_payment_id=" + response.razorpay_payment_id;
-                        },
-                        modal: {
-                            ondismiss: function() {
-                                // If user closes the modal, reload cart
-                                location.reload();
-                            }
-                        }
-                    };
-                    const razorpay = new Razorpay(options);
-                    razorpay.open();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Checkout initiation failed. Please try again.');
-                location.reload();
-            });
-        });
-    }
-    
-    // Optional fallback: if user closes modal with checkbox checked, redirect
-    if (policyModal) {
-      policyModal.addEventListener('hidden.bs.modal', function() {
-        if (acceptCheckbox && acceptCheckbox.checked) {
-          // Trigger the proceed button click instead of redirecting
-          proceedBtn.click();
-        }
-      });
-    }
-  });
-</script>
 {% endblock %}
 
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="hero__content">
+            <h1 class="hero__title">Your <span style="color: var(--accent);">Shopping Cart</span></h1>
+            <p class="hero__text">Review your factory selections before checkout</p>
+        </div>
+    </div>
+</section>
 
+<section class="py-5 bg-light">
+    <div class="container">
+        {% if cart.items.exists %}
+            <div class="row">
+                <!-- Cart Items -->
+                <div class="col-lg-8">
+                    {% for item in cart.items.all %}
+                    <div class="cart-item-card p-4">
+                        <div class="row align-items-center">
+                            <div class="col-sm-3 col-md-3 text-center text-sm-start">
+                                <div class="position-relative d-inline-block">
+                                    {% if item.factory.get_primary_image %}
+                                        <img src="{{ item.factory.get_primary_image }}" class="cart-item-image" alt="{{ item.factory.name }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/140x100/f5f5f5/666666?text=No+Image" class="cart-item-image" alt="No Image">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-sm-5 col-md-6 mt-3 mt-sm-0">
+                                <h5 class="cart-item-title">{{ item.factory.name }}</h5>
+                                <div class="cart-item-meta mb-2">
+                                    <span class="category-badge">{{ item.factory.category.name }}</span>
+                                </div>
+                                <p class="small text-muted mb-0">{{ item.factory.description|truncatewords:12 }}</p>
+                            </div>
+                            <div class="col-sm-4 col-md-3 mt-3 mt-sm-0 text-center text-sm-end">
+                                <div class="price-tag mb-2">₹{{ item.factory.price|floatformat:2 }}</div>
+                                <form method="post" action="{% url 'karkahan:remove_from_cart' item.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-remove" onclick="return confirm('Remove this factory from cart?')">
+                                        <i class="fas fa-trash-alt me-1"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Continue Shopping Link -->
+                    <div class="text-center mt-4">
+                        <a href="{% url 'karkahan:factory_list' %}" class="btn btn-outline-secondary rounded-pill px-5 py-3">
+                            <i class="fas fa-arrow-left me-2"></i> Continue Shopping
+                        </a>
+                    </div>
+                </div>
 
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="summary-card">
+                        <div class="card-body">
+                            <h4 class="summary-title">Order Summary</h4>
+                            <div class="summary-row">
+                                <span>Subtotal ({{ cart.items.count }} items)</span>
+                                <span>₹{{ cart.total_price|floatformat:2 }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Taxes & Fees</span>
+                                <span>Included</span>
+                            </div>
+                            <div class="summary-total">
+                                <span>Total Amount</span>
+                                <span class="text-accent-1">₹{{ cart.total_price|floatformat:2 }}</span>
+                            </div>
+                            <button type="button" class="btn btn-checkout w-100 mt-4" data-bs-toggle="modal" data-bs-target="#policyModal">
+                                <i class="fas fa-credit-card me-2"></i> Proceed to Checkout
+                            </button>
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Secure payment • 24/7 support</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trust Badges -->
+                    <div class="mt-4 text-center">
+                        <div class="d-flex justify-content-center gap-4">
+                            <div><i class="fas fa-shield-alt text-accent-1 fs-5"></i> <span class="small">SSL Secure</span></div>
+                            <div><i class="fas fa-lock text-accent-1 fs-5"></i> <span class="small">Encrypted</span></div>
+                            <div><i class="fas fa-undo text-accent-1 fs-5"></i> <span class="small">Support</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Empty Cart State -->
+            <div class="empty-cart">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h2 class="h3 mb-3">Your cart is empty</h2>
+                <p class="text-muted mb-4">Looks like you haven't added any factories yet.</p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="{% url 'karkahan:factory_list' %}" class="btn btn-primary-custom">
+                        <i class="fas fa-search me-2"></i> Browse Factories
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-home me-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
 
-<!-- <div class="modal-body">
-                <h6 class="text-18 fw-600 mb-15">Disclaimer</h6>
-                <p class="text-14 mb-20">We provide information about factories based on available data. We do not guarantee the accuracy or completeness of the information. You should verify all details independently before making business decisions.</p>
-                <p class="text-14 mb-20"><a href="{% url 'disclaimer' %}" class="text-accent-1 fw-600" target="_blank"><i class="fas fa-external-link-alt me-8"></i>Read Full Disclaimer</a></p>
-                <p class="text-14 mb-20"><a href="{% url 'terms_and_conditions' %}" class="text-accent-1 fw-600" target="_blank"><i class="fas fa-external-link-alt me-8"></i>Read Full Terms & Conditions</a></p>
+<!-- Policy Modal (Improved) -->
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="policyModalLabel">Confirm Your Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-info-circle text-accent-1 me-2"></i> Disclaimer</h6>
+                    <p class="text-muted small">We provide information about factories based on available data. We do not guarantee the accuracy or completeness. Please verify independently before making business decisions.</p>
+                </div>
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-file-contract text-accent-1 me-2"></i> Terms & Conditions</h6>
+                    <p class="text-muted small">By purchasing, you agree to our terms of service. All digital information is provided "as is".</p>
+                </div>
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-undo-alt text-accent-1 me-2"></i> Refund Policy</h6>
+                    <p class="text-muted small">All sales are final. No refunds will be issued after purchase. Review factory details carefully.</p>
+                </div>
                 
-                <h6 class="text-18 fw-600 mb-15">Refund Policy</h6>
-                <p class="text-14 mb-20">Due to the nature of digital information, all sales are final. No refunds will be issued after purchase. Please ensure you have reviewed the factory details carefully before completing your purchase.</p>
-                <p class="text-14 mb-20"><a href="{% url 'refund_policy' %}" class="text-accent-1 fw-600" target="_blank"><i class="fas fa-external-link-alt me-8"></i>Read Full Refund Policy</a></p>
+                <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                    <a href="{% url 'disclaimer' %}" class="text-accent-1 small" target="_blank">Full Disclaimer <i class="fas fa-external-link-alt ms-1"></i></a>
+                    <span class="text-muted">|</span>
+                    <a href="{% url 'terms_and_conditions' %}" class="text-accent-1 small" target="_blank">Terms & Conditions <i class="fas fa-external-link-alt ms-1"></i></a>
+                    <span class="text-muted">|</span>
+                    <a href="{% url 'refund_policy' %}" class="text-accent-1 small" target="_blank">Refund Policy <i class="fas fa-external-link-alt ms-1"></i></a>
+                </div>
                 
-                <div class="custom-checkbox mb-20">
-                    <input type="checkbox" id="acceptPolicy" class="checkbox-input">
-                    <label for="acceptPolicy" class="checkbox-label">
-                        <span class="checkbox-custom"></span>
-                        <span class="label-text">I have read and agree to the Disclaimer and Refund Policy.</span>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="acceptPolicy" style="border-color: var(--accent);">
+                    <label class="form-check-label" for="acceptPolicy">
+                        I have read and agree to all policies.
                     </label>
-                </div> -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-checkout rounded-pill" id="proceedCheckoutBtn" disabled>Proceed to Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate cart items
+        const items = document.querySelectorAll('.cart-item-card');
+        items.forEach((item, idx) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = `opacity 0.4s ease ${idx * 0.1}s, transform 0.4s ease ${idx * 0.1}s`;
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, 50);
+        });
+
+        // Modal checkbox handling
+        const acceptCheckbox = document.getElementById('acceptPolicy');
+        const proceedBtn = document.getElementById('proceedCheckoutBtn');
+
+        if (acceptCheckbox && proceedBtn) {
+            acceptCheckbox.addEventListener('change', function() {
+                proceedBtn.disabled = !this.checked;
+            });
+
+            proceedBtn.addEventListener('click', function() {
+                if (!acceptCheckbox.checked) return;
+
+                proceedBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing...';
+                proceedBtn.disabled = true;
+
+                fetch("{% url 'karkahan:initiate_checkout' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        location.reload();
+                    } else if (data.gateway === 'stripe') {
+                        window.location.href = data.session_url;
+                    } else if (data.gateway === 'razorpay') {
+                        const options = {
+                            key: data.key_id,
+                            amount: data.amount * 100,
+                            currency: data.currency,
+                            name: data.name,
+                            description: data.description,
+                            image: data.image,
+                            order_id: data.order_id,
+                            prefill: data.prefill,
+                            theme: data.theme,
+                            handler: function(response) {
+                                window.location.href = "{% url 'karkahan:checkout_success' %}?razorpay_payment_id=" + response.razorpay_payment_id;
+                            },
+                            modal: {
+                                ondismiss: function() {
+                                    location.reload();
+                                }
+                            }
+                        };
+                        const razorpay = new Razorpay(options);
+                        razorpay.open();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Checkout initiation failed. Please try again.');
+                    location.reload();
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
