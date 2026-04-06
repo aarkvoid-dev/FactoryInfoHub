@@ -627,9 +627,9 @@
                           <i class="icon-pin"></i> {{ factory.city.name }}, {{ factory.state.name }}
                         </div>
                         <h3 class="factoryCard__title">{{ factory.name }} {% if factory.is_verified %}<i style="background-color: #28a745; text-align: right; color: #F8F9FB; font-size:10px;  border-radius: 20%" > verified  </i> {% endif %} </h3>
-                        {% if factory.code %}
+                        {% if factory.factory_code %}
                         <div class="factoryCard__code text-secondary text-13 mb-10">
-                          <i class="fas fa-hashtag me-5"></i> Code: <strong>{{ factory.code }}</strong>
+                          <i class="fas fa-hashtag me-5"></i> Code: <strong>{{ factory.factory_code }}</strong>
                         </div>
                         {% endif %}
                         <p class="factoryCard__text">
