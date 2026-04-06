@@ -943,7 +943,7 @@ def admin_countries(request):
     countries = Country.objects.filter(is_deleted=False)
     
     # Add pagination
-    paginator = Paginator(countries, 25)
+    paginator = Paginator(countries, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1083,7 +1083,7 @@ def admin_states(request):
     states = State.objects.filter(is_deleted=False)
     
     # Add pagination
-    paginator = Paginator(states, 25)
+    paginator = Paginator(states, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1221,7 +1221,7 @@ def admin_cities(request):
     cities = City.objects.filter(is_deleted=False)
     
     # Add pagination
-    paginator = Paginator(cities, 25)
+    paginator = Paginator(cities, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1361,7 +1361,7 @@ def admin_districts(request):
     districts = District.objects.filter(is_deleted=False)
     
     # Add pagination
-    paginator = Paginator(districts, 25)
+    paginator = Paginator(districts, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1499,7 +1499,7 @@ def admin_regions(request):
     regions = Region.objects.filter(is_deleted=False)
     
     # Add pagination
-    paginator = Paginator(regions, 25)
+    paginator = Paginator(regions, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1672,7 +1672,7 @@ def admin_categories(request):
         return redirect('admin_interface:admin_categories')
 
     # Add pagination
-    paginator = Paginator(categories, 25)  # Show 25 categories per page
+    paginator = Paginator(categories, 15)  # Show 25 categories per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1749,7 +1749,7 @@ def admin_subcategories(request):
         return redirect('admin_interface:admin_subcategories')
 
     # Add pagination
-    paginator = Paginator(subcategories, 25)  # Show 25 subcategories per page
+    paginator = Paginator(subcategories, 15)  # Show 25 subcategories per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
