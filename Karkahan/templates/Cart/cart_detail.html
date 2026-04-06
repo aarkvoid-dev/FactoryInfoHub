@@ -59,7 +59,9 @@
                           </div>
                           <div class="flex-grow-1 ms-20">
                             <h5 class="mb-5 fw-600">{{ item.factory.name }}</h5>
-                            <p class="text-14 text-light-2 mb-0">{{ item.factory.description }}</p>
+                            <p class="text-13 text-light-2 mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
+                              {{ item.factory.description|truncatewords:15 }}
+                            </p>
                           </div>
                         </div>
                       </td>
