@@ -102,7 +102,7 @@
                                     <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
                                 </select>
                                 <input type="tel" name="mobile_number" class="custom-input" placeholder="98765 43210" 
-                                       value="{% if user_mobile %}{% user_mobile|slice:":" %}selected{% endif %}">
+                                       value="{% if user_mobile %}{{ user_mobile|slice:":" }}selected{% endif %}">
                             </div>
                             <small class="text-muted">For faster response, you can provide your contact number</small>
                         </div>
