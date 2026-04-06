@@ -863,6 +863,13 @@
     }
 
     function showDeleteModal(slug, name, type) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('deleteModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal HTML
         const modalHtml = `
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -913,8 +920,11 @@
                 </div>
             </div>
         `;
-        $('#deleteModal').remove();
-        $('body').append(modalHtml);
+
+        // Append modal to body using vanilla JavaScript
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Show modal
         const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
         modal.show();
         
