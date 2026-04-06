@@ -942,8 +942,14 @@ def admin_countries(request):
 
     countries = Country.objects.filter(is_deleted=False)
     
+    # Add pagination
+    paginator = Paginator(countries, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/countries.html', {
-        'countries': countries,
+        'countries': page_obj,
+        'page_obj': page_obj,
         'location_type': 'Country'
     })
 
@@ -1076,8 +1082,14 @@ def admin_states(request):
 
     states = State.objects.filter(is_deleted=False)
     
+    # Add pagination
+    paginator = Paginator(states, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/states.html', {
-        'states': states,
+        'states': page_obj,
+        'page_obj': page_obj,
         'location_type': 'State'
     })
 
@@ -1208,8 +1220,14 @@ def admin_cities(request):
 
     cities = City.objects.filter(is_deleted=False)
     
+    # Add pagination
+    paginator = Paginator(cities, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/cities.html', {
-        'cities': cities,
+        'cities': page_obj,
+        'page_obj': page_obj,
         'location_type': 'City'
     })
 
@@ -1342,8 +1360,14 @@ def admin_districts(request):
 
     districts = District.objects.filter(is_deleted=False)
     
+    # Add pagination
+    paginator = Paginator(districts, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/districts.html', {
-        'districts': districts,
+        'districts': page_obj,
+        'page_obj': page_obj,
         'location_type': 'District'
     })
 
@@ -1474,8 +1498,14 @@ def admin_regions(request):
 
     regions = Region.objects.filter(is_deleted=False)
     
+    # Add pagination
+    paginator = Paginator(regions, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/regions.html', {
-        'regions': regions,
+        'regions': page_obj,
+        'page_obj': page_obj,
         'location_type': 'Region'
     })
 
@@ -1641,8 +1671,14 @@ def admin_categories(request):
         messages.success(request, f'Category "{category_name}" deleted successfully!')
         return redirect('admin_interface:admin_categories')
 
+    # Add pagination
+    paginator = Paginator(categories, 25)  # Show 25 categories per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'CustomAdmin/locations/categories.html', {
-        'categories': categories,
+        'categories': page_obj,
+        'page_obj': page_obj,
         'form': form,
         'category_type': 'Category',
         'subcategories_total': subcategories_total,
@@ -1712,8 +1748,14 @@ def admin_subcategories(request):
         messages.success(request, f'Subcategory "{subcategory_name}" deleted successfully!')
         return redirect('admin_interface:admin_subcategories')
 
+    # Add pagination
+    paginator = Paginator(subcategories, 25)  # Show 25 subcategories per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'CustomAdmin/locations/subcategories.html', {
-        'subcategories': subcategories,
+        'subcategories': page_obj,
+        'page_obj': page_obj,
         'form': form,
         'category_type': 'Subcategory',
         'categories': categories,
