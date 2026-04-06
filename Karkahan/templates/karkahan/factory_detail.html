@@ -928,12 +928,29 @@
         }
     }
 
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     function restoreFactory(slug) {
         if (confirm('Are you sure you want to restore this factory? It will become visible to users again.')) {
             fetch(`/karkahan/${slug}/restore/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
                 },
             })
             .then(response => response.json())
@@ -942,7 +959,7 @@
                     alert('Factory restored successfully!');
                     location.reload();
                 } else {
-                    alert('Error restoring factory: ' + data.error);
+                    alert('Error restoring factory: ' + (data.error || 'Unknown error'));
                 }
             })
             .catch(err => {
@@ -954,28 +971,34 @@
 
     function deleteFactory(slug, type) {
         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-        modal.hide();
+        if (modal) modal.hide();
         const url = type === 'hard' 
             ? `/karkahan/${slug}/hard-delete/`
             : `/karkahan/${slug}/delete/`;
         fetch(url, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 alert(type === 'hard' ? 'Factory permanently deleted!' : 'Factory soft deleted successfully!');
                 location.reload();
             } else {
-                alert('Error: ' + data.error);
+                alert('Error: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('An error occurred while deleting the factory.');
+            alert('An error occurred while deleting the factory: ' + err.message);
         });
     }
 
