@@ -17,9 +17,12 @@
                     <a href="{% url 'admin_interface:admin_subcategories' %}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-layer-group"></i> Manage Subcategories
                     </a>
-                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCategoryModal">
+                    <!-- <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCategoryModal">
                         <i class="fas fa-plus"></i> Add Category
-                    </button>
+                    </button> -->
+                    <a href="{% url 'admin_interface:admin_category_create' %}" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCategoryModal">
+                        <i class="fas fa-plus"></i> Add Category
+                    </a>
                 </div>
             </div>
         </div>
