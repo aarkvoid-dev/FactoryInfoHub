@@ -511,19 +511,19 @@
           // Show the modal
           overlay.classList.add('show');
           
-          // Auto-hide each message after 5 seconds
-          messages.forEach((message, index) => {
+        // Auto-hide each message after 3 seconds
+        messages.forEach((message, index) => {
+          setTimeout(() => {
+            message.classList.add('removing');
             setTimeout(() => {
-              message.classList.add('removing');
-              setTimeout(() => {
-                message.remove();
-                // Close modal if no messages left
-                if (document.querySelectorAll('.message-popup').length === 0) {
-                  overlay.classList.remove('show');
-                }
-              }, 300);
-            }, (index + 1) * 5000);
-          });
+              message.remove();
+              // Close modal if no messages left
+              if (document.querySelectorAll('.message-popup').length === 0) {
+                overlay.classList.remove('show');
+              }
+            }, 300);
+          }, (index + 1) * 3000);
+        });
         });
         
         function closeMessage(messageElement) {

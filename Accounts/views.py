@@ -117,10 +117,29 @@ def login_view(request):
             
             # Check if account is locked
             if profile.is_account_locked():
-                messages.error(request, _('Your account is temporarily locked due to too many failed login attempts. Please try again later.'))
+                # Calculate remaining lockout time
+                from django.utils import timezone
+                remaining_time = 0
+                minutes = 0
+                seconds = 0
+                if profile.locked_until:
+                    time_diff = profile.locked_until - timezone.now()
+                    remaining_time = max(0, int(time_diff.total_seconds()))
+                    minutes, seconds = divmod(remaining_time, 60)
+                
+                messages.error(request, 
+                    _('Your account is temporarily locked due to too many failed login attempts. Please try again in {} minutes and {} seconds.').format(minutes, seconds))
                 increment_rate_limit(request, 'login')
                 log_user_activity(user, 'login_attempt_blocked', 'Account locked', request)
-                return render(request, 'accounts/login.html')
+                
+                # Pass remaining time to template for countdown display
+                context = {
+                    'remaining_time': remaining_time,
+                    'minutes': minutes,
+                    'seconds': seconds,
+                    'account_locked': True
+                }
+                return render(request, 'accounts/login.html', context)
             
             # Check if email is verified (optional - you can make this required)
             if not profile.email_verified:

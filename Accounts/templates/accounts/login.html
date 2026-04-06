@@ -29,15 +29,27 @@
                     </div>
                 {% endif %}
 
-                <!-- Rate Limit Warning -->
+                <!-- Rate Limit / Account Lockout Warning -->
                 {% if remaining_time %}
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <i class="fas fa-clock me-2"></i>
-                                <strong>Account Temporarily Locked</strong>
+                                <strong>
+                                    {% if account_locked %}
+                                        Account Temporarily Locked
+                                    {% else %}
+                                        Too Many Login Attempts
+                                    {% endif %}
+                                </strong>
                                 <br>
-                                <small>You have exceeded the maximum login attempts. Please wait before trying again.</small>
+                                <small>
+                                    {% if account_locked %}
+                                        Your account has been temporarily locked due to too many failed login attempts. Please wait before trying again.
+                                    {% else %}
+                                        You have exceeded the maximum login attempts. Please wait before trying again.
+                                    {% endif %}
+                                </small>
                             </div>
                             <div class="text-end">
                                 <div class="fw-bold" id="countdown-text">
@@ -795,6 +807,8 @@
 
 {% block extra_js %}
 <script>
+    
+
     // Password toggle functionality
     function togglePassword() {
         const passwordInput = document.getElementById('password');
