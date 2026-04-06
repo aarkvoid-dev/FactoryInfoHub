@@ -42,6 +42,12 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = os.environ.get('X_FRAME_OPTIONS', 'DENY')
 
+# File Upload Settings - configurable via environment variables
+# Default: 100MB for uploads, 1000 fields per request
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DATA_UPLOAD_MAX_MEMORY_SIZE', 100 * 1024 * 1024))  # Default 100 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('FILE_UPLOAD_MAX_MEMORY_SIZE', 100 * 1024 * 1024))  # Default 100 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = int(os.environ.get('DATA_UPLOAD_MAX_NUMBER_FIELDS', 1000))  # Default 1000 fields
+
 
 # Application definition
 

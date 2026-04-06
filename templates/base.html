@@ -867,6 +867,49 @@
 
   {% block extra_js %}{% endblock %}
 
+  <!-- File Upload Size Validation -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Configure max file size (in bytes) - 5MB default, can be overridden via data attribute
+      const defaultMaxSize = 5 * 1024 * 1024; // 5 MB
+      
+      // Find all file inputs (not just name="images")
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      
+      fileInputs.forEach(function(fileInput) {
+          // Get max size from data attribute or use default
+          const maxSize = parseInt(fileInput.dataset.maxSize) || defaultMaxSize;
+          const maxSizeMB = (maxSize / 1024 / 1024).toFixed(1);
+          
+          // Create error message element
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'text-danger small mt-2';
+          errorDiv.style.display = 'none';
+          errorDiv.style.fontSize = '14px';
+          errorDiv.style.fontWeight = '500';
+          
+          // Insert error div after the file input
+          fileInput.parentNode.appendChild(errorDiv);
+
+          fileInput.addEventListener('change', function() {
+              errorDiv.style.display = 'none';
+              let totalSize = 0;
+              
+              for (let i = 0; i < this.files.length; i++) {
+                  totalSize += this.files[i].size;
+              }
+              
+              if (totalSize > maxSize) {
+                  const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
+                  errorDiv.textContent = `⚠️ Total file size (${sizeMB} MB) exceeds the limit of ${maxSizeMB} MB. Please upload smaller images.`;
+                  errorDiv.style.display = 'block';
+                  this.value = ''; // Clear the selection
+              }
+          });
+      });
+  });
+  </script>
+
   <!-- Floating Video Section -->
   {% block floating_video %}{% endblock %}
 </body>
