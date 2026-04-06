@@ -54,8 +54,56 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Mobile Number (Optional)</label>
-                            <input type="tel" name="mobile_number" class="custom-input" placeholder="+91 98765 43210" 
-                                   value="{% if user_mobile %}{{ user_mobile }}{% endif %}">
+                            <div class="input-group">
+                                <select name="country_code" class="custom-select" style="max-width: 100px; border-radius: 12px 0 0 12px; border-right: none;">
+                                    <option value="+1" {% if user_country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
+                                    <option value="+44" {% if user_country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
+                                    <option value="+91" {% if user_country_code == '+91' %}selected{% endif %}>🇮🇳 +91</option>
+                                    <option value="+86" {% if user_country_code == '+86' %}selected{% endif %}>🇨🇳 +86</option>
+                                    <option value="+81" {% if user_country_code == '+81' %}selected{% endif %}>🇯🇵 +81</option>
+                                    <option value="+49" {% if user_country_code == '+49' %}selected{% endif %}>🇩🇪 +49</option>
+                                    <option value="+33" {% if user_country_code == '+33' %}selected{% endif %}>🇫🇷 +33</option>
+                                    <option value="+61" {% if user_country_code == '+61' %}selected{% endif %}>🇦🇺 +61</option>
+                                    <option value="+55" {% if user_country_code == '+55' %}selected{% endif %}>🇧🇷 +55</option>
+                                    <option value="+971" {% if user_country_code == '+971' %}selected{% endif %}>🇦🇪 +971</option>
+                                    <option value="+966" {% if user_country_code == '+966' %}selected{% endif %}>🇸🇦 +966</option>
+                                    <option value="+92" {% if user_country_code == '+92' %}selected{% endif %}>🇵🇰 +92</option>
+                                    <option value="+880" {% if user_country_code == '+880' %}selected{% endif %}>🇧🇩 +880</option>
+                                    <option value="+27" {% if user_country_code == '+27' %}selected{% endif %}>🇿🇦 +27</option>
+                                    <option value="+65" {% if user_country_code == '+65' %}selected{% endif %}>🇸🇬 +65</option>
+                                    <option value="+60" {% if user_country_code == '+60' %}selected{% endif %}>🇲🇾 +60</option>
+                                    <option value="+63" {% if user_country_code == '+63' %}selected{% endif %}>🇵🇭 +63</option>
+                                    <option value="+66" {% if user_country_code == '+66' %}selected{% endif %}>🇹🇭 +66</option>
+                                    <option value="+62" {% if user_country_code == '+62' %}selected{% endif %}>🇮🇩 +62</option>
+                                    <option value="+84" {% if user_country_code == '+84' %}selected{% endif %}>🇻🇳 +84</option>
+                                    <option value="+234" {% if user_country_code == '+234' %}selected{% endif %}>🇳🇬 +234</option>
+                                    <option value="+254" {% if user_country_code == '+254' %}selected{% endif %}>🇰🇪 +254</option>
+                                    <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                                    <option value="+90" {% if user_country_code == '+90' %}selected{% endif %}>🇹🇷 +90</option>
+                                    <option value="+39" {% if user_country_code == '+39' %}selected{% endif %}>🇮🇹 +39</option>
+                                    <option value="+34" {% if user_country_code == '+34' %}selected{% endif %}>🇪🇸 +34</option>
+                                    <option value="+31" {% if user_country_code == '+31' %}selected{% endif %}>🇳🇱 +31</option>
+                                    <option value="+46" {% if user_country_code == '+46' %}selected{% endif %}>🇸🇪 +46</option>
+                                    <option value="+47" {% if user_country_code == '+47' %}selected{% endif %}>🇳🇴 +47</option>
+                                    <option value="+45" {% if user_country_code == '+45' %}selected{% endif %}>🇩🇰 +45</option>
+                                    <option value="+7" {% if user_country_code == '+7' %}selected{% endif %}>🇷🇺 +7</option>
+                                    <option value="+48" {% if user_country_code == '+48' %}selected{% endif %}>🇵🇱 +48</option>
+                                    <option value="+43" {% if user_country_code == '+43' %}selected{% endif %}>🇦🇹 +43</option>
+                                    <option value="+41" {% if user_country_code == '+41' %}selected{% endif %}>🇨🇭 +41</option>
+                                    <option value="+32" {% if user_country_code == '+32' %}selected{% endif %}>🇧🇪 +32</option>
+                                    <option value="+351" {% if user_country_code == '+351' %}selected{% endif %}>🇵🇹 +351</option>
+                                    <option value="+30" {% if user_country_code == '+30' %}selected{% endif %}>🇬🇷 +30</option>
+                                    <option value="+52" {% if user_country_code == '+52' %}selected{% endif %}>🇲🇽 +52</option>
+                                    <option value="+54" {% if user_country_code == '+54' %}selected{% endif %}>🇦🇷 +54</option>
+                                    <option value="+56" {% if user_country_code == '+56' %}selected{% endif %}>🇨🇱 +56</option>
+                                    <option value="+57" {% if user_country_code == '+57' %}selected{% endif %}>🇨🇴 +57</option>
+                                    <option value="+51" {% if user_country_code == '+51' %}selected{% endif %}>🇵🇪 +51</option>
+                                    <option value="+58" {% if user_country_code == '+58' %}selected{% endif %}>🇻🇪 +58</option>
+                                    <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                                </select>
+                                <input type="tel" name="mobile_number" class="custom-input" placeholder="98765 43210" 
+                                       value="{% if user_mobile %}{{ user_mobile|slice:":" %}selected{% endif %}">
+                            </div>
                             <small class="text-muted">For faster response, you can provide your contact number</small>
                         </div>
                     </div>

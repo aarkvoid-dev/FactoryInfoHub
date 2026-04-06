@@ -12,7 +12,6 @@ from location.models import Country,City
 from .models import HomePageVideo, ContactMessage,Page
 from Accounts.decorators import profile_complete_required
 
-@profile_complete_required
 def home(request):
     # Fetch featured factories (verified and active)
     featured_factories = Factory.objects.filter(
@@ -84,9 +83,13 @@ def contact(request):
         # Handle contact form submission
         name = request.POST.get('name')
         email = request.POST.get('email')
+        country_code = request.POST.get('country_code', '+91')
         mobile_number = request.POST.get('mobile_number', '')
         subject = request.POST.get('subject')
         message = request.POST.get('message')
+        
+        # Combine country code with mobile number for storage
+        full_mobile_number = f"{country_code} {mobile_number}" if mobile_number else ''
         
         # Validate required fields
         if not all([name, email, subject, message]):
@@ -94,6 +97,7 @@ def contact(request):
             return render(request, 'home/contact.html', {
                 'name': name,
                 'email': email,
+                'country_code': country_code,
                 'mobile_number': mobile_number,
                 'subject': subject,
                 'message': message
@@ -104,7 +108,7 @@ def contact(request):
             contact_message = ContactMessage.objects.create(
                 name=name,
                 email=email,
-                mobile_number=mobile_number,
+                mobile_number=full_mobile_number,
                 subject=subject,
                 message=message,
                 user=request.user if request.user.is_authenticated else None
@@ -119,7 +123,7 @@ New contact form submission received:
 
 Name: {name}
 Email: {email}
-Mobile Number: {mobile_number if mobile_number else 'Not provided'}
+Mobile Number: {full_mobile_number if full_mobile_number else 'Not provided'}
 Subject: {subject}
 User: {request.user.username if request.user.is_authenticated else 'Anonymous'}
 Date: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')}
@@ -194,14 +198,26 @@ Phone: +91 22 1234 5678
         context['user_email'] = request.user.email
         # Get mobile number from user profile if available
         if hasattr(request.user, 'profile') and request.user.profile.phone_number:
-            context['user_mobile'] = request.user.profile.phone_number
+            phone = request.user.profile.phone_number
+            # Extract country code and number
+            if phone.startswith('+91'):
+                context['user_country_code'] = '+91'
+                context['user_mobile'] = phone[3:].strip()
+            elif phone.startswith('+1'):
+                context['user_country_code'] = '+1'
+                context['user_mobile'] = phone[2:].strip()
+            elif phone.startswith('+44'):
+                context['user_country_code'] = '+44'
+                context['user_mobile'] = phone[3:].strip()
+            else:
+                context['user_country_code'] = '+91'  # Default
+                context['user_mobile'] = phone
     
     # Add pages for footer
     context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
     
     return render(request, 'home/contact.html', context)
 
-@profile_complete_required
 def products(request):
     """Products page - Coming Soon"""
     return render(request, 'home/products.html')
