@@ -494,11 +494,15 @@ def factory_delete(request, slug):
     
     # Check if user has permission to delete (admin or factory creator)
     if not (request.user.is_staff or request.user == factory.created_by):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': "You don't have permission to delete this factory."})
         messages.error(request, "You don't have permission to delete this factory.")
         return redirect('karkahan:factory_detail', slug=slug)
     
     if request.method == 'POST':
         factory.soft_delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': True, 'message': f'Factory "{factory.name}" has been deleted successfully!'})
         messages.success(request, f'Factory "{factory.name}" has been deleted successfully!')
         return redirect('karkahan:factory_list')
     
@@ -512,6 +516,8 @@ def factory_delete(request, slug):
 def factory_restore(request, slug):
     """Restore a soft-deleted factory (superuser only)"""
     if not request.user.is_superuser:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': "You don't have permission to restore factories."})
         messages.error(request, "You don't have permission to restore factories.")
         return redirect('karkahan:factory_list')
     
@@ -519,6 +525,8 @@ def factory_restore(request, slug):
     
     if request.method == 'POST':
         factory.restore()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': True, 'message': f'Factory "{factory.name}" has been restored successfully!'})
         messages.success(request, f'Factory "{factory.name}" has been restored successfully!')
         return redirect('karkahan:factory_detail', slug=factory.slug)
     
@@ -532,6 +540,8 @@ def factory_restore(request, slug):
 def factory_hard_delete(request, slug):
     """Permanently delete a factory (superuser only)"""
     if not request.user.is_superuser:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': "You don't have permission to permanently delete factories."})
         messages.error(request, "You don't have permission to permanently delete factories.")
         return redirect('karkahan:factory_list')
     
@@ -540,6 +550,8 @@ def factory_hard_delete(request, slug):
     if request.method == 'POST':
         factory_name = factory.name
         factory.hard_delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': True, 'message': f'Factory "{factory_name}" has been permanently deleted!'})
         messages.success(request, f'Factory "{factory_name}" has been permanently deleted!')
         return redirect('karkahan:factory_list')
     
