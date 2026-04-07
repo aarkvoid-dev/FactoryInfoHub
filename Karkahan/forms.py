@@ -18,13 +18,14 @@ class FactoryForm(ModelForm):
             'address', 'pincode', 'contact_person', 'contact_phone',
             'contact_email', 'website', 'video_url', 'established_year',
             'employee_count', 'annual_turnover', 'factory_type', 'price',
-            'production_capacity', 'working_hours', 'holidays',
+            'production_capacity', 'working_hours', 'holidays', 'features',
             'is_active', 'is_verified'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., We specialize in textile manufacturing with 20 years of experience...'}),
             'address': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., 123 Industrial Area, Sector 5, Mumbai, Maharashtra 400001'}),
             'holidays': forms.Textarea(attrs={'rows': 3, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., Diwali, Holi, Republic Day, Independence Day, weekends'}),
+            'features': forms.Textarea(attrs={'rows': 4, 'cols': 40, 'class': 'form-control', 'placeholder': 'e.g., ISO 9001 Certified\n24/7 Operations\nExport Quality\nCustom Manufacturing\nOn-time Delivery'}),
             'contact_phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control', 'placeholder': 'e.g., 9876543210', 'maxlength': '10', 'pattern': '[0-9]{10}', 'title': 'Please enter exactly 10 digits'}),
             'contact_email': forms.EmailInput(attrs={'type': 'email', 'class': 'form-control', 'placeholder': 'e.g., contact@factoryname.com'}),
             'website': forms.URLInput(attrs={'type': 'url', 'class': 'form-control', 'placeholder': 'e.g., https://factoryname.com (optional)'}),
@@ -71,6 +72,7 @@ class FactoryForm(ModelForm):
             'production_capacity': 'Production Capacity',
             'working_hours': 'Working Hours',
             'holidays': 'Holidays',
+            'features': 'Featured Features',
             'is_active': 'Is Active',
             'is_verified': 'Is Verified',
             'price': 'Amount'
@@ -99,6 +101,7 @@ class FactoryForm(ModelForm):
             'production_capacity': 'Maximum production output per time period (e.g., 5000 units/month, 10 tons/day, 1000 pieces/week)',
             'working_hours': 'Standard working hours and days (e.g., 9:00 AM - 6:00 PM, Monday to Saturday, 24/7 operations)',
             'holidays': 'List of observed holidays or non-working days throughout the year',
+            'features': 'Key features and capabilities of your factory (one per line or comma-separated). Examples: ISO Certified, 24/7 Operations, Export Quality, Custom Manufacturing',
             'price': 'Cost per unit or service rate (optional for information purposes)',
             'is_active': 'Check to make your factory visible to users and searchable in listings',
             'is_verified': 'Check if your factory has been verified by administrators (usually checked by staff)',

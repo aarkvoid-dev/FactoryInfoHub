@@ -46,6 +46,9 @@ class Factory(SoftDeleteModel):
     working_hours = models.CharField(max_length=100, blank=True, help_text="e.g., 9:00 AM - 6:00 PM")
     holidays = models.TextField(blank=True, help_text="List of holidays observed")
     
+    # Featured features
+    features = models.TextField(blank=True, help_text="Enter each feature on a new line or separate with commas (e.g., ISO Certified, 24/7 Operations, Export Quality)")
+    
     # Additional fields
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
@@ -97,7 +100,7 @@ class Factory(SoftDeleteModel):
         return f"{self.name} - {self.city.name}, {self.state.name}"
 
     def get_absolute_url(self):
-        return f"/karkahan/factories/{self.slug}/"
+        return f"/karkahan/{self.slug}/"
 
     @property
     def full_address(self):
@@ -240,6 +243,19 @@ class Factory(SoftDeleteModel):
     def get_primary_image_obj(self):
         """Return the primary image object"""
         return self.images.filter(is_primary=True).first()
+
+    def get_features_list(self):
+        """Return features as a list, splitting by newlines or commas"""
+        if not self.features:
+            return []
+        # Split by newlines first, then by commas
+        features = []
+        for line in self.features.split('\n'):
+            for item in line.split(','):
+                item = item.strip()
+                if item:
+                    features.append(item)
+        return features
 
     @property
     def total_views(self):

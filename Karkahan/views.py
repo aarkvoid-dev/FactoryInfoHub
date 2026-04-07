@@ -502,7 +502,7 @@ def factory_delete(request, slug):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
             return JsonResponse({'success': False, 'error': 'Factory is already deleted.'})
         messages.error(request, 'This factory has already been deleted.')
-        return redirect('karkahan:factory_detail', slug=slug)
+        return redirect('karkahan:factory_list')
     
     # Check if user has permission to delete (admin or factory creator)
     if not (request.user.is_staff or request.user == factory.created_by):

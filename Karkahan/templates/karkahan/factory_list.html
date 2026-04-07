@@ -3,7 +3,6 @@
 
 {% block title %}Factory Inventory - Factory Chemistry{% endblock %}
 
-
 {% block extra_css %}
 <style>
     /* Layout & Hero */
@@ -50,6 +49,14 @@
         .compact-filter-toggle { display: block; margin-bottom: 12px; }
         #mobile-filters { display: none; }
         #mobile-filters.active { display: block; }
+    }
+
+    .searchForm.-type-1 {
+        display: flex;
+        background-color: rgba(255, 255, 255, 0);
+        padding: 10px;
+        border-radius: 12px;
+        height: 80px;
     }
 
     /* ===== FACTORY CARD STYLES ===== */
@@ -286,6 +293,7 @@
         /* Further reduce button size on mobile */
         .btn-group .button {
             font-size: 10px;
+            padding: 4px 8px;
         }
         .price-value { font-size: 18px; }
     }
@@ -338,6 +346,18 @@
             line-height: 48px;
         }
     }
+
+    /* Make search button visible on mobile */
+    .btn-accent-1 {
+        background: #EB662B;
+        border: none;
+        color: white;
+        height: 50px;
+    }
+    .btn-accent-1:hover {
+        background: #d45b23;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -369,22 +389,28 @@
           <button id="mobileFilterBtn" class="button -md bg-dark-1 text-white px-3 px-md-4 py-2 rounded-8 d-lg-none mobile-filter-btn">
             <i class="fas fa-filter me-1"></i> <span class="d-none d-sm-inline">Filter</span>
           </button>
-          
+
+          <!-- Search form with visible submit button -->
           <div class="searchForm -type-1 -col-1 -narrow flex-grow-1">
-            <div class="searchForm__form">
-              <div class="searchFormItem">
-                <div class="searchFormItem__button">
-                  <div class="pl-calendar d-flex items-center">
-                    <i class="icon-search text-20 mr-15"></i>
-                    <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" placeholder="Search factories...">
+            <form action="" method="get" class="d-flex align-items-center w-100">
+              <div class="searchForm__form w-100">
+                <div class="searchFormItem">
+                  <div class="searchFormItem__button">
+                    <div class="pl-calendar d-flex items-center position-relative">
+                      <i class="icon-search text-20 position-absolute start-0 ms-3" style="z-index: 1;"></i>
+                      <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" class="search-input ps-5" placeholder="Search factories...">
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+              <button type="submit" class="btn btn-accent-1 rounded-50">
+                <i class="fas fa-search"></i>
+              </button>
+            </form>
           </div>
-          
+
           {% if user.is_authenticated %}
-          <a href="{% url 'karkahan:cart_detail' %}" class="button -md bg-accent-1 text-white rounded-8 position-relative flex-shrink-0">
+          <a href="{% url 'karkahan:cart_detail' %}" class="button -md bg-accent-1 text-white rounded-8 position-relative flex-shrink-0 px-3">
             <i class="fas fa-shopping-cart"></i>
             <span class="d-none d-sm-inline ms-1">Cart</span>
             {% if cart_items_count > 0 %}
@@ -466,7 +492,7 @@
               </div>
 
               <div class="filter-actions">
-                <button onclick="window.location.href='?'" class="btn-clear">Clear</button>
+                <button id="mobile-clear-btn" class="btn-clear">Clear</button>
                 <button id="apply-filter-btn" class="button -sm bg-accent-1 text-white text-12 w-100 rounded-8" style="display:none;">Apply</button>
               </div>
               {% if user.is_authenticated %}
@@ -579,28 +605,8 @@
                       </div>
                     </div>               
                     
-                    
                     <!-- NEW: AJAX Cart Button (replaces old cart indicator) -->
                     <div class="factoryCard__indicators">
-                      <!-- {% if factory.images.exists %}
-                      <span class="indicator-badge gallery-indicator" title="View Gallery">
-                        <i class="fas fa-images"></i>
-                        <span class="badge-count">{{ factory.images.count }}</span>
-                      </span>
-                      {% endif %}
-                      
-                      {% if factory.video_url %}
-                      <span class="indicator-badge video-indicator" title="Watch Video">
-                        <i class="fas fa-play"></i>
-                      </span>
-                      {% endif %}
-                      
-                      {% if factory.is_verified %}
-                        <span class="indicator-badge bg-success text-white" title="is varified">
-                            <i class="icon-check text-15"></i>
-                        </span>
-                      {% endif %} -->
-
                       {% if user.is_authenticated %}
                         {% if factory.id in cart_items %}
                           <span class="indicator-badge bg-success text-white" title="In Cart">
@@ -627,31 +633,20 @@
                           <i class="icon-pin"></i> {{ factory.city.name }}, {{ factory.state.name }}
                         </div>
                         <h3 class="factoryCard__title">{{ factory.name }} {% if factory.is_verified %}<i style="background-color: #28a745; text-align: right; color: #F8F9FB; font-size:10px;  border-radius: 20%" > verified  </i> {% endif %} </h3>
-                        {% if factory.factory_code %}
+                        <!-- {% if factory.factory_code %}
                         <div class="factoryCard__code text-secondary text-13 mb-10">
                           <i class="fas fa-hashtag me-5"></i> Code: <strong>{{ factory.factory_code }}</strong>
                         </div>
-                        {% endif %}
+                        {% endif %} -->
                         <p class="factoryCard__text">
                           {{ factory.description|default:"Detailed manufacturing data for this facility is available in the profile."|truncatewords:20 }}
                         </p>
                         <div class="factoryMeta">
                           <div class="factoryMeta__item">
                             <i class="fas fa-industry"></i>
-                            <span>{{ factory.category.name }}</span>
+                            <span>{{ factory.category.name }}</span> 
+                            🏭 {% if factory.factory_code %}<span> {{ factory.factory_code }}</span>  {% endif %}
                           </div>
-                          <!-- {% if factory.production_capacity %}
-                          <div class="factoryMeta__item">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Capacity: {{ factory.production_capacity }}</span>
-                          </div>
-                          {% endif %}
-                          {% if factory.employee_count %}
-                          <div class="factoryMeta__item">
-                            <i class="fas fa-users"></i>
-                            <span>{{ factory.employee_count }} employees</span>
-                          </div>
-                          {% endif %} -->
                         </div>
                       </div>
                     </a>
@@ -783,6 +778,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Mobile clear button: reset search input and remove all filters
+    const mobileClearBtn = document.getElementById('mobile-clear-btn');
+    if (mobileClearBtn) {
+        mobileClearBtn.addEventListener('click', function(e) {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            window.location.href = window.location.pathname;
+        });
+    }
+
     // Helper: Update all instances of a dropdown
     const updateTargetDropdowns = (name, data, label) => {
         const selects = document.querySelectorAll(`select[name="${name}"]`);
@@ -861,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Search on Enter key
+    // Search on Enter key (fallback)
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -872,7 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ---------- NEW: AJAX Add to Cart ----------
+    // ---------- AJAX Add to Cart ----------
     const addButtons = document.querySelectorAll('.cart-add-btn');
     const cartBadge = document.getElementById('cart-badge-count');
 
