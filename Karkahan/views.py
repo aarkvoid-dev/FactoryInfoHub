@@ -512,7 +512,7 @@ def factory_delete(request, slug):
         return redirect('karkahan:factory_detail', slug=slug)
     
     if request.method == 'POST':
-        factory.soft_delete()
+        factory.delete()  # Soft delete (SoftDeleteModel overrides delete to soft delete)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
             return JsonResponse({'success': True, 'message': f'Factory "{factory.name}" has been deleted successfully!'})
         messages.success(request, f'Factory "{factory.name}" has been deleted successfully!')
