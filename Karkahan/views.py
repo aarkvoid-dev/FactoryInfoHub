@@ -490,11 +490,23 @@ def ensure_single_primary_image(factory):
 @login_required
 def factory_delete(request, slug):
     """Delete a factory (soft delete)"""
-    factory = get_object_or_404(Factory, slug=slug, is_deleted=False)
+    try:
+        factory = Factory.objects.get(slug=slug)
+    except Factory.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': False, 'error': 'Factory not found.'})
+        messages.error(request, 'Factory not found.')
+        return redirect('karkahan:factory_list')
+    
+    if factory.is_deleted:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': False, 'error': 'Factory is already deleted.'})
+        messages.error(request, 'This factory has already been deleted.')
+        return redirect('karkahan:factory_detail', slug=slug)
     
     # Check if user has permission to delete (admin or factory creator)
     if not (request.user.is_staff or request.user == factory.created_by):
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
             return JsonResponse({'success': False, 'error': "You don't have permission to delete this factory."})
         messages.error(request, "You don't have permission to delete this factory.")
         return redirect('karkahan:factory_detail', slug=slug)
@@ -539,13 +551,19 @@ def factory_restore(request, slug):
 @login_required
 def factory_hard_delete(request, slug):
     """Permanently delete a factory (superuser only)"""
+    try:
+        factory = Factory.objects.get(slug=slug)
+    except Factory.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({'success': False, 'error': 'Factory not found.'})
+        messages.error(request, 'Factory not found.')
+        return redirect('karkahan:factory_list')
+    
     if not request.user.is_superuser:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
             return JsonResponse({'success': False, 'error': "You don't have permission to permanently delete factories."})
         messages.error(request, "You don't have permission to permanently delete factories.")
         return redirect('karkahan:factory_list')
-    
-    factory = get_object_or_404(Factory, slug=slug, is_deleted=False)
     
     if request.method == 'POST':
         factory_name = factory.name
