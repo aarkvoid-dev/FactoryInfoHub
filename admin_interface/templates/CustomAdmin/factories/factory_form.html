@@ -196,7 +196,12 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-12 col-md-6 mb-3">{{ form.image.label_tag }}{{ form.image }}</div>
+                            <div class="col-12 col-md-6 mb-3">
+                                {{ form.image.label_tag }}
+                                {{ form.image }}
+                                <div id="file-list" class="mt-2"></div>
+                                <div class="form-text extra-small">Select multiple images to upload (JPG, PNG, GIF, WebP supported).</div>
+                            </div>
                             <div class="col-12 col-md-6 mb-3">{{ form.video_url.label_tag }}{{ form.video_url }}</div>
                             <div class="col-12 col-md-6 mb-3">{{ form.created_by.label_tag }}{{ form.created_by }}</div>
                         </div>
@@ -641,6 +646,36 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    // ==========================================
+    // Display Selected File Names
+    // ==========================================
+    const imageInput = document.getElementById('id_image');
+    const fileListDiv = document.getElementById('file-list');
+    
+    if (imageInput && fileListDiv) {
+        imageInput.addEventListener('change', function() {
+            const files = this.files;
+            if (files.length > 0) {
+                let fileListHtml = '<div class="selected-files">';
+                fileListHtml += '<small class="text-muted fw-bold"><i class="fas fa-images me-1"></i>Selected files (' + files.length + '):</small>';
+                fileListHtml += '<ul class="list-unstyled mb-0 mt-1">';
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileSize = (file.size / 1024).toFixed(1); // Size in KB
+                    fileListHtml += '<li class="small text-muted mb-1">';
+                    fileListHtml += '<i class="fas fa-file-image me-1 text-primary"></i>';
+                    fileListHtml += file.name;
+                    fileListHtml += ' <span class="text-muted" style="font-size: 10px;">(' + fileSize + ' KB)</span>';
+                    fileListHtml += '</li>';
+                }
+                fileListHtml += '</ul></div>';
+                fileListDiv.innerHTML = fileListHtml;
+            } else {
+                fileListDiv.innerHTML = '';
+            }
+        });
     }
 
     // ==========================================
