@@ -622,7 +622,7 @@
                             <div class="text lh-lg text-slate">Production Volume : {{ factory.production_capacity|default:"N/A" }}</div>
                             <div class="text lh-lg text-slate">Shift Structure : {{ factory.working_hours|default:"N/A" }}</div>
                             
-                            {% if user_has_purchased or user.is_staff or factory.created_by == user %}
+                            <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
                                 <h4 class="fw-bold mb-3">Location Details</h4>
                                 <div class="text lh-lg text-slate">
                                     {{ factory.address }},{{ factory.district.name }},{{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}<br>
@@ -652,7 +652,7 @@
                                     </a>
                                 {% endif %}
                             </div>
-                            {% endif %}
+                            {% endif %} -->
                         </div>
 
                         <div id="technical" class="tab-panel" style="display:none">
@@ -752,6 +752,26 @@
                         <div>
                             <div class="contact-label">Phone</div>
                             <div class="contact-value">{{ factory.contact_phone }}</div>
+                        </div>
+                    </div>
+
+                     <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div>
+                            <div class="contact-label">Location </div>
+                            <div class="contact-value">{{ factory.address }},{{ factory.district.name }},{{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}<br>
+                                    {% if factory.pincode %}PIN: {{ factory.pincode }}{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📱</div>
+                        <div>
+                            <div class="contact-label">Website</div>
+                            <div class="contact-value">
+                                <a href="{{ factory.website }}" target="_blank" class="text-decoration-none text-accent">
+                                    <i class="fas fa-globe me-2"></i>{{ factory.website|truncatechars:30 }}
+                                </a>
+                            </div>
                         </div>
                     </div>
 
