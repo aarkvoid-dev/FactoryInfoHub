@@ -123,10 +123,11 @@ class AdminFactoryForm(forms.ModelForm):
     
     class Meta:
         model = Factory
-        fields = ['name', 'slug', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'price', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'video_url', 'created_by', 'is_active', 'is_verified']
+        fields = ['name', 'slug', 'factory_code', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'price', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'video_url', 'created_by', 'is_active', 'is_verified']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter factory name'}),
             'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Auto-generated slug'}),
+            'factory_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter factory code (optional)', 'style': 'font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter factory description'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),

@@ -18,13 +18,13 @@ def home(request):
         is_verified=True,
         is_active=True,
         is_deleted=False
-    ).order_by('-created_at')[:3]
+    ).order_by('-created_at')[:10]
 
     # Fetch latest blog posts
     latest_posts = BlogPost.objects.filter(
         is_published=True,
         is_deleted=False
-    ).order_by('-created_at')[:3]
+    ).order_by('-created_at')[:10]
 
     # Get category statistics
     category_stats = Category.objects.annotate(

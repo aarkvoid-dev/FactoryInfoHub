@@ -15,8 +15,8 @@ import uuid
 class Factory(SoftDeleteModel):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
-    factory_code = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False, 
-                                     help_text="Auto-generated unique factory identification code")
+    factory_code = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=True, 
+                                     help_text="Auto-generated unique factory identification code. Leave blank to auto-generate.")
     description = models.TextField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='factories')
     subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='factories', blank=True, null=True)
