@@ -123,7 +123,7 @@ class AdminFactoryForm(forms.ModelForm):
     
     class Meta:
         model = Factory
-        fields = ['name', 'slug', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'video_url', 'created_by', 'is_active', 'is_verified']
+        fields = ['name', 'slug', 'description', 'category', 'subcategory', 'country', 'state', 'city', 'district', 'region', 'address', 'pincode', 'contact_person', 'contact_phone', 'contact_email', 'website', 'established_year', 'employee_count', 'annual_turnover', 'price', 'factory_type', 'production_capacity', 'working_hours', 'holidays', 'video_url', 'created_by', 'is_active', 'is_verified']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter factory name'}),
             'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Auto-generated slug'}),
@@ -144,6 +144,7 @@ class AdminFactoryForm(forms.ModelForm):
             'established_year': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter established year'}),
             'employee_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter employee count'}),
             'annual_turnover': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter annual turnover'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter price per unit', 'step': '0.01'}),
             'factory_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter factory type (e.g., Manufacturing, Assembly)'}),
             'production_capacity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter production capacity'}),
             'working_hours': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter working hours'}),

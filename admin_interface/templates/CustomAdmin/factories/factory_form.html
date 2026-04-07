@@ -175,7 +175,14 @@
                             <div class="col-6 mb-3">{{ form.factory_type.label_tag }}{{ form.factory_type }}</div>
                             <div class="col-6 mb-3">{{ form.employee_count.label_tag }}{{ form.employee_count }}</div>
                             <div class="col-6 mb-3">{{ form.annual_turnover.label_tag }}{{ form.annual_turnover }}</div>
-                            <div class="col-6 mb-3">{{ form.price.label_tag }}{{ form.price }}</div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Price per Unit</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    {{ form.price }}
+                                </div>
+                                <div class="form-text extra-small">Enter the price per unit in INR (₹).</div>
+                            </div>
                             <div class="col-12 col-sm-6 mb-3">{{ form.production_capacity.label_tag }}{{ form.production_capacity }}</div>
                             <div class="col-12 col-sm-6 mb-3">{{ form.working_hours.label_tag }}{{ form.working_hours }}</div>
                             <div class="col-12 mb-3">{{ form.holidays.label_tag }}{{ form.holidays }}</div>
