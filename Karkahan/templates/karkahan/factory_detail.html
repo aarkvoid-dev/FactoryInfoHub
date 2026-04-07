@@ -177,16 +177,16 @@
     }
 
     /* 3. Mobile Friendly Tabs */
-    .tabs-controls {
+    /* .tabs-controls {
         display: flex;
         overflow-x: auto;
         white-space: nowrap;
         background: #f8fafc;
         border-radius: 12px 12px 0 0;
-        scrollbar-width: none;
-    }
+        scrollbar-width: none; 
+    } */
     
-    .tabs-controls::-webkit-scrollbar { display: none; }
+    /*.tabs-controls::-webkit-scrollbar { display: none; } Hide scrollbar Chrome/Safari */
 
     .tab-button {
         padding: 15px 25px;
@@ -196,35 +196,12 @@
         font-weight: 600;
         cursor: pointer;
         border-bottom: 3px solid transparent;
-        font-size: 16px;
     }
 
     .tab-button.is-active {
         color: var(--accent);
         border-bottom-color: var(--accent);
         background: var(--white);
-    }
-
-    /* Responsive tab button sizes */
-    @media (max-width: 991px) {
-        .tab-button {
-            padding: 12px 18px;
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .tab-button {
-            padding: 10px 14px;
-            font-size: 12px;
-        }
-    }
-
-    @media (max-width: 400px) {
-        .tab-button {
-            padding: 8px 10px;
-            font-size: 11px;
-        }
     }
 
     /* 4. Professional Sidebar */
@@ -382,6 +359,58 @@
     @media (max-width: 768px) {
         .modal-nav-btn { width: 32px; height: 32px; font-size: 16px; }
     }
+
+
+    /* 3. Mobile Friendly Tabs - No Horizontal Scroll */
+    .tabs-controls {
+        display: flex;
+        flex-wrap: wrap;          /* Allow buttons to wrap onto next line if needed */
+        justify-content: center;  /* Center the buttons when wrapped */
+        background: #f8fafc;
+        border-radius: 12px 12px 0 0;
+        gap: 0;                   /* Remove gaps between buttons */
+    }
+
+    .tab-button {
+        flex: 1 0 auto;           /* Allow buttons to grow and shrink, base size auto */
+        text-align: center;
+        padding: 12px 16px;
+        border: none;
+        background: transparent;
+        color: var(--slate);
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        font-size: 14px;
+        white-space: nowrap;      /* Prevent text wrapping inside button */
+    }
+
+    @media (max-width: 768px) {
+        .tab-button {
+            padding: 10px 12px;
+            font-size: 12px;
+            flex: 1 0 auto;       /* Keep buttons flexible */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .tab-button {
+            padding: 8px 8px;
+            font-size: 11px;
+            white-space: normal;   /* Allow text to wrap on very small screens */
+        }
+        .tabs-controls {
+            gap: 4px;              /* Add small gap when wrapped */
+        }
+    }
+
+    .tab-button.is-active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        background: var(--white);
+    }
+
 </style>
 {% endblock %}
 
@@ -513,8 +542,24 @@
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                     <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase - ₹{{ factory.price|intcomma }}
                 </a>
+                <!-- <a href="{% url 'register' %}?next={{ request.path }}" class="btn-secondary">
+                    <i class="fas fa-user-plus me-2"></i> Register
+                </a> -->
             {% endif %}
         </div>
+        
+        <!-- <div class="mt-3">
+            <div class="text-center text-white opacity-75">
+                <small>
+                    By proceeding with purchase, you agree to our 
+                    <a href="{% url 'disclaimer' %}" class="text-white fw-bold text-decoration-underline">Disclaimer</a>
+                    , 
+                    <a href="{% url 'refund_policy' %}" class="text-white fw-bold text-decoration-underline">Refund Policy</a>
+                    and
+                    <a href="{% url 'terms_and_conditions' %}" class="text-white fw-bold text-decoration-underline">Terms and Conditions</a>
+                </small>
+            </div>
+        </div> -->
         {% else %}
         <div class="purchase-actions">
             <span class="badge bg-secondary px-3 py-2 rounded-pill">Not Available for Purchase</span>
@@ -527,23 +572,57 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8">
+                <!-- <div class="specs-grid">
+                    <div class="spec-card">
+                        <span class="spec-icon">🏭</span>
+                        <div class="spec-label">Capacity</div>
+                        <div class="spec-value">{{ factory.production_capacity|default:"N/A" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">👥</span>
+                        <div class="spec-label">Staff</div>
+                        <div class="spec-value">{{ factory.employee_count|default:"0" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">🏭</span>
+                        <div class="spec-label">Production</div>
+                        <div class="spec-value">{{ factory.production_capacity|default:"N/A" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">⏰</span>
+                        <div class="spec-label">Shift Hours</div>
+                        <div class="spec-value">{{ factory.working_hours|default:"N/A" }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">💰</span>
+                        <div class="spec-label">Price</div>
+                        <div class="spec-value">₹{{ factory.price|intcomma }}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="spec-icon">📅</span>
+                        <div class="spec-label">Est. Year</div>
+                        <div class="spec-value">{{ factory.established_year|default:"N/A" }}</div>
+                    </div>
+                </div> -->
+
                 <div class="bg-white rounded-4 shadow-sm overflow-hidden">
                     <div class="tabs-controls border-bottom">
                         <button class="tab-button is-active" onclick="switchTab(event, 'overview')">Overview</button>
-                        {% if factory.images %} <button class="tab-button" onclick="switchTab(event, 'gallery')">Gallery</button> {% endif %}
-                        {% if factory.video_url %}<button class="tab-button" onclick="switchTab(event, 'video')">Video Tour</button>{% endif %}
                         <button class="tab-button" onclick="switchTab(event, 'features')">Features</button>
-                        
+                        <button class="tab-button" onclick="switchTab(event, 'technical')">Technical</button>
+                        {% if factory.video_url %}<button class="tab-button" onclick="switchTab(event, 'video')">Video Tour</button>{% endif %}
+                        <button class="tab-button" onclick="switchTab(event, 'gallery')">Gallery</button>
                     </div>
-
                     <div class="p-4">
                         <div id="overview" class="tab-panel is-active">
                             <span class="text text-muted">Name : </span><span class="text fw-bold">{{ factory.name }}</span><br>
                             <span class="text text-muted">Category : </span><span class="text fw-bold">{{ factory.category }}</span>
-                            <h4 class="fw-bold mb-3">Description :- </h4>
+                            <h4 class="fw-bold mb-3">Description</h4>
                             <div class="lh-lg text-slate">{{ factory.description|linebreaks }}</div>
+                            <div class="text lh-lg text-slate">Production Volume : {{ factory.production_capacity|default:"N/A" }}</div>
+                            <div class="text lh-lg text-slate">Shift Structure : {{ factory.working_hours|default:"N/A" }}</div>
                             
-                            <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
+                            {% if user_has_purchased or user.is_staff or factory.created_by == user %}
                                 <h4 class="fw-bold mb-3">Location Details</h4>
                                 <div class="text lh-lg text-slate">
                                     {{ factory.address }},{{ factory.district.name }},{{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}<br>
@@ -556,7 +635,7 @@
                                         </a>
                                     </div>
                                 {% endif %}
-                            {% else %} -->
+                            {% else %}
                             <div class="purchase-required">
                                 <div class="purchase-required-icon">
                                     <i class="fas fa-lock"></i>
@@ -576,14 +655,9 @@
                             {% endif %}
                         </div>
 
-                        <div id="features" class="tab-panel" style="display:none">
+                        <div id="technical" class="tab-panel" style="display:none">
+                            <h4 class="fw-bold mb-3">Technical Details</h4>
                             <ul class="text list-group list-group-flush">
-                                <li class=" list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Production Volume</span><span class="fw-bold">{{ factory.production_capacity|default:"N/A" }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Shift Structure</span><span class="fw-bold">{{ factory.working_hours|default:"N/A" }}</span>
-                                </li>
                                 <li class=" list-group-item d-flex justify-content-between px-0">
                                     <span class="text-muted">Type</span><span class="fw-bold">{{ factory.factory_type }}</span>
                                 </li>
@@ -597,18 +671,6 @@
                                     <span class="text-muted">Annual Turnover</span><span class="fw-bold">{{ factory.annual_turnover|default:"N/A" }}</span>
                                 </li>
                             </ul>
-                            {% if factory.get_features_list %}
-                                <div class="features-list">
-                                    {% for feature in factory.get_features_list %}
-                                        <div class="feature-item d-flex align-items-center mb-2 p-2 bg-light rounded">
-                                            <i class="fas fa-check-circle text-success me-2"></i>
-                                            <span>{{ feature }}</span>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <p class="text-muted">No features listed.</p>
-                            {% endif %}
                         </div>
 
                         {% if factory.video_url %}
@@ -692,27 +754,6 @@
                             <div class="contact-value">{{ factory.contact_phone }}</div>
                         </div>
                     </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">🗺️</div>
-                        <div>
-                            <div class="contact-label">Location </div>
-                            {{ factory.address }},{{ factory.district.name }},{{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}<br>
-                            {% if factory.pincode %}PIN: {{ factory.pincode }}{% endif %}
-                        </div>
-                    </div>
-
-                    {% if factory.website %}
-                        <div class="contact-item">
-                        <div class="contact-label">🔄</div>
-                            <div>
-                                <div class="contact-label">Website </div>
-                                <a href="{{ factory.website }}" target="_blank" class="text-decoration-none text-accent">
-                                    <i class="fas fa-globe me-2"></i>{{ factory.website|truncatechars:30 }}
-                                </a>
-                            </div>
-                        </div>
-                    {% endif %}
 
                     <div class="mt-4">
                         {% if user.is_staff or factory.created_by == user %}
@@ -874,11 +915,13 @@
     }
 
     function showDeleteModal(slug, name, type) {
+        // Remove existing modal if any
         const existingModal = document.getElementById('deleteModal');
         if (existingModal) {
             existingModal.remove();
         }
 
+        // Create modal HTML
         const modalHtml = `
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -930,7 +973,10 @@
             </div>
         `;
 
+        // Append modal to body using vanilla JavaScript
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Show modal
         const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
         modal.show();
         
@@ -944,6 +990,7 @@
         }
     }
 
+    // Get CSRF token from cookie
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -1032,6 +1079,7 @@
         }
     }
 
+    // Image gallery navigation variables and functions
     let currentImageIndex = 0;
     let galleryImages = [];
 
@@ -1065,6 +1113,7 @@
         modalImage.src = galleryImages[currentImageIndex];
     }
 
+    // Keyboard navigation for modal
     document.addEventListener('keydown', function(e) {
         const modal = document.getElementById('imageModal');
         if (modal && modal.classList.contains('show')) {

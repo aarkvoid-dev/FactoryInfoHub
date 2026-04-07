@@ -307,24 +307,8 @@ def admin_users(request):
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    # Get search query from navbar
-    search_query = request.GET.get('search', '')
-    
     users = User.objects.all()
-    
-    # Apply search filter
-    if search_query:
-        users = users.filter(
-            Q(username__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query)
-        )
-    
-    return render(request, 'CustomAdmin/users/users.html', {
-        'users': users,
-        'search_query': search_query,
-    })
+    return render(request, 'CustomAdmin/users/users.html', {'users': users})
 
 @login_required
 def admin_user_create(request):
@@ -2473,7 +2457,6 @@ def admin_blogs(request):
     f_district = request.GET.get('district')
     f_region = request.GET.get('region')
     f_deleted = request.GET.get('deleted', 'active')  # 'active', 'deleted', 'all'
-    f_search = request.GET.get('search', '')  # Search from navbar
 
     # 2. Build Queryset
     blogs = BlogPost.objects.all_with_deleted().select_related(
@@ -2499,16 +2482,6 @@ def admin_blogs(request):
         blogs = blogs.filter(is_deleted=True)
     elif f_deleted == 'active':
         blogs = blogs.filter(is_deleted=False)
-
-    # Apply search filter
-    if f_search:
-        blogs = blogs.filter(
-            Q(title__icontains=f_search) |
-            Q(excerpt__icontains=f_search) |
-            Q(content__icontains=f_search) |
-            Q(author__username__icontains=f_search) |
-            Q(category__name__icontains=f_search)
-        )
 
     # 3. Persistent Dropdowns (Fetch options based on current selections)
     countries = Country.objects.filter(is_deleted=False)
@@ -2543,7 +2516,6 @@ def admin_blogs(request):
             'district': f_district,
             'region': f_region,
             'deleted': f_deleted,
-            'search': f_search,
         }
     }
     return render(request, 'CustomAdmin/blogs/blogs.html', context)

@@ -202,7 +202,7 @@
         .search-box {
             background-color: #f8fafc;
             border-radius: 2rem;
-            padding: 0.4rem 1rem;
+            padding: 0.3rem 0.5rem 0.3rem 1rem;
             display: flex;
             align-items: center;
             width: 300px;
@@ -227,6 +227,19 @@
         }
         .search-box input::placeholder {
             color: #94a3b8;
+        }
+        .search-box .btn-search {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        .search-box .btn-search:hover {
+            background: #1d4ed8;
         }
         .navbar-right {
             display: flex;
@@ -530,10 +543,11 @@
         <div class="dashboard__navbar">
             <div class="navbar-left">
                 <!-- Mobile toggle is already outside, so we don't duplicate -->
-                <div class="search-box">
+                <form method="get" class="search-box" id="navbarSearchForm">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search users, factories, reports...">
-                </div>
+                    <input type="text" name="search" placeholder="Search..." value="{{ request.GET.search|default:'' }}">
+                    <button type="submit" class="btn-search">Search</button>
+                </form>
             </div>
             <div class="navbar-right">
                 <div class="notification-bell">

@@ -153,51 +153,111 @@
 
                         <div class="col-lg-4">
                             <!-- Actions Sidebar -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0">Actions</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-grid gap-2">
-                                        {% if factory.is_active %}
-                                        <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="btn btn-outline-primary" target="_blank">
-                                            <i class="fas fa-external-link-alt me-2"></i> View Public Page
-                                        </a>
-                                        {% endif %}
-                                        
-                                        {% if factory.video_url %}
-                                        <a href="{{ factory.video_url }}" class="btn btn-outline-info" target="_blank">
-                                            <i class="fas fa-play me-2"></i> Watch Video Tour
-                                        </a>
-                                        {% endif %}
-                                        
-                                        {% if factory.images.exists %}
-                                        <a href="{% url 'karkahan:factory_detail' factory.slug %}#gallery" class="btn btn-outline-secondary">
-                                            <i class="fas fa-images me-2"></i> View Gallery
-                                        </a>
-                                        {% endif %}
-                                        
-                                        <hr>
-                                        
-                                        <a href="{% url 'admin_interface:admin_factory_edit' factory.id %}" class="btn btn-primary">
+                            <div class="col-lg-4">
+                                {% if user_has_purchased or user.is_staff or factory.created_by == user %}
+                                <div class="contact-sidebar shadow-lg">
+                                    <h5 class="mb-4 fw-bold text-light-1 ">Contact Details</h5>
+                                    <div class="contact-item">
+                                        <div class="contact-icon">👤</div>
+                                        <div>
+                                            <div class="contact-label">Contact Person</div>
+                                            <div class="contact-value">{{ factory.contact_person }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="contact-item">
+                                        <div class="contact-icon">📧</div>
+                                        <div>
+                                            <div class="contact-label">Email</div>
+                                            <div class="contact-value">{{ factory.contact_email }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="contact-item">
+                                        <div class="contact-icon">📱</div>
+                                        <div>
+                                            <div class="contact-label">Phone</div>
+                                            <div class="contact-value">{{ factory.contact_phone }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        {% if user.is_staff or factory.created_by == user %}
+                                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold mb-2">
                                             <i class="fas fa-edit me-2"></i> Edit Factory
                                         </a>
-                                        
-                                        {% if factory.is_active %}
-                                        <button class="btn btn-warning" onclick="toggleFactoryStatus({{ factory.id }}, false)">
-                                            <i class="fas fa-pause me-2"></i> Deactivate
-                                        </button>
-                                        {% else %}
-                                        <button class="btn btn-success" onclick="toggleFactoryStatus({{ factory.id }}, true)">
-                                            <i class="fas fa-play me-2"></i> Activate
-                                        </button>
                                         {% endif %}
                                         
-                                        <button class="btn btn-danger" onclick="showDeleteModal({{ factory.id }}, '{{ factory.name }}')">
-                                            <i class="fas fa-trash me-2"></i> Delete
-                                        </button>
+                                        {% if user.is_superuser %}
+                                        <div class="btn-group-vertical w-100 mb-2" role="group">
+                                            {% if factory.is_deleted %}
+                                            <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" onclick="restoreFactory('{{ factory.slug }}')">
+                                                <i class="fas fa-undo me-2"></i> Restore Factory
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')">
+                                                <i class="fas fa-trash me-2"></i> Soft Delete
+                                            </button>
+                                            <button type="button" class="btn btn-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'hard')">
+                                                <i class="fas fa-skull-crossbones me-2"></i> Hard Delete
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        {% elif user == factory.created_by %}
+                                        <div class="btn-group-vertical w-100 mb-2" role="group">
+                                            {% if factory.is_deleted %}
+                                            <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" onclick="restoreFactory('{{ factory.slug }}')">
+                                                <i class="fas fa-undo me-2"></i> Restore Factory
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')">
+                                                <i class="fas fa-trash me-2"></i> Soft Delete
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="bg-white bg-opacity-10 p-3 rounded-3 mt-3 border border-secondary border-opacity-25">
+                                            <div class="d-flex align-items-center text-light-2 ">
+                                                <div class="fs-3 me-3">🛡️</div>
+                                                <div>
+                                                    <div class="d-flex items-center text-14">
+                                                        <i class="icon-building mr-10"></i>
+                                                        {% if factory.price > 0 %}
+                                                            ₹{{ factory.price|intcomma }}
+                                                        {% else %}
+                                                            <span class="badge bg-success">Free</span>
+                                                        {% endif %}
+                                                    </div>        
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                                {% else %}
+                                <div class="contact-sidebar shadow-lg">
+                                    <h5 class="mb-4 fw-bold text-light-1 ">Contact Details</h5>
+                                    <div class="purchase-required">
+                                        <div class="purchase-required-icon">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-2">Contact Information Locked</h5>
+                                        <p class="mb-3">This factory's contact details are only available to verified purchasers.</p>
+                                        {% if user.is_authenticated %}
+                                            <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
+                                                <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
+                                                <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    {% if user.is_staff or factory.created_by == user %}
+                                    <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold mt-3">
+                                        <i class="fas fa-edit me-2"></i> Edit Factory
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
                             </div>
 
                             <!-- Factory Metadata -->

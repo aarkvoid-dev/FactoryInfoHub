@@ -18,9 +18,11 @@ urlpatterns = [
     path('reports/', views.admin_reports, name='admin_reports'),
     path('notifications/', views.admin_notifications, name='admin_notifications'),
     path('profile/', views.admin_profile, name='admin_profile'),
-    
+    path('categories/', views.admin_categories, name='admin_categories'),
     # Location Management
     path('locations/', views.admin_locations, name='admin_locations'),
+    path('blogs/', views.admin_blogs, name='admin_blogs'),
+    path('pages/', views.admin_pages, name='admin_pages'),
     
     # Countries CRUD
     path('locations/countries/', views.admin_countries, name='admin_countries'),
@@ -63,7 +65,6 @@ urlpatterns = [
     path('locations/regions/detail/<int:region_id>/', views.admin_region_detail, name='admin_region_detail'),
     
     # Category Management
-    path('categories/', views.admin_categories, name='admin_categories'),
     path('categories/create/', views.admin_category_create, name='admin_category_create'),
     path('categories/edit/<int:category_id>/', views.admin_category_edit, name='admin_category_edit'),
     path('categories/delete/<int:category_id>/', views.admin_category_delete, name='admin_category_delete'),
@@ -94,7 +95,6 @@ urlpatterns = [
     path('workers/detail/<int:worker_id>/', views.admin_worker_detail, name='admin_worker_detail'),
     
     # CRUD URLs for Blogs
-    path('blogs/', views.admin_blogs, name='admin_blogs'),
     path('blogs/create/', views.admin_blog_create, name='admin_blog_create'),
     path('blogs/edit/<int:blog_id>/', views.admin_blog_edit, name='admin_blog_edit'),
     path('blogs/delete/<int:blog_id>/', views.admin_blog_delete, name='admin_blog_delete'),
@@ -166,7 +166,6 @@ urlpatterns = [
     path('factory-stats/charts/', views.factory_stats_charts, name='factory_stats_charts'),
     
     # Page Management URLs
-    path('pages/', views.admin_pages, name='admin_pages'),
     path('pages/create/', views.admin_page_create, name='admin_page_create'),
     path('pages/<int:page_id>/edit/', views.admin_page_edit, name='admin_page_edit'),
     path('pages/<int:page_id>/delete/', views.admin_page_delete, name='admin_page_delete'),
