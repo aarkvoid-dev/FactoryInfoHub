@@ -22,7 +22,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
 from django.core.mail import BadHeaderError
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
@@ -42,38 +43,50 @@ from .utils import (
 
 def register(request):
     """
-    User registration view with email verification.
+    User registration view with auto-login.
     
-    Handles user registration with validation, email verification,
-    and security measures.
+    Handles user registration with validation, auto-login after successful registration,
+    and redirect to home page.
     
     Args:
         request (HttpRequest): HTTP request object
     
     Returns:
-        HttpResponse: Redirect to verification page or render registration form
+        HttpResponse: Redirect to home page or render registration form
     """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             
-            # Create profile for the new user
-            from .models import Profile
-            profile = Profile.objects.create(user=user)
+            # Profile is created by the form's save() method, no need to create it here
             
-            # Send email verification
-            if send_email_verification(user, request):
-                messages.success(request, _('Registration successful! Please check your email to verify your account.'))
-                return redirect('email_verification_sent')
-            else:
-                messages.error(request, _('Registration successful, but we could not send the verification email. Please contact support.'))
-                return redirect('login')
+            # Auto-login the user after registration
+            login(request, user)
+            
+            # Log the activity
+            log_user_activity(user, 'user_registered', 'User registered successfully', request)
+            
+            # Send email verification asynchronously (don't block registration)
+            try:
+                # Use threading to send email in background
+                import threading
+                thread = threading.Thread(target=send_email_verification, args=(user, request))
+                thread.daemon = True
+                thread.start()
+            except Exception as e:
+                # Log error but don't block registration
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to send verification email: {e}")
+            
+            messages.success(request, _('Registration successful! Welcome to Fashion Chemistry.'))
+            return redirect('home')
         else:
             # Add form validation errors to messages
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field}: {error}")
+                    messages.error(request, f"{error}")
     else:
         form = CustomUserCreationForm()
     
@@ -446,6 +459,40 @@ def resend_verification_email(request):
         'success': False,
         'message': _('Invalid request method.')
     }, status=405)
+
+
+@require_http_methods(["GET"])
+def check_username_availability(request):
+    """
+    AJAX view to check if a username is available during registration.
+    
+    Returns JSON response indicating whether the username is available or already taken.
+    
+    Args:
+        request (HttpRequest): HTTP request object with 'username' GET parameter
+    
+    Returns:
+        JsonResponse: JSON response with 'available' boolean and 'message' string
+    """
+    username = request.GET.get('username', '').strip()
+    
+    if not username:
+        return JsonResponse({
+            'available': False,
+            'message': 'Username is required.'
+        })
+    
+    # Check if username already exists
+    if User.objects.filter(username__iexact=username).exists():
+        return JsonResponse({
+            'available': False,
+            'message': 'A user with that username already exists.'
+        })
+    
+    return JsonResponse({
+        'available': True,
+        'message': 'Username is available.'
+    })
 
 
 @login_required

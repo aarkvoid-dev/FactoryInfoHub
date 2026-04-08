@@ -15,4 +15,5 @@ urlpatterns = [
     path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('clear-profile-redirect/', views.clear_profile_redirect_message, name='clear_profile_redirect_message'),
+    path('check-username/', views.check_username_availability, name='check_username_availability'),
 ]

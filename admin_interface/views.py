@@ -423,7 +423,8 @@ def admin_user_edit(request, user_id):
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    user = get_object_or_404(User, id=user_id)
+    # Use select_related to ensure profile is fetched fresh
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
     
     if request.method == 'POST':
         # Handle user update logic here
@@ -437,6 +438,11 @@ def admin_user_edit(request, user_id):
         new_role = request.POST.get('role')
         if new_role in ['admin', 'staff', 'user']:
             user.profile.role = new_role
+        
+        # Update phone number if provided
+        phone_number = request.POST.get('phone_number')
+        if phone_number is not None:
+            user.profile.phone_number = phone_number
         
         user.save()
         user.profile.save()
@@ -482,6 +488,69 @@ def admin_user_delete(request, user_id):
         'title': f'Delete User: {user.username}'
     }
     return render(request, 'CustomAdmin/users/user_delete.html', context)
+
+@login_required
+def admin_user_verify_email(request, user_id):
+    """Mark a user's email as verified."""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        user.profile.email_verified = True
+        user.profile.save()
+        messages.success(request, f'Email for user "{user.username}" has been marked as verified.')
+        return redirect('admin_interface:admin_user_edit', user_id=user.id)
+    
+    return redirect('admin_interface:admin_user_edit', user_id=user.id)
+
+
+@login_required
+def admin_user_unverify_email(request, user_id):
+    """Mark a user's email as not verified."""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        user.profile.email_verified = False
+        user.profile.save()
+        messages.success(request, f'Email for user "{user.username}" has been marked as not verified.')
+        return redirect('admin_interface:admin_user_edit', user_id=user.id)
+    
+    return redirect('admin_interface:admin_user_edit', user_id=user.id)
+
+
+@login_required
+def admin_user_send_verification(request, user_id):
+    """Send email verification email to user."""
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        from Accounts.utils import send_email_verification
+        try:
+            send_email_verification(user, request)
+            messages.success(request, f'Verification email sent to {user.email}.')
+        except Exception as e:
+            messages.error(request, f'Failed to send verification email: {str(e)}')
+        return redirect('admin_interface:admin_user_edit', user_id=user.id)
+    
+    return redirect('admin_interface:admin_user_edit', user_id=user.id)
+
 
 @login_required
 def admin_user_reset_password(request, user_id):

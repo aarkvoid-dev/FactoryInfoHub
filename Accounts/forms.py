@@ -76,6 +76,17 @@ class CustomUserCreationForm(UserCreationForm):
             'username': _('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
         }
 
+    # Phone number field (stored in Profile)
+    phone_number = forms.CharField(
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Enter your phone number')
+        }),
+        help_text=_('Your contact phone number')
+    )
+
     def clean_username(self):
         """
         Validate username uniqueness.
@@ -138,6 +149,13 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data["last_name"]
         if commit:
             user.save()
+            
+            # Save phone number to profile (create if doesn't exist)
+            from .models import Profile
+            profile, created = Profile.objects.get_or_create(user=user)
+            profile.phone_number = self.cleaned_data.get("phone_number")
+            profile.save()
+        
         return user
 
 class CustomUserChangeForm(UserChangeForm):

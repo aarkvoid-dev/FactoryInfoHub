@@ -40,6 +40,7 @@
                                 Username
                             </label>
                             <input type="text" class="form-input" name="username" id="username" placeholder="Choose a username" required>
+                            <div class="username-availability" id="username-availability" style="display: none; margin-top: 5px; font-size: 12px;"></div>
                         </div>
                         
                         <div class="form-group">
@@ -71,12 +72,28 @@
 
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="phone_number" class="form-label">
+                                <i class="fas fa-phone"></i>
+                                Phone Number
+                            </label>
+                            <input type="tel" class="form-input" name="phone_number" id="phone_number" placeholder="Your phone number" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="password1" class="form-label">
                                 <i class="fas fa-lock"></i>
                                 Password
                             </label>
-                            <input type="password" class="form-input" name="password1" id="password1" placeholder="Create a strong password" required>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="form-input" name="password1" id="password1" placeholder="Create a strong password" required>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password1', this)" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                             <div class="password-strength" id="password-strength" style="display: none; margin-top: 5px; font-size: 12px;"></div>
+                            <div class="password-validation-errors" id="password-validation-errors" style="display: none; margin-top: 5px; font-size: 12px;"></div>
                         </div>
                         
                         <div class="form-group">
@@ -84,7 +101,12 @@
                                 <i class="fas fa-lock"></i>
                                 Confirm Password
                             </label>
-                            <input type="password" class="form-input" name="password2" id="password2" placeholder="Confirm your password" required>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="form-input" name="password2" id="password2" placeholder="Confirm your password" required>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password2', this)" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                             <div class="password-match" id="password-match" style="display: none; margin-top: 5px; font-size: 12px;"></div>
                         </div>
                     </div>
@@ -325,6 +347,41 @@
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
+    /* Password Input Wrapper */
+    .password-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-input-wrapper .form-input {
+        padding-right: 50px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.3s ease;
+    }
+
+    .password-toggle:hover {
+        color: #667eea;
+    }
+
+    .password-toggle:focus {
+        outline: none;
+    }
+
     .password-strength.weak {
         color: #ef4444;
     }
@@ -343,6 +400,32 @@
 
     .password-match.no-match {
         color: #ef4444;
+    }
+
+    .username-availability.available {
+        color: #10b981;
+    }
+
+    .username-availability.taken {
+        color: #ef4444;
+    }
+
+    .username-availability.checking {
+        color: #f59e0b;
+    }
+
+    .password-validation-errors {
+        color: #ef4444;
+    }
+
+    .password-validation-errors ul {
+        margin: 0;
+        padding-left: 20px;
+        list-style-type: disc;
+    }
+
+    .password-validation-errors li {
+        margin: 2px 0;
     }
 
     .checkbox-group {
@@ -704,17 +787,112 @@
 
 {% block extra_js %}
 <script>
+    // Toggle password visibility
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Debounce function to limit AJAX calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Common passwords list (top 100 most common passwords)
+    const COMMON_PASSWORDS = [
+        'password', '123456', '12345678', '1234', 'qwerty', '12345', 'dragon', 'pussy',
+        'baseball', 'football', 'letmein', 'monkey', '696969', 'abc123', 'mustang',
+        'michael', 'shadow', 'master', 'jennifer', '111111', '2000', 'jordan',
+        'superman', 'harley', '1234567', 'fuckme', 'hunter', 'fuckyou', 'trustno1',
+        'ranger', 'buster', 'thomas', 'tigger', 'robert', 'soccer', 'fuck', 'batman',
+        'test', 'pass', 'killer', 'hockey', 'george', 'charlie', 'andrew', 'michelle',
+        'love', 'sunshine', 'jessica', 'pepper', 'daniel', 'access', '123456789',
+        '654321', 'joshua', 'maggie', 'starwars', 'silver', 'william', 'dallas',
+        'yankees', '123123', 'ashley', '666666', 'hello', 'amanda', 'orange',
+        'biteme', 'freedom', 'computer', 'sexy', 'thunder', 'nicole', 'ginger',
+        'heather', 'hammer', 'summer', 'corvette', 'taylor', 'fucker', 'austin',
+        '1111', 'merlin', 'matthew', '121212', 'golfer', 'cheese', 'princess',
+        'martin', 'chelsea', 'patrick', 'richard', 'diamond', 'yellow', 'bigdog',
+        'secret', 'asdfgh', 'sparky', 'cowboy', 'camaro', 'iloveyou', 'password1',
+        'admin', 'welcome', 'login', 'admin123', 'root', 'toor', 'pass123',
+        'test123', 'changeme', 'p@ssw0rd', 'p@ssword', 'passw0rd', '1q2w3e4r'
+    ];
+
+    // Password validation - checks all Django password rules in real-time
+    function validatePassword(password, username, firstName, lastName, email) {
+        const errors = [];
+        
+        if (!password || password.length === 0) {
+            return errors;
+        }
+
+        // 1. Check minimum length (at least 8 characters)
+        if (password.length < 8) {
+            errors.push('Password must be at least 8 characters long.');
+        }
+
+        // 2. Check if password is too similar to personal info
+        const personalInfo = [
+            username,
+            firstName,
+            lastName,
+            email ? email.split('@')[0] : '',
+            email
+        ].filter(Boolean).map(info => info.toLowerCase());
+
+        if (password.length > 0) {
+            const passwordLower = password.toLowerCase();
+            for (const info of personalInfo) {
+                if (info && info.length >= 3 && passwordLower.includes(info)) {
+                    errors.push('Password is too similar to your personal information.');
+                    break;
+                }
+            }
+        }
+
+        // 3. Check if password is too common
+        if (COMMON_PASSWORDS.includes(password.toLowerCase())) {
+            errors.push('This password is too common. Please choose a more unique password.');
+        }
+
+        // 4. Check if password is entirely numeric
+        if (/^\d+$/.test(password)) {
+            errors.push('Password cannot be entirely numeric.');
+        }
+
+        return errors;
+    }
+
     // Password strength indicator
     function checkPasswordStrength(password) {
         let strength = { score: 0, level: 'weak', color: '#ef4444' };
         
         if (password.length >= 8) strength.score++;
+        if (password.length >= 12) strength.score++;
         if (password.match(/[a-z]/)) strength.score++;
         if (password.match(/[A-Z]/)) strength.score++;
         if (password.match(/[0-9]/)) strength.score++;
         if (password.match(/[^a-zA-Z0-9]/)) strength.score++;
         
-        if (strength.score >= 4) {
+        if (strength.score >= 5) {
             strength.level = 'strong';
             strength.color = '#10b981';
         } else if (strength.score >= 3) {
@@ -734,33 +912,116 @@
         return { match: password1 === password2, show: true };
     }
 
-    // Initialize password validation
+    // Check username availability via AJAX
+    function checkUsernameAvailability(username, callback) {
+        const usernameAvailability = document.getElementById('username-availability');
+        
+        if (!username || username.length < 3) {
+            usernameAvailability.style.display = 'none';
+            if (callback) callback(null);
+            return;
+        }
+
+        // Show checking state
+        usernameAvailability.style.display = 'block';
+        usernameAvailability.textContent = 'Checking availability...';
+        usernameAvailability.className = 'username-availability checking';
+
+        fetch(`{% url 'check_username_availability' %}?username=${encodeURIComponent(username)}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                usernameAvailability.textContent = '✓ Username is available!';
+                usernameAvailability.className = 'username-availability available';
+            } else {
+                usernameAvailability.textContent = '✗ A user with that username already exists.';
+                usernameAvailability.className = 'username-availability taken';
+            }
+            if (callback) callback(data);
+        })
+        .catch(error => {
+            console.error('Error checking username:', error);
+            usernameAvailability.style.display = 'none';
+            if (callback) callback(null);
+        });
+    }
+
+    // Create debounced version of username check
+    const debouncedUsernameCheck = debounce(checkUsernameAvailability, 500);
+
+    // Initialize form validation
     document.addEventListener('DOMContentLoaded', function() {
+        const usernameInput = document.getElementById('username');
+        const firstNameInput = document.getElementById('first_name');
+        const lastNameInput = document.getElementById('last_name');
+        const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password1');
         const confirmPasswordInput = document.getElementById('password2');
         const passwordStrength = document.getElementById('password-strength');
         const passwordMatch = document.getElementById('password-match');
+        const passwordValidationErrors = document.getElementById('password-validation-errors');
 
-        if (passwordInput) {
-            passwordInput.addEventListener('input', function() {
-                const strength = checkPasswordStrength(this.value);
-                passwordStrength.textContent = `Password strength: ${strength.level}`;
-                passwordStrength.className = `password-strength ${strength.level}`;
-                passwordStrength.style.display = 'block';
-                passwordStrength.style.color = strength.color;
+        // Username availability check
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function() {
+                debouncedUsernameCheck(this.value);
             });
         }
 
+        // Password validation with real-time error messages
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Update password strength
+                const strength = checkPasswordStrength(password);
+                passwordStrength.textContent = `Password strength: ${strength.level}`;
+                passwordStrength.className = `password-strength ${strength.level}`;
+                passwordStrength.style.display = password.length > 0 ? 'block' : 'none';
+                passwordStrength.style.color = strength.color;
+
+                // Get personal info for similarity check
+                const username = usernameInput ? usernameInput.value : '';
+                const firstName = firstNameInput ? firstNameInput.value : '';
+                const lastName = lastNameInput ? lastNameInput.value : '';
+                const email = emailInput ? emailInput.value : '';
+
+                // Validate password against all rules
+                const errors = validatePassword(password, username, firstName, lastName, email);
+
+                if (errors.length > 0) {
+                    passwordValidationErrors.style.display = 'block';
+                    passwordValidationErrors.innerHTML = '<ul>' + 
+                        errors.map(err => `<li>${err}</li>`).join('') + 
+                        '</ul>';
+                    passwordValidationErrors.className = 'password-validation-errors';
+                } else if (password.length > 0) {
+                    passwordValidationErrors.style.display = 'block';
+                    passwordValidationErrors.innerHTML = '✓ Password meets all requirements!';
+                    passwordValidationErrors.className = 'password-validation-errors';
+                    passwordValidationErrors.style.color = '#10b981';
+                } else {
+                    passwordValidationErrors.style.display = 'none';
+                }
+            });
+        }
+
+        // Password match check
         if (confirmPasswordInput && passwordInput) {
             confirmPasswordInput.addEventListener('input', function() {
                 const match = checkPasswordMatch(passwordInput.value, this.value);
                 if (match.show) {
                     passwordMatch.style.display = 'block';
                     if (match.match) {
-                        passwordMatch.textContent = 'Passwords match!';
+                        passwordMatch.textContent = '✓ Passwords match!';
                         passwordMatch.className = 'password-match match';
                     } else {
-                        passwordMatch.textContent = 'Passwords do not match!';
+                        passwordMatch.textContent = '✗ The two password fields didn\'t match.';
                         passwordMatch.className = 'password-match no-match';
                     }
                 } else {

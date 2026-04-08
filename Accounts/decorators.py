@@ -55,11 +55,11 @@ def email_verified_required(view_func):
                       'Check your email for a verification link, or go to your profile to resend the verification email.')
                 )
                 # Redirect to dashboard or profile page where they can verify email
-                return redirect('karkahan:factory_list')
+                return redirect('home')
         except Exception:
             # If profile doesn't exist, redirect to dashboard
             messages.error(request, _('Please complete your profile setup.'))
-            return redirect('karkahan:factory_list')
+            return redirect('home')
         
         # If email is verified, proceed with the original view
         return view_func(request, *args, **kwargs)
