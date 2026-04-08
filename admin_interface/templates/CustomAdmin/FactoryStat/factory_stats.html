@@ -5,18 +5,14 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                 <div>
                     <h1 class="h2 mb-1 fw-semibold">Factory View Statistics</h1>
-                    <p class="text-muted mb-0">Track views and engagement for all factories</p>
+                    <p class="text-muted mb-0">Real‑time view counts from tracker data</p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="?recalc=1" class="btn btn-outline-primary btn-sm" onclick="return confirm('Recalculating all stats may take a moment. Continue?')">
-                        <i class="fas fa-sync-alt me-1"></i> Recalculate All
-                    </a>
+                <div>
                     <a href="{% url 'admin_interface:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
                     </a>
@@ -25,7 +21,6 @@
         </div>
     </div>
 
-    <!-- Stats Table -->
     <div class="card shadow-sm">
         <div class="card-header bg-white border-0 py-3">
             <h6 class="mb-0 fw-semibold"><i class="fas fa-chart-line me-2 text-primary"></i>Factory View Metrics</h6>
@@ -41,47 +36,42 @@
                             <th>Today</th>
                             <th>Last 7 Days</th>
                             <th>Last 30 Days</th>
-                            <th>Last Updated</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for stat in stats %}
+                        {% for factory in stats %}
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-circle bg-primary-soft me-2">
-                                        <span class="initials">{{ stat.factory.name|first|upper }}</span>
+                                        <span class="initials">{{ factory.name|first|upper }}</span>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold">{{ stat.factory.name }}</div>
-                                        <small class="text-muted">{{ stat.factory.city.name }}, {{ stat.factory.state.name }}</small>
+                                        <div class="fw-semibold">{{ factory.name }}</div>
+                                        <small class="text-muted">{{ factory.city.name }}, {{ factory.state.name }}</small>
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ stat.factory.category.name }}</td>
-                            <td class="fw-bold">{{ stat.total_views|intcomma }}</td>
-                            <td>{{ stat.today_views|intcomma }}</td>
-                            <td>{{ stat.weekly_views|intcomma }}</td>
-                            <td>{{ stat.monthly_views|intcomma }}</td>
+                            <td>{{ factory.category.name }}</td>
+                            <td class="fw-bold">{{ factory.total_view_count|intcomma }}</td>
+                            <td>{{ factory.today_view_count|intcomma }}</td>
+                            <td>{{ factory.weekly_view_count|intcomma }}</td>
+                            <td>{{ factory.monthly_view_count|intcomma }}</td>
                             <td>
-                                <div>{{ stat.last_updated|date:"M d, Y" }}</div>
-                                <small class="text-muted">{{ stat.last_updated|date:"H:i" }}</small>
-                            </td>
-                            <td>
-                                <a href="{% url 'admin_interface:factory_tracker_detail' stat.factory.id %}" class="btn btn-sm btn-outline-primary">
+                                <a href="{% url 'admin_interface:factory_tracker_detail' factory.id %}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye me-1"></i> Trackers
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <div class="mb-3">
                                     <i class="fas fa-chart-line fa-4x text-muted opacity-50"></i>
                                 </div>
-                                <h5 class="text-muted">No statistics available</h5>
-                                <p class="text-muted mb-0">Start tracking factory views to see data here.</p>
+                                <h5 class="text-muted">No view data available</h5>
+                                <p class="text-muted mb-0">Views will appear here once factories receive traffic.</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -93,7 +83,6 @@
 </div>
 
 <style>
-    /* Avatar circle (reused from contact messages) */
     .avatar-circle {
         width: 40px;
         height: 40px;

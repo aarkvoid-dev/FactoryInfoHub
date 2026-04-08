@@ -4597,28 +4597,27 @@ def admin_pending_orders(request):
 
 @login_required
 def factory_stats(request):
-    """Display aggregated view statistics for all factories."""
-    # Permission check (admin or staff)
     if not (request.user.is_staff or request.user.is_superuser):
         messages.error(request, "You don't have permission to view this page.")
         return redirect('admin_interface:admin_dashboard')
 
-    # Optionally recalc all stats if requested
-    if request.GET.get('recalc') == '1':
-        with transaction.atomic():
-            for stats in FactoryViewStats.objects.select_related('factory'):
-                stats.update_all_stats()
-        messages.success(request, "All factory statistics have been recalculated.")
-        return redirect('admin_interface:factory_stats')
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
 
-    # Get all stats, ordered by total_views descending
-    stats = FactoryViewStats.objects.select_related('factory').order_by('-total_views')
+    factories = Factory.objects.filter(is_deleted=False).annotate(
+        total_view_count=Count('view_trackers'),
+        today_view_count=Count('view_trackers', filter=Q(view_trackers__viewed_at__date=today)),
+        weekly_view_count=Count('view_trackers', filter=Q(view_trackers__viewed_at__date__gte=week_ago)),
+        monthly_view_count=Count('view_trackers', filter=Q(view_trackers__viewed_at__date__gte=month_ago))
+    ).order_by('-total_view_count')
 
     context = {
-        'stats': stats,
+        'stats': factories,
         'title': 'Factory View Statistics',
     }
     return render(request, 'CustomAdmin/FactoryStat/factory_stats.html', context)
+
 
 @login_required
 def factory_tracker_detail(request, factory_id):
@@ -4636,12 +4635,6 @@ def factory_tracker_detail(request, factory_id):
     }
     return render(request, 'CustomAdmin/FactoryStat/factory_tracker_detail.html', context)
 
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from datetime import timedelta
-from Karkahan.models import Factory, FactoryViewStats, FactoryViewTracker
 
 @login_required
 def factory_stats_charts(request):
