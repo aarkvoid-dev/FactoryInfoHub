@@ -203,17 +203,21 @@ def factory_list(request):
             factories = factories.filter(factory_type__icontains=factory_type)
         
 
-    # Apply search
+    # Apply search with AND for multi-word queries
     search_query = request.GET.get('search', '')
     if search_query:
-        factories = factories.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(address__icontains=search_query) |
-            Q(contact_person__icontains=search_query) |
-            Q(factory_type__icontains=search_query)
-        )
-
+        terms = search_query.split()
+        q_objects = Q()
+        for term in terms:
+            term_q = (
+                Q(name__icontains=term) |
+                Q(description__icontains=term) |
+                Q(address__icontains=term) |
+                Q(contact_person__icontains=term) |
+                Q(factory_type__icontains=term)
+            )
+            q_objects &= term_q
+        factories = factories.filter(q_objects)
 
     sort_by = request.GET.get('sort', 'name')
     if sort_by in ['name', 'created_at', 'updated_at']:

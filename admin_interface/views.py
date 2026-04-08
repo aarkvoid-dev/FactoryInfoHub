@@ -22,6 +22,25 @@ from Karkahan.views import send_order_receipt
 from django.db import transaction
 from django.core.paginator import Paginator
 
+
+def and_search_filter(queryset, search_terms, fields):
+    """
+    Apply AND search across multiple fields.
+    search_terms: list of strings (words)
+    fields: list of field names (e.g., ['username', 'email'])
+    """
+    from django.db.models import Q
+    if not search_terms:
+        return queryset
+    q_objects = Q()
+    for term in search_terms:
+        term_q = Q()
+        for field in fields:
+            term_q |= Q(**{f"{field}__icontains": term})
+        q_objects &= term_q
+    return queryset.filter(q_objects)
+
+
 @login_required
 def admin_dashboard(request):
     # Get user role
@@ -314,11 +333,11 @@ def admin_users(request):
     
     # Apply search filter
     if search_query:
-        users = users.filter(
-            Q(username__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query)
+        terms = search_query.split()
+        users = and_search_filter(
+            users,
+            terms,
+            ['username', 'email', 'first_name', 'last_name']
         )
     
     return render(request, 'CustomAdmin/users/users.html', {
@@ -646,7 +665,13 @@ def admin_factories(request):
     if f_region: factories = factories.filter(region_id=f_region)
     if f_category: factories = factories.filter(category_id=f_category)
     if f_subcategory: factories = factories.filter(subcategory_id=f_subcategory)
-    if f_search: factories = factories.filter(name__icontains=f_search)
+    if f_search:
+        terms = f_search.split()
+        factories = and_search_filter(
+            factories,
+            terms,
+            ['name']   # add more fields if needed, e.g., 'description'
+        )
     
     if f_status == 'active':
         factories = factories.filter(is_active=True)
@@ -766,13 +791,11 @@ def admin_workers(request):
 
     # ----- Search -----
     if search_query:
-        workers = workers.filter(
-            Q(full_name__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(phone_number__icontains=search_query) |
-            Q(skills__icontains=search_query) |
-            Q(category__name__icontains=search_query) |
-            Q(subcategory__name__icontains=search_query)
+        terms = search_query.split()
+        workers = and_search_filter(
+            workers,
+            terms,
+            ['full_name', 'email', 'phone_number', 'skills', 'category__name', 'subcategory__name']
         )
 
     # ----- CSV Export -----
@@ -1799,8 +1822,11 @@ def admin_subcategories(request):
     # Apply search filter
     search_filter = request.GET.get('search')
     if search_filter:
-        subcategories = subcategories.filter(
-            Q(name__icontains=search_filter) | Q(description__icontains=search_filter)
+        terms = search_filter.split()
+        subcategories = and_search_filter(
+            subcategories,
+            terms,
+            ['name', 'description']
         )
     
     # Calculate summary statistics
@@ -2571,12 +2597,11 @@ def admin_blogs(request):
 
     # Apply search filter
     if f_search:
-        blogs = blogs.filter(
-            Q(title__icontains=f_search) |
-            Q(excerpt__icontains=f_search) |
-            Q(content__icontains=f_search) |
-            Q(author__username__icontains=f_search) |
-            Q(category__name__icontains=f_search)
+        terms = f_search.split()
+        blogs = and_search_filter(
+            blogs,
+            terms,
+            ['title', 'excerpt', 'content', 'author__username', 'category__name']
         )
 
     # 3. Persistent Dropdowns (Fetch options based on current selections)
@@ -2850,12 +2875,13 @@ def admin_faq_list(request):
         questions = questions.filter(status=status)
     
     # Search
-    q = request.GET.get('q')
-    if q:
-        questions = questions.filter(
-            Q(title__icontains=q) | 
-            Q(question_text__icontains=q) | 
-            Q(answer_text__icontains=q)
+    search_query = request.GET.get('search', '') or request.GET.get('q', '')
+    if search_query:
+        terms = search_query.split()
+        questions = and_search_filter(
+            questions,
+            terms,
+            ['title', 'question_text', 'answer_text']
         )
     
     # Pagination
@@ -2867,7 +2893,7 @@ def admin_faq_list(request):
         'page_obj': page_obj,
         'categories': Category.objects.all(),
         'status_choices': FAQQuestion.STATUS_CHOICES,
-        'search_query': q,
+        'search_query': search_query,
         'selected_category': category,
         'selected_status': status,
     }
@@ -2989,11 +3015,11 @@ def admin_contacts(request):
 
     # Apply filters
     if search:
-        messages = messages.filter(
-            Q(name__icontains=search) | 
-            Q(email__icontains=search) | 
-            Q(subject__icontains=search) | 
-            Q(message__icontains=search)
+        terms = search.split()
+        messages = and_search_filter(
+            messages,
+            terms,
+            ['name', 'email', 'subject', 'message']
         )
     
     if status == 'unread':
@@ -3689,11 +3715,11 @@ def admin_payments(request):
         end_datetime = timezone.make_aware(datetime.combine(datetime.strptime(end_date, '%Y-%m-%d').date(), datetime.max.time()))
         payments = payments.filter(order_date__date__lte=end_datetime.date())
     if search:
-        payments = payments.filter(
-            Q(order_number__icontains=search) |
-            Q(user__username__icontains=search) |
-            Q(user__email__icontains=search) |
-            Q(transaction_id__icontains=search)
+        terms = search.split()
+        payments = and_search_filter(
+            payments,
+            terms,
+            ['order_number', 'user__username', 'user__email', 'transaction_id']
         )
     if user_filter:
         payments = payments.filter(user_id=user_filter)
@@ -4036,11 +4062,11 @@ def admin_orders(request):
     if end_date:
         orders = orders.filter(order_date__date__lte=end_date)
     if search:
-        orders = orders.filter(
-            Q(order_number__icontains=search) |
-            Q(user__username__icontains=search) |
-            Q(user__email__icontains=search) |
-            Q(transaction_id__icontains=search)
+        terms = search.split()
+        orders = and_search_filter(
+            orders,
+            terms,
+            ['order_number', 'user__username', 'user__email', 'transaction_id']
         )
     if user_filter:
         orders = orders.filter(user_id=user_filter)
@@ -4235,10 +4261,11 @@ def admin_order_items(request):
     if factory_filter:
         order_items = order_items.filter(factory_id=factory_filter)
     if search:
-        order_items = order_items.filter(
-            Q(order__order_number__icontains=search) |
-            Q(factory__name__icontains=search) |
-            Q(order__user__username__icontains=search)
+        terms = search.split()
+        order_items = and_search_filter(
+            order_items,
+            terms,
+            ['order__order_number', 'factory__name', 'order__user__username']
         )
 
     # 3. CSV Export

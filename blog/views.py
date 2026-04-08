@@ -163,14 +163,15 @@ class BlogPostListView(ListView):
             if region:
                 queryset = queryset.filter(region=region)
 
-        # Apply search
+        # Apply search with AND for multi-word queries
         search_query = self.request.GET.get('search', '')
         if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(content__icontains=search_query) |
-                Q(excerpt__icontains=search_query)
-            )
+            terms = search_query.split()
+            q_objects = Q()
+            for term in terms:
+                term_q = Q(title__icontains=term) | Q(content__icontains=term) | Q(excerpt__icontains=term)
+                q_objects &= term_q
+            queryset = queryset.filter(q_objects)
 
         return queryset
 
@@ -207,7 +208,7 @@ class BlogPostListView(ListView):
 
         # 3. Execute Query
         # We use .distinct() in case of complex joins, and limit to 8
-        factories = Factory.objects.filter(**factory_filters).filter(is_active=True,is_verified=True).select_related('city', 'country', 'category')
+        factories = Factory.objects.filter(**factory_filters).filter(is_active=True, is_verified=True).select_related('city', 'country', 'category')
         
         if not factory_filters:
             # If no filters, show featured/latest
