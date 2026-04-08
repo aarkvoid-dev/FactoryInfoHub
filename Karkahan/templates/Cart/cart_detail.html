@@ -160,10 +160,17 @@
         font-size: 16px;
         transition: all 0.3s;
         box-shadow: 0 4px 12px rgba(235,102,43,0.3);
+        color: white;
     }
     .btn-checkout:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(235,102,43,0.4);
+        color: white;
+    }
+    .btn-checkout:disabled {
+        opacity: 0.6;
+        transform: none;
+        cursor: not-allowed;
     }
 
     /* Empty Cart */
@@ -194,6 +201,11 @@
         border-radius: 50px;
         padding: 12px 28px;
         font-weight: 600;
+        color: white;
+    }
+    .btn-primary-custom:hover {
+        background: var(--accent-dark);
+        color: white;
     }
 
     /* Modal improvements */
@@ -211,6 +223,10 @@
     .modal-footer {
         border-top: 1px solid var(--border);
         padding: 20px 28px;
+    }
+    .form-check-input:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
     }
 
     /* Responsive */
@@ -252,7 +268,8 @@
                                     {% if item.factory.get_primary_image %}
                                         <img src="{{ item.factory.get_primary_image }}" class="cart-item-image" alt="{{ item.factory.name }}">
                                     {% else %}
-                                        <img src="https://via.placeholder.com/140x100/f5f5f5/666666?text=No+Image" class="cart-item-image" alt="No Image">
+                                        <!-- Reliable inline SVG placeholder (no external request) -->
+                                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='100' viewBox='0 0 140 100'%3E%3Crect width='140' height='100' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23666' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E" class="cart-item-image" alt="No Image">
                                     {% endif %}
                                 </div>
                             </div>
@@ -341,8 +358,8 @@
     </div>
 </section>
 
-<!-- Policy Modal (Improved) -->
-<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+<!-- Policy Modal -->
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -370,11 +387,18 @@
                     <span class="text-muted">|</span>
                     <a href="{% url 'refund_policy' %}" class="text-accent-1 small" target="_blank">Refund Policy <i class="fas fa-external-link-alt ms-1"></i></a>
                 </div>
-                
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="acceptPolicy" style="border-color: var(--accent);">
-                    <label class="form-check-label" for="acceptPolicy">
-                        I have read and agree to all policies.
+
+                <!-- Formal message before checkbox -->
+                <div class="alert alert-warning py-2 px-3 small mb-3" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Please read all terms, conditions, and policies carefully before proceeding. By placing your order, you confirm that you have reviewed and agree to be bound by these policies.
+                </div>
+
+                <!-- Checkbox with proper inline alignment -->
+                <div class="form-check d-flex align-items-center gap-2">
+                    <input class="form-check-input" type="checkbox" id="acceptPolicy" style="cursor: pointer; width: 1.1rem; height: 1.1rem; border: 1px solid var(--accent);">
+                    <label class="form-check-label" for="acceptPolicy" style="cursor: pointer;">
+                        I have read, understood, and agree to all the above policies.
                     </label>
                 </div>
             </div>
@@ -388,6 +412,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Animate cart items
@@ -460,6 +485,28 @@
                     alert('Checkout initiation failed. Please try again.');
                     location.reload();
                 });
+            });
+        }
+
+        // Fix for modal backdrop error (Bootstrap 5)
+        const modalElement = document.getElementById('policyModal');
+        if (modalElement) {
+            // Ensure modal is properly disposed when hidden
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                // Remove any lingering backdrops
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            });
+            
+            // If modal is shown, ensure body doesn't have double padding
+            modalElement.addEventListener('shown.bs.modal', function () {
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    document.body.style.overflow = 'hidden';
+                }
             });
         }
     });

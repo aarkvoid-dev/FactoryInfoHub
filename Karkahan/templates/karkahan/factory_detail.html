@@ -526,7 +526,7 @@
         {% if factory.price > 0 %}
         <div class="purchase-actions">
             {% if user.is_authenticated %}
-                {% if user_has_purchased or user.is_staff or factory.created_by == user %}
+                <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
                     <a href="{% url 'karkahan:order_history' %}" class="btn-secondary">
                         <i class="fas fa-history me-2"></i> View Purchase History
                     </a>
@@ -537,7 +537,13 @@
                     <a href="{% url 'karkahan:cart_detail' %}" class="btn-secondary">
                         <i class="fas fa-shopping-bag me-2"></i> View Cart
                     </a>
-                {% endif %}
+                {% endif %} -->
+                <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
+                    <i class="fas fa-shopping-cart me-2"></i> Add to Cart - ₹{{ factory.price|intcomma }}
+                </a>
+                <a href="{% url 'karkahan:cart_detail' %}" class="btn-secondary">
+                    <i class="fas fa-shopping-bag me-2"></i> View Cart
+                </a>
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                     <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase - ₹{{ factory.price|intcomma }}
@@ -609,7 +615,7 @@
                     <div class="tabs-controls border-bottom">
                         <button class="tab-button is-active" onclick="switchTab(event, 'overview')">Overview</button>
                         <button class="tab-button" onclick="switchTab(event, 'features')">Features</button>
-                        <button class="tab-button" onclick="switchTab(event, 'technical')">Technical</button>
+                        <!-- <button class="tab-button" onclick="switchTab(event, 'technical')">Technical</button> -->
                         {% if factory.video_url %}<button class="tab-button" onclick="switchTab(event, 'video')">Video Tour</button>{% endif %}
                         <button class="tab-button" onclick="switchTab(event, 'gallery')">Gallery</button>
                     </div>
@@ -617,10 +623,10 @@
                         <div id="overview" class="tab-panel is-active">
                             <span class="text text-muted">Name : </span><span class="text fw-bold">{{ factory.name }}</span><br>
                             <span class="text text-muted">Category : </span><span class="text fw-bold">{{ factory.category }}</span>
-                            <h4 class="fw-bold mb-3">Description</h4>
-                            <div class="lh-lg text-slate">{{ factory.description|linebreaks }}</div>
                             <div class="text lh-lg text-slate">Production Volume : {{ factory.production_capacity|default:"N/A" }}</div>
                             <div class="text lh-lg text-slate">Shift Structure : {{ factory.working_hours|default:"N/A" }}</div>
+                            <h4 class="fw-bold mb-3">Description</h4>
+                            <div class="lh-lg text-slate">{{ factory.description|linebreaks }}</div>
                             
                             <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
                                 <h4 class="fw-bold mb-3">Location Details</h4>
@@ -655,7 +661,7 @@
                             {% endif %} -->
                         </div>
 
-                        <div id="technical" class="tab-panel" style="display:none">
+                        <div id="features" class="tab-panel" style="display:none">
                             <h4 class="fw-bold mb-3">Technical Details</h4>
                             <ul class="text list-group list-group-flush">
                                 <li class=" list-group-item d-flex justify-content-between px-0">
@@ -671,6 +677,10 @@
                                     <span class="text-muted">Annual Turnover</span><span class="fw-bold">{{ factory.annual_turnover|default:"N/A" }}</span>
                                 </li>
                             </ul>
+                            {% if factory.features %}
+                                <h4 class="fw-bold mb-3">Features : </h4>
+                                <div class="lh-lg text-slate">{{ factory.features|linebreaks }}</div>
+                            {% endif %}
                         </div>
 
                         {% if factory.video_url %}
