@@ -1,236 +1,300 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Explore Locations - {{ block.super }}{% endblock %}
+{% block title %}Explore Locations by City - {{ block.super }}{% endblock %}
 
 {% block extra_css %}
 <style>
     :root {
         --primary: #EB662B;
         --primary-dark: #d45b23;
-        --secondary-blue: #0f172a;
-        --accent-blue: #3b82f6;
-        --surface: #ffffff;
-        --background: #f1f5f9;
-        --glass: rgba(255, 255, 255, 0.8);
+        --secondary: #0f172a;
+        --light-bg: #f8fafc;
+        --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
     }
-
-    body { background-color: var(--background); }
-
-    /* Hero Section */
-    .location-hero {
-        background: radial-gradient(circle at top left, #1e3c72, #2a5298);
-        padding: 180px 0 120px;
-        text-align: center;
+    body {
+        background: var(--light-bg);
+    }
+    /* Hero */
+    .hero-locations {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 10rem 0 3rem;
         color: white;
-        clip-path: ellipse(150% 100% at 50% 0%);
+        border-bottom: 4px solid var(--primary);
     }
-
-    .location-hero h1{
-        color: #f8fafc;
+    .hero-stats {
+        background: rgba(255,255,255,0.1);
+        border-radius: 1rem;
+        padding: 1rem;
+        backdrop-filter: blur(4px);
     }
-    .location-hero p{
-        color: #f8fafc;
+    .hero-stats .stat-number {
+        font-size: 1.8rem;
+        font-weight: 800;
     }
-
-    .search-container {
-        max-width: 600px;
-        margin: -40px auto 40px;
+    /* Search bar */
+    .search-wrapper {
+        max-width: 650px;
+        margin: -1.5rem auto 2rem;
         position: relative;
         z-index: 10;
     }
-
     .search-input-group {
         background: white;
-        padding: 8px;
-        border-radius: 50px;
-        display: flex;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-
-    .search-input-group input {
-        border: none;
-        padding: 10px 25px;
-        flex-grow: 1;
-        border-radius: 50px;
-        outline: none;
-    }
-
-    /* City-First Section */
-    .section-title {
-        font-weight: 800;
-        color: var(--secondary-blue);
-        margin-bottom: 1.5rem;
+        border-radius: 3rem;
+        padding: 0.3rem;
+        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
         display: flex;
         align-items: center;
-        gap: 10px;
     }
-
-    .city-grid-main {
+    .search-input-group input {
+        flex: 1;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 3rem;
+        outline: none;
+    }
+    .search-input-group button {
+        background: var(--primary);
+        border: none;
+        padding: 0.6rem 1.8rem;
+        border-radius: 3rem;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .search-input-group button:hover {
+        background: var(--primary-dark);
+        transform: scale(0.98);
+    }
+    /* Section titles */
+    .section-title {
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin: 2.5rem 0 1.5rem;
+        position: relative;
+        display: inline-block;
+    }
+    .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--primary);
+        border-radius: 3px;
+    }
+    /* City grid */
+    .city-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 4rem;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
-
-    .city-card-fancy {
-        background: var(--surface);
-        padding: 1.5rem;
+    .city-card {
+        background: white;
         border-radius: 1.25rem;
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 1.2rem;
+        transition: all 0.25s ease;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0,0,0,0.03);
         text-decoration: none;
         color: inherit;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        text-align: center;
+        gap: 1rem;
     }
-
-    .city-card-fancy:hover {
+    .city-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 25px -12px rgba(0,0,0,0.15);
         border-color: var(--primary);
     }
-
-    .city-icon-box {
-        width: 50px;
-        height: 50px;
+    .city-icon {
+        width: 52px;
+        height: 52px;
         background: #fff4ed;
-        color: var(--primary);
-        border-radius: 12px;
+        border-radius: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1rem;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
+        color: var(--primary);
     }
-
-    /* Accordion Styling */
-    .country-accordion {
+    .city-info h4 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+    }
+    .city-info .location-path {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+    .factory-badge {
+        background: #eef2ff;
+        color: #1e40af;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 0.3rem;
+    }
+    /* Accordion styling */
+    .accordion-country {
         background: transparent;
         border: none;
     }
-
-    .country-item {
-        background: var(--glass);
-        backdrop-filter: blur(10px);
-        border-radius: 1.5rem !important;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255,255,255,0.3) !important;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    }
-
-    .country-btn {
-        padding: 1.5rem;
-        font-weight: 700;
-        color: var(--secondary-blue) !important;
-        background: white !important;
+    .accordion-item-custom {
+        background: white;
         border: none;
-        box-shadow: none !important;
+        border-radius: 1.2rem !important;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
     }
-
-    .country-btn:not(.collapsed) {
-        background: linear-gradient(to right, #fff, #f8fafc) !important;
+    .accordion-button-custom {
+        background: white;
+        padding: 1.2rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #0f172a;
     }
-
+    .accordion-button-custom:not(.collapsed) {
+        background: #fef9f5;
+        color: var(--primary);
+    }
+    .state-badge {
+        background: #e2e8f0;
+        border-radius: 30px;
+        padding: 0.3rem 0.9rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: 0.8rem;
+    }
     .state-pill {
         display: inline-block;
-        padding: 8px 20px;
-        background: white;
-        border-radius: 50px;
-        margin: 5px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-        transition: all 0.2s;
+        background: #f1f5f9;
+        padding: 0.5rem 1rem;
+        border-radius: 40px;
+        margin: 0.25rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #1e293b;
         text-decoration: none;
+        transition: all 0.2s;
     }
-
     .state-pill:hover {
         background: var(--primary);
         color: white;
-        border-color: var(--primary);
+        transform: translateY(-2px);
     }
-
-    .badge-count {
-        font-size: 0.7rem;
-        background: #e2e8f0;
-        color: #64748b;
-        padding: 2px 8px;
-        border-radius: 10px;
-        margin-left: 8px;
+    .city-list-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #0f172a;
+        color: white !important;
+        padding: 0.5rem 1rem;
+    }
+    .city-list-link:hover {
+        background: var(--primary);
+    }
+    @media (max-width: 768px) {
+        .hero-locations { padding: 2rem 0; }
+        .section-title { font-size: 1.5rem; }
+        .city-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="location-hero">
+<section class="hero-locations">
     <div class="container">
-        <h1 class="display-4 fw-bold">Find Your Next Factory</h1>
-        <p class="lead">Select a city to explore industrial opportunities</p>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold text-white">Find Factories by City</h1>
+                <p class="lead text-white">Discover manufacturing hubs, industrial zones, and production facilities across cities.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="hero-stats text-center">
+                    <div class="stat-number">{{ top_cities|length }}+</div>
+                    <div>Top Industrial Cities</div>
+                    <hr class="my-2 bg-white opacity-25">
+                    <div class="stat-number">{{ total_factories|default:"1,000+" }}</div>
+                    <div>Verified Factories</div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
 <div class="container">
-    <div class="search-container">
+    <div class="search-wrapper">
         <div class="search-input-group">
-            <input type="text" id="citySearch" placeholder="Search for a city or region...">
-            <button class="btn btn-primary px-4 rounded-pill">Search</button>
+            <input type="text" id="citySearchInput" placeholder="Search for a city... e.g., Mumbai, New York">
+            <button id="searchCityBtn"><i class="fas fa-search me-1"></i> Search</button>
         </div>
     </div>
 
-    <h3 class="section-title">
-        <i class="fas fa-city"></i> Popular Cities
-    </h3>
-    <div class="city-grid-main" id="featuredCities">
-        {% for country in countries %}
-            {% for state in country.states.all|slice:":2" %}
-                {% for city in state.cities.all|slice:":2" %}
-                <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="city-card-fancy">
-                    <div class="city-icon-box">
-                        <i class="fas fa-building-circle-check"></i>
-                    </div>
-                    <span class="fw-bold">{{ city.name }}</span>
-                    <span class="text-muted small">{{ state.name }}, {{ country.name }}</span>
-                </a>
-                {% endfor %}
-            {% endfor %}
+    <!-- Top Cities Section -->
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="section-title">🔥 Most Active Industrial Cities</h2>
+        <a href="{% url 'karkahan:factory_list' %}" class="text-primary">Browse all cities →</a>
+    </div>
+    <div class="city-grid" id="topCitiesGrid">
+        {% for city in top_cities %}
+        <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="city-card">
+            <div class="city-icon">
+                <i class="fas fa-industry"></i>
+            </div>
+            <div class="city-info">
+                <h4>{{ city.name }}</h4>
+                <div class="location-path">{{ city.state.name }}, {{ city.state.country.name }}</div>
+                <div class="factory-badge">
+                    <i class="fas fa-building me-1"></i> {{ city.factory_count|default:0 }} factories
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-12 text-center py-5">No cities available.</div>
         {% endfor %}
     </div>
 
-    <h3 class="section-title">
-        <i class="fas fa-globe-americas"></i> Browse by Region
-    </h3>
-    
-    <div class="accordion country-accordion" id="locationAccordion">
+    <!-- Explore by Country / State -->
+    <h2 class="section-title mt-5">🌍 Explore by Region</h2>
+    <div class="accordion accordion-country" id="locationAccordion">
         {% for country in countries %}
-        <div class="accordion-item country-item">
+        <div class="accordion-item-custom">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed country-btn" type="button" data-bs-toggle="collapse" data-bs-target="#country-{{ country.id }}">
-                    <img src="https://flagcdn.com/24x18/{{ country.code|lower }}.png" class="me-3 shadow-sm" alt="">
+                <button class="accordion-button collapsed accordion-button-custom" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCountry{{ country.id }}">
+                    <img src="https://flagcdn.com/24x18/{{ country.code|lower }}.png" class="me-2" alt="">
                     {{ country.name }}
+                    <span class="state-badge">{{ country.states.count }} states</span>
                 </button>
             </h2>
-            <div id="country-{{ country.id }}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion">
-                <div class="accordion-body bg-light">
+            <div id="collapseCountry{{ country.id }}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion">
+                <div class="accordion-body p-4">
                     <div class="row">
                         {% for state in country.states.all %}
                         <div class="col-md-6 mb-4">
-                            <h6 class="fw-bold mb-3 text-uppercase small text-muted letter-spacing-1">
-                                {{ state.name }} <span class="badge-count">{{ state.cities.count }} Cities</span>
-                            </h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="fw-bold mb-0">{{ state.name }}</h5>
+                                <a href="{% url 'karkahan:factory_list' %}?state={{ state.id }}" class="small text-primary">View all →</a>
+                            </div>
                             <div class="d-flex flex-wrap">
-                                {% for city in state.cities.all %}
+                                {% for city in state.cities.all|slice:":8" %}
                                 <a href="{% url 'karkahan:factory_list' %}?city={{ city.id }}" class="state-pill">
                                     {{ city.name }}
                                 </a>
                                 {% endfor %}
-                                <a href="{% url 'karkahan:factory_list' %}?state={{ state.id }}" class="state-pill bg-dark text-white border-0">
-                                    View All in {{ state.name }} →
+                                {% if state.cities.count > 8 %}
+                                <a href="{% url 'karkahan:factory_list' %}?state={{ state.id }}" class="state-pill city-list-link">
+                                    +{{ state.cities.count|add:"-8" }} more <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
@@ -245,15 +309,45 @@
 
 {% block extra_js %}
 <script>
-    // Simple filter for the city grid
-    document.getElementById('citySearch').addEventListener('input', function(e) {
-        let term = e.target.value.toLowerCase();
-        let cards = document.querySelectorAll('.city-card-fancy');
-        
-        cards.forEach(card => {
-            let cityName = card.innerText.toLowerCase();
-            card.style.display = cityName.includes(term) ? 'flex' : 'none';
+    // Live search for top cities grid
+    const searchInput = document.getElementById('citySearchInput');
+    const searchBtn = document.getElementById('searchCityBtn');
+    const cityCards = document.querySelectorAll('#topCitiesGrid .city-card');
+    
+    function filterCities() {
+        let term = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+        cityCards.forEach(card => {
+            let cityName = card.querySelector('h4').innerText.toLowerCase();
+            let locationPath = card.querySelector('.location-path').innerText.toLowerCase();
+            if (cityName.includes(term) || locationPath.includes(term)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
         });
+        // If no results, show a message (optional)
+        let noResultsMsg = document.getElementById('noCityResults');
+        if (visibleCount === 0) {
+            if (!noResultsMsg) {
+                let msg = document.createElement('div');
+                msg.id = 'noCityResults';
+                msg.className = 'col-12 text-center py-5 text-muted';
+                msg.innerHTML = '<i class="fas fa-search fa-2x mb-2"></i><br>No matching cities found. Try a different search term.';
+                document.getElementById('topCitiesGrid').appendChild(msg);
+            }
+        } else {
+            if (noResultsMsg) noResultsMsg.remove();
+        }
+    }
+    
+    searchInput.addEventListener('input', filterCities);
+    searchBtn.addEventListener('click', filterCities);
+    
+    // Optional: handle Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') filterCities();
     });
 </script>
 {% endblock %}

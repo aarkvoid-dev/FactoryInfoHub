@@ -6,6 +6,8 @@ from django.db.models import Count
 from .models import Country, State, District, City, Region
 from .forms import CountryForm, StateForm, DistrictForm, CityForm, RegionForm
 from Accounts.decorators import profile_complete_required
+from django.db.models import Count, Q
+from Karkahan.models import Factory
 
 @login_required
 def location_dashboard(request):
@@ -38,18 +40,43 @@ def location_dashboard(request):
     }
     return render(request, 'location/dashboard.html', context)
 
+
 @profile_complete_required
 def location_hierarchy(request):
     """
-    Display all countries with their states, cities, districts, and regions.
+    Display all countries with states and cities.
+    Top cities = cities with most factories (active, not deleted).
     """
-    # Fetch all active countries with their nested locations
+    # 1. Get all active countries with their states and cities
     countries = Country.objects.filter(is_deleted=False).prefetch_related(
-        'states__cities__districts__regions'
+        'states__cities'
     ).order_by('name')
+    
+    # 2. Annotate cities with factory count (active & not deleted only)
+    #    Remove is_verified filter to avoid empty results.
+    cities = City.objects.filter(
+        is_deleted=False,
+        factories__is_deleted=False,
+        factories__is_active=True,
+        # factories__is_verified=True   # <-- REMOVE or make optional
+    ).annotate(
+        factory_count=Count('factories')
+    ).select_related('state__country').order_by('-factory_count', 'name')
+    
+    # 3. Top 12 cities by factory count
+    top_cities = cities[:12]
+    
+    # 4. Total factories count (active, not deleted) – for hero stats
+    total_factories = Factory.objects.filter(
+        is_active=True,
+        is_deleted=False
+        # is_verified=True   # optional – you can keep or remove
+    ).count()
     
     context = {
         'countries': countries,
+        'top_cities': top_cities,
+        'total_factories': total_factories,
         'title': 'Explore Locations',
     }
     return render(request, 'location/location_hierarchy.html', context)
