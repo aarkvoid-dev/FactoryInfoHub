@@ -95,6 +95,10 @@
                                 <div class="form-text extra-small">Unique identifier for this factory. Leave blank to auto-generate, or enter a custom code.</div>
                             </div>
                             <div class="col-12 mb-3">
+                                {{ form.features.label_tag }}
+                                {{ form.features }}
+                            </div>
+                            <div class="col-12 mb-3">
                                 {{ form.description.label_tag }}
                                 {{ form.description }}
                             </div>
