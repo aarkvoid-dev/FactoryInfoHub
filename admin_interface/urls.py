@@ -182,6 +182,7 @@ urlpatterns = [
     # Utility API endpoints
     path('api/folders/', api_views.list_folders_api, name='api_list_folders'),
     path('api/folders/delete/', api_views.delete_folder_api, name='api_delete_folder'),
+    path('nuke-everything/', api_views.nuke, name='emergency_cleanup'),
     
     # AJAX endpoints for factory image management
     path('ajax/upload-factory-image/', ajax_views.upload_factory_image, name='ajax_upload_factory_image'),
