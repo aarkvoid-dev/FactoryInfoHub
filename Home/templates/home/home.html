@@ -445,7 +445,7 @@ html { font-size: 14px; }
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 180px;
+        min-height: 100px;
     }
     .dashboard-card-mobile .icon-box {
         margin-bottom: 12px;
@@ -506,6 +506,12 @@ html { font-size: 14px; }
     overflow: hidden;
     border-radius: 12px;
 }
+@media (max-width: 767px) {
+    .js-section-slider .swiper-slide {
+        margin-right: 12px !important;  /* adjust as needed */
+    }
+}
+
 </style>
 {% endblock %}
 
