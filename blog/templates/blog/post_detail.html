@@ -19,504 +19,358 @@
 {% block content %}
 
 <div class="row">
-      <div class="col-12">
+    <div class="col-12">
         <div class="featured-hero-card">
-          {% if post.get_featured_image %}
-              <div class="hero-overlay"></div>
-              <img src="{{ post.get_featured_image.image.url }}" alt="Featured" class="hero-img">
-              <div class="hero-content">
-                <span class="badge-featured">CURRENT HERO IMAGE</span>
-                <h1 class="text-white text-40 md:text-30 fw-700 mt-10">{{ post.title }}</h1>
-                <div class="text-white opacity-70">Author: {{ post.author.get_full_name|default:post.author.username }}</div>
-              </div>
+            {% if post.get_featured_image %}
+                <div class="hero-overlay"></div>
+                <img src="{{ post.get_featured_image.image.url }}" alt="Featured" class="hero-img">
+                <div class="hero-content">
+                    <span class="badge-featured">CURRENT HERO IMAGE</span>
+                    <h1 class="text-white text-40 md:text-30 fw-700 mt-10">{{ post.title }}</h1>
+                    <div class="text-white opacity-70">Author: {{ post.author.get_full_name|default:post.author.username }}</div>
+                </div>
             {% else %}
-              <div class="hero-empty">
-                <i class="icon-image text-40 mb-10"></i>
-                <img src="{% static 'img/hero/1.png' %}" alt="Blog Image" style="width: 100%; height: 400px; object-fit: cover;">
-                <div class="text-20 fw-600">No Featured Image Set</div>
-                <div class="text-light-2">Upload images and select one as featured to see it here.</div>
-              </div>
+                <div class="hero-empty">
+                    <i class="icon-image text-40 mb-10"></i>
+                    <img src="{% static 'img/hero/1.png' %}" alt="Blog Image" style="width: 100%; height: 400px; object-fit: cover;">
+                    <div class="text-20 fw-600">No Featured Image Set</div>
+                    <div class="text-light-2">Upload images and select one as featured to see it here.</div>
+                </div>
             {% endif %}
         </div>
-      </div>
     </div>
-
-<!-- <section data-anim="fade" class="hero -type-1 -min-2">
-  <div class="hero__bg">
-    {% if post.get_featured_image %}
-      <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}" style="width: 100%; height: 400px; object-fit: cover;">
-    {% else %}
-      <img src="{% static 'img/hero/1.png' %}" alt="Blog Image" style="width: 100%; height: 400px; object-fit: cover;">
-    {% endif %}
-    <img src="{% static 'img/hero/1/shape.svg' %}" alt="image">
-  </div>
-
-  <div class="container">
-    <div class="row justify-center">
-      <div class="col-xl-12">
-        <div class="hero__content">
-          <h1 class="hero__title">{{ post.title }}</h1>
-          <p class="hero__text">{{ post.excerpt|default:post.title }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> -->
+</div>
 
 <section class="layout-pt-md layout-pb-xl">
-  <div class="container">
-    <div class="row y-gap-30 justify-center">
-      <div class="col-lg-8">
-        <h2 class="text-30 md:text-24">{{ post.title }}</h2>
-        
-        <div class="d-flex flex-wrap align-items-center text-muted mb-20">
-          <span class="me-3">
-            <i class="icon-user text-16 me-1"></i>{{ post.author.username }}
-          </span>
-          <span class="me-3">
-            <i class="icon-calendar text-16 me-1"></i>{{ post.published_at|date:"F d, Y" }}
-          </span>
-          {% if post.updated_at != post.created_at %}
-            <span class="me-3">
-              <i class="icon-edit text-16 me-1"></i>Updated {{ post.updated_at|date:"F d, Y" }}
-            </span>
-          {% endif %}
-        </div>
+    <div class="container">
+        <div class="row y-gap-30 justify-center">
+            <div class="col-lg-8">
+                <h2 class="text-30 md:text-24">{{ post.title }}</h2>
 
-        <div class="d-flex flex-wrap align-items-center mb-30">
-          {% if post.subcategory %}
-            <span class="badge bg-primary me-2">
-              <i class="icon-tag text-16 me-1"></i>{{ post.subcategory.name }}
-            </span>
-          {% endif %}
-          {% if post.region %}
-            <span class="badge bg-info">
-              <i class="icon-map-marker-alt text-16 me-1"></i>{{ post.region.name }}, {{ post.region.district.city.name }}, {{ post.region.district.city.state.name }}
-            </span>
-          {% endif %}
-        </div>
-
-        <div class="post-content mt-20">
-          {{ post.content|render_blog_content:post.images.all }}
-        </div>
-
-        <!-- Gallery -->
-        {% with gallery_images=post.get_gallery_images %}
-          {% if gallery_images %}
-            <div class="row y-gap-30 pt-20">
-              {% for image in gallery_images %}
-                <div class="col-md-6">
-                  <img src="{{ image.image.url }}" alt="{% if image.caption %}{{ image.caption }}{% else %}{{ post.title }}{% endif %}" class="rounded-8 w-100" style="height: 200px; object-fit: cover;">
-                  {% if image.caption %}
-                    <div class="mt-10 text-14 ">{{ image.caption }}</div>
-                  {% endif %}
+                <div class="d-flex flex-wrap align-items-center text-muted mb-20">
+                    <span class="me-3"><i class="icon-user text-16 me-1"></i>{{ post.author.username }}</span>
+                    <span class="me-3"><i class="icon-calendar text-16 me-1"></i>{{ post.published_at|date:"F d, Y" }}</span>
+                    {% if post.updated_at != post.created_at %}
+                        <span class="me-3"><i class="icon-edit text-16 me-1"></i>Updated {{ post.updated_at|date:"F d, Y" }}</span>
+                    {% endif %}
                 </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
 
-        <!-- Related Factories Section -->
-   
-        {% if post.related_factories %}
-       
-          <div class="line mt-30 mb-30"></div>
-          
-          <h3 class="text-24 fw-600 mb-20">Related Factories</h3>
-          
-          <!-- Search Bar for Related Factories - Only visible to creator or staff -->
-          {% if user.is_authenticated %}
-            {% if user == post.author or user.is_staff %}
-          <div class="mb-20">
-            <div class="form-input">
-              <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control">
-              <label class="lh-1 text-14">Search Related Factories</label>
-            </div>
-          </div>
-            {% endif %}
-          {% endif %}
-          
-          <!-- Sideways Scrollable Related Factories -->
-          <div class="related-factories-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
-            <div id="related-factories-grid" class="factory-cards-wrapper" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
-              {% for factory in post.related_factories.all %}
-                <div class="related-factory-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
-                  <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
-                    <div class="position-relative">
-                      <!-- {% if factory.get_primary_image %}
-                        <img src="{{ factory.get_primary_image.image.url }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
-                      {% else %}
-                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
-                          <i class="icon-building text-40 text-muted"></i>
+                <div class="d-flex flex-wrap align-items-center mb-30">
+                    {% if post.subcategory %}
+                        <span class="badge bg-primary me-2"><i class="icon-tag text-16 me-1"></i>{{ post.subcategory.name }}</span>
+                    {% endif %}
+                    {% if post.region %}
+                        <span class="badge bg-info"><i class="icon-map-marker-alt text-16 me-1"></i>{{ post.region.name }}, {{ post.region.district.city.name }}, {{ post.region.district.city.state.name }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="post-content mt-20">
+                    {{ post.content|render_blog_content:post.images.all }}
+                </div>
+
+                <!-- Gallery -->
+                {% with gallery_images=post.get_gallery_images %}
+                    {% if gallery_images %}
+                        <div class="row y-gap-30 pt-20">
+                            {% for image in gallery_images %}
+                                <div class="col-md-6">
+                                    <img src="{{ image.image.url }}" alt="{% if image.caption %}{{ image.caption }}{% else %}{{ post.title }}{% endif %}" class="rounded-8 w-100" style="height: 200px; object-fit: cover;">
+                                    {% if image.caption %}
+                                        <div class="mt-10 text-14">{{ image.caption }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
-                      {% endif %} -->
-                      {% with primary_image=factory.get_primary_image %}
-                        {% if primary_image %}
-                          <img src="{{ primary_image }}"  alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
-                        {% else %}
-                          <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
-                            <i class="icon-building text-40 text-muted"></i>
-                          </div>
-                        {% endif %}
-                      {% endwith %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Related Factories Section -->
+                {% if post.related_factories %}
+                    <div class="line mt-30 mb-30"></div>
+                    <h3 class="text-24 fw-600 mb-20">Related Factories</h3>
+
+                    {% if user.is_authenticated and user == post.author or user.is_staff %}
+                        <div class="mb-20">
+                            <div class="form-input">
+                                <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control">
+                                <label class="lh-1 text-14">Search Related Factories</label>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="related-factories-container" style="border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px;">
+                        <div id="related-factories-grid" class="factory-cards-wrapper" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin;">
+                            {% for factory in post.related_factories.all %}
+                                <div class="related-factory-item" data-name="{{ factory.name|lower }}" style="min-width: 200px; flex: 0 0 200px;">
+                                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                        <div class="position-relative">
+                                            {% with primary_image=factory.get_primary_image %}
+                                                {% if primary_image %}
+                                                    <img src="{{ primary_image }}" alt="{{ factory.name }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                                        <i class="icon-building text-40 text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">
+                                                <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="text-decoration-none text-dark">{{ factory.name }}</a>
+                                            </h6>
+                                            <p class="card-text text-muted mb-2" style="font-size: 12px;">{{ factory.city.name }}, {{ factory.state.name }}</p>
+                                            <div class="d-flex gap-2 mb-2">
+                                                {% if factory.category %}
+                                                    <span class="badge bg-primary" style="font-size: 11px;"><i class="icon-tag text-10 me-1"></i>{{ factory.category.name }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="btn btn-outline-primary btn-sm w-100">View Factory <i class="icon-arrow-right text-12 ms-2"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="card-body p-3">
-                      <h6 class="card-title text-dark mb-1" style="font-size: 14px; font-weight: 600;">
-                        <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="text-decoration-none text-dark">
-                          {{ factory.name }}
+                {% endif %}
+
+                <!-- Tags Row -->
+                <div class="row y-gap-15 justify-between items-center pt-20">
+                    <div class="col-auto">
+                        <div class="d-flex x-gap-10">
+                            {% if post.subcategory %}
+                                <div><span class="badge bg-primary px-3 py-2 rounded-20"><i class="icon-tag text-12 me-2"></i>{{ post.subcategory.name }}</span></div>
+                            {% endif %}
+                            {% if post.category %}
+                                <div><span class="badge bg-info px-3 py-2 rounded-20"><i class="icon-category text-12 me-2"></i>{{ post.category.name }}</span></div>
+                            {% endif %}
+                            {% if post.region %}
+                                <div><span class="badge bg-success px-3 py-2 rounded-20"><i class="icon-map-marker-alt text-12 me-2"></i>{{ post.region.name }}</span></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin / Author Actions -->
+                {% if user.is_staff or user == post.author %}
+                    <div class="line mt-60 mb-30"></div>
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1"><i class="icon-edit text-16 me-1"></i>Edit Post</a>
+                        <a href="{% url 'blog:manage_images' post.slug %}" class="button -md -outline-accent-1 text-accent-1"><i class="icon-images text-16 me-1"></i>Manage Images</a>
+                        <a href="{% url 'blog:post_delete' post.slug %}" class="button -md -outline-accent-1 text-accent-1"><i class="icon-trash text-16 me-1"></i>Delete Post</a>
+                    </div>
+                {% endif %}
+
+                <div class="line mt-30 mb-30"></div>
+
+                <!-- Navigation -->
+                <div class="row y-gap-15 justify-between align-items-center">
+                    <div class="col-md-auto">
+                        <a href="{% url 'blog:post_list' %}" class="d-flex items-center text-decoration-none">
+                            <div class="size-40 rounded-full bg-accent-1-05 d-flex justify-content-center align-items-center me-15"><i class="icon-arrow-left text-16 text-accent-1"></i></div>
+                            <div><div class="text-14 fw-500 text-accent-1">Back to Blog</div><div class="text-12 mt-2">Browse all articles</div></div>
                         </a>
-                      </h6>
-                      <p class="card-text text-muted mb-2" style="font-size: 12px;">{{ factory.city.name }}, {{ factory.state.name }}</p>
-                      <div class="d-flex gap-2 mb-2">
-                        {% if factory.category %}
-                          <span class="badge bg-primary" style="font-size: 11px;">
-                            <i class="icon-tag text-10 me-1"></i>{{ factory.category.name }}
-                          </span>
-                        {% endif %}
-                        <!-- {% if factory.subcategory %}
-                          <span class="badge bg-info" style="font-size: 11px;">
-                            <i class="icon-tags text-10 me-1"></i>{{ factory.subcategory.name }}
-                          </span>
-                        {% endif %} -->
-                      </div>
-                      <a href="{% url 'karkahan:factory_detail' factory.slug %}" class="btn btn-outline-primary btn-sm w-100">
-                        View Factory <i class="icon-arrow-right text-12 ms-2"></i>
-                      </a>
                     </div>
-                  </div>
+                    <div class="col-auto md:d-none"><div class="d-flex x-gap-10"><div class="size-10 rounded-full bg-accent-1"></div><div class="size-10 rounded-full bg-accent-1-05"></div><div class="size-10 rounded-full bg-accent-1-05"></div></div></div>
+                    <div class="col-md-auto">
+                        <a href="{% url 'blog:post_list' %}?category={{ post.category.id }}" class="d-flex items-center text-decoration-none">
+                            <div><div class="text-14 fw-500 text-accent-1">More {{ post.category.name|default:'Posts' }}</div><div class="text-12 mt-2">Related content</div></div>
+                            <div class="size-40 rounded-full bg-accent-1-05 d-flex justify-content-center align-items-center ms-15"><i class="icon-arrow-right text-16 text-accent-1"></i></div>
+                        </a>
+                    </div>
                 </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
 
-        <div class="row y-gap-15 justify-between items-center pt-20">
-          <!-- <div class="col-auto">
-            <div class="d-flex x-gap-10">
-              <div>
-                <a href="#" class="button -accent-1 size-40 flex-center bg-accent-1-05 rounded-full">
-                  <i class="icon-facebook text-14"></i>
-                </a>
-              </div>
-              <div>
-                <a href="#" class="button -accent-1 size-40 flex-center bg-accent-1-05 rounded-full">
-                  <i class="icon-twitter text-14"></i>
-                </a>
-              </div>
-              <div>
-                <a href="#" class="button -accent-1 size-40 flex-center bg-accent-1-05 rounded-full">
-                  <i class="icon-instagram text-14"></i>
-                </a>
-              </div>
-              <div>
-                <a href="#" class="button -accent-1 size-40 flex-center bg-accent-1-05 rounded-full">
-                  <i class="icon-linkedin text-14"></i>
-                </a>
-              </div>
-            </div>
-          </div> -->
+                <div class="line mt-30 mb-30"></div>
 
-          <div class="col-auto">
-            <div class="d-flex x-gap-10">
-              {% if post.subcategory %}
-                <div>
-                  <span class="badge bg-primary px-3 py-2 rounded-20">
-                    <i class="icon-tag text-12 me-2"></i>{{ post.subcategory.name }}
-                  </span>
+                <!-- About the Author -->
+                <div class="bg-light-1 rounded-6 p-30">
+                    <div class="row y-gap-20 align-items-center">
+                        <div class="col-md-auto"><div class="size-100 rounded-full overflow-hidden"><img src="{% static 'img/avatars/1.png' %}" alt="Author" class="w-100 h-100 object-cover"></div></div>
+                        <div class="col-md">
+                            <div class="row y-gap-10">
+                                <div class="col-md-6"><div class="text-18 fw-600">{{ post.author.username }}</div><div class="text-14 mt-5">Blog Author & Industry Expert</div></div>
+                                <div class="col-md-6"><div class="d-flex x-gap-10 mt-10"><a href="#" class="button -sm -outline-accent-1 text-accent-1 rounded-200">View Profile</a><a href="#" class="button -sm -accent-1 text-white rounded-200">Follow</a></div></div>
+                            </div>
+                            <div class="mt-15 text-14">{{ post.author.first_name }} {{ post.author.last_name|default:'' }} is a passionate writer and industry expert who shares valuable insights about factories, manufacturing processes, and industrial innovations. With years of experience in the field, {{ post.author.first_name }} brings practical knowledge and real-world perspectives to our readers.</div>
+                        </div>
+                    </div>
                 </div>
-              {% endif %}
-              {% if post.category %}
-                <div>
-                  <span class="badge bg-info  px-3 py-2 rounded-20">
-                    <i class="icon-category text-12 me-2"></i>{{ post.category.name }}
-                  </span>
+
+                <div class="line mt-30 mb-30"></div>
+
+                <!-- ========== COMMENTS SECTION (Labels above inputs, borders added) ========== -->
+                <div class="comments-section">
+                    <h3 class="h4 mb-4">Comments ({{ comments.count }})</h3>
+
+                    <!-- Comment Form (with labels above fields, border) -->
+                    <div class="comment-form-box border rounded-4 p-4 mb-5" style="background: #f9fafb;">
+                        <h4 class="h5 mb-3">Leave a comment</h4>
+                        <form method="post">
+                            {% csrf_token %}
+
+                            {% if user.is_authenticated %}
+                                <!-- Logged‑in user: use registered name and email (readonly) -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Your Name</label>
+                                            <input type="text" name="name" class="form-control" value="{{ user.get_full_name|default:user.username }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Email Address</label>
+                                            <input type="email" name="email" class="form-control" value="{{ user.email }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Comment *</label>
+                                            <textarea name="content" rows="4" class="form-control" placeholder="Write your comment..." required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <!-- Anonymous user: show name and email fields -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Your Name *</label>
+                                            <input type="text" name="name" class="form-control" placeholder="Enter your name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Email Address *</label>
+                                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label fw-semibold small text-muted">Comment *</label>
+                                            <textarea name="content" rows="4" class="form-control" placeholder="Write your comment..." required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <button type="submit" class="button -md bg-accent-1 text-white px-4 mt-3">
+                                Post Comment <i class="icon-arrow-top-right text-16 ml-10"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Scrollable Comments List (newest first, border) -->
+                    <div class="comments-list-box border rounded-4 p-3" style="max-height: 400px; overflow-y: auto; background: white;">
+                        <h5 class="fw-semibold mb-3">All Comments</h5>
+                        {% if comments %}
+                            {% for comment in comments|dictsortreversed:"created_at" %}
+                                <div class="comment mb-3 pb-3 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong class="text-primary">{{ comment.display_name }}</strong>
+                                            <small class="text-muted ms-2">{{ comment.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 mb-0">{{ comment.content|linebreaksbr }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No comments yet. Be the first to share your thoughts!</p>
+                        {% endif %}
+                    </div>
                 </div>
-              {% endif %}
-              {% if post.region %}
-                <div>
-                  <span class="badge bg-success  px-3 py-2 rounded-20">
-                    <i class="icon-map-marker-alt text-12 me-2"></i>{{ post.region.name }}
-                  </span>
-                </div>
-              {% endif %}
+                <!-- ========== END COMMENTS SECTION ========== -->
+
             </div>
-          </div>
         </div>
-
-
-         {% if user.is_staff or user == post.author %}
-          <div class="line mt-60 mb-30"></div>
-          
-          <div class="d-flex gap-2 mb-4">
-            <!-- {% if user.is_staff or factory.created_by == user %}
-            <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
-              <i class="icon-edit text-16 me-1"></i>Edit Post
-            </a>
-            {% endif %} -->
-            <a href="{% url 'blog:post_update' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
-              <i class="icon-edit text-16 me-1"></i>Edit Post
-            </a>
-            <a href="{% url 'blog:manage_images' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
-              <i class="icon-images text-16 me-1"></i>Manage Images
-            </a>
-            <a href="{% url 'blog:post_delete' post.slug %}" class="button -md -outline-accent-1 text-accent-1">
-              <i class="icon-trash text-16 me-1"></i>Delete Post
-            </a>
-          </div>
-        {% endif %}
-
-        <div class="line mt-30 mb-30"></div>
-
-        <!-- Navigation Section -->
-        <div class="row y-gap-15 justify-between align-items-center">
-          <div class="col-md-auto">
-            <a href="{% url 'blog:post_list' %}" class="d-flex items-center text-decoration-none">
-              <div class="size-40 rounded-full bg-accent-1-05 d-flex justify-content-center align-items-center me-15">
-                <i class="icon-arrow-left text-16 text-accent-1"></i>
-              </div>
-              <div>
-                <div class="text-14 fw-500 text-accent-1">Back to Blog</div>
-                <div class="text-12 mt-2">Browse all articles</div>
-              </div>
-            </a>
-          </div>
-
-          <div class="col-auto md:d-none">
-            <div class="d-flex x-gap-10">
-              <div class="size-10 rounded-full bg-accent-1"></div>
-              <div class="size-10 rounded-full bg-accent-1-05"></div>
-              <div class="size-10 rounded-full bg-accent-1-05"></div>
-            </div>
-          </div>
-
-          <div class="col-md-auto">
-            <a href="{% url 'blog:post_list' %}?category={{ post.category.id }}" class="d-flex items-center text-decoration-none">
-              <div>
-                <div class="text-14 fw-500 text-accent-1">More {{ post.category.name|default:'Posts' }}</div>
-                <div class="text-12 mt-2">Related content</div>
-              </div>
-              <div class="size-40 rounded-full bg-accent-1-05 d-flex justify-content-center align-items-center ms-15">
-                <i class="icon-arrow-right text-16 text-accent-1"></i>
-              </div>
-            </a>
-          </div>
-        </div>
-
-        <div class="line mt-30 mb-30"></div>
-
-        <!-- About the Author Section -->
-        <div class="bg-light-1 rounded-6 p-30">
-          <div class="row y-gap-20 align-items-center">
-            <div class="col-md-auto">
-              <div class="size-100 rounded-full overflow-hidden">
-                <img src="{% static 'img/avatars/1.png' %}" alt="Author" class="w-100 h-100 object-cover">
-              </div>
-            </div>
-
-            <div class="col-md">
-              <div class="row y-gap-10">
-                <div class="col-md-6">
-                  <div class="text-18 fw-600">{{ post.author.username }}</div>
-                  <div class="text-14  mt-5">Blog Author & Industry Expert</div>
-                </div>
-                <div class="col-md-6">
-                  <div class="d-flex x-gap-10 mt-10">
-                    <a href="#" class="button -sm -outline-accent-1 text-accent-1 rounded-200">View Profile</a>
-                    <a href="#" class="button -sm -accent-1 text-white rounded-200">Follow</a>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-15 text-14 ">
-                {{ post.author.first_name }} {{ post.author.last_name|default:'' }} is a passionate writer and industry expert who shares valuable insights about factories, manufacturing processes, and industrial innovations. With years of experience in the field, {{ post.author.first_name }} brings practical knowledge and real-world perspectives to our readers.
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="line mt-30 mb-30"></div>
-
-        <h2 class="text-30 pt-60">Leave a Comment</h2>
-        <p class="mt-30">Share your thoughts about this post</p>
-
-        <div class="contactForm y-gap-30 pt-30">
-          <div class="row y-gap-30">
-            <div class="col-md-6">
-              <div class="form-input">
-                <input type="text" required>
-                <label class="lh-1 text-16 ">Name</label>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="form-input">
-                <input type="email" required>
-                <label class="lh-1 text-16 ">Email</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-12">
-              <div class="form-input">
-                <textarea required rows="5"></textarea>
-                <label class="lh-1 text-16 ">Comment</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-12">
-              <button class="button -md -dark-1 bg-accent-1">
-                Post Comment
-                <i class="icon-arrow-top-right text-16 ml-10"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 </section>
 {% endblock %}
+
 {% block extra_css %}
 <style>
-.icon-wrapper{
-    margin:0 auto 20px auto;
-}
-.featured-hero-card {
-  position: relative;
-  width: 100%;
-  height: 400px;
-  overflow: hidden;
-  background: #2c3e50;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
-}
-
-.hero-content {
-  position: absolute;
-  bottom: 40px;
-  left: 40px;
-  z-index: 2;
-}
-
-.badge-featured {
-  background: var(--color-accent-1);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.hero-back-btn {
-  position: absolute;
-  top: 30px;
-  left: 30px;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  transition: .3s;
-}
-
-.hero-back-btn:hover {
-  background: white;
-  color: black;
-}
-
-.hero-empty {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  background: #f8f9fa;
-  color: #6c757d;
-}
-
-/* Related Factories Search Highlighting */
-.related-factory-item mark {
-  background-color: #fff3cd;
-  color: #856404;
-  padding: 0 2px;
-  border-radius: 3px;
-  font-weight: 600;
-}
-
-/* Factory Cards Styling */
-.factory-cards-wrapper::-webkit-scrollbar {
-  height: 8px;
-}
-
-.factory-cards-wrapper::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.factory-cards-wrapper::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.factory-cards-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Card hover effects */
-.related-factory-item .card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.related-factory-item:hover .card {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-}
+    /* ... your existing CSS ... */
+    .icon-wrapper { margin:0 auto 20px auto; }
+    .featured-hero-card { position: relative; width: 100%; height: 400px; overflow: hidden; background: #2c3e50; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .hero-img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%); }
+    .hero-content { position: absolute; bottom: 40px; left: 40px; z-index: 2; }
+    .badge-featured { background: var(--color-accent-1); color: white; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+    .hero-back-btn { position: absolute; top: 30px; left: 30px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 10px 20px; border-radius: 12px; font-size: 14px; transition: .3s; }
+    .hero-back-btn:hover { background: white; color: black; }
+    .hero-empty { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; background: #f8f9fa; color: #6c757d; }
+    .related-factory-item mark { background-color: #fff3cd; color: #856404; padding: 0 2px; border-radius: 3px; font-weight: 600; }
+    .factory-cards-wrapper::-webkit-scrollbar { height: 8px; }
+    .factory-cards-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .factory-cards-wrapper::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    .factory-cards-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    .related-factory-item .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .related-factory-item:hover .card { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important; }
+    
+    /* Comment section form styling */
+    .comment-form-box .form-group {
+        margin-bottom: 1rem;
+    }
+    .comment-form-box .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    .comment-form-box .form-control {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .comment-form-box .form-control:focus {
+        border-color: #EB662B;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(235,102,43,0.1);
+    }
+    .comment-form-box .form-control[readonly] {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+    }
+    .comments-list-box {
+        scrollbar-width: thin;
+    }
+    .comments-list-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    .comments-list-box::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .comments-list-box::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    .comments-list-box::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Related Factories Search Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Related Factories Search
     const searchInput = document.getElementById('related-factory-search');
     const factoryItems = document.querySelectorAll('.related-factory-item');
-
     if (searchInput && factoryItems.length > 0) {
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase().trim();
-            
             factoryItems.forEach(item => {
                 const factoryName = item.getAttribute('data-name');
-                const card = item.querySelector('.card');
-                
                 if (searchTerm === '' || factoryName.includes(searchTerm)) {
                     item.style.display = 'block';
-                    // Highlight matching text
                     if (searchTerm) {
                         const title = item.querySelector('.card-title a');
                         const originalText = title.textContent;
-                        const highlightedText = originalText.replace(
-                            new RegExp(`(${searchTerm})`, 'gi'),
-                            '<mark>$1</mark>'
-                        );
-                        title.innerHTML = highlightedText;
+                        title.innerHTML = originalText.replace(new RegExp(`(${searchTerm})`, 'gi'), '<mark>$1</mark>');
                     } else {
                         const title = item.querySelector('.card-title a');
                         title.innerHTML = title.textContent;

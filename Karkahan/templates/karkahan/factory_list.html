@@ -259,6 +259,36 @@
         box-shadow: 0 2px 8px rgba(235,102,43,0.2);
     }
 
+    /* New button styles for list page */
+    .btn-purchase-list {
+        background: #EB662B;
+        border: none;
+        color: white;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    .btn-purchase-list.added {
+        background: #28a745 !important;
+        cursor: default;
+        opacity: 0.9;
+        animation: pulse-green 1.5s infinite;
+    }
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+        70% { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
+    .btn-purchase-list i {
+        font-size: 12px;
+    }
+
     /* Share Modal Soft Backgrounds */
     .bg-success-soft { background-color: rgba(40, 167, 69, 0.1); }
     .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
@@ -391,12 +421,10 @@
     <div class="row mb-3">
       <div class="col-12">
         <div class="d-flex gap-2 gap-md-3 align-items-center">
-          <!-- Mobile filter button (visible only on mobile) -->
           <button id="mobileFilterBtn" class="button -md bg-dark-1 text-white px-3 px-md-4 py-2 rounded-8 d-lg-none mobile-filter-btn">
             <i class="fas fa-filter me-1"></i> <span class="d-none d-sm-inline">Filter</span>
           </button>
 
-          <!-- Search form with visible submit button -->
           <div class="searchForm -type-1 -col-1 -narrow flex-grow-1">
             <form action="" method="get" class="d-flex align-items-center w-100">
               <div class="searchForm__form w-100">
@@ -430,7 +458,6 @@
       </div>
     </div>
 
-    <!-- Results count row (below search bar) -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="fw-semibold text-muted">{{ page_obj.paginator.count }} results found</div>
@@ -438,12 +465,11 @@
     </div>
 
     <div class="row">
-      <!-- Sidebar Filters -->
+      <!-- Sidebar Filters (unchanged) -->
       <div class="col-xl-3 col-lg-4">
         <div id="mobile-filters">
           <div class="sidebar -type-1 overflow-hidden rounded-12">
             <div class="sidebar__content">
-              <!-- Location Filters -->
               <div class="filter-group">
                 <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Locations</label>
                 <label for="country">Country</label>
@@ -453,25 +479,21 @@
                         <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
                     {% endfor %}
                 </select>
-              
                 <label for="state">State</label>
                 <select name="state" class="js-filter-select modern-select-top" data-next="city" {% if not request.GET.country %}disabled{% endif %}>
                     <option value="">Select State</option>
                     {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
                 </select>
-             
                 <label for="city">City</label>
                 <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
                     <option value="">Select City</option>
                     {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
                 </select>
-              
                 <label for="district">District</label>
                 <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
                     <option value="">Select District</option>
                     {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                 </select>
-              
                 <label for="region">Region</label>
                 <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                     <option value="">Select Region</option>
@@ -479,7 +501,6 @@
                 </select>
               </div>
 
-              <!-- Category Filters -->
               <div class="filter-group">
                 <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Work</label>
                 <label for="category">Category</label>
@@ -489,7 +510,6 @@
                         <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
                     {% endfor %}
                 </select>
-              
                 <label for="subcategory">Subcategory</label>
                 <select name="subcategory" class="js-filter-select modern-select-top" {% if not request.GET.category %}disabled{% endif %}>
                     <option value="">Subcategory</option>
@@ -511,7 +531,6 @@
             </div>
           </div>
         </div>
-        <!-- Desktop accordion (hidden on mobile) -->
         <div class="accordion d-none mb-30 lg:d-flex js-accordion">
           <div class="accordion__item col-12">
             <button class="accordion__button button -dark-1 bg-light-1 px-25 py-10 border-1 rounded-12" style="display: none;">
@@ -521,7 +540,6 @@
               <div class="pt-20">
                 <div class="sidebar -type-1 overflow-hidden rounded-12">
                   <div class="sidebar__content">
-                    <!-- Location Filters (same as above) -->
                     <div class="filter-group">
                       <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Locations</label>
                       <label for="country">Country</label>
@@ -531,25 +549,21 @@
                               <option value="{{ country.id }}" {% if request.GET.country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
                           {% endfor %}
                       </select>
-                    
                       <label for="state">State</label>
                       <select name="state" class="js-filter-select modern-select-top" data-next="city" {% if not request.GET.country %}disabled{% endif %}>
                           <option value="">Select State</option>
                           {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
                       </select>
-                    
                       <label for="city">City</label>
                       <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
                           <option value="">Select City</option>
                           {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
                       </select>
-                    
                       <label for="district">District</label>
                       <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
                           <option value="">Select District</option>
                           {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                       </select>
-                    
                       <label for="region">Region</label>
                       <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                           <option value="">Select Region</option>
@@ -557,7 +571,6 @@
                       </select>
                     </div>
 
-                    <!-- Category Filters -->
                     <div class="filter-group">
                       <label class="text-11 fw-700 text-dark-1 opacity-40 uppercase tracking-widest mb-5 d-block">Work</label>
                       <label for="category">Category</label>
@@ -567,7 +580,6 @@
                               <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
                           {% endfor %}
                       </select>
-                   
                       <label for="subcategory">Subcategory</label>
                       <select name="subcategory" class="js-filter-select modern-select-top" {% if not request.GET.category %}disabled{% endif %}>
                           <option value="">Subcategory</option>
@@ -611,7 +623,6 @@
                       </div>
                     </div>               
                     
-                    <!-- NEW: AJAX Cart Button + Share Button -->
                     <div class="factoryCard__indicators">
                       {% if user.is_authenticated %}
                         {% if factory.id in cart_items %}
@@ -623,7 +634,6 @@
                             <i class="fas fa-heart"></i>
                           </button>
                         {% endif %}
-                        <!-- Share button -->
                         <button class="indicator-badge share-factory-btn" data-factory-name="{{ factory.name }}" data-factory-slug="{{ factory.slug }}" title="Share">
                           <i class="fas fa-share-alt"></i>
                         </button>
@@ -656,7 +666,7 @@
                       </div>
                     </a>
 
-                    <!-- Action Buttons & Price -->
+                    <!-- Action Buttons & Price – Two-button system -->
                     <div class="factoryCard__actions">
                       <div class="price-tag">
                         <div class="price-value">
@@ -687,34 +697,29 @@
                            <i class="fas fa-info-circle me-1"></i> Details
                         </a>
                         
-                        <!-- Original Purchase Button -->
-                        {% if factory.price >= 0 %}
-                            {% if user.is_authenticated %}
-                                {% if factory.has_user_purchased.user %}
-                                    <span class="button btn-primary disabled" style="background:#28a745;">
-                                        <i class="fas fa-check me-1"></i> Purchased
-                                    </span>
-                                {% else %}
-                                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" 
-                                       class="button btn-primary">
-                                        <i class="fas fa-shopping-cart me-1"></i> 
-                                        {% if factory.price > 0 %}
-                                            Add to Cart
-                                        {% else %}
-                                            Get Free
-                                        {% endif %}
-                                    </a>
-                                {% endif %}
-                            {% else %}
-                                <a href="{% url 'login' %}?next={{ request.path }}" 
-                                   class="button btn-primary">
-                                    <i class="fas fa-sign-in-alt me-1"></i> Login to Purchase
-                                </a>
-                            {% endif %}
-                        {% else %}
+                        {% if user.is_authenticated %}
+                          {% if factory.price >= 0 %}
+                            <!-- AJAX Add to Cart button (green if already in cart) -->
+                            <button class="btn-purchase-list add-to-cart-list {% if factory.id in cart_items %}added{% endif %}" 
+                                    data-factory-slug="{{ factory.slug }}" 
+                                    data-factory-price="{{ factory.price }}"
+                                    {% if factory.id in cart_items %}disabled{% endif %}>
+                              <i class="fas fa-shopping-cart me-1"></i> 
+                              {% if factory.id in cart_items %} Added to Cart {% else %} Add to Cart {% endif %}
+                            </button>
+                            <!-- Buy Now button (redirects to add_to_cart which then redirects to cart) -->
+                            <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="button btn-primary">
+                              <i class="fas fa-bolt me-1"></i> Buy Now
+                            </a>
+                          {% else %}
                             <span class="button btn-secondary disabled" style="background:#6c757d;">
-                                <i class="fas fa-ban me-1"></i> Unavailable
+                              <i class="fas fa-ban me-1"></i> Unavailable
                             </span>
+                          {% endif %}
+                        {% else %}
+                          <a href="{% url 'login' %}?next={{ request.path }}" class="button btn-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login to Purchase
+                          </a>
                         {% endif %}
                       </div>
                     </div>
@@ -853,7 +858,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile clear button: reset search input and remove all filters
     const mobileClearBtn = document.getElementById('mobile-clear-btn');
     if (mobileClearBtn) {
         mobileClearBtn.addEventListener('click', function(e) {
@@ -875,27 +879,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // AJAX & Chaining Logic
     const handleFilterChange = (element) => {
         const value = element.value;
         const name = element.getAttribute('name');
         const nextField = element.getAttribute('data-next');
-
-        // Sync values between Mobile and Desktop immediately
         document.querySelectorAll(`select[name="${name}"]`).forEach(el => { if (el !== element) el.value = value; });
-
-        // Show Apply buttons
         document.querySelectorAll('#apply-filter-btn, #apply-filter-btn-desktop').forEach(btn => btn.style.display = 'block');
-
         if (!value || !nextField) return;
-
         let url = '';
         if (name === 'category') url = `/categories/ajax/load-subcategories/${value}/`;
         else if (name === 'country') url = `/location/ajax/states-by-country/${value}/`;
         else if (name === 'state') url = `/location/ajax/cities-by-state/${value}/`;
         else if (name === 'city') url = `/location/ajax/districts-by-city/${value}/`;
         else if (name === 'district') url = `/location/ajax/regions-by-district/${value}/`;
-
         if (url) {
             fetch(url).then(res => res.json()).then(data => {
                 const items = Array.isArray(data) ? data : (data.subcategories || []);
@@ -905,55 +901,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Bind Events
     document.querySelectorAll('.js-filter-select').forEach(select => {
         select.addEventListener('change', function() { handleFilterChange(this); });
     });
 
-    // Apply filters function
     const applyFilters = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const fields = ['category', 'subcategory', 'country', 'state', 'city', 'district', 'region'];
-        
         fields.forEach(field => {
             const el = document.querySelector(`select[name="${field}"]`);
             if (el && el.value) urlParams.set(field, el.value);
             else urlParams.delete(field);
         });
-
-        // Get search value
         const search = document.getElementById('search-input');
-        if (search && search.value) {
-            urlParams.set('search', search.value);
-        } else {
-            urlParams.delete('search');
-        }
-
+        if (search && search.value) urlParams.set('search', search.value);
+        else urlParams.delete('search');
         urlParams.delete('page'); 
         window.location.search = urlParams.toString();
     };
 
-    // Attach to both apply buttons
     document.querySelectorAll('#apply-filter-btn, #apply-filter-btn-desktop').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            applyFilters();
-        });
+        btn.addEventListener('click', function(e) { e.preventDefault(); applyFilters(); });
     });
 
-    // Search on Enter key (fallback)
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                applyFilters();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
         });
     }
 
-    // ---------- AJAX Add to Cart ----------
-    const addButtons = document.querySelectorAll('.cart-add-btn');
+    // ---------- AJAX Add to Cart for the main list buttons ----------
+    const addToListButtons = document.querySelectorAll('.add-to-cart-list');
     const cartBadge = document.getElementById('cart-badge-count');
 
     function getCookie(name) {
@@ -971,18 +950,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
-    addButtons.forEach(btn => {
+    addToListButtons.forEach(btn => {
+        if (btn.disabled) return;
         btn.addEventListener('click', async function(e) {
             e.preventDefault();
             const slug = this.dataset.factorySlug;
-            const originalIcon = this.innerHTML;
-            const originalTitle = this.getAttribute('title');
-
-            // Disable button and show spinner
+            const originalText = this.innerHTML;
             this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            this.setAttribute('title', 'Adding...');
-
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Adding...';
             try {
                 const response = await fetch(`/karkhana/cart/add-api/${slug}/`, {
                     method: 'POST',
@@ -992,35 +967,78 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                 });
                 const data = await response.json();
-
                 if (data.success) {
-                    // Update cart badge count
                     if (cartBadge) {
                         cartBadge.textContent = data.cart_count;
-                        if (data.cart_count > 0) {
-                            cartBadge.style.display = 'inline-block';
-                        } else {
-                            cartBadge.style.display = 'none';
-                        }
+                        if (data.cart_count > 0) cartBadge.style.display = 'inline-block';
+                        else cartBadge.style.display = 'none';
                     }
-                    // Change button to "Added" style
-                    this.innerHTML = '<i class="fas fa-check"></i>';
-                    this.classList.remove('cart-add-btn');
-                    this.classList.add('bg-success', 'text-white');
+                    this.innerHTML = '<i class="fas fa-check me-1"></i> Added to Cart';
+                    this.classList.add('added');
                     this.disabled = true;
-                    this.setAttribute('title', 'In Cart');
+                    // Also update the heart icon in the same card
+                    const heartBtn = this.closest('.factoryCard').querySelector('.cart-add-btn');
+                    if (heartBtn && heartBtn.classList && !heartBtn.classList.contains('bg-success')) {
+                        heartBtn.classList.add('bg-success', 'text-white');
+                        heartBtn.disabled = true;
+                        heartBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    }
                 } else {
-                    // Restore original
-                    this.innerHTML = originalIcon;
+                    this.innerHTML = originalText;
                     this.disabled = false;
-                    this.setAttribute('title', originalTitle);
                     alert(data.message || 'Failed to add to cart.');
                 }
             } catch (error) {
                 console.error('Add to cart error:', error);
-                this.innerHTML = originalIcon;
+                this.innerHTML = originalText;
                 this.disabled = false;
-                this.setAttribute('title', originalTitle);
+                alert('Network error. Please try again.');
+            }
+        });
+    });
+
+    // ---------- Heart icon (cart-add-btn) AJAX – syncs with main button ----------
+    const heartButtons = document.querySelectorAll('.cart-add-btn');
+    heartButtons.forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const slug = this.dataset.factorySlug;
+            const originalHtml = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const response = await fetch(`/karkhana/cart/add-api/${slug}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) cartBadge.style.display = 'inline-block';
+                        else cartBadge.style.display = 'none';
+                    }
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    this.classList.add('bg-success', 'text-white');
+                    this.disabled = true;
+                    const mainBtn = this.closest('.factoryCard').querySelector('.add-to-cart-list');
+                    if (mainBtn && !mainBtn.classList.contains('added')) {
+                        mainBtn.innerHTML = '<i class="fas fa-check me-1"></i> Added to Cart';
+                        mainBtn.classList.add('added');
+                        mainBtn.disabled = true;
+                    }
+                } else {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                    alert(data.message || 'Failed to add to cart.');
+                }
+            } catch (error) {
+                console.error('Heart add error:', error);
+                this.innerHTML = originalHtml;
+                this.disabled = false;
                 alert('Network error. Please try again.');
             }
         });
@@ -1035,15 +1053,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const factoryUrl = `${baseUrl}/karkahan/${factorySlug}/`;
         const encodedUrl = encodeURIComponent(factoryUrl);
         const encodedTitle = encodeURIComponent(factoryName);
-
-        // Set links
         document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${encodedTitle} - ${encodedUrl}`;
         document.getElementById('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
         document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
         document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         document.getElementById('share-email').href = `mailto:?subject=Check out ${encodedTitle}&body=I thought you might be interested in this factory: ${factoryUrl}`;
-
-        // Copy link button
         const copyBtn = document.getElementById('copy-link-btn');
         const copyMessage = document.getElementById('copy-message');
         copyBtn.onclick = async () => {
@@ -1055,7 +1069,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Failed to copy link. Please try again.');
             }
         };
-
         shareModal.show();
     }
 

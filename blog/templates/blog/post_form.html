@@ -5,11 +5,21 @@
 
 {% block extra_css %}
 <style>
-    /* ... (all your existing CSS remains unchanged) ... */
-    .hover-opacity-100 { opacity: 0; transition: opacity 0.3s ease; }
-    .position-relative:hover .hover-opacity-100 { opacity: 1; }
-    .transition-opacity { transition: opacity 0.3s ease; }
-    .clickable-image { cursor: pointer; }
+
+    .hover-opacity-100 {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .position-relative:hover .hover-opacity-100 {
+        opacity: 1;
+    }
+    .transition-opacity {
+        transition: opacity 0.3s ease;
+    }
+    .clickable-image {
+        cursor: pointer;
+    }
+    /* Modern Upload Area */
     .upload-area {
         border: 2px dashed #E5E7EB;
         border-radius: 1rem;
@@ -20,11 +30,16 @@
         transition: all 0.2s;
         margin-bottom: 1.5rem;
     }
-    .upload-area:hover, .upload-area.drag-over {
+    .upload-area:hover,
+    .upload-area.drag-over {
         border-color: #EB662B;
         background: #FFF9F6;
     }
-    .upload-icon { font-size: 2.5rem; color: #EB662B; margin-bottom: 0.5rem; }
+    .upload-icon {
+        font-size: 2.5rem;
+        color: #EB662B;
+        margin-bottom: 0.5rem;
+    }
     .image-preview-card {
         background: white;
         border-radius: 0.75rem;
@@ -42,7 +57,9 @@
         height: 150px;
         object-fit: cover;
     }
-    .image-preview-card .card-body { padding: 0.75rem; }
+    .image-preview-card .card-body {
+        padding: 0.75rem;
+    }
     .image-actions {
         display: flex;
         justify-content: space-between;
@@ -62,10 +79,19 @@
         align-items: center;
         justify-content: center;
     }
-    .btn-icon.delete { color: #dc2626; }
-    .btn-icon.delete:hover { background: #fee2e2; }
-    .btn-icon.insert { color: #EB662B; }
-    .btn-icon.insert:hover { background: #fff0e6; }
+    .btn-icon.delete {
+        color: #dc2626;
+    }
+    .btn-icon.delete:hover {
+        background: #fee2e2;
+    }
+    .btn-icon.insert {
+        color: #EB662B;
+    }
+    .btn-icon.insert:hover {
+        background: #fff0e6;
+    }
+    /* Toggle Switch Styles */
     .toggle-switch {
         display: flex;
         align-items: center;
@@ -100,56 +126,75 @@
         transition: 0.3s;
         border-radius: 50%;
     }
-    .switch.active .slider { background-color: #EB662B; }
-    .switch.active .slider:before { transform: translateX(26px); }
-    .status-text { font-size: 0.9rem; font-weight: 500; color: #1e293b; }
-    .status-text .published { color: #EB662B; font-weight: 600; }
-    .status-text .draft { color: #64748b; }
-    .featured-hero-card {
-        position: relative;
-        width: 100%;
-        height: 350px;
-        overflow: hidden;
-        background: #2c3e50;
+    .switch.active .slider {
+        background-color: #EB662B;
     }
-    .hero-img { width: 100%; height: 100%; object-fit: cover; }
-    .hero-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%);
+    .switch.active .slider:before {
+        transform: translateX(26px);
     }
-    .hero-content {
-        position: absolute;
-        bottom: 40px;
-        left: 40px;
-        z-index: 2;
+    .status-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1e293b;
     }
-    .badge-featured {
-        background: #EB662B;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 100px;
-        font-size: 11px;
-        font-weight: 700;
-    }
-    .form-input {
-        position: relative;
-    }
-    .form-input input, .form-input textarea {
-        width: 100%;
-        padding: 15px;
-        border: 1px solid #EAEAEA;
-        border-radius: 8px;
-    }
-    .form-input label {
-        position: absolute;
-        top: -10px;
-        left: 12px;
-        background: white;
-        padding: 0 5px;
-        font-size: 12px;
+    .status-text .published {
         color: #EB662B;
         font-weight: 600;
+    }
+    .status-text .draft {
+        color: #64748b;
+    }
+    /* Existing styles (keep your original) */
+    .featured-hero-card { 
+        position: relative; 
+        width: 100%; 
+        height: 350px; 
+        overflow: hidden; 
+        background: #2c3e50; 
+    }
+    .hero-img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
+    .hero-overlay { 
+        position: absolute; 
+        inset: 0; 
+        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%); 
+    }
+    .hero-content { 
+        position: absolute; 
+        bottom: 40px; 
+        left: 40px; 
+        z-index: 2; 
+    }
+    .badge-featured { 
+        background: #EB662B; 
+        color: white; 
+        padding: 4px 12px; 
+        border-radius: 100px; 
+        font-size: 11px; 
+        font-weight: 700; 
+    }
+    .form-input { 
+        position: relative; 
+    }
+    .form-input input, 
+    .form-input textarea { 
+        width: 100%; 
+        padding: 15px; 
+        border: 1px solid #EAEAEA; 
+        border-radius: 8px; 
+    }
+    .form-input label { 
+        position: absolute; 
+        top: -10px; 
+        left: 12px; 
+        background: white; 
+        padding: 0 5px; 
+        font-size: 12px; 
+        color: #EB662B; 
+        font-weight: 600; 
     }
     .label-tech-sm {
         font-size: 11px;
@@ -159,7 +204,12 @@
         margin-bottom: 6px;
         display: block;
     }
-    .line { height: 1px; background: #EAEAEA; margin: 20px 0; }
+    .line {
+        height: 1px;
+        background: #EAEAEA;
+        margin: 20px 0;
+    }
+    /* Select2 (keep your existing) */
     .select2-container--default .select2-selection--single {
         border: 1px solid #EAEAEA !important;
         border-radius: 10px !important;
@@ -173,14 +223,22 @@
         padding-left: 15px !important;
         line-height: 50px !important;
     }
+    /* Factory cards (keep your existing) */
     .factory-cards-container {
         border: 1px solid #EAEAEA;
         border-radius: 8px;
         padding: 15px;
         background: #fafafa;
     }
-    .factory-card-item { min-width: 200px; flex: 0 0 200px; }
-    .factory-card-item .card { border-radius: 8px; overflow: hidden; transition: transform 0.2s; }
+    .factory-card-item {
+        min-width: 200px;
+        flex: 0 0 200px;
+    }
+    .factory-card-item .card {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
     .factory-card-item .card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -214,14 +272,16 @@
     <div class="container">
         <form method="post" enctype="multipart/form-data" id="blog-form">
             {% csrf_token %}
+            
             <div class="row y-gap-30 justify-center">
                 <div class="col-lg-8">
+                    
                     <div class="form-input mb-20">
                         {{ form.title }}
                         <label class="lh-1 text-16">Post Title</label>
                     </div>
 
-                    <div class="row mb-30 g-3">
+                    <div class="row mb-30 g-3"> 
                         <div class="col-md-6">
                             <div class="form-group-custom">
                                 <label class="label-tech-sm">Blog Category</label>
@@ -241,8 +301,18 @@
                             {{ form.content }}
                             <label class="lh-1 text-16">Article Content</label>
                         </div>
-
-                        <!-- Inline Image Helper (kept fully functional) -->
+                        
+                        <!-- Link Insertion Tool -->
+                        <div class="link-tools mt-3 p-3 bg-light rounded-3">
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLink()">
+                                    <i class="fas fa-link"></i> Add Link
+                                </button>
+                                <small class="text-muted">Select text in the editor, then click "Add Link" to create a hyperlink</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Inline Image Helper -->
                         <div class="inline-image-helper mt-4 p-3 bg-light rounded-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="fw-600">📸 Insert Inline Images</label>
@@ -290,7 +360,7 @@
                             {{ form.region }}
                         </div>
                     </div>
-
+                       
                     <div class="line mt-20 mb-20"></div>
 
                     <h5 class="text-18 fw-600 mb-20">Related Factories</h5>
@@ -301,6 +371,7 @@
                                 <label class="lh-1 text-14">Search Factories</label>
                             </div>
                         </div>
+                        
                         <div class="factory-cards-container">
                             <div id="factory-cards" class="d-flex gap-3 overflow-auto pb-2">
                                 {% for factory in factories %}
@@ -333,14 +404,20 @@
                         </div>
                     </div>
 
-                    <!-- Published Toggle -->
+                    <!-- Modern Published Toggle -->
                     {% if request.user.is_staff %}
                         <div class="mb-30">
                             <div class="toggle-switch-container">
-                                <div style="display: none;">{{ form.is_published }}</div>
+                                <div style="display: none;">
+                                    {{ form.is_published }}
+                                </div>
                                 <div class="toggle-switch">
-                                    <div class="switch" id="publish-toggle"><div class="slider"></div></div>
-                                    <div class="status-text">Status: <span id="publish-status-text">Draft</span></div>
+                                    <div class="switch" id="publish-toggle">
+                                        <div class="slider"></div>
+                                    </div>
+                                    <div class="status-text">
+                                        Status: <span id="publish-status-text">Draft</span>
+                                    </div>
                                 </div>
                                 <div class="form-text">
                                     {% if not request.user.is_staff %}
@@ -364,7 +441,11 @@
 
                     <div id="image-preview-grid" class="row g-3 mt-3"></div>
 
-                    <!-- Image Preview Modal -->
+                    <!-- Existing Gallery Images (if editing) -->
+                    <!-- Existing Gallery Images (if editing) -->
+            
+
+                    <!-- Image Preview Modal (placed OUTSIDE the conditional) -->
                     <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-centered">
                             <div class="modal-content">
@@ -378,6 +459,7 @@
                             </div>
                         </div>
                     </div>
+                    
 
                     <div class="row y-gap-15 justify-between items-center pt-40">
                         <div class="col-auto">
@@ -405,44 +487,64 @@
 </div>
 {% endblock %}
 
+{% load static %}
 {% block extra_js %}
 <!-- jQuery and Select2 -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<!-- TinyMCE – configured WITHOUT automatic upload popup -->
+<!-- TinyMCE from local static files -->
+<!-- TinyMCE -->
 <script src="https://cdn.tiny.cloud/1/w8flzfvw98k2d81w3bs97eegftzmbgt2dnu7lpvvy0we7toq/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
 
 <script>
 // ==========================================
-// TinyMCE – Clean editor, no popup on typing
+// TinyMCE Advanced Rich Text Editor Setup
+// (Using local static files - completely FREE)
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TinyMCE with enhanced configuration
     tinymce.init({
         selector: '#{{ form.content.id_for_label }}',
         height: 500,
         plugins: [
             'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-            'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+            'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'uploadcare', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
         ],
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography uploadcare | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
         menubar: 'edit insert format table tools',
         content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
         image_title: true,
-        automatic_uploads: false,          // NO automatic upload popup
-        file_picker_types: '',             // NO file picker popup
+        automatic_uploads: true,
+        file_picker_types: 'image',
         relative_urls: false,
         remove_script_host: false,
         branding: false,
         promotion: false,
-        tinycomments_mode: 'embedded'
+        tinycomments_mode: 'embedded',
+        uploadcare_public_key: '991ed6e508887096946a'
     });
 });
 
 // ==========================================
 // THE WATERFALL ENGINE (Cascading Selects)
 // ==========================================
+
+document.querySelectorAll('.clickable-image').forEach(el => {
+    el.addEventListener('click', function(e) {
+        const imgUrl = this.getAttribute('data-image-url');
+        const imgAlt = this.getAttribute('data-image-alt');
+        const modalImg = document.getElementById('modalImage');
+        const modalTitle = document.querySelector('#imageModal .modal-title');
+        if (modalImg) {
+            modalImg.src = imgUrl;
+            modalImg.alt = imgAlt || 'Image Preview';
+            modalTitle.textContent = imgAlt || 'Image Preview';
+        }
+    });
+});
+
 function setupCascade(parentId, childId, url, clearChildren = [], targetChildId = null) {
     const $parent = $('#' + parentId);
     const $child = $('#' + childId);
@@ -457,9 +559,11 @@ function setupCascade(parentId, childId, url, clearChildren = [], targetChildId 
                 });
                 $child.html(options);
                 $child.select2({tags: true, width: '100%'});
+                // Clear deeper levels
                 clearChildren.forEach(child => {
                     $('#' + child).html('<option value="">---</option>').trigger('change');
                 });
+                // If this child has a selected value, trigger its change to load deeper levels
                 if (selectedChildId) {
                     $child.val(selectedChildId).trigger('change');
                 } else {
@@ -469,12 +573,14 @@ function setupCascade(parentId, childId, url, clearChildren = [], targetChildId 
                 console.error('Failed to load data for', parentId);
             });
         } else if (parentVal) {
+            // Parent has a user-typed value – allow tagging in child
             $child.html('<option value="">Type to add new...</option>').select2({tags: true, width: '100%'});
             clearChildren.forEach(child => {
                 $('#' + child).html('<option value="">---</option>').trigger('change');
             });
             $child.trigger('change');
         } else {
+            // No parent value – clear child and deeper
             $child.html('<option value="">Select...</option>').select2({tags: true, width: '100%'});
             clearChildren.forEach(child => {
                 $('#' + child).html('<option value="">---</option>').trigger('change');
@@ -482,22 +588,27 @@ function setupCascade(parentId, childId, url, clearChildren = [], targetChildId 
         }
     }
 
+    // Listen to parent changes
     $parent.on('change', function() {
         const val = $(this).val();
         loadChildOptions(val, null);
     });
 
+    // Initial load if editing (parent has a value and targetChildId provided)
     const initialParentVal = $parent.val();
     if (initialParentVal && targetChildId !== null) {
         loadChildOptions(initialParentVal, targetChildId);
     } else if (initialParentVal) {
+        // Just load child options without pre‑selecting
         loadChildOptions(initialParentVal, null);
     } else {
+        // Initialize child with empty state
         $child.html('<option value="">Select...</option>').select2({tags: true, width: '100%'});
     }
 }
 
 $(document).ready(function() {
+    // Initialize Select2 for all searchable selects
     $('.select2-searchable').select2({
         tags: true,
         width: '100%',
@@ -507,17 +618,18 @@ $(document).ready(function() {
         }
     });
 
+    // Saved values from Django (these are the IDs of the current selections)
     const subId = {{ form.subcategory.value|default_if_none:"null" }};
     const stateId = {{ form.state.value|default_if_none:"null" }};
     const cityId = {{ form.city.value|default_if_none:"null" }};
     const distId = {{ form.district.value|default_if_none:"null" }};
     const regId = {{ form.region.value|default_if_none:"null" }};
 
+    // ========== CASCADING SELECTS – ALL UNCOMMENTED ==========
     setupCascade('id_category', 'id_subcategory', "{% url 'category:ajax_load_subcategories' 0 %}", [], subId);
-    // Uncomment location cascades if needed
-    // setupCascade('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region'], stateId);
-    // setupCascade('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region'], cityId);
-    // setupCascade('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region'], distId);
+    setupCascade('id_country', 'id_state', "{% url 'location:states_by_country' 0 %}", ['id_city', 'id_district', 'id_region'], stateId);
+    setupCascade('id_state', 'id_city', "{% url 'location:cities_by_state' 0 %}", ['id_district', 'id_region'], cityId);
+    setupCascade('id_city', 'id_district', "{% url 'location:districts_by_city' 0 %}", ['id_region'], distId);
     setupCascade('id_district', 'id_region', "{% url 'location:regions_by_district' 0 %}", [], regId);
 
     // Live Title Preview
@@ -525,7 +637,7 @@ $(document).ready(function() {
         $('#title-live-preview').text($(this).val() || "Untitled Article");
     });
 
-    // ========== MODERN IMAGE UPLOAD (fully functional) ==========
+    // ========== MODERN IMAGE UPLOAD ==========
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.querySelector('#id_images');
     const previewGrid = document.getElementById('image-preview-grid');
@@ -578,7 +690,7 @@ $(document).ready(function() {
         });
 
         uploadedImages.forEach((file, index) => {
-            const placeholder = `[image:${index}]`;
+            const placeholder = `[image:new:${index}]`;
             const reader = new FileReader();
             reader.onload = function(e) {
                 addInlineButton(placeholder, `New ${index+1}`, e.target.result);
@@ -633,7 +745,10 @@ $(document).ready(function() {
     }
 
     dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+    });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
@@ -643,6 +758,14 @@ $(document).ready(function() {
     fileInput.addEventListener('change', (e) => {
         handleNewFiles(Array.from(e.target.files));
         fileInput.value = '';
+    });
+
+    document.querySelectorAll('.insert-existing').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const placeholder = this.getAttribute('data-placeholder');
+            if (placeholder) insertImagePlaceholder(placeholder);
+        });
     });
 
     renderImagePreviews();
@@ -683,39 +806,67 @@ $(document).ready(function() {
     $('#select-all-factories').click(() => $('.factory-card-item:visible input').prop('checked', true));
     $('#clear-all-factories').click(() => $('.factory-card-item input').prop('checked', false));
 
-    // ========== FORM SUBMISSION ==========
+    // ========== FORM SUBMISSION WITH DOUBLE‑SUBMIT GUARD ==========
+    const mainForm = document.getElementById('blog-form');
     let isSubmitting = false;
     $('#blog-form').off('submit').on('submit', function(e) {
         e.preventDefault();
         if (isSubmitting) return;
         isSubmitting = true;
 
-        const formData = new FormData(this);
-        uploadedImages.forEach((file) => {
-            formData.append('images', file);
+        console.log('Submitting form, uploadedImages count:', uploadedImages.length);
+        uploadedImages.forEach((file, idx) => {
+            console.log(`  image ${idx}:`, file.name);
         });
 
+        // Create a FormData object from the original form
+        const formData = new FormData(this);
+
+        // Append all new images from uploadedImages
+        uploadedImages.forEach((file, index) => {
+            formData.append('images', file);
+        });
+        console.log("uploadedImages :",uploadedImages)
+        // Send the form via fetch
         fetch(this.action, {
             method: 'POST',
             body: formData,
-            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
         })
         .then(response => {
             if (response.redirected) {
+                console.log('Redirected to:', response.url);
                 window.location.href = response.url;
             } else {
                 return response.text();
             }
         })
         .catch(error => console.error('Submit error:', error))
-        .finally(() => { isSubmitting = false; });
+        .finally(() => {
+            isSubmitting = false;
+        });
     });
 });
 
 function insertImagePlaceholder(placeholder) {
+    // Get the TinyMCE editor instance
     const editor = tinymce.get('id_content');
     if (editor) {
+        // Insert the placeholder at the current cursor position
         editor.insertContent(placeholder);
+    }
+}
+
+// ==========================================
+// Add Link Function - Works with TinyMCE
+// ==========================================
+function addLink() {
+    const editor = tinymce.get('id_content');
+    if (editor) {
+        // Open TinyMCE's built-in link dialog
+        editor.execCommand('mceLink');
     }
 }
 </script>

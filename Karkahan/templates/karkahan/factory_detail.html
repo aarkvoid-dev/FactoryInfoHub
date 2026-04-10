@@ -93,13 +93,24 @@
         text-decoration: none;
     }
 
+    /* Green "Added" state */
+    .btn-purchase.added {
+        background: #28a745 !important;
+        background-image: none !important;
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5);
+        animation: pulse-green 1.5s infinite;
+        cursor: default;
+        opacity: 0.9;
+    }
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+        70% { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
 
-    
     /* Tablet screens */
     @media (max-width: 768px) {
         .btn-purchase, .btn-secondary {
-       
-        
             border-radius: 6px;
         }
         .purchase-actions {
@@ -112,13 +123,12 @@
         .btn-purchase, .btn-secondary {
             font-size: 0.4rem;
             border-radius: 6px;
-            white-space: normal;     /* allow text to wrap if needed (e.g. long translations) */
+            white-space: normal;
             line-height: 1.2;
         }
         .purchase-actions {
             gap: 0.5rem;
         }
-        /* Ensure the icons don't take too much space */
         .btn-purchase i, .btn-secondary i {
             margin-right: 0.25rem;
         }
@@ -208,17 +218,6 @@
     }
 
     /* 3. Mobile Friendly Tabs */
-    /* .tabs-controls {
-        display: flex;
-        overflow-x: auto;
-        white-space: nowrap;
-        background: #f8fafc;
-        border-radius: 12px 12px 0 0;
-        scrollbar-width: none; 
-    } */
-    
-    /*.tabs-controls::-webkit-scrollbar { display: none; } Hide scrollbar Chrome/Safari */
-
     .tab-button {
         padding: 15px 25px;
         border: none;
@@ -276,7 +275,7 @@
         .contact-sidebar { margin-top: 30px; }
     }
     body {
-    color: #000000;
+        color: #000000;
     }
     .text {
         color: #0F172A;
@@ -391,19 +390,18 @@
         .modal-nav-btn { width: 32px; height: 32px; font-size: 16px; }
     }
 
-
     /* 3. Mobile Friendly Tabs - No Horizontal Scroll */
     .tabs-controls {
         display: flex;
-        flex-wrap: wrap;          /* Allow buttons to wrap onto next line if needed */
-        justify-content: center;  /* Center the buttons when wrapped */
+        flex-wrap: wrap;
+        justify-content: center;
         background: #f8fafc;
         border-radius: 12px 12px 0 0;
-        gap: 0;                   /* Remove gaps between buttons */
+        gap: 0;
     }
 
     .tab-button {
-        flex: 1 0 auto;           /* Allow buttons to grow and shrink, base size auto */
+        flex: 1 0 auto;
         text-align: center;
         padding: 12px 16px;
         border: none;
@@ -414,14 +412,14 @@
         border-bottom: 3px solid transparent;
         transition: all 0.2s;
         font-size: 14px;
-        white-space: nowrap;      /* Prevent text wrapping inside button */
+        white-space: nowrap;
     }
 
     @media (max-width: 768px) {
         .tab-button {
             padding: 10px 12px;
             font-size: 12px;
-            flex: 1 0 auto;       /* Keep buttons flexible */
+            flex: 1 0 auto;
         }
     }
 
@@ -429,10 +427,10 @@
         .tab-button {
             padding: 8px 8px;
             font-size: 11px;
-            white-space: normal;   /* Allow text to wrap on very small screens */
+            white-space: normal;
         }
         .tabs-controls {
-            gap: 4px;              /* Add small gap when wrapped */
+            gap: 4px;
         }
     }
 
@@ -441,7 +439,6 @@
         border-bottom-color: var(--accent);
         background: var(--white);
     }
-
 </style>
 {% endblock %}
 
@@ -554,49 +551,29 @@
         </div>
         {% endif %}
 
+        <!-- Purchase Actions with Green State -->
         {% if factory.price > 0 %}
         <div class="purchase-actions">
             {% if user.is_authenticated %}
-                <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
-                    <a href="{% url 'karkahan:order_history' %}" class="btn-secondary">
-                        <i class="fas fa-history me-2"></i> View Purchase History
-                    </a>
-                {% else %}
-                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
-                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart - ₹{{ factory.price|intcomma }}
-                    </a>
-                    <a href="{% url 'karkahan:cart_detail' %}" class="btn-secondary">
-                        <i class="fas fa-shopping-bag me-2"></i> View Cart
-                    </a>
-                {% endif %} -->
-                <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
-                     <i class="fas fa-shopping-cart me-2"></i> Add to Cart <!-- - ₹{{ factory.price|intcomma }} -->
+                <!-- AJAX Add to Cart button (green if already in cart) -->
+                <button class="btn-purchase add-to-cart-ajax {% if in_cart %}added{% endif %}" 
+                        data-factory-slug="{{ factory.slug }}" 
+                        data-factory-price="{{ factory.price }}"
+                        {% if in_cart %}disabled{% endif %}>
+                    <i class="fas fa-shopping-cart me-2"></i> 
+                    {% if in_cart %} Added to Cart {% else %} Add to Cart {% endif %}
+                </button>
+            
+                <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-secondary">
+                    <i class="fas fa-shopping-bag me-2"></i> Buy Now
                 </a>
-                <a href="{% url 'karkahan:cart_detail' %}" class="btn-secondary">
-                    <i class="fas fa-shopping-bag me-2"></i> View Cart
-                </a>
+                
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
                     <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase - ₹{{ factory.price|intcomma }}
                 </a>
-                <!-- <a href="{% url 'register' %}?next={{ request.path }}" class="btn-secondary">
-                    <i class="fas fa-user-plus me-2"></i> Register
-                </a> -->
             {% endif %}
         </div>
-        
-        <!-- <div class="mt-3">
-            <div class="text-center text-white opacity-75">
-                <small>
-                    By proceeding with purchase, you agree to our 
-                    <a href="{% url 'disclaimer' %}" class="text-white fw-bold text-decoration-underline">Disclaimer</a>
-                    , 
-                    <a href="{% url 'refund_policy' %}" class="text-white fw-bold text-decoration-underline">Refund Policy</a>
-                    and
-                    <a href="{% url 'terms_and_conditions' %}" class="text-white fw-bold text-decoration-underline">Terms and Conditions</a>
-                </small>
-            </div>
-        </div> -->
         {% else %}
         <div class="purchase-actions">
             <span class="badge bg-secondary px-3 py-2 rounded-pill">Not Available for Purchase</span>
@@ -609,87 +586,16 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8">
-                <!-- <div class="specs-grid">
-                    <div class="spec-card">
-                        <span class="spec-icon">🏭</span>
-                        <div class="spec-label">Capacity</div>
-                        <div class="spec-value">{{ factory.production_capacity|default:"N/A" }}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="spec-icon">👥</span>
-                        <div class="spec-label">Staff</div>
-                        <div class="spec-value">{{ factory.employee_count|default:"0" }}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="spec-icon">🏭</span>
-                        <div class="spec-label">Production</div>
-                        <div class="spec-value">{{ factory.production_capacity|default:"N/A" }}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="spec-icon">⏰</span>
-                        <div class="spec-label">Shift Hours</div>
-                        <div class="spec-value">{{ factory.working_hours|default:"N/A" }}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="spec-icon">💰</span>
-                        <div class="spec-label">Price</div>
-                        <div class="spec-value">₹{{ factory.price|intcomma }}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="spec-icon">📅</span>
-                        <div class="spec-label">Est. Year</div>
-                        <div class="spec-value">{{ factory.established_year|default:"N/A" }}</div>
-                    </div>
-                </div> -->
-
                 <div class="bg-white rounded-4 shadow-sm overflow-hidden">
                     <div class="tabs-controls border-bottom">
                         <button class="tab-button is-active" onclick="switchTab(event, 'overview')">Overview</button>
                         <button class="tab-button" onclick="switchTab(event, 'features')">Features</button>
-                        <!-- <button class="tab-button" onclick="switchTab(event, 'technical')">Technical</button> -->
                         {% if factory.video_url %}<button class="tab-button" onclick="switchTab(event, 'video')">Video Tour</button>{% endif %}
                         <button class="tab-button" onclick="switchTab(event, 'gallery')">Gallery</button>
                     </div>
                     <div class="p-4">
                         <div id="overview" class="tab-panel is-active">
-                            <!-- <span class="text text-muted">Name : </span><span class="text fw-bold">{{ factory.name }}</span><br>
-                            <span class="text text-muted">Category : </span><span class="text fw-bold">{{ factory.category }}</span>
-                            <div class="text lh-lg text-slate">Production Volume : {{ factory.production_capacity|default:"N/A" }}</div>
-                            <div class="text lh-lg text-slate">Shift Structure : {{ factory.working_hours|default:"N/A" }}</div>
-                            <h4 class="fw-bold mb-3">Description</h4> -->
                             <div class="lh-lg text-slate">{{ factory.description|linebreaks }}</div>
-                            
-                            <!-- {% if user_has_purchased or user.is_staff or factory.created_by == user %}
-                                <h4 class="fw-bold mb-3">Location Details</h4>
-                                <div class="text lh-lg text-slate">
-                                    {{ factory.address }},{{ factory.district.name }},{{ factory.city.name }}, {{ factory.state.name }}, {{ factory.country.name }}<br>
-                                    {% if factory.pincode %}PIN: {{ factory.pincode }}{% endif %}
-                                </div>
-                                {% if factory.website %}
-                                    <div class="text lh-lg text-slate"> Digital Hub : 
-                                        <a href="{{ factory.website }}" target="_blank" class="text-decoration-none text-accent">
-                                            <i class="fas fa-globe me-2"></i>{{ factory.website|truncatechars:30 }}
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            {% else %}
-                            <div class="purchase-required">
-                                <div class="purchase-required-icon">
-                                    <i class="fas fa-lock"></i>
-                                </div>
-                                <h5 class="fw-bold mb-2">Location Information Locked</h5>
-                                <p class="mb-3">This factory's complete location details are only available to verified purchasers.</p>
-                                {% if user.is_authenticated %}
-                                    <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
-                                        <i class="fas fa-shopping-cart me-2"></i> Purchase to Unlock
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
-                                    </a>
-                                {% endif %}
-                            </div>
-                            {% endif %} -->
                         </div>
 
                         <div id="features" class="tab-panel" style="display:none">
@@ -698,15 +604,6 @@
                                 <li class=" list-group-item d-flex justify-content-between px-0">
                                     <span class="text-muted">Type</span><span class="fw-bold">{{ factory.factory_type }}</span>
                                 </li>
-                                <!-- <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Holidays</span><span class="fw-bold">{{ factory.holidays }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Staff Capacity</span><span class="fw-bold">{{ factory.employee_count|default:"0" }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Annual Turnover</span><span class="fw-bold">{{ factory.annual_turnover|default:"N/A" }}</span>
-                                </li> -->
                             </ul>
                             {% if factory.features %}
                                 <div class="lh-lg text-slate">{{ factory.features|linebreaks }}</div>
@@ -916,6 +813,77 @@
 </div>
 
 <script>
+    // ========== AJAX ADD TO CART (with persistent green state) ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartBtn = document.querySelector('.add-to-cart-ajax');
+        const cartBadge = document.querySelector('#cart-badge-count');
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        if (addToCartBtn && !addToCartBtn.disabled) {
+            addToCartBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const slug = this.dataset.factorySlug;
+                const originalText = this.innerHTML;
+                
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Adding...';
+                
+                try {
+                    const response = await fetch(`/karkhana/cart/add-api/${slug}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update cart badge count
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cart_count;
+                            if (data.cart_count > 0) {
+                                cartBadge.style.display = 'inline-block';
+                            } else {
+                                cartBadge.style.display = 'none';
+                            }
+                        }
+                        // Change button to green "Added to Cart"
+                        this.innerHTML = '<i class="fas fa-check me-2"></i> Added to Cart';
+                        this.classList.add('added');
+                        this.disabled = true;
+                        // Optional: alert or toast – remove if you don't want
+                        // alert('Factory added to cart!');
+                    } else {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        alert(data.message || 'Failed to add to cart.');
+                    }
+                } catch (error) {
+                    console.error('Add to cart error:', error);
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    alert('Network error. Please try again.');
+                }
+            });
+        }
+    });
+
+    // ========== EXISTING FUNCTIONS (unchanged) ==========
     function switchTab(event, tabName) {
         const buttons = document.querySelectorAll('.tab-button');
         const panels = document.querySelectorAll('.tab-panel');
@@ -975,13 +943,9 @@
     }
 
     function showDeleteModal(slug, name, type) {
-        // Remove existing modal if any
         const existingModal = document.getElementById('deleteModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
+        if (existingModal) existingModal.remove();
 
-        // Create modal HTML
         const modalHtml = `
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -1033,10 +997,7 @@
             </div>
         `;
 
-        // Append modal to body using vanilla JavaScript
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal
         const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
         modal.show();
         
@@ -1050,7 +1011,6 @@
         }
     }
 
-    // Get CSRF token from cookie
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -1139,7 +1099,6 @@
         }
     }
 
-    // Image gallery navigation variables and functions
     let currentImageIndex = 0;
     let galleryImages = [];
 
@@ -1173,7 +1132,6 @@
         modalImage.src = galleryImages[currentImageIndex];
     }
 
-    // Keyboard navigation for modal
     document.addEventListener('keydown', function(e) {
         const modal = document.getElementById('imageModal');
         if (modal && modal.classList.contains('show')) {
