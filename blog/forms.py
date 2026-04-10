@@ -14,7 +14,7 @@ import hashlib
 from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from .models import BlogPost, BlogImage
+from .models import BlogPost, BlogImage, BlogComment
 from location.models import Country, State, City, District, Region
 from category.models import Category, SubCategory
 from Karkahan.models import Factory
@@ -563,3 +563,17 @@ class BlogPostFilterForm(forms.Form):
                 ).order_by('name')
             except AttributeError:
                 pass
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = BlogComment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Write your comment here...',
+                'class': 'form-control'
+            })
+        }
+        labels = {'content': ''}

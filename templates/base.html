@@ -189,35 +189,29 @@
 
                 <div class="ml-40 lg:d-none">
                   <div class="desktopNav -light">
-                  <div class="desktopNav__item">
+                  {% comment %} <div class="desktopNav__item">
                       <a href="{% url 'home' %}">Home</a>
+                  </div> {% endcomment %}
+
+                  <div class="desktopNav__item">
+                      <a href="{% url 'blog:post_list' %}">Blog</a>
+                  </div>
+                  <div class="desktopNav__item">
+                      <a href="{% url 'category:user_category_list' %}">Category</a>
+                  </div>
+                  <div class="desktopNav__item">
+                      <a href="{% url 'location:location_hierarchy' %}">Locations</a>
                   </div>
 
                   <div class="desktopNav__item">
                       <a href="{% url 'karkahan:factory_list' %}">Karkhana</a>
                   </div>
-
                   <div class="desktopNav__item">
-                      <a href="{% url 'blog:post_list' %}">Blog</a>
+                      <a href="{% url 'faq:search' %}">Q&A</a>
                   </div>
-
-                  <div class="desktopNav__item">
-                      <a href="{% url 'faq:home' %}">Q&A</a>
-                  </div>
-                  <div class="desktopNav__item">
-                      <a href="{% url 'location:location_hierarchy' %}">Locations</a>
-                  </div>
-                  <div class="desktopNav__item">
-                      <a href="{% url 'category:user_category_list' %}">Category</a>
-                  </div>
-                  
-
                   <!-- <div class="desktopNav__item">
                       <a href="{% url 'workers:worker_list' %}">Workers</a>
                   </div> -->
-
-                  
-
                   {% if request.user.is_staff or request.user.is_superuser %}
                   <div class="desktopNav__item">
                       <a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a>
@@ -558,7 +552,7 @@
 
       <div class="menu__content">
         <ul class="menuNav js-navList">
-          <li class="menuNav__item -has-submenu js-has-submenu">
+          {% comment %} <li class="menuNav__item -has-submenu js-has-submenu">
             <a>
               Home
               <i class="icon-chevron-right"></i>
@@ -582,7 +576,7 @@
               </li>
 
               <li class="submenu__item">
-                  <a href="{% url 'faq:home' %}">Q&A</a>
+                  <a href="{% url 'faq:search' %}">Q&A</a>
               </li> 
 
               <li class="submenu__item">
@@ -612,7 +606,47 @@
               </li>
               {% endif %}
             </ul>
+          </li> {% endcomment %}
+
+          {% comment %} <li class="menuNav__item">
+            <a href="{% url 'home' %}">Home</a>
+          </li> {% endcomment %}
+
+          <li class="menuNav__item">
+            <a href="{% url 'blog:post_list' %}">Blog</a>
           </li>
+
+          <li class="menuNav__item">
+            <a href="{% url 'karkahan:factory_list' %}">Karkhana</a>
+          </li>
+          <li class="menuNav__item">
+              <a href="{% url 'category:user_category_list' %}">Category</a>
+          </li>
+          <li class="menuNav__item">
+              <a href="{% url 'location:location_hierarchy' %}">Locations</a>
+          </li>
+          <li class="menuNav__item">
+              <a href="{% url 'faq:search' %}">Q&A</a>
+          </li> 
+          <!-- <li class="submenu__item">
+            <a href="{% url 'workers:worker_list' %}">Workers</a>
+          </li> -->
+
+          {% if request.user.is_staff or request.user.is_superuser %}
+            <li class="menuNav__item">
+                <a href="{% url 'admin_interface:admin_dashboard' %}">Admin</a>
+          </li>
+          {% endif %}
+
+          <li class="menuNav__item">
+            <a href="{% url 'contact' %}">Contact</a>
+          </li>
+
+          {% if user.is_authenticated %}
+          <li class="menuNav__item">
+            <a href="{% url 'karkahan:order_history' %}">Orders</a>
+          </li>
+          {% endif %}
 
           {% if user.is_authenticated %}
           <li class="menuNav__item">

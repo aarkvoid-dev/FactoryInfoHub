@@ -570,7 +570,7 @@
                     </a>
                 {% endif %} -->
                 <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-purchase">
-                    <i class="fas fa-shopping-cart me-2"></i> Add to Cart - ₹{{ factory.price|intcomma }}
+                     <i class="fas fa-shopping-cart me-2"></i> Add to Cart <!-- - ₹{{ factory.price|intcomma }} -->
                 </a>
                 <a href="{% url 'karkahan:cart_detail' %}" class="btn-secondary">
                     <i class="fas fa-shopping-bag me-2"></i> View Cart
@@ -698,7 +698,7 @@
                                 <li class=" list-group-item d-flex justify-content-between px-0">
                                     <span class="text-muted">Type</span><span class="fw-bold">{{ factory.factory_type }}</span>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
+                                <!-- <li class="list-group-item d-flex justify-content-between px-0">
                                     <span class="text-muted">Holidays</span><span class="fw-bold">{{ factory.holidays }}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between px-0">
@@ -706,10 +706,9 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between px-0">
                                     <span class="text-muted">Annual Turnover</span><span class="fw-bold">{{ factory.annual_turnover|default:"N/A" }}</span>
-                                </li>
+                                </li> -->
                             </ul>
                             {% if factory.features %}
-                                <h4 class="fw-bold mb-3">Features : </h4>
                                 <div class="lh-lg text-slate">{{ factory.features|linebreaks }}</div>
                             {% endif %}
                         </div>
@@ -1069,7 +1068,7 @@
 
     function restoreFactory(slug) {
         if (confirm('Are you sure you want to restore this factory? It will become visible to users again.')) {
-            fetch(`/karkahan/factories/${slug}/restore/`, {
+            fetch(`/karkhana/factories/${slug}/restore/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
@@ -1096,8 +1095,8 @@
         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
         if (modal) modal.hide();
         const url = type === 'hard' 
-            ? `/karkahan/factories/${slug}/hard-delete/`
-            : `/karkahan/factories/${slug}/delete/`;
+            ? `/karkhana/factories/${slug}/hard-delete/`
+            : `/karkhana/factories/${slug}/delete/`;
         fetch(url, {
             method: 'POST',
             headers: {

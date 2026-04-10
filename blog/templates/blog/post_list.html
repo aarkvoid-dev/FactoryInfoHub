@@ -709,11 +709,11 @@
                     <p class="text-15 text-light-2">Factories matching your current search criteria.</p>
                 </div>
                 <div class="col-auto">
-                    <a href="{% url 'karkahan:factory_list' %}" class="button -md -outline-accent-1 text-accent-1 rounded-12">View Factory</a>
+                    <a href="{% url 'karkahan:factory_list' %}" class="button -outline-accent-1 text-accent-1 rounded-12" style="padding: 20px;">View Factory</a>
                 </div>
                 {% if user.is_authenticated %}
                     <div class="col-auto">
-                        <a href="{% url 'blog:post_create' %}" class="button -md -outline-accent-1 text-accent-1 rounded-12">
+                        <a href="{% url 'blog:post_create' %}" class="button  -outline-accent-1 text-accent-1 rounded-12" style="padding: 20px;">
                             <i class="fas fa-plus mr-10"></i> Create Post
                         </a>
                     </div>

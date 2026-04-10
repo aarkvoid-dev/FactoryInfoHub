@@ -2128,7 +2128,7 @@ def export_factories_to_csv(factories):
     response['Content-Disposition'] = 'attachment; filename="factories.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name', 'Category', 'Sub Category', 'Location', 'Capacity', 'Owner', 'Status'])
+    writer.writerow(['ID', 'Factory Name','Contact Person','Contact', 'Category', 'Sub Category', 'Location', 'Capacity', 'Owner', 'Status'])
 
     for factory in factories:
         owner = ', '.join([profile.user.username for profile in factory.profiles.all()]) if factory.profiles.exists() else 'No owner'
@@ -2136,6 +2136,8 @@ def export_factories_to_csv(factories):
         writer.writerow([
             factory.id,
             factory.name,
+            factory.contact_person,
+            factory.contact_phone,
             factory.category.name,
             factory.subcategory.name if factory.subcategory else 'N/A',
             location,
@@ -2150,7 +2152,7 @@ def export_workers_to_csv(workers):
     response['Content-Disposition'] = 'attachment; filename="workers.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name', 'Category', 'Position', 'Factory', 'Experience', 'Age', 'Gender', 'Status'])
+    writer.writerow(['ID', 'Name','Phone No.', 'Category', 'Position', 'Factory', 'Experience', 'Age', 'Gender', 'Status'])
 
     for worker in workers:
         
@@ -2162,6 +2164,7 @@ def export_workers_to_csv(workers):
         writer.writerow([
             worker.id,
             worker.full_name,
+            worker.phone_number,
             worker.category,
      
          
@@ -2182,7 +2185,7 @@ def generate_factory_report(start_date, end_date, format):
         response['Content-Disposition'] = f'attachment; filename="factory_report_{start_date}_to_{end_date}.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['ID', 'Name', 'Category', 'Sub Category', 'Location', 'Capacity', 'Owner', 'Created At'])
+        writer.writerow(['ID', 'Name', 'Category', 'Sub Category', 'Location', 'Phone Number', 'Owner', 'Created At'])
 
         for factory in factories:
             owner = ', '.join([profile.user.username for profile in factory.profiles.all()]) if factory.profiles.exists() else 'No owner'
@@ -2193,7 +2196,7 @@ def generate_factory_report(start_date, end_date, format):
                 factory.category.name,
                 factory.subcategory.name if factory.subcategory else 'N/A',
                 location,
-                factory.capacity,
+                factory.contact_phone,
                 owner,
                 factory.created_at,
             ])
@@ -2215,7 +2218,7 @@ def generate_worker_report(start_date, end_date, format):
         response['Content-Disposition'] = f'attachment; filename="worker_report_{start_date}_to_{end_date}.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['ID', 'Name', 'Category', 'Position', 'Factory', 'Experience', 'Age', 'Gender', 'Created At'])
+        writer.writerow(['ID', 'Name', 'Category', 'Contact Info', 'Factory', 'Experience', 'Age', 'Gender', 'Created At'])
 
         for worker in workers:
      
@@ -2228,7 +2231,7 @@ def generate_worker_report(start_date, end_date, format):
                 worker.id,
                 worker.full_name,
                 worker.category,
-                worker.position,
+                worker.phone_number,
                 f"{worker.years_of_experience} years",
                 f"{age} years" if age else 'N/A',
                 worker.gender,
@@ -2250,7 +2253,7 @@ def generate_combined_report(start_date, end_date, format):
         response['Content-Disposition'] = f'attachment; filename="combined_report_{start_date}_to_{end_date}.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['Type', 'ID', 'Name', 'Category', 'Details', 'Created At'])
+        writer.writerow(['Type', 'ID', 'Name','Phone No.', 'Category', 'Details', 'Created At'])
 
         factories = Factory.objects.filter(created_at__range=[start_date, end_date])
         workers = Worker.objects.filter(created_at__range=[start_date, end_date])
@@ -2261,6 +2264,7 @@ def generate_combined_report(start_date, end_date, format):
                 'Factory',
                 factory.id,
                 factory.name,
+                factory.contact_phone,
                 factory.category.name,
                 location,
                 factory.created_at,
@@ -2271,6 +2275,7 @@ def generate_combined_report(start_date, end_date, format):
                 'Worker',
                 worker.id,
                 worker.full_name,
+                worker.phone_number,
                 worker.category,
                 f"{worker.position}",
                 worker.created_at,
@@ -2549,6 +2554,63 @@ def admin_factory_detail(request, factory_id):
         'title': f'Factory Details: {factory.name}'
     }
     return render(request, 'CustomAdmin/factories/factory_detail.html', context)
+
+@login_required
+def admin_factory_copy(request, factory_id):
+    profile = request.user.profile
+    role = profile.role
+
+    if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'CustomAdmin/permission_denied.html')
+
+    original = get_object_or_404(Factory, id=factory_id)
+
+    # Create a copy by resetting primary key and unique fields
+    factory_copy = Factory(
+        name=f"Copy of {original.name}",
+        slug=None,                     # will be auto‑generated on save
+        factory_code=None,             # will be auto‑generated
+        description=original.description,
+        category=original.category,
+        subcategory=original.subcategory,
+        country=original.country,
+        state=original.state,
+        city=original.city,
+        district=original.district,
+        region=original.region,
+        address=original.address,
+        pincode=original.pincode,
+        contact_person=original.contact_person,
+        contact_phone=original.contact_phone,
+        contact_email=original.contact_email,
+        website=original.website,
+        established_year=original.established_year,
+        employee_count=original.employee_count,
+        annual_turnover=original.annual_turnover,
+        price=original.price,
+        factory_type=original.factory_type,
+        production_capacity=original.production_capacity,
+        working_hours=original.working_hours,
+        holidays=original.holidays,
+        features=original.features,
+        is_active=original.is_active,
+        is_verified=original.is_verified,
+        created_by=request.user,
+        video_url=original.video_url,
+    )
+    factory_copy.save()
+
+    # Copy images (the same files, not new uploads)
+    for img in original.images.all():
+        FactoryImage.objects.create(
+            factory=factory_copy,
+            image=img.image,          # same file reference
+            alt_text=img.alt_text,
+            is_primary=img.is_primary
+        )
+
+    messages.success(request, f'Factory "{original.name}" duplicated. You can now edit the copy.')
+    return redirect('admin_interface:admin_factory_edit', factory_id=factory_copy.id)
 
 # Blog CRUD Views
 @login_required
@@ -3066,7 +3128,7 @@ def admin_contacts(request):
     users = User.objects.filter(contactmessage__isnull=False).distinct()
 
     context = {
-        'messages': page_obj,
+        'Messages': page_obj,
         'users': users,
         'unread_count': unread_count,
         'read_count': read_count,
@@ -3186,12 +3248,13 @@ def export_contact_messages_to_csv(messages):
     response['Content-Disposition'] = 'attachment; filename="contact_messages.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At'])
+    writer.writerow(['ID', 'Name','Phone No.', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At'])
 
     for message in messages:
         writer.writerow([
             message.id,
             message.name,
+            message.mobile_number,
             message.email,
             message.subject,
             message.message.replace('\n', ' ').replace('\r', ''),

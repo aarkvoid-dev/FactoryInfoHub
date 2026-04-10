@@ -33,7 +33,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Full Name</label>
-                            <input type="text" name="name" class="custom-input" placeholder="e.g. Rahul Sharma" required>
+                            <input type="text" name="name" class="custom-input" placeholder="e.g. Rahul Sharma" required style="border: solid 2px #62808f;">
                         </div>
                     </div>
 
@@ -42,20 +42,22 @@
                             <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Work Email</label>
                             <input type="email" name="email" class="custom-input" placeholder="rahul@factory.com" 
                                    value="{% if user_email %}{{ user_email }}{% elif user.is_authenticated %}{{ user.email }}{% endif %}"
-                                   {% if user.is_authenticated %}readonly{% endif %} required>
+                                   {% if user.is_authenticated %}readonly{% endif %} required style="border: solid 2px #62808f;">
                             {% if user.is_authenticated %}
-                                <small class="text-muted">Using your registered email. <a href="#" id="edit-email-link" class="text-accent-1">Edit</a></small>
-                                <br>
-                                <small class="text-muted">Or <a href="#" id="open-gmail-link" class="text-accent-1">send directly from your Gmail</a></small>
+                                <div class="mt-5">
+                                    <small class="text-muted">Using your registered email. <a href="#" id="edit-email-link" class="text-accent-1">Edit</a></small>
+                                    <br>
+                                    <small class="text-muted">Or <a href="#" id="open-gmail-link" class="text-accent-1">send directly from your Gmail</a></small>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <div class="form-group">
                             <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Mobile Number (Optional)</label>
-                            <div class="input-group">
-                                <select name="country_code" class="custom-select" style="max-width: 100px; border-radius: 12px 0 0 12px; border-right: none;">
+                            <div class="mobile-input-group">
+                                <select name="country_code" class="custom-input country-select">
                                     <option value="+1" {% if user_country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
                                     <option value="+44" {% if user_country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
                                     <option value="+91" {% if user_country_code == '+91' %}selected{% endif %}>🇮🇳 +91</option>
@@ -100,18 +102,18 @@
                                     <option value="+51" {% if user_country_code == '+51' %}selected{% endif %}>🇵🇪 +51</option>
                                     <option value="+58" {% if user_country_code == '+58' %}selected{% endif %}>🇻🇪 +58</option>
                                     <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
-                                </select>
-                                <input type="tel" name="mobile_number" class="custom-input" placeholder="98765 43210" 
-                                       value="{% if user_mobile %}{{ user_mobile|slice:":" }} {% endif %}">
+                                    </select>
+                                <input type="tel" name="mobile_number" class="custom-input phone-input" placeholder="98765 43210" 
+                                       value="{% if user_mobile %}{{ user_mobile }}{% endif %}" style="border: solid 2px #62808f;">
                             </div>
-                            <small class="text-muted">For faster response, you can provide your contact number</small>
+                            <small class="text-muted mt-5 d-block">For faster response, you can provide your contact number</small>
                         </div>
                     </div>
 
                     <div class="col-12">
                         <div class="form-group">
                             <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Subject</label>
-                            <input type="text" name="subject" class="custom-input" placeholder="Inquiry about Registration" required>
+                            <input type="text" name="subject" class="custom-input" placeholder="Inquiry about Registration" required style="border: solid 2px #62808f;">
                         </div>
                     </div>
 
@@ -167,14 +169,14 @@
                     </div>
                 </div>
 
-                <div class="mt-45 pt-30 border-top-light">
+                <!-- <div class="mt-45 pt-30 border-top-light">
                     <h5 class="text-16 fw-700 mb-20">Connect With Us</h5>
                     <div class="d-flex x-gap-15">
                         <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-circle"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
                     </div>
-                </div>
+                </div> -->
             </div>
           </div>
         </div>
@@ -194,6 +196,8 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             emailInput.removeAttribute('readonly');
             emailInput.focus();
+            emailInput.style.backgroundColor = '#ffffff';
+            emailInput.style.cursor = 'text';
             this.style.display = 'none';
         });
     }
@@ -201,31 +205,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (openGmailLink) {
         openGmailLink.addEventListener('click', function(e) {
             e.preventDefault();
-            
-            // Get form values
             const name = document.querySelector('input[name="name"]').value;
             const email = document.querySelector('input[name="email"]').value;
             const subject = document.querySelector('input[name="subject"]').value;
             const message = document.querySelector('textarea[name="message"]').value;
             
-            // Create Gmail compose URL with pre-filled content
             const gmailSubject = encodeURIComponent(`FactoryInfoHub Contact: ${subject}`);
-            const gmailBody = encodeURIComponent(`Hello FactoryInfoHub Team,
-
-My name is ${name} (${email}).
-
-${message}
-
-Best regards,
-${name}`);
-            
-            // Open Gmail compose page in new tab
+            const gmailBody = encodeURIComponent(`Hello FactoryInfoHub Team,\n\nMy name is ${name} (${email}).\n\n${message}\n\nBest regards,\n${name}`);
             const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=support@factoryinfohub.com&su=${gmailSubject}&body=${gmailBody}`;
             window.open(gmailUrl, '_blank');
         });
     }
     
-    // Add some visual feedback for readonly fields
     if (emailInput && emailInput.hasAttribute('readonly')) {
         emailInput.style.backgroundColor = '#f8fafc';
         emailInput.style.cursor = 'not-allowed';
@@ -236,10 +227,7 @@ ${name}`);
 
 {% block extra_css %}
 <style>
-    .hero{
-        padding-top:120px;
-    }
-    /* Gradient Header */
+    .hero{ padding-top:120px; }
     .bg-gradient-primary {
         background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
         position: relative;
@@ -248,74 +236,44 @@ ${name}`);
     .bg-white-10 { background: rgba(255, 255, 255, 0.1); }
     .backdrop-blur { backdrop-filter: blur(10px); }
 
-    /* Modern Form Inputs with Borders */
+    /* Custom Input Style */
     .custom-input {
         width: 100%;
         padding: 15px 20px;
         background-color: #ffffff;
-        
-        /* Darker, more professional border */
-        border: 2px solid #cbd5e1; 
+        border: 2px solid #39495e; 
         border-radius: 12px;
-        
         font-size: 15px;
         color: #1e293b;
         transition: all 0.2s ease-in-out;
-        
-        /* Adds a subtle depth to the field */
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
     }
 
-    /* Hover State - makes the form feel interactive */
-    .custom-input:hover {
-        border-color: #94a3b8;
-    }
-
-    /* Active/Focus State - using your brand orange */
     .custom-input:focus {
         outline: none;
         border-color: #EB662B; 
-        background-color: #fff;
-        /* Glowing effect using your accent color */
         box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.15);
     }
 
-    /* Info Cards and Social Icons (keep your existing CSS here) */
-    .info-card-modern {
+    /* Unified Mobile Input Style */
+    .mobile-input-group {
         display: flex;
         align-items: center;
-        padding: 20px;
-        background: white;
-        border-radius: 16px;
-        border: 2px solid #f1f5f9; /* Added consistent border here too */
-        transition: all 0.3s ease;
-    }
-    .info-card-modern:hover {
-        border-color: #EB662B;
-        transform: translateX(5px);
     }
 
-    /* Professional Button */
-    .btn-submit-accent {
-        width: 100%;
-        background: #EB662B;
-        color: white;
-        padding: 18px;
-        border: none;
-        border-radius: 50px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 10px 20px rgba(235, 102, 43, 0.2);
+    .country-select {
+        flex: 0 0 110px; /* Fixed width for the country code */
+        border-right: none;
+        border-radius: 12px 0 0 12px !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C2.185 5.355 2.398 5 2.733 5h9.534a.25.25 0 0 1 .199.432l-4.83 5.482a.25.25 0 0 1-.389 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        appearance: none;
+        padding-right: 30px;
     }
 
-    .btn-submit-accent:hover {
-        background: #d45620;
-        transform: translateY(-2px);
-        box-shadow: 0 15px 25px rgba(235, 102, 43, 0.3);
+    .phone-input {
+        flex: 1;
+        border-radius: 0 12px 12px 0 !important;
     }
 
     /* Info Cards */
@@ -325,13 +283,14 @@ ${name}`);
         padding: 20px;
         background: white;
         border-radius: 16px;
-        border: 1px solid #eee;
+        border: 2px solid #f1f5f9;
         transition: all 0.3s ease;
     }
     .info-card-modern:hover {
         border-color: #EB662B;
         transform: translateX(5px);
     }
+
     .icon-circle {
         width: 45px;
         height: 45px;
@@ -344,10 +303,28 @@ ${name}`);
         margin-right: 15px;
         flex-shrink: 0;
     }
-    .info-card-modern .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
-    .info-card-modern .value { font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 0; }
 
-    /* Social Icons */
+    /* Button and Socials */
+    .btn-submit-accent {
+        width: 100%;
+        background: #EB662B;
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 20px rgba(235, 102, 43, 0.2);
+    }
+
+    .btn-submit-accent:hover {
+        background: #d45620;
+        transform: translateY(-2px);
+    }
+
     .social-circle {
         width: 40px;
         height: 40px;
@@ -362,7 +339,6 @@ ${name}`);
     .social-circle:hover {
         background: #EB662B;
         color: white;
-        transform: scale(1.1);
     }
 </style>
 {% endblock %}

@@ -467,7 +467,7 @@ html { font-size: 14px; }
 }
 
 /* For very small screens (≤480px) */
-@media (max-width: 480px) {
+@media (max-width: 300px) {
     .dashboard-card-mobile {
         flex: 0 0 calc(100% - 16px);
     }
@@ -475,22 +475,22 @@ html { font-size: 14px; }
         flex-direction: row;
         justify-content: flex-start;
         text-align: left;
-        gap: 16px;
-        padding: 20px;
+        gap: 8px;
+        padding: 8px;
         min-height: auto;
     }
     .dashboard-card-mobile .icon-box {
         margin-bottom: 0;
     }
     .dashboard-card-mobile .icon-box i {
-        font-size: 1.8rem !important;
+        font-size: 1.1rem !important;
     }
     .dashboard-card-mobile h3 {
-        font-size: 14px !important;
-        margin-bottom: 4px;
+        font-size: 12px !important;
+        margin-bottom: 1px;
     }
     .dashboard-card-mobile p {
-        font-size: 11px !important;
+        font-size: 8px !important;
         padding: 0;
     }
 }
@@ -512,7 +512,7 @@ html { font-size: 14px; }
 {% block content %}
     <!-- Hero Slider -->
     <section data-anim="fade" class="hero -type-9">
-      <div class="hero__slider js-section-slider" data-gap="0" data-slider-cols="xl-1 lg-1 md-1 sm-1 base-1" data-pagination="js-main-slider-pagination">
+      <div class="hero__slider" data-gap="0" data-slider-cols="xl-1 lg-1 md-1 sm-1 base-1" data-pagination="js-main-slider-pagination">
         <div class="swiper-wrapper">
           <div class="swiper-slide">
             <div class="hero__bg">
@@ -616,7 +616,7 @@ html { font-size: 14px; }
                     <div class="col-auto"><a href="{% url 'karkahan:factory_list' %}" class="buttonArrow d-flex items-center"><span>See all</span><i class="icon-arrow-top-right text-16 ml-10"></i></a></div>
                 </div>
                 <div class="relative mt-40 sm:mt-20" data-anim-child="slide-up delay-2">
-                    <div class="overflow-hidden js-section-slider" data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" data-gap="36" data-nav-prev="js-cat-prev" data-nav-next="js-cat-next">
+                    <div class="overflow-hidden js-category-slider" data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" data-gap="36" data-nav-prev="js-cat-prev" data-nav-next="js-cat-next">
                         <div class="swiper-wrapper">
                             {% for category in category_stats %}
                             <div class="swiper-slide slide">
@@ -647,7 +647,7 @@ html { font-size: 14px; }
                     <div class="col-auto"><a href="{% url 'karkahan:factory_list' %}" class="buttonArrow d-flex items-center"><span>See all</span><i class="icon-arrow-top-right text-16 ml-10"></i></a></div>
                 </div>
                 <div class="relative mt-40 sm:mt-20" data-anim-child="slide-up delay-2">
-                    <div class="overflow-hidden js-section-slider" data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" data-gap="36" data-nav-prev="js-loc-prev" data-nav-next="js-loc-next">
+                    <div class="overflow-hidden js-location-slider" data-slider-cols="xl-8 lg-5 md-4 sm-3 base-2" data-gap="36" data-nav-prev="js-loc-prev" data-nav-next="js-loc-next">
                         <div class="swiper-wrapper">
                             {% for city in city_stats %}
                             <div class="swiper-slide slide">
@@ -700,7 +700,7 @@ html { font-size: 14px; }
       <div class="container">
         <div class="aboutSection -type-1">
           <div class="aboutSection__text text-center mb-12">
-            <h2 class="text-30 md:text-24 fw-700">Why Choose FactoryInfoHub</h2>
+            <h2 class="text-30 md:text-24 fw-700">Why Choose FashionChemistry</h2>
             <p>Most viewed and all-time top-selling factory listings</p>
           </div>
           <div class="row y-gap-30">
@@ -745,7 +745,7 @@ html { font-size: 14px; }
               {% endfor %}
             </div>
           </div>
-          <!-- <div class="navRegular mt-40 md:mt-30"><button class="navRegular__button bg-white js-slider1-prev"><i class="icon-arrow-left text-20"></i></button><button class="navRegular__button bg-white js-slider1-next"><i class="icon-arrow-right text-20"></i></button></div> -->
+          <div class="navRegular mt-40 md:mt-30"><button class="navRegular__button bg-white js-slider1-prev"><i class="icon-arrow-left text-20"></i></button><button class="navRegular__button bg-white js-slider1-next"><i class="icon-arrow-right text-20"></i></button></div>
         </div>
       </div>
     </section>
@@ -987,27 +987,32 @@ html { font-size: 14px; }
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    function getBreakpoints(classes) {
-        const parts = classes.split(' ');
-        const bp = { 320: 3, 576: 3, 768: 4, 992: 5, 1200: 8 };
-        parts.forEach(p => {
-            const [size, val] = p.split('-');
-            const num = parseInt(val);
-            if (size === 'base') bp[320] = num;
-            if (size === 'sm') bp[576] = num;
-            if (size === 'md') bp[768] = num;
-            if (size === 'lg') bp[992] = num;
-            if (size === 'xl') bp[1200] = num;
-        });
-        return {
-            320: { slidesPerView: bp[320], spaceBetween: 15 },
-            576: { slidesPerView: bp[576], spaceBetween: 20 },
-            768: { slidesPerView: bp[768], spaceBetween: 30 },
-            992: { slidesPerView: bp[992], spaceBetween: 36 },
-            1200: { slidesPerView: bp[1200], spaceBetween: 36 }
-        };
-    }
+    // Helper to get breakpoints with slidesPerView capped to real slide count
+    function getBreakpoints(cols) {
+      const parts = cols.split(' ');
+      const bp = { 320: 2, 576: 3, 768: 4, 992: 5, 1200: 6 };
 
+      parts.forEach(p => {
+          const [size, val] = p.split('-');
+          const num = parseInt(val);
+
+          if (size === 'base') bp[320] = num;
+          if (size === 'sm') bp[576] = num;
+          if (size === 'md') bp[768] = num;
+          if (size === 'lg') bp[992] = num;
+          if (size === 'xl') bp[1200] = num;
+      });
+
+      return {
+          320: { slidesPerView: bp[320], spaceBetween: 15 },
+          576: { slidesPerView: bp[576], spaceBetween: 20 },
+          768: { slidesPerView: bp[768], spaceBetween: 30 },
+          992: { slidesPerView: bp[992], spaceBetween: 36 },
+          1200: { slidesPerView: bp[1200], spaceBetween: 36 }
+      };
+  }
+
+    // Hero slider (unchanged)
     const heroSlider = document.querySelector('.hero__slider');
     if (heroSlider && !heroSlider.swiper) {
         new Swiper(heroSlider, {
@@ -1021,29 +1026,85 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Category, location, featured factories, blog sliders
     const autoSliders = document.querySelectorAll('.js-section-slider');
     autoSliders.forEach(slider => {
         if (slider.swiper) return;
         if (slider.classList.contains('hero__slider')) return;
+
         const cols = slider.dataset.sliderCols || 'xl-8 lg-5 md-4 sm-3 base-2';
         const gap = parseInt(slider.dataset.gap) || 36;
         const navPrev = slider.dataset.navPrev ? '.' + slider.dataset.navPrev : null;
         const navNext = slider.dataset.navNext ? '.' + slider.dataset.navNext : null;
         const paginationEl = slider.dataset.pagination ? '.' + slider.dataset.pagination : null;
+
+        // Count real slides (excluding any duplicates that Swiper might add)
+        const realSlides = slider.querySelectorAll('.swiper-slide');
+        const slideCount = realSlides.length;
+
+        // Loop ONLY if enough slides
+        const loopEnabled = slideCount > 3;
+
         new Swiper(slider, {
-            slidesPerView: 'auto',
             spaceBetween: gap,
-            loop: true,
-            autoplay: { delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true },
+            loop: loopEnabled,
+            loopFillGroupWithBlank: false, // 🚨 important
+            watchOverflow: true,           // prevents weird behavior
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+            },
             breakpoints: getBreakpoints(cols),
-            navigation: { prevEl: navPrev ? slider.closest('.relative')?.querySelector(navPrev) : null, nextEl: navNext ? slider.closest('.relative')?.querySelector(navNext) : null },
+            navigation: {
+                prevEl: navPrev ? slider.closest('.relative')?.querySelector(navPrev) : null,
+                nextEl: navNext ? slider.closest('.relative')?.querySelector(navNext) : null,
+            },
             pagination: paginationEl ? { el: paginationEl, clickable: true } : false,
-            touchRatio: 1,
-            simulateTouch: true,
         });
     });
 
-    // Product slider for mobile (only 3 products, but separate initialization)
+    const categorySlider = document.querySelector('.js-category-slider');
+
+    if (categorySlider && !categorySlider.swiper) {
+        new Swiper(categorySlider, {
+            slidesPerView: 3,
+            spaceBetween: 18,
+            loop: true,
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false
+            },
+            breakpoints: {
+                576: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                992: { slidesPerView: 5 },
+                1200: { slidesPerView: 6 }
+            }
+        });
+    }
+
+    const locationSlider = document.querySelector('.js-location-slider');
+
+    if (locationSlider && !locationSlider.swiper) {
+        new Swiper(locationSlider, {
+            slidesPerView: 3,
+            spaceBetween: 18,
+            loop: true,
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false
+            },
+            breakpoints: {
+                576: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                992: { slidesPerView: 5 },
+                1200: { slidesPerView: 6 }
+            }
+        });
+    }
+
+    // Product slider (if you ever uncomment it)
     const productSlider = document.querySelector('.js-product-slider');
     if (productSlider && !productSlider.swiper) {
         new Swiper(productSlider, {
@@ -1057,6 +1118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Your existing video functions (keep as they are)
 function toggleMute() {
     const video = document.getElementById('mainVideo');
     const btn = document.getElementById('muteBtn');

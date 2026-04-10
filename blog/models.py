@@ -6,7 +6,7 @@ from category.models import SubCategory, Category
 from location.models import Region, District, City, State, Country
 from Home.models import SoftDeleteModel
 from Karkahan.models import Factory
-
+from django.utils import timezone
 
 class BlogPost(SoftDeleteModel):
     title = models.CharField(max_length=200)
@@ -116,3 +116,18 @@ class BlogImage(models.Model):
             # Unset featured status for other images of the same blog post
             BlogImage.objects.filter(blog_post=self.blog_post, is_featured=True).update(is_featured=False)
         super().save(*args, **kwargs)
+
+
+class BlogComment(models.Model):
+    post = models.ForeignKey('BlogPost', on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_comments')
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_approved = models.BooleanField(default=True)  # Auto-approve; set to False for moderation
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comment by {self.author.username} on {self.post.title}"

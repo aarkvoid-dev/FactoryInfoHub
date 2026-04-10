@@ -12,7 +12,7 @@
                 <h1 class="h2 fw-bold text-white mb-1">Contact Messages</h1>
                 <p class="text-white-80 mb-0">Manage all contact form submissions and customer inquiries</p>
             </div>
-            <div class="mt-3 mt-md-0 d-flex gap-2">
+            <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
                 <a href="{% url 'admin:Home_contactmessage_changelist' %}" class="btn btn-light btn-sm">
                     <i class="fas fa-external-link-alt me-1"></i> Django Admin
                 </a>
@@ -31,7 +31,7 @@
                     <i class="fas fa-envelope text-primary"></i>
                 </div>
                 <div class="stat-details">
-                    <h3 class="stat-value">{{ messages.paginator.count }}</h3>
+                    <h3 class="stat-value">{{ Messages.paginator.count }}</h3>
                     <p class="stat-label">Total Messages</p>
                 </div>
                 <div class="stat-trend text-success">
@@ -89,177 +89,185 @@
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
             <h5 class="fw-semibold mb-2 mb-sm-0">
                 <i class="fas fa-inbox me-2 text-primary"></i>All Messages
-                <span class="badge bg-primary-soft text-primary ms-2">{{ messages.paginator.count }}</span>
+                <span class="badge bg-primary-soft text-primary ms-2">{{ Messages.paginator.count }}</span>
             </h5>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">
-                    Showing {{ messages.start_index }}–{{ messages.end_index }}
+                    Showing {{ Messages.start_index }}–{{ Messages.end_index }}
                 </span>
                 <a href="?download=csv{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="btn btn-sm btn-success">
                     <i class="fas fa-download me-1"></i> CSV
                 </a>
             </div>
         </div>
-
-        <!-- Messages Table -->
-        {% if messages %}
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 40px;">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="select-all">
-                            </div>
-                        </th>
-                        <th>From</th>
-                        <th>Subject</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th style="width: 70px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for message in messages %}
-                    <tr class="message-row {% if not message.is_read %}unread{% endif %}" data-message-id="{{ message.id }}">
-                        <td>
-                            <div class="form-check">
-                                <input class="form-check-input select-row" type="checkbox" value="{{ message.id }}">
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-circle bg-primary-soft me-2">
-                                    <span class="initials">{{ message.name|first|upper }}</span>
+        {% if Messages %}
+            <!-- Messages Table with horizontal scroll on mobile -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select-all">
                                 </div>
-                                <div>
-                                    <div class="fw-semibold">{{ message.name }}</div>
-                                    <small class="text-muted">{{ message.email|truncatechars:20 }}</small>
-                                    {% if message.user %}
-                                    <span class="badge bg-primary-soft text-primary ms-1">Registered</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary-soft text-secondary ms-1">Guest</span>
-                                    {% endif %}
+                            </th>
+                            <th>From</th>
+                            <th>Subject</th>
+                            <th>Message</th>
+                            <th>Phone No.</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th style="width: 70px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for message in Messages %}
+                        <tr class="message-row {% if not message.is_read %}unread{% endif %}" data-message-id="{{ message.id }}">
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input select-row" type="checkbox" value="{{ message.id }}">
                                 </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="fw-medium">{{ message.subject|truncatechars:30 }}</div>
-                            {% if not message.is_read %}
-                            <span class="badge bg-warning-soft text-warning">New</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="text-muted message-preview">{{ message.message|truncatechars:60 }}</span>
-                        </td>
-                        <td>
-                            {% if message.is_read %}
-                            <span class="badge bg-success-soft text-success">
-                                <i class="fas fa-check-circle me-1"></i> Read
-                            </span>
-                            {% else %}
-                            <span class="badge bg-warning-soft text-warning">
-                                <i class="fas fa-envelope me-1"></i> Unread
-                            </span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div>{{ message.created_at|date:"M d, Y" }}</div>
-                            <small class="text-muted">{{ message.created_at|date:"H:i" }}</small>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-icon btn-soft-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                    <li>
-                                        <button class="dropdown-item view-message" 
-                                            data-message-id="{{ message.id }}"
-                                            data-name="{{ message.name }}"
-                                            data-email="{{ message.email }}"
-                                            data-subject="{{ message.subject }}"
-                                            data-message="{{ message.message }}"
-                                            data-user="{{ message.user.username|default:'Guest' }}"
-                                            data-created="{{ message.created_at|date:'M d, Y H:i' }}"
-                                            data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
-                                            data-is-read="{{ message.is_read }}">
-                                            <i class="fas fa-eye me-2"></i> View
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'admin_interface:admin_contact_detail' message.id %}">
-                                            <i class="fas fa-info-circle me-2"></i> Details
-                                        </a>
-                                    </li>
-                                    {% if not message.is_read %}
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'admin_interface:mark_message_read' message.id %}">
-                                            <i class="fas fa-check me-2"></i> Mark Read
-                                        </a>
-                                    </li>
-                                    {% endif %}
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="{% url 'admin_interface:delete_message' message.id %}">
-                                            <i class="fas fa-trash me-2"></i> Delete
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Footer with Bulk Actions & Pagination -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top">
-            <div class="d-flex align-items-center mb-3 mb-md-0">
-                <span class="text-muted me-3" id="selection-info">No messages selected</span>
-                <div class="btn-group" role="group">
-                    <button class="btn btn-sm btn-outline-primary bulk-action" data-action="mark-read" title="Mark selected as read">
-                        <i class="fas fa-check-circle"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning bulk-action" data-action="mark-unread" title="Mark selected as unread">
-                        <i class="fas fa-envelope"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger bulk-action" data-action="delete" title="Delete selected">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary-soft me-2">
+                                        <span class="initials">{{ message.name|first|upper }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ message.name }}</div>
+                                        <small class="text-muted">{{ message.email|truncatechars:20 }}</small>
+                                        {% if message.user %}
+                                        <span class="badge bg-primary-soft text-primary ms-1">Registered</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary-soft text-secondary ms-1">Guest</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-medium">{{ message.subject|truncatechars:30 }}</div>
+                                {% if not message.is_read %}
+                                <span class="badge bg-warning-soft text-warning">New</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted message-preview">{{ message.message|truncatechars:60 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted message-preview">{{ message.mobile_number }}</span>
+                            </td>
+                            <td>
+                                {% if message.is_read %}
+                                <span class="badge bg-success-soft text-success">
+                                    <i class="fas fa-check-circle me-1"></i> Read
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning-soft text-warning">
+                                    <i class="fas fa-envelope me-1"></i> Unread
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ message.created_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ message.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-soft-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <button class="dropdown-item view-message" 
+                                                data-message-id="{{ message.id }}"
+                                                data-name="{{ message.name }}"
+                                                data-mobile_number="{{ message.mobile_number }}"
+                                                data-email="{{ message.email }}"
+                                                data-subject="{{ message.subject }}"
+                                                data-message="{{ message.message }}"
+                                                data-user="{{ message.user.username|default:'Guest' }}"
+                                                data-created="{{ message.created_at|date:'M d, Y H:i' }}"
+                                                data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
+                                                data-is-read="{{ message.is_read }}">
+                                                <i class="fas fa-eye me-2"></i> View
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'admin_interface:admin_contact_detail' message.id %}">
+                                                <i class="fas fa-info-circle me-2"></i> Details
+                                            </a>
+                                        </li>
+                                        {% if not message.is_read %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'admin_interface:mark_message_read' message.id %}">
+                                                <i class="fas fa-check me-2"></i> Mark Read
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'admin_interface:delete_message' message.id %}">
+                                                <i class="fas fa-trash me-2"></i> Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            {% if messages.has_other_pages %}
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                    {% if messages.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ messages.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    {% for num in messages.paginator.page_range %}
-                    {% if messages.number == num %}
-                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                    {% elif num > messages.number|add:'-2' and num < messages.number|add:'3' %}
-                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
-                    {% endif %}
-                    {% endfor %}
-                    
-                    {% if messages.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ messages.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
-        </div>
+
+            <!-- Footer with Bulk Actions & Pagination -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <span class="text-muted me-3" id="selection-info">No messages selected</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary bulk-action" data-action="mark-read" title="Mark selected as read">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-warning bulk-action" data-action="mark-unread" title="Mark selected as unread">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                        <button class="btn btn-outline-danger bulk-action" data-action="delete" title="Delete selected">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% if Messages.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0 flex-wrap">
+                            {% if Messages.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ Messages.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Show only current, first, last, and neighbours on mobile -->
+                            {% for num in Messages.paginator.page_range %}
+                                {% if Messages.number == num %}
+                                    <li class="page-item active d-none d-sm-block"><span class="page-link">{{ num }}</span></li>
+                                    <li class="page-item active d-sm-none"><span class="page-link">{{ num }}</span></li>
+                                {% elif num > Messages.number|add:'-2' and num < Messages.number|add:'2' %}
+                                    <li class="page-item d-none d-sm-block">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if Messages.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ Messages.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
         {% else %}
         <div class="text-center py-5">
             <div class="mb-3">
@@ -337,7 +345,7 @@
     </div>
 </div>
 
-<!-- Message Modal (improved) -->
+<!-- Message Modal -->
 <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -360,6 +368,7 @@
                                     <div>
                                         <div class="fw-medium" id="modal-name"></div>
                                         <div class="text-muted small" id="modal-email"></div>
+                                        <div class="text-muted small" id="modal-phonNo"></div>
                                     </div>
                                 </div>
                                 <div class="row text-muted small">
@@ -412,7 +421,7 @@
     </div>
 </div>
 
-<!-- Reply Modal (improved) -->
+<!-- Reply Modal -->
 <div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -458,7 +467,7 @@
     </div>
 </div>
 
-<!-- Mark All Read Confirmation Modal (unchanged) -->
+<!-- Mark All Read Confirmation Modal -->
 <div class="modal fade" id="markAllReadModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -484,8 +493,6 @@
     <input type="hidden" name="action" id="bulkActionInput">
     <input type="hidden" name="selected_ids" id="selectedIdsInput">
 </form>
-
-<!-- Toast container (already created in JS if needed) -->
 {% endblock %}
 
 {% block extra_css %}
@@ -508,7 +515,7 @@
         color: rgba(255, 255, 255, 0.8);
     }
 
-    /* Stat cards with glassmorphism */
+    /* Stat cards */
     .stat-card {
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
@@ -573,7 +580,14 @@
         border: 1px solid rgba(0, 0, 0, 0.03);
     }
 
-    /* Table enhancements */
+    /* Table responsive - horizontal scroll on mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table {
+        min-width: 900px;
+    }
     .table th {
         font-weight: 600;
         color: #495057;
@@ -707,6 +721,18 @@
         .dropdown-item {
             padding: 0.75rem 1rem;
         }
+        /* Adjust modal content for small screens */
+        .modal-body {
+            padding: 1rem;
+        }
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+        /* Make bulk action buttons slightly smaller */
+        .btn-group-sm .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+        }
     }
 </style>
 {% endblock %}
@@ -714,12 +740,12 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle filter offcanvas instead of inline card
+    // Toggle filter offcanvas
     const toggleBtn = document.getElementById('toggle-filters');
-    const filterOffcanvas = new bootstrap.Offcanvas(document.getElementById('filterOffcanvas'));
-    toggleBtn.addEventListener('click', () => {
-        filterOffcanvas.show();
-    });
+    if (toggleBtn) {
+        const filterOffcanvas = new bootstrap.Offcanvas(document.getElementById('filterOffcanvas'));
+        toggleBtn.addEventListener('click', () => filterOffcanvas.show());
+    }
 
     // Select all functionality
     const selectAll = document.getElementById('select-all');
@@ -728,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSelection() {
         const checked = Array.from(selectRows).filter(r => r.checked);
-        selectionInfo.textContent = checked.length ? `${checked.length} selected` : 'No messages selected';
+        if (selectionInfo) selectionInfo.textContent = checked.length ? `${checked.length} selected` : 'No messages selected';
         if (selectAll) selectAll.checked = checked.length === selectRows.length;
     }
 
@@ -748,6 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             document.getElementById('modal-name').textContent = this.dataset.name;
             document.getElementById('modal-email').textContent = this.dataset.email;
+            document.getElementById('modal-phonNo').textContent = this.dataset.mobile_number;
             document.getElementById('modal-subject').textContent = this.dataset.subject;
             document.getElementById('modal-message').textContent = this.dataset.message;
             document.getElementById('modal-created').textContent = this.dataset.created;
@@ -772,67 +799,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Reply Modal population
     const replyModal = new bootstrap.Modal(document.getElementById('replyModal'));
-    document.getElementById('modal-reply-btn').addEventListener('click', function() {
-        let messageId = this.dataset.messageId;
-        let email = document.getElementById('modal-email').textContent;
-        let subject = document.getElementById('modal-subject').textContent;
-        document.getElementById('reply-to').value = email;
-        document.getElementById('reply-subject').value = subject.toLowerCase().startsWith('re:') ? subject : `Re: ${subject}`;
-        document.getElementById('reply-message').value = '';
-        document.getElementById('send-reply-btn').setAttribute('data-message-id', messageId);
-    });
+    const replyBtn = document.getElementById('modal-reply-btn');
+    if (replyBtn) {
+        replyBtn.addEventListener('click', function() {
+            let messageId = this.dataset.messageId;
+            let email = document.getElementById('modal-email').textContent;
+            let subject = document.getElementById('modal-subject').textContent;
+            document.getElementById('reply-to').value = email;
+            document.getElementById('reply-subject').value = subject.toLowerCase().startsWith('re:') ? subject : `Re: ${subject}`;
+            document.getElementById('reply-message').value = '';
+            document.getElementById('send-reply-btn').setAttribute('data-message-id', messageId);
+        });
+    }
 
     // Send reply via AJAX
-    document.getElementById('send-reply-btn').addEventListener('click', function() {
-        const messageId = this.dataset.messageId;
-        const subject = document.getElementById('reply-subject').value;
-        const messageContent = document.getElementById('reply-message').value;
-        const markAsRead = document.getElementById('mark-as-read-checkbox').checked;
+    const sendReplyBtn = document.getElementById('send-reply-btn');
+    if (sendReplyBtn) {
+        sendReplyBtn.addEventListener('click', function() {
+            const messageId = this.dataset.messageId;
+            const subject = document.getElementById('reply-subject').value;
+            const messageContent = document.getElementById('reply-message').value;
+            const markAsRead = document.getElementById('mark-as-read-checkbox').checked;
 
-        if (!messageContent.trim()) {
-            showToast('Please enter a reply message.', 'warning');
-            return;
-        }
-
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
-        this.disabled = true;
-
-        fetch('{% url "admin_interface:send_contact_reply" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                message_id: messageId,
-                subject: subject,
-                message: messageContent,
-                mark_as_read: markAsRead
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
-                bootstrap.Modal.getInstance(document.getElementById('messageModal')).hide();
-                showToast('Reply sent successfully!', 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast('Error: ' + data.error, 'error');
+            if (!messageContent.trim()) {
+                showToast('Please enter a reply message.', 'warning');
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Failed to send reply. Please try again.', 'error');
-        })
-        .finally(() => {
-            this.innerHTML = originalText;
-            this.disabled = false;
-        });
-    });
 
-    // Bulk actions: submit hidden form
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            this.disabled = true;
+
+            fetch('{% url "admin_interface:send_contact_reply" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    message_id: messageId,
+                    subject: subject,
+                    message: messageContent,
+                    mark_as_read: markAsRead
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('messageModal')).hide();
+                    showToast('Reply sent successfully!', 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to send reply. Please try again.', 'error');
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    }
+
+    // Bulk actions
     const bulkForm = document.getElementById('bulkActionForm');
     document.querySelectorAll('.bulk-action').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -854,34 +887,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Individual mark as read/unread
-    document.querySelectorAll('.dropdown-item[href*="mark_message_read"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!confirm('Mark this message as read?')) return;
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = this.href;
-            form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">`;
-            document.body.appendChild(form);
-            form.submit();
-        });
-    });
-
-    // Individual delete
-    document.querySelectorAll('.dropdown-item.text-danger').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!confirm('Delete this message? This cannot be undone.')) return;
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = this.href;
-            form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">`;
-            document.body.appendChild(form);
-            form.submit();
-        });
-    });
-
     // Mark all read
     const markAllBtn = document.getElementById('mark-all-read');
     if (markAllBtn) {
@@ -894,18 +899,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    document.getElementById('confirm-mark-all-read')?.addEventListener('click', function() {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{% url "admin_interface:bulk_actions" %}';
-        form.innerHTML = `
-            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
-            <input type="hidden" name="action" value="mark-all-read">
-            <input type="hidden" name="selected_ids" value="">
-        `;
-        document.body.appendChild(form);
-        form.submit();
-    });
+    const confirmMarkAll = document.getElementById('confirm-mark-all-read');
+    if (confirmMarkAll) {
+        confirmMarkAll.addEventListener('click', function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "admin_interface:bulk_actions" %}';
+            form.innerHTML = `
+                <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                <input type="hidden" name="action" value="mark-all-read">
+                <input type="hidden" name="selected_ids" value="">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
 
     // Toast notification
     function showToast(message, type = 'info') {

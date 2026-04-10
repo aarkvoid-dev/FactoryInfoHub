@@ -115,7 +115,7 @@ class FactoryForm(ModelForm):
         self.fields['description'].required = True
         self.fields['price'].required = True
         self.fields['contact_person'].required = True
-        self.fields['contact_email'].required = True
+        self.fields['contact_email'].required = False
         self.fields['contact_phone'].required = True
         self.fields['category'].required = True
         self.fields['subcategory'].required = True

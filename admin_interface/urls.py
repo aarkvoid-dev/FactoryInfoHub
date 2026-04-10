@@ -88,6 +88,7 @@ urlpatterns = [
     path('factories/restore/<int:factory_id>/', views.admin_factory_restore, name='admin_factory_restore'),
     path('factories/hard-delete/<int:factory_id>/', views.admin_factory_hard_delete, name='admin_factory_hard_delete'),
     path('factories/detail/<int:factory_id>/', views.admin_factory_detail, name='admin_factory_detail'),
+    path('factories/copy/<int:factory_id>/', views.admin_factory_copy, name='admin_factory_copy'),
     
     # CRUD URLs for Workers
     path('workers/create/', views.admin_worker_create, name='admin_worker_create'),

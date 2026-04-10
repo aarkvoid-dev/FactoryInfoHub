@@ -123,6 +123,61 @@
     .modal-header-modern .btn-close-white {
         filter: brightness(0) invert(1);
     }
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
+    .bg-danger-soft { background-color: rgba(220, 53, 69, 0.1); }
+
+    /* Mobile optimizations */
+    @media (max-width: 767.98px) {
+        .container-fluid {
+            padding: 0.75rem !important;
+        }
+        .stat-card {
+            padding: 0.75rem;
+        }
+        .icon-shape {
+            width: 36px;
+            height: 36px;
+        }
+        .icon-shape i {
+            font-size: 1.2rem;
+        }
+        .stat-card h4 {
+            font-size: 1.2rem;
+        }
+        .stat-card h6 {
+            font-size: 0.7rem;
+        }
+        .btn {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .btn-modern {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.7rem;
+        }
+        .btn-modern i {
+            font-size: 0.7rem;
+        }
+        .mobile-blog-card .btn-modern {
+            padding: 0.3rem 0.6rem;
+        }
+        .badge-status {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+        }
+        .filter-body {
+            padding: 1rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -152,7 +207,7 @@
         </div>
     </div>
 
-    <!-- Summary Stats (Optional) -->
+    <!-- Summary Stats -->
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-md-3">
             <div class="stat-card">
@@ -320,7 +375,8 @@
                             <th>Author</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
-                        </thead>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for blog in blogs %}
                         <tr>
@@ -367,14 +423,14 @@
                                 <i class="fas fa-newspaper fa-3x mb-3 opacity-50"></i>
                                 <p>No blog posts found. Adjust your filters or create a new post.</p>
                             </td>
-                         </tr>
+                          </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Mobile View -->
+        <!-- Mobile View (Cards) -->
         <div class="d-lg-none p-3">
             {% for blog in blogs %}
             <div class="mobile-blog-card">
@@ -398,17 +454,17 @@
                     </div>
                     <div class="btn-group-modern">
                         {% if blog.is_deleted %}
-                            <a href="{% url 'admin_interface:admin_blog_restore' blog.id %}" class="btn btn-success btn-modern">
+                            <a href="{% url 'admin_interface:admin_blog_restore' blog.id %}" class="btn btn-success btn-modern" title="Restore">
                                 <i class="fas fa-trash-restore"></i>
                             </a>
-                            <button class="btn btn-danger btn-modern" data-bs-toggle="modal" data-bs-target="#permanentDeleteModal{{ blog.id }}">
+                            <button class="btn btn-danger btn-modern" data-bs-toggle="modal" data-bs-target="#permanentDeleteModal{{ blog.id }}" title="Permanent Delete">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         {% else %}
-                            <a href="{% url 'admin_interface:admin_blog_edit' blog.id %}" class="btn btn-outline-secondary btn-modern">
+                            <a href="{% url 'admin_interface:admin_blog_edit' blog.id %}" class="btn btn-outline-secondary btn-modern" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button class="btn btn-warning btn-modern" data-bs-toggle="modal" data-bs-target="#softDeleteModal{{ blog.id }}">
+                            <button class="btn btn-warning btn-modern" data-bs-toggle="modal" data-bs-target="#softDeleteModal{{ blog.id }}" title="Soft Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         {% endif %}
@@ -425,7 +481,7 @@
     </div>
 </div>
 
-<!-- Modals (same as before, but styled) -->
+<!-- Modals for each blog post (same as before, but styled) -->
 {% for blog in blogs %}
 <!-- Soft Delete Modal -->
 <div class="modal fade" id="softDeleteModal{{ blog.id }}" tabindex="-1" aria-labelledby="softDeleteModalLabel{{ blog.id }}" aria-hidden="true">
@@ -478,50 +534,14 @@
 </div>
 {% endfor %}
 
-<style>
-    .icon-shape {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
-    .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
-    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
-    .bg-danger-soft { background-color: rgba(220, 53, 69, 0.1); }
-    .btn-modern {
-        padding: 0.35rem 0.8rem;
-        font-size: 0.75rem;
-        border-radius: 1.5rem;
-    }
-    .btn-modern i {
-        font-size: 0.75rem;
-    }
-    .modal-header-modern {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        border: none;
-    }
-    .modal-header-modern .btn-close-white {
-        filter: brightness(0) invert(1);
-    }
-</style>
-
 <script>
-// Cascade and toggle functions remain unchanged
+// Cascade and toggle functions (unchanged but improved for mobile)
 document.addEventListener('DOMContentLoaded', function() {
     const filterCollapse = document.getElementById('filterCollapse');
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const filterIcon = document.getElementById('filterIcon');
     const filterText = document.getElementById('filterText');
     
-    // Initialize toggle state from localStorage or URL parameters
-    function initToggleState() {
-        const hasFilters = window.location.search.includes('=') || filterCollapse.classList.contains('show');
-        updateToggleUI(hasFilters);
-    }
-    
-    // Update toggle button UI based on current state
     function updateToggleUI(isExpanded) {
         if (isExpanded) {
             filterIcon.className = 'fas fa-filter-slash me-1';
@@ -532,28 +552,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Toggle filters function
     window.toggleFilters = function() {
-        const bsCollapse = new bootstrap.Collapse(filterCollapse, {
-            toggle: true
-        });
-        
-        // Update UI after toggle
+        const bsCollapse = new bootstrap.Collapse(filterCollapse, { toggle: true });
         setTimeout(() => {
-            const isExpanded = filterCollapse.classList.contains('show');
-            updateToggleUI(isExpanded);
-        }, 150); // Match Bootstrap transition duration
+            updateToggleUI(filterCollapse.classList.contains('show'));
+        }, 150);
     };
     
-    // Listen for collapse events to update UI
-    filterCollapse.addEventListener('shown.bs.collapse', () => {
-        updateToggleUI(true);
-    });
+    filterCollapse.addEventListener('shown.bs.collapse', () => updateToggleUI(true));
+    filterCollapse.addEventListener('hidden.bs.collapse', () => updateToggleUI(false));
     
-    filterCollapse.addEventListener('hidden.bs.collapse', () => {
-        updateToggleUI(false);
-    });
-
     async function setupCascade(sourceId, targetId, endpoint, placeholder, deeperChildren = []) {
         const source = document.getElementById(sourceId);
         const target = document.getElementById(targetId);
@@ -581,8 +589,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setupCascade('filter_city', 'filter_district', '/location/ajax/districts-by-city/', 'District', ['filter_region']);
     setupCascade('filter_district', 'filter_region', '/location/ajax/regions-by-district/', 'Region');
     
-    // Initialize toggle state
-    initToggleState();
+    const hasFilters = window.location.search.includes('=');
+    if (hasFilters) {
+        filterCollapse.classList.add('show');
+        updateToggleUI(true);
+    } else {
+        updateToggleUI(false);
+    }
 });
 
 function toggleDeletedPosts() {

@@ -39,7 +39,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from .models import BlogPost, BlogImage
-from .forms import BlogPostForm, BlogImageForm, BlogImageFormSet, BlogPostFilterForm
+from .forms import BlogPostForm, BlogImageForm, BlogImageFormSet, BlogPostFilterForm,CommentForm
 from Karkahan.models import Factory
 from django.urls import reverse
 from .utils import (
@@ -53,8 +53,7 @@ from .mixins import (
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from Karkahan.views import process_hierarchical_fields
-from Accounts.decorators import email_verified_required
-
+from Accounts.decorators import email_verified_required,profile_complete_required
 
 class BlogPostListView(ListView):
     model = BlogPost
@@ -227,7 +226,43 @@ class BlogPostDetailView(DetailView):
     slug_url_kwarg = 'slug'
 
     def get_queryset(self):
-        return BlogPost.objects.filter(Q(is_published=True,is_deleted=False) | Q(author=self.request.user) ).select_related('author', 'subcategory', 'region') if self.request.user.is_authenticated else BlogPost.objects.filter(is_published=True,is_deleted=False).select_related('author', 'subcategory', 'region')
+        if self.request.user.is_authenticated:
+            return BlogPost.objects.filter(
+                Q(is_published=True, is_deleted=False) | Q(author=self.request.user)
+            ).select_related('author', 'subcategory', 'region')
+        else:
+            return BlogPost.objects.filter(
+                is_published=True, is_deleted=False
+            ).select_related('author', 'subcategory', 'region')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = self.get_object()
+        # Fetch approved comments, newest first
+        context['comments'] = post.comments.filter(is_approved=True).order_by('-created_at')
+        context['form'] = CommentForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not request.user.is_authenticated:
+            messages.error(request, 'You must be logged in to comment.')
+            return redirect('login') 
+
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = self.object
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Your comment has been posted.')
+            return redirect('blog:post_detail', slug=self.object.slug)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 
 # class BlogPostCreateView(LoginRequiredMixin, CreateView):
