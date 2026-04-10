@@ -87,6 +87,16 @@ class CustomUserCreationForm(UserCreationForm):
         help_text=_('Your contact phone number')
     )
 
+    brand_name = forms.CharField(
+        max_length=50,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Enter your Brand Name (optinal)')
+        }),
+        help_text=_('Your contact brand name')
+    )
+
     def clean_username(self):
         """
         Validate username uniqueness.
@@ -154,6 +164,7 @@ class CustomUserCreationForm(UserCreationForm):
             from .models import Profile
             profile, created = Profile.objects.get_or_create(user=user)
             profile.phone_number = self.cleaned_data.get("phone_number")
+            profile.brand_name = self.cleaned_data.get("brand_name")
             profile.save()
         
         return user
@@ -287,7 +298,7 @@ class ProfileForm(forms.ModelForm):
     
     class Meta:
         model = Profile
-        fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address']
+        fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address','brand_name']
         widgets = {
             'factory': forms.Select(attrs={
                 'class': 'form-control',
@@ -315,5 +326,9 @@ class ProfileForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': _('Enter your address')
+            }),
+            'brand_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Enter your Brand Name')
             }),
         }

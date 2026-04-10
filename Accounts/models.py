@@ -19,6 +19,13 @@ class Profile(models.Model):
         ('user', 'User'),
     ]
 
+    brand_name = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="Your pBrandname"
+    )
+
     # Factory relationship
     factory = models.ForeignKey(
         Factory,

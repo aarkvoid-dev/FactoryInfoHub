@@ -64,6 +64,7 @@
                         <th>Contact Info</th>
                         <th>Access Role</th>
                         <th>Status</th>
+                        <th>Brand Name</th>
                         <th>Last Login</th>
                         <th class="text-end pe-4">Manage</th>
                     </tr>
@@ -106,6 +107,9 @@
                             {% else %}
                                 <span class="badge-status offline"></span> <span class="small fw-medium text-muted">Suspended</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <span class="small text-dark fw-medium"><i class="fas fa-envelope me-1 opacity-50"></i> {{ user.profile.brand_name }}</span>
                         </td>
                         <td class="d-none d-md-table-cell">
                             <div class="small text-muted">

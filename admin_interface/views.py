@@ -21,6 +21,7 @@ from faq.models import FAQQuestion
 from Karkahan.views import send_order_receipt
 from django.db import transaction
 from django.core.paginator import Paginator
+import copy
 
 
 def and_search_filter(queryset, search_terms, fields):
@@ -362,6 +363,7 @@ def admin_user_create(request):
         password_confirm = request.POST.get('password_confirm')
         is_active = 'is_active' in request.POST
         role = request.POST.get('role', 'user')
+        
 
         # Validation
         if not username or not email or not password:
@@ -452,7 +454,7 @@ def admin_user_edit(request, user_id):
         user.first_name = request.POST.get('first_name')
         user.last_name = request.POST.get('last_name')
         user.is_active = 'is_active' in request.POST
-        
+        user.profile.brand_name = request.POST.get('brand_name') if request.POST.get('brand_name') is not None else None
         # Update role if provided
         new_role = request.POST.get('role')
         if new_role in ['admin', 'staff', 'user']:
