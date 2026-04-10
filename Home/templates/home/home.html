@@ -745,7 +745,7 @@ html { font-size: 14px; }
               {% endfor %}
             </div>
           </div>
-          <div class="navRegular mt-40 md:mt-30"><button class="navRegular__button bg-white js-slider1-prev"><i class="icon-arrow-left text-20"></i></button><button class="navRegular__button bg-white js-slider1-next"><i class="icon-arrow-right text-20"></i></button></div>
+          <!-- <div class="navRegular mt-40 md:mt-30"><button class="navRegular__button bg-white js-slider1-prev"><i class="icon-arrow-left text-20"></i></button><button class="navRegular__button bg-white js-slider1-next"><i class="icon-arrow-right text-20"></i></button></div> -->
         </div>
       </div>
     </section>
@@ -945,7 +945,7 @@ html { font-size: 14px; }
         </div>
         <!-- Blog slider matching factory list style: same structure and navigation -->
         <div data-anim-child="slide-up delay-2" class="relative pt-40 sm:pt-20">
-          <div class="js-section-slider" data-gap="30" data-slider-cols="xl-3 lg-3 md-2 sm-1 base-1" data-nav-prev="js-blog-prev" data-nav-next="js-blog-next">
+          <div class="js-section-slider" data-gap="2" data-slider-cols="xl-3 lg-3 md-2 sm-1 base-1" data-nav-prev="js-blog-prev" data-nav-next="js-blog-next">
             <div class="swiper-wrapper">
               {% for post in latest_posts %}
               <div class="swiper-slide blog-slider-card">
@@ -1033,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (slider.classList.contains('hero__slider')) return;
 
         const cols = slider.dataset.sliderCols || 'xl-8 lg-5 md-4 sm-3 base-2';
-        const gap = parseInt(slider.dataset.gap) || 36;
+        const gap = parseInt(slider.dataset.gap) || 2;
         const navPrev = slider.dataset.navPrev ? '.' + slider.dataset.navPrev : null;
         const navNext = slider.dataset.navNext ? '.' + slider.dataset.navNext : null;
         const paginationEl = slider.dataset.pagination ? '.' + slider.dataset.pagination : null;
