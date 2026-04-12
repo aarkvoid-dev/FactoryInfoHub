@@ -296,6 +296,57 @@
     .bg-secondary-soft { background-color: rgba(108, 117, 125, 0.1); }
     .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
 
+    /* Blog Circle Card (matching factory circle card) */
+    .blog-circle-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .blog-circle-card__image-wrap {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        padding: 6px;
+        border: 2px solid #EDEDED;
+        background: white;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .blog-circle-card__image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        transition: transform 0.5s ease;
+    }
+    .blog-circle-card:hover .blog-circle-card__image-wrap {
+        border-color: #EB662B;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(235, 102, 43, 0.15);
+    }
+    .blog-circle-card__name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1A1C1E;
+        margin: 0;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    @media (max-width: 768px) {
+        .blog-circle-card__image-wrap { width: 100px; height: 100px; }
+        .blog-circle-card__name { font-size: 13px; }
+    }
+
     /* Responsive */
     @media (max-width: 991px) {
         .factoryCard {
@@ -634,14 +685,15 @@
                             <i class="fas fa-heart"></i>
                           </button>
                         {% endif %}
-                        <button class="indicator-badge share-factory-btn" data-factory-name="{{ factory.name }}" data-factory-slug="{{ factory.slug }}" title="Share">
-                          <i class="fas fa-share-alt"></i>
-                        </button>
+                        
                       {% else %}
                         <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart">
                           <i class="fas fa-heart"></i>
                         </a>
                       {% endif %}
+                        <button class="indicator-badge share-factory-btn" data-factory-name="{{ factory.name }}" data-factory-slug="{{ factory.slug }}" title="Share">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                     </div>
                   </div>
 
@@ -819,6 +871,22 @@
                         </a>
                     </div>
                     <div class="col-4 col-md-2">
+                        <a href="#" id="share-telegramUrl" target="_blank" class="d-block text-decoration-none">
+                            <div class="bg-secondary-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                                <i class="fab fa-telegram-plane fa-2x text-secondary"></i>
+                            </div>
+                            <span class="small">Telegram</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <a href="#" id="share-pinterestUrl" target="_blank" class="d-block text-decoration-none">
+                            <div class="bg-warning-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                                <i class="fab fa-pinterest fa-2x text-warning"></i>
+                            </div>
+                            <span class="small">Pinterest</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-2">
                         <button id="copy-link-btn" class="btn d-block text-decoration-none w-100">
                             <div class="bg-light rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
                                 <i class="fas fa-link fa-2x text-dark"></i>
@@ -835,11 +903,61 @@
         </div>
     </div>
 </div>
+
+<!-- Random Blog Slider Section -->
+{% if random_blogs %}
+<section class="mt-5 pt-5 border-top">
+    <div class="container px-0">
+        <div class="row y-gap-20 justify-between items-end mb-40">
+            <div class="col-auto">
+                <h2 class="text-26 fw-800 text-dark-1">Latest from Our Blog</h2>
+                <p class="text-15 text-light-2">Handpicked articles for industry insights</p>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'blog:post_list' %}" class="button -outline-accent-1 text-accent-1 rounded-12 px-30 py-12">
+                    View All <i class="icon-arrow-top-right ml-10"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Swiper Slider with circular cards -->
+        <div class="swiper-container blog-circle-slider">
+            <div class="swiper-wrapper">
+                {% for post in random_blogs %}
+                <div class="swiper-slide">
+                    <a href="{% url 'blog:post_detail' post.slug %}" class="blog-circle-card">
+                        <div class="blog-circle-card__image-wrap">
+                            {% if post.get_featured_image %}
+                                <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}">
+                            {% else %}
+                                <div class="placeholder center"><i class="fas fa-newspaper"></i></div>
+                            {% endif %}
+                        </div>
+                        <h4 class="blog-circle-card__name">{{ post.title|truncatechars:40 }}</h4>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Navigation buttons -->
+            <!-- <div class="d-flex justify-center mt-40 gap-2">
+                <div class="blog-circle-prev button -outline-accent-1 rounded-12 px-20 py-10">
+                    <i class="icon-arrow-left"></i> Prev
+                </div>
+                <div class="blog-circle-next button -outline-accent-1 rounded-12 px-20 py-10">
+                    Next <i class="icon-arrow-right"></i>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</section>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
     // Mobile filter toggle
     const mobileFilterBtn = document.getElementById('mobileFilterBtn');
     const mobileFilters = document.getElementById('mobile-filters');
@@ -1050,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openShareModal(factoryName, factorySlug) {
         const baseUrl = window.location.origin;
-        const factoryUrl = `${baseUrl}/karkahan/${factorySlug}/`;
+        const factoryUrl = `${baseUrl}/karkhana/factories/${factorySlug}/`;
         const encodedUrl = encodeURIComponent(factoryUrl);
         const encodedTitle = encodeURIComponent(factoryName);
         document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${encodedTitle} - ${encodedUrl}`;
@@ -1058,6 +1176,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
         document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         document.getElementById('share-email').href = `mailto:?subject=Check out ${encodedTitle}&body=I thought you might be interested in this factory: ${factoryUrl}`;
+        document.getElementById('share-pinterestUrl').href  = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&text=${encodedTitle}`;
+        document.getElementById('share-telegramUrl').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
+
         const copyBtn = document.getElementById('copy-link-btn');
         const copyMessage = document.getElementById('copy-message');
         copyBtn.onclick = async () => {
@@ -1080,6 +1201,30 @@ document.addEventListener('DOMContentLoaded', function() {
             openShareModal(factoryName, factorySlug);
         });
     });
+
+    // ---------- Initialize Blog Circle Slider ----------
+    const blogCircleSlider = document.querySelector('.blog-circle-slider');
+    if (blogCircleSlider) {
+        new Swiper(blogCircleSlider, {
+            slidesPerView: 2,
+            spaceBetween: 20,
+            loop: false,           // ✅ Prevents repeating slides
+            autoplay: {
+                delay: 4000,
+                disableOnInteraction: false,
+            },
+            breakpoints: {
+                576: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                992: { slidesPerView: 5 },
+                1200: { slidesPerView: 6 }
+            },
+            navigation: {
+                nextEl: '.blog-circle-next',
+                prevEl: '.blog-circle-prev',
+            },
+        });
+    }
 });
 </script>
 {% endblock %}

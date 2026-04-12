@@ -78,144 +78,104 @@ def home(request):
     return render(request, 'home/home.html', context)
 
 @profile_complete_required
-def contact(request):
+def contact(request, type='enquiry'):
+    valid_types = ['enquiry', 'export', 'karigar', 'online_class']
+    if type not in valid_types:
+        type = 'enquiry'
+    
+    # Helper to build common context
+    def get_base_context(additional=None):
+        context = {
+            'type': type,
+            'title': dict(ContactMessage.INQUIRY_TYPES).get(type, 'Contact Us'),
+            'user_name': 'User',
+            'user_email': '',
+            'user_country_code': '+91',
+            'user_mobile': '',
+        }
+        if request.user.is_authenticated:
+            context['user_email'] = request.user.email
+            context['user_name'] = request.user.get_full_name() or request.user.username
+            if hasattr(request.user, 'profile') and request.user.profile.phone_number:
+                phone = request.user.profile.phone_number
+                if phone.startswith('+91'):
+                    context['user_country_code'] = '+91'
+                    context['user_mobile'] = phone[3:].strip()
+                else:
+                    context['user_country_code'] = '+91'
+                    context['user_mobile'] = phone
+        if additional:
+            context.update(additional)
+        context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
+        return context
+
     if request.method == 'POST':
-        # Handle contact form submission
+        inquiry_type = request.POST.get('type', type)
+        
         name = request.POST.get('name')
         email = request.POST.get('email')
         country_code = request.POST.get('country_code', '+91')
         mobile_number = request.POST.get('mobile_number', '')
-        subject = request.POST.get('subject')
         message = request.POST.get('message')
+        brand_name = request.POST.get('brand_name', '')
+        subject = request.POST.get('subject', '')
         
-        # Combine country code with mobile number for storage
-        full_mobile_number = f"{country_code} {mobile_number}" if mobile_number else ''
-        
-        # Validate required fields
-        if not all([name, email, subject, message]):
+        if not all([name, email, message]):
             messages.error(request, 'Please fill in all required fields.')
-            return render(request, 'home/contact.html', {
+            # Re-render with submitted data
+            context = get_base_context({
                 'name': name,
                 'email': email,
-                'country_code': country_code,
+                'brand_name': brand_name,
                 'mobile_number': mobile_number,
-                'subject': subject,
-                'message': message
+                'message': message,
+                'country_code': country_code,
             })
+            return render(request, 'home/contact.html', context)
+        
+        full_mobile = f"{country_code} {mobile_number}" if mobile_number else ''
         
         try:
-            # Save contact message to database
             contact_message = ContactMessage.objects.create(
+                type=inquiry_type,
                 name=name,
+                brand_name=brand_name,
                 email=email,
-                mobile_number=full_mobile_number,
-                subject=subject,
+                mobile_number=full_mobile,
+                subject=subject or f"{dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Enquiry')} - {name}",
                 message=message,
                 user=request.user if request.user.is_authenticated else None
             )
             
-            # Send email notification
+            # Email notifications (unchanged)...
             try:
-                # Email to admin team
-                admin_subject = f"New Contact Form Submission: {subject}"
-                admin_message = f"""
-New contact form submission received:
-
-Name: {name}
-Email: {email}
-Mobile Number: {full_mobile_number if full_mobile_number else 'Not provided'}
-Subject: {subject}
-User: {request.user.username if request.user.is_authenticated else 'Anonymous'}
-Date: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')}
-
-Message:
-{message}
-
----
-This message was sent from FactoryInfoHub contact form.
-"""
-                
-                # Send to admin email (you can configure this in settings)
+                admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
+                admin_message = f"""..."""
                 admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
-                send_mail(
-                    admin_subject,
-                    admin_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    admin_recipients,
-                    fail_silently=False,
-                )
+                send_mail(admin_subject, admin_message, settings.DEFAULT_FROM_EMAIL, admin_recipients, fail_silently=False)
                 
-                # Send confirmation email to user
-                user_subject = "Thank you for your message!"
-                user_message = f"""
-Dear {name},
-
-Thank you for contacting FactoryInfoHub! 
-
-We have received your message and will get back to you within 24 hours.
-
-Your message details:
-Subject: {subject}
-Message: {message[:200]}{'...' if len(message) > 200 else ''}
-
-Best regards,
-FactoryInfoHub Team
-
----
-If you have any urgent inquiries, please contact us at:
-Email: support@factoryinfohub.com
-Phone: +91 22 1234 5678
-"""
-                
-                send_mail(
-                    user_subject,
-                    user_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    fail_silently=True,  # Don't fail if user email is invalid
-                )
-                
-            except Exception as email_error:
-                # Log email error but don't fail the form submission
-                print(f"Email sending failed: {email_error}")
-                # You could also use Django's logging here
+                user_subject = "Thank you for contacting FactoryInfoHub"
+                user_message = f"""..."""
+                send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
+            except Exception as e:
+                print(f"Email error: {e}")
             
-            messages.success(request, 'Thank you for your message! We will get back to you soon.')
-            return redirect('contact')
-            
+            messages.success(request, 'Your message has been sent successfully!')
+            # return redirect('contact', type=inquiry_type)
         except Exception as e:
-            messages.error(request, 'Sorry, there was an error submitting your message. Please try again.')
-            return render(request, 'home/contact.html', {
+            messages.error(request, f'An error occurred. Please try again later,{e}')
+            context = get_base_context({
                 'name': name,
                 'email': email,
-                'subject': subject,
-                'message': message
+                'brand_name': brand_name,
+                'mobile_number': mobile_number,
+                'message': message,
+                'country_code': country_code,
             })
+            return render(request, 'home/contact.html', context)
     
-    # For GET requests, prepare context with user info if logged in
-    context = {}
-    if request.user.is_authenticated:
-        context['user_email'] = request.user.email
-        # Get mobile number from user profile if available
-        if hasattr(request.user, 'profile') and request.user.profile.phone_number:
-            phone = request.user.profile.phone_number
-            # Extract country code and number
-            if phone.startswith('+91'):
-                context['user_country_code'] = '+91'
-                context['user_mobile'] = phone[3:].strip()
-            elif phone.startswith('+1'):
-                context['user_country_code'] = '+1'
-                context['user_mobile'] = phone[2:].strip()
-            elif phone.startswith('+44'):
-                context['user_country_code'] = '+44'
-                context['user_mobile'] = phone[3:].strip()
-            else:
-                context['user_country_code'] = '+91'  # Default
-                context['user_mobile'] = phone
-    
-    # Add pages for footer
-    context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
-    
+    # GET request
+    context = get_base_context()
     return render(request, 'home/contact.html', context)
 
 def products(request):

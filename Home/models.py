@@ -152,6 +152,16 @@ class HomePageVideo(SoftDeleteModel):
 
 class ContactMessage(SoftDeleteModel):
     """Model to store contact form submissions"""
+
+    INQUIRY_TYPES = (
+        ('enquiry', 'General Enquiry'),
+        ('export', 'Export Enquiry'),
+        ('karigar', 'Karigar / Worker Related'),
+        ('online_class', 'Online Class Enquiry'),
+    )
+    
+    type = models.CharField(max_length=20, choices=INQUIRY_TYPES, default='enquiry')
+    
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=254)
     mobile_number = models.CharField(
@@ -169,6 +179,7 @@ class ContactMessage(SoftDeleteModel):
         blank=True,
         help_text="The user who submitted this message (if logged in)"
     )
+    brand_name = models.CharField(max_length=200,null=True,blank=True)
     is_read = models.BooleanField(default=False, help_text="Whether the message has been read by admin")
     read_at = models.DateTimeField(null=True, blank=True)
     has_replies = models.BooleanField(default=False, help_text="Whether this message has been replied to")

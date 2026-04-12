@@ -21,10 +21,12 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from .models import Factory,Cart, CartItem, Order, OrderItem, Factory,PaymentGateway, FactoryViewStats,FactoryImage
+from blog.models import BlogPost
 from .forms import FactoryForm, FactoryFilterForm, FactoryImageFormSet, CategoryForm, SubCategoryForm, CountryForm, StateForm, CityForm, DistrictForm, RegionForm
 from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from Accounts.decorators import email_verified_required, allow_unverified
+from django.contrib.admin.views.decorators import staff_member_required
 
 import stripe
 from django.http import HttpResponse, JsonResponse
@@ -232,6 +234,12 @@ def factory_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+     # Get random published blog posts for slider
+    random_blogs = BlogPost.objects.filter(
+        is_published=True,
+        is_deleted=False
+    ).order_by('?')[:8]  # 6 random posts
+
     context = {
         'page_obj': page_obj,
         'filter_form': filter_form,
@@ -239,6 +247,7 @@ def factory_list(request):
         'sort_by': sort_by,
         'cart_items_count': cart_items_count,
         'cart_items': cart_items,
+        'random_blogs': random_blogs,   # add this line
     }
     return render(request, 'karkahan/factory_list.html', context)
 
@@ -1379,6 +1388,24 @@ def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-order_date')
     context = {'orders': orders}
     return render(request, 'Cart/order_history.html', context)
+
+
+@staff_member_required
+def factory_purchase_history(request, factory_id):
+    """Display all purchases of a specific factory (admin only)."""
+    factory = get_object_or_404(Factory, id=factory_id)
+    # Get all completed order items for this factory
+    order_items = OrderItem.objects.filter(
+        factory=factory,
+        order__payment_status='completed'
+    ).select_related('order', 'order__user').order_by('-order__order_date')
+    
+    context = {
+        'factory': factory,
+        'order_items': order_items,
+        'title': f'Purchase History - {factory.name}',
+    }
+    return render(request, 'Cart/factory_purchase_history.html', context)
 
 
 # ---------------------------

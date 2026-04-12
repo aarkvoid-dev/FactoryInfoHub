@@ -98,9 +98,10 @@
                 </div>
                 <div class="col-12">
                   <div class="form-group-custom">
-                    <label class="label-tech">Virtual Tour Link</label>
+                    <label class="label-tech">Video Link</label>
                     {{ form.video_url }}
-                    {% if form.video_url.help_text %}<small class="text-muted">{{ form.video_url.help_text }}</small>{% endif %}
+                    <!-- {% if form.video_url.help_text %} -->
+                    <!-- <small class="text-muted">{{ form.video_url.help_text }}</small>{% endif %} -->
                     <div id="video-preview-container" class="mt-2" style="display: none;">
                       <div class="video-preview-card bg-light rounded-3 p-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -143,13 +144,13 @@
                 </div>
                 <div class="col-12">
                   <div class="form-group-custom">
-                    <label class="label-tech">Digital Hub (Website)</label>
+                    <label class="label-tech">Website</label>
                     {{ form.website }}
                   </div>
                 </div>
                 <div class="col-12">
                   <div class="form-group-custom">
-                    <label class="label-tech">Internal Narrative (Description)</label>
+                    <label class="label-tech">Description</label>
                     {{ form.description }}
                   </div>
                 </div>
@@ -161,14 +162,16 @@
                   <div class="form-group-custom">
                     <label class="label-tech">Featured Features</label>
                     {{ form.features }}
-                    {% if form.features.help_text %}<small class="text-muted">{{ form.features.help_text }}</small>{% endif %}
+                    <!-- {% if form.features.help_text %} -->
+                    <!-- <small class="text-muted">{{ form.features.help_text }}</small>{% endif %} -->
                   </div>
                 </div>
                 <div class="col-12">
                   <div class="form-group-custom">
                     <label class="label-tech">Holidays</label>
                     {{ form.holidays }}
-                    {% if form.holidays.help_text %}<small class="text-muted">{{ form.holidays.help_text }}</small>{% endif %}
+                    <!-- {% if form.holidays.help_text %} -->
+                    <!-- <small class="text-muted">{{ form.holidays.help_text }}</small>{% endif %} -->
                   </div>
                 </div>
               </div>
@@ -250,7 +253,7 @@
             <!-- Hierarchy Card -->
             <div class="sidebar-card-premium mb-4">
               <div class="sidebar-card-header border-bottom">
-                <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Hierarchy</h6>
+                <h6 class="mb-0 fw-800"><i class="fas fa-stream me-2"></i>Category</h6>
               </div>
               <div class="p-4 bg-white">
                 <div class="mb-3">

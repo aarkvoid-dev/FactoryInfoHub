@@ -5,7 +5,12 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('contact/', views.contact, name='contact'),
+    path('contact/enquiry/', views.contact, {'type': 'enquiry'}, name='contact_enquiry'),
+    path('contact/export/', views.contact, {'type': 'export'}, name='contact_export'),
+    path('contact/karigar/', views.contact, {'type': 'karigar'}, name='contact_karigar'),
+    path('contact/online-class/', views.contact, {'type': 'online_class'}, name='contact_online_class'),
+    # Keep legacy contact URL as redirect to enquiry (optional)
+    path('contact/', views.contact, {'type': 'enquiry'}, name='contact'),
     path('products/', views.products, name='products'),
     
     # Dynamic page system

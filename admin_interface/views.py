@@ -24,6 +24,7 @@ from django.core.paginator import Paginator
 import copy
 
 
+
 def and_search_filter(queryset, search_terms, fields):
     """
     Apply AND search across multiple fields.
@@ -327,24 +328,42 @@ def admin_users(request):
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    # Get search query from navbar
+    # Get all filter parameters
     search_query = request.GET.get('search', '')
-    
-    users = User.objects.all()
-    
-    # Apply search filter
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+
+    users = User.objects.select_related('profile').all()
+
+    # Apply search filter (from base navbar OR filter form)
     if search_query:
         terms = search_query.split()
         users = and_search_filter(
             users,
             terms,
-            ['username', 'email', 'first_name', 'last_name']
+            ['username', 'email', 'first_name', 'last_name', 'profile__phone_number']
         )
-    
-    return render(request, 'CustomAdmin/users/users.html', {
+
+    # Apply role filter
+    if role_filter:
+        users = users.filter(profile__role=role_filter)
+
+    # Apply status filter (active / inactive)
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+
+    # Order by most recent first
+    users = users.order_by('-date_joined')
+
+    context = {
         'users': users,
         'search_query': search_query,
-    })
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    }
+    return render(request, 'CustomAdmin/users/users.html', context)
 
 @login_required
 def admin_user_create(request):
@@ -3058,83 +3077,98 @@ def admin_faq_delete(request, pk):
 
 
 
-@login_required
-def admin_contacts(request):
+def admin_contacts(request, type=None):
     profile = request.user.profile
     role = profile.role
 
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    # 1. Capture Filter Parameters
+    # --- Valid types (must match ContactMessage.INQUIRY_TYPES keys) ---
+    valid_types = ['enquiry', 'export', 'karigar', 'online_class']
+    if type and type not in valid_types:
+        type = None  # fallback to all
+
+    # --- Capture filter parameters from GET ---
     search = request.GET.get('search', '')
-    status = request.GET.get('status')
+    status = request.GET.get('status')          # 'read' / 'unread'
     user_id = request.GET.get('user')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     deleted_view = request.GET.get('deleted', 'active')
+    type_filter = request.GET.get('type_filter', type)  # allow overriding via GET
 
-    # 2. Build Queryset
+    # Determine effective type filter: URL type > GET parameter > None
+    effective_type = type_filter if type_filter in valid_types else type
+
+    # --- Build queryset ---
     messages = ContactMessage.objects.all_with_deleted().select_related('user')
 
-    # Apply filters
+    # Apply type filter
+    if effective_type:
+        messages = messages.filter(type=effective_type)
+
+    # Apply search (AND across name, email, subject, message)
     if search:
         terms = search.split()
-        messages = and_search_filter(
-            messages,
-            terms,
-            ['name', 'email', 'subject', 'message']
-        )
-    
+        messages = and_search_filter(messages, terms, ['name', 'email', 'subject', 'message'])
+
+    # Read/unread status
     if status == 'unread':
         messages = messages.filter(is_read=False)
     elif status == 'read':
         messages = messages.filter(is_read=True)
-    
+
+    # User filter
     if user_id:
         messages = messages.filter(user_id=user_id)
-    
+
+    # Date range
     if start_date:
         messages = messages.filter(created_at__date__gte=start_date)
-    
     if end_date:
         messages = messages.filter(created_at__date__lte=end_date)
 
-    # Filter by deleted status
+    # Deleted status
     if deleted_view == 'deleted':
         messages = messages.filter(is_deleted=True)
     elif deleted_view == 'active':
         messages = messages.filter(is_deleted=False)
 
-    # 3. Calculate Summary Statistics
-    total_count = messages.count()
-    unread_count = messages.filter(is_read=False).count()
-    read_count = messages.filter(is_read=True).count()
-    
-    # Count messages from this month
-    from datetime import date
-    first_day_of_month = date.today().replace(day=1)
-    this_month_count = messages.filter(created_at__date__gte=first_day_of_month).count()
+    # --- Summary statistics (respecting current filters, but optionally we may want totals without type) ---
+    # For dashboard counts, we'll show overall numbers (all types) – but you can change to filtered.
+    # Here we keep overall counts for the sidebar.
+    total_all = ContactMessage.objects.filter(is_deleted=False).count()
+    unread_all = ContactMessage.objects.filter(is_read=False, is_deleted=False).count()
+    read_all = ContactMessage.objects.filter(is_read=True, is_deleted=False).count()
+    first_day_of_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    this_month_all = ContactMessage.objects.filter(created_at__gte=first_day_of_month, is_deleted=False).count()
 
-    # 4. CSV Export
+    # --- CSV export (respects current filters) ---
     if 'download' in request.GET:
-        return export_contact_messages_to_csv(messages)
+        return export_contact_messages_to_csv(messages, type_label=effective_type)
 
-    # 5. Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(messages, 20)  # Show 20 messages per page
+    # --- Pagination (20 per page) ---
+    paginator = Paginator(messages, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # 6. Get Users for Filter Dropdown
-    users = User.objects.filter(contactmessage__isnull=False).distinct()
+    # --- Get distinct users for filter dropdown (respect type filter optionally) ---
+    users_qs = User.objects.filter(contactmessage__isnull=False)
+    if effective_type:
+        users_qs = users_qs.filter(contactmessage__type=effective_type)
+    users = users_qs.distinct()
 
+    # --- Prepare context ---
     context = {
         'Messages': page_obj,
         'users': users,
-        'unread_count': unread_count,
-        'read_count': read_count,
-        'this_month_count': this_month_count,
+        'unread_count': unread_all,
+        'read_count': read_all,
+        'this_month_count': this_month_all,
+        'total_count': total_all,
+        'current_type': effective_type,   # for highlighting in template
+        'type_choices': dict(ContactMessage.INQUIRY_TYPES),  # display mapping
         'filters': {
             'search': search,
             'status': status,
@@ -3142,7 +3176,8 @@ def admin_contacts(request):
             'start_date': start_date,
             'end_date': end_date,
             'deleted': deleted_view,
-        }
+            'type_filter': effective_type,
+        },
     }
     return render(request, 'CustomAdmin/contacts/contacts.html', context)
 
@@ -3245,16 +3280,18 @@ def bulk_actions(request):
     
     return redirect('admin_interface:admin_contacts')
 
-def export_contact_messages_to_csv(messages):
+def export_contact_messages_to_csv(messages, type_label=None):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="contact_messages.csv"'
+    filename = f"contact_messages_{type_label or 'all'}_{timezone.now().strftime('%Y%m%d')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name','Phone No.', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At'])
+    writer.writerow(['ID', 'Type', 'Name', 'Phone No.', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At'])
 
     for message in messages:
         writer.writerow([
             message.id,
+            message.get_type_display(),
             message.name,
             message.mobile_number,
             message.email,
@@ -3262,8 +3299,8 @@ def export_contact_messages_to_csv(messages):
             message.message.replace('\n', ' ').replace('\r', ''),
             message.user.username if message.user else 'Guest',
             'Read' if message.is_read else 'Unread',
-            message.created_at,
-            message.read_at if message.read_at else '',
+            message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            message.read_at.strftime('%Y-%m-%d %H:%M:%S') if message.read_at else '',
         ])
 
     return response

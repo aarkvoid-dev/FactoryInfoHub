@@ -118,7 +118,13 @@ urlpatterns = [
     path('faq/<int:pk>/delete/', views.admin_faq_delete, name='admin_faq_delete'),
     
     # Contact Messages URLs
-    path('contacts/', views.admin_contacts, name='admin_contacts'),
+    # path('contacts/', views.admin_contacts, name='admin_contacts'),
+    path('contacts/', views.admin_contacts, {'type': "enquiry"}, name='admin_contacts'),          # default (all types)
+    # path('contacts/<str:type>/', views.admin_contacts, name='admin_contacts_by_type'),
+    path('contacts/enquiry/', views.admin_contacts, {'type': 'enquiry'}, name='admin_contact_enquiry'),
+    path('contacts/export/', views.admin_contacts, {'type': 'export'}, name='admin_contact_export'),
+    path('contacts/karigar/', views.admin_contacts, {'type': 'karigar'}, name='admin_contact_karigar'),
+    path('contacts/online-class/', views.admin_contacts, {'type': 'online_class'}, name='admin_contact_online_class'),
     path('contacts/detail/<int:message_id>/', views.admin_contact_detail, name='admin_contact_detail'),
     path('contacts/mark-read/<int:message_id>/', views.mark_message_read, name='mark_message_read'),
     path('contacts/delete/<int:message_id>/', views.delete_message, name='delete_message'),

@@ -28,26 +28,27 @@
                     <label class="extra-small text-muted fw-bold text-uppercase">Role</label>
                     <select name="role" class="form-select border-0 bg-light">
                         <option value="">All Roles</option>
-                        <option value="admin">Admin</option>
-                        <option value="staff">Staff</option>
-                        <option value="user">User</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff</option>
+                        <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="extra-small text-muted fw-bold text-uppercase">Status</label>
                     <select name="status" class="form-select border-0 bg-light">
                         <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-6">
+                <!-- Optional: remove the search field below if you rely on the base navbar search -->
+                <!-- <div class="col-12 col-md-6">
                     <label class="extra-small text-muted fw-bold text-uppercase">Search</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
-                        <input type="text" name="search" class="form-control bg-light border-0" placeholder="Username, email, or phone..." value="{{ request.GET.search }}">
+                        <input type="text" name="search" class="form-control bg-light border-0" placeholder="Username, email, or phone..." value="{{ search_query }}">
                     </div>
-                </div>
+                </div> -->
                 <div class="col-12 d-flex gap-2">
                     <button type="button" class="btn btn-light w-100 rounded-pill" onclick="resetFilters()">Reset</button>
                     <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Apply</button>

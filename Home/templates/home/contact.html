@@ -2,343 +2,225 @@
 {% load static %}
 
 {% block content %}
-    <section class="layout-pt-xl layout-pb-xl bg-gradient-primary">
-      <div class="hero container">
-        <div data-anim="slide-up" class="row justify-center">
-          <div class="col-xl-8 col-lg-9 col-md-10">
-            <div class="text-center">
-                <div class="d-inline-flex items-center px-20 py-8  bg-white-10 text-white fw-600 text-14 mb-25 backdrop-blur">
-                    <i class="fas fa-envelope-open-text mr-10"></i> CONTACT OUR TEAM
-                </div>
-                <h1 class="text-54 fw-800 text-white tracking-tighter mb-20">Let's Build Something <span class="text-accent-1">Great</span></h1>
-                <p class="text-18 text-white opacity-80 max-w-600 mx-auto">Have a question or need a customized factory management solution? We're ready to help you optimize your operations.</p>
+<section class="layout-pt-xl layout-pb-xl bg-gradient-primary">
+  <div class="hero container">
+    <div data-anim="slide-up" class="row justify-center">
+      <div class="col-xl-8 col-lg-9 col-md-10">
+        <div class="text-center">
+            <div class="d-inline-flex items-center px-20 py-8 bg-white-10 text-white fw-600 text-14 mb-25 backdrop-blur">
+                <i class="fas fa-envelope-open-text mr-10"></i> CONTACT OUR TEAM
             </div>
-          </div>
+            <h1 class="text-54 fw-800 text-white tracking-tighter mb-20">{{ title }}</h1>
+            <p class="text-18 text-white opacity-80 max-w-600 mx-auto">
+              {% if type == 'enquiry' %}
+                Have a general question? We're here to help.
+              {% elif type == 'export' %}
+                Looking to export our products? Tell us your requirements.
+              {% elif type == 'karigar' %}
+                Join our karigar network. Share your skills with us.
+              {% else %}
+                Interested in our online classes? Enquire now.
+              {% endif %}
+            </p>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-    <section class="layout-pt-md layout-pb-xl bg-light-1">
-      <div class="container">
-        <div class="row y-gap-40">
-          <div class="col-lg-7">
-            <div class="bg-white rounded-24 px-45 py-50 md:px-25 md:py-30 shadow-xl border-light">
-              <h2 class="text-26 fw-700 mb-10">Send us a Message</h2>
-              <p class="text-light-2 mb-35">Fill out the form below and we'll get back to you within 24 hours.</p>
-              
-              <form method="post" class="contact-form">
-                {% csrf_token %}
-                
-                <div class="row y-gap-25">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Full Name</label>
-                            <input type="text" name="name" class="custom-input" placeholder="e.g. Rahul Sharma" required style="border: solid 2px #62808f;">
-                        </div>
-                    </div>
+<section class="layout-pt-md layout-pb-xl bg-light-1">
+  <div class="container">
+    <div class="row y-gap-40">
+      <div class="col-lg-7">
+        <div class="bg-white rounded-24 px-45 py-50 md:px-25 md:py-30 shadow-xl border-light">
+          <h2 class="text-26 fw-700 mb-10">{{ title }}</h2>
+          <p class="text-light-2 mb-35">Fill out the form below – we'll get back to you within 24 hours.</p>
 
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Work Email</label>
-                            <input type="email" name="email" class="custom-input" placeholder="rahul@factory.com" 
-                                   value="{% if user_email %}{{ user_email }}{% elif user.is_authenticated %}{{ user.email }}{% endif %}"
-                                   {% if user.is_authenticated %}readonly{% endif %} required style="border: solid 2px #62808f;">
-                            {% if user.is_authenticated %}
-                                <div class="mt-5">
-                                    <small class="text-muted">Using your registered email. <a href="#" id="edit-email-link" class="text-accent-1">Edit</a></small>
-                                    <br>
-                                    <small class="text-muted">Or <a href="#" id="open-gmail-link" class="text-accent-1">send directly from your Gmail</a></small>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Mobile Number (Optional)</label>
-                            <div class="mobile-input-group">
-                                <select name="country_code" class="custom-input country-select">
-                                    <option value="+1" {% if user_country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
-                                    <option value="+44" {% if user_country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
-                                    <option value="+91" {% if user_country_code == '+91' %}selected{% endif %}>🇮🇳 +91</option>
-                                    <option value="+86" {% if user_country_code == '+86' %}selected{% endif %}>🇨🇳 +86</option>
-                                    <option value="+81" {% if user_country_code == '+81' %}selected{% endif %}>🇯🇵 +81</option>
-                                    <option value="+49" {% if user_country_code == '+49' %}selected{% endif %}>🇩🇪 +49</option>
-                                    <option value="+33" {% if user_country_code == '+33' %}selected{% endif %}>🇫🇷 +33</option>
-                                    <option value="+61" {% if user_country_code == '+61' %}selected{% endif %}>🇦🇺 +61</option>
-                                    <option value="+55" {% if user_country_code == '+55' %}selected{% endif %}>🇧🇷 +55</option>
-                                    <option value="+971" {% if user_country_code == '+971' %}selected{% endif %}>🇦🇪 +971</option>
-                                    <option value="+966" {% if user_country_code == '+966' %}selected{% endif %}>🇸🇦 +966</option>
-                                    <option value="+92" {% if user_country_code == '+92' %}selected{% endif %}>🇵🇰 +92</option>
-                                    <option value="+880" {% if user_country_code == '+880' %}selected{% endif %}>🇧🇩 +880</option>
-                                    <option value="+27" {% if user_country_code == '+27' %}selected{% endif %}>🇿🇦 +27</option>
-                                    <option value="+65" {% if user_country_code == '+65' %}selected{% endif %}>🇸🇬 +65</option>
-                                    <option value="+60" {% if user_country_code == '+60' %}selected{% endif %}>🇲🇾 +60</option>
-                                    <option value="+63" {% if user_country_code == '+63' %}selected{% endif %}>🇵🇭 +63</option>
-                                    <option value="+66" {% if user_country_code == '+66' %}selected{% endif %}>🇹🇭 +66</option>
-                                    <option value="+62" {% if user_country_code == '+62' %}selected{% endif %}>🇮🇩 +62</option>
-                                    <option value="+84" {% if user_country_code == '+84' %}selected{% endif %}>🇻🇳 +84</option>
-                                    <option value="+234" {% if user_country_code == '+234' %}selected{% endif %}>🇳🇬 +234</option>
-                                    <option value="+254" {% if user_country_code == '+254' %}selected{% endif %}>🇰🇪 +254</option>
-                                    <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
-                                    <option value="+90" {% if user_country_code == '+90' %}selected{% endif %}>🇹🇷 +90</option>
-                                    <option value="+39" {% if user_country_code == '+39' %}selected{% endif %}>🇮🇹 +39</option>
-                                    <option value="+34" {% if user_country_code == '+34' %}selected{% endif %}>🇪🇸 +34</option>
-                                    <option value="+31" {% if user_country_code == '+31' %}selected{% endif %}>🇳🇱 +31</option>
-                                    <option value="+46" {% if user_country_code == '+46' %}selected{% endif %}>🇸🇪 +46</option>
-                                    <option value="+47" {% if user_country_code == '+47' %}selected{% endif %}>🇳🇴 +47</option>
-                                    <option value="+45" {% if user_country_code == '+45' %}selected{% endif %}>🇩🇰 +45</option>
-                                    <option value="+7" {% if user_country_code == '+7' %}selected{% endif %}>🇷🇺 +7</option>
-                                    <option value="+48" {% if user_country_code == '+48' %}selected{% endif %}>🇵🇱 +48</option>
-                                    <option value="+43" {% if user_country_code == '+43' %}selected{% endif %}>🇦🇹 +43</option>
-                                    <option value="+41" {% if user_country_code == '+41' %}selected{% endif %}>🇨🇭 +41</option>
-                                    <option value="+32" {% if user_country_code == '+32' %}selected{% endif %}>🇧🇪 +32</option>
-                                    <option value="+351" {% if user_country_code == '+351' %}selected{% endif %}>🇵🇹 +351</option>
-                                    <option value="+30" {% if user_country_code == '+30' %}selected{% endif %}>🇬🇷 +30</option>
-                                    <option value="+52" {% if user_country_code == '+52' %}selected{% endif %}>🇲🇽 +52</option>
-                                    <option value="+54" {% if user_country_code == '+54' %}selected{% endif %}>🇦🇷 +54</option>
-                                    <option value="+56" {% if user_country_code == '+56' %}selected{% endif %}>🇨🇱 +56</option>
-                                    <option value="+57" {% if user_country_code == '+57' %}selected{% endif %}>🇨🇴 +57</option>
-                                    <option value="+51" {% if user_country_code == '+51' %}selected{% endif %}>🇵🇪 +51</option>
-                                    <option value="+58" {% if user_country_code == '+58' %}selected{% endif %}>🇻🇪 +58</option>
-                                    <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
-                                    </select>
-                                <input type="tel" name="mobile_number" class="custom-input phone-input" placeholder="98765 43210" 
-                                       value="{% if user_mobile %}{{ user_mobile }}{% endif %}" style="border: solid 2px #62808f;">
-                            </div>
-                            <small class="text-muted mt-5 d-block">For faster response, you can provide your contact number</small>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Subject</label>
-                            <input type="text" name="subject" class="custom-input" placeholder="Inquiry about Registration" required style="border: solid 2px #62808f;">
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Message Details</label>
-                            <textarea name="message" class="custom-input" rows="5" placeholder="Please describe your requirements..." required></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn-submit-accent mt-35" type="submit">
-                    <span>SEND MESSAGE</span>
-                    <i class="fas fa-paper-plane ml-10"></i>
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <div class="col-lg-5">
-            <div class="pl-30 lg:pl-0">
-                <h3 class="text-22 fw-700 mb-30">Our Office</h3>
-                
-                <div class="y-gap-20">
-                    <div class="info-card-modern">
-                        <div class="icon-circle">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <span class="label">Contact Person</span>
-                            <p class="value">IZHAR</p>
-                        </div>
-                    </div>
-
-                    <div class="info-card-modern">
-                        <div class="icon-circle">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div>
-                            <span class="label">Email Address</span>
-                            <p class="value">infofashionchemistry@gmail.com</p>
-                        </div>
-                    </div>
-
-                    <div class="info-card-modern">
-                        <div class="icon-circle">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
-                        <div>
-                            <span class="label">Phone Number</span>
-                            <p class="value">+91 9022116040</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- <div class="mt-45 pt-30 border-top-light">
-                    <h5 class="text-16 fw-700 mb-20">Connect With Us</h5>
-                    <div class="d-flex x-gap-15">
-                        <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div> -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const emailInput = document.querySelector('input[name="email"]');
-    const editEmailLink = document.getElementById('edit-email-link');
-    const openGmailLink = document.getElementById('open-gmail-link');
-    
-    if (editEmailLink) {
-        editEmailLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            emailInput.removeAttribute('readonly');
-            emailInput.focus();
-            emailInput.style.backgroundColor = '#ffffff';
-            emailInput.style.cursor = 'text';
-            this.style.display = 'none';
-        });
-    }
-    
-    if (openGmailLink) {
-        openGmailLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            const name = document.querySelector('input[name="name"]').value;
-            const email = document.querySelector('input[name="email"]').value;
-            const subject = document.querySelector('input[name="subject"]').value;
-            const message = document.querySelector('textarea[name="message"]').value;
+          <!-- Single Form – no tabs, only the selected type -->
+          <form method="post" class="contact-form">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="{{ type }}">
             
-            const gmailSubject = encodeURIComponent(`FactoryInfoHub Contact: ${subject}`);
-            const gmailBody = encodeURIComponent(`Hello FactoryInfoHub Team,\n\nMy name is ${name} (${email}).\n\n${message}\n\nBest regards,\n${name}`);
-            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=support@factoryinfohub.com&su=${gmailSubject}&body=${gmailBody}`;
-            window.open(gmailUrl, '_blank');
-        });
-    }
-    
-    if (emailInput && emailInput.hasAttribute('readonly')) {
-        emailInput.style.backgroundColor = '#f8fafc';
-        emailInput.style.cursor = 'not-allowed';
-    }
-});
-</script>
+            <div class="row y-gap-25">
+              <!-- Common fields for all types -->
+              <div class="col-md-6">
+                <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Full Name *</label>
+                <input type="text" name="name" class="custom-input" required value="{{ name|default:user_name }}" style="border: 2px solid #72aaf4;">
+              </div>
+              
+              <!-- Brand name – for enquiry and export -->
+              {% if type == 'enquiry' or type == 'export' %}
+              <div class="col-md-6">
+                <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Brand Name</label>
+                <input type="text" name="brand_name" class="custom-input" value="{{ brand_name }}" style="border: 2px solid #72aaf4;">
+              </div>
+              {% endif %}
+              
+              <div class="col-md-6">
+                <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Phone Number *</label>
+                <div class="mobile-input-group">
+                  <select name="country_code" class="custom-input country-select" style="border: 2px solid #72aaf4;">
+                    <option value="+1" {% if user_country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
+                        <option value="+44" {% if user_country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
+                        <option value="+91" {% if user_country_code == '+91' %}selected{% endif %}>🇮🇳 +91</option>
+                        <option value="+86" {% if user_country_code == '+86' %}selected{% endif %}>🇨🇳 +86</option>
+                        <option value="+81" {% if user_country_code == '+81' %}selected{% endif %}>🇯🇵 +81</option>
+                        <option value="+49" {% if user_country_code == '+49' %}selected{% endif %}>🇩🇪 +49</option>
+                        <option value="+33" {% if user_country_code == '+33' %}selected{% endif %}>🇫🇷 +33</option>
+                        <option value="+61" {% if user_country_code == '+61' %}selected{% endif %}>🇦🇺 +61</option>
+                        <option value="+55" {% if user_country_code == '+55' %}selected{% endif %}>🇧🇷 +55</option>
+                        <option value="+971" {% if user_country_code == '+971' %}selected{% endif %}>🇦🇪 +971</option>
+                        <option value="+966" {% if user_country_code == '+966' %}selected{% endif %}>🇸🇦 +966</option>
+                        <option value="+92" {% if user_country_code == '+92' %}selected{% endif %}>🇵🇰 +92</option>
+                        <option value="+880" {% if user_country_code == '+880' %}selected{% endif %}>🇧🇩 +880</option>
+                        <option value="+27" {% if user_country_code == '+27' %}selected{% endif %}>🇿🇦 +27</option>
+                        <option value="+65" {% if user_country_code == '+65' %}selected{% endif %}>🇸🇬 +65</option>
+                        <option value="+60" {% if user_country_code == '+60' %}selected{% endif %}>🇲🇾 +60</option>
+                        <option value="+63" {% if user_country_code == '+63' %}selected{% endif %}>🇵🇭 +63</option>
+                        <option value="+66" {% if user_country_code == '+66' %}selected{% endif %}>🇹🇭 +66</option>
+                        <option value="+62" {% if user_country_code == '+62' %}selected{% endif %}>🇮🇩 +62</option>
+                        <option value="+84" {% if user_country_code == '+84' %}selected{% endif %}>🇻🇳 +84</option>
+                        <option value="+234" {% if user_country_code == '+234' %}selected{% endif %}>🇳🇬 +234</option>
+                        <option value="+254" {% if user_country_code == '+254' %}selected{% endif %}>🇰🇪 +254</option>
+                        <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                        <option value="+90" {% if user_country_code == '+90' %}selected{% endif %}>🇹🇷 +90</option>
+                        <option value="+39" {% if user_country_code == '+39' %}selected{% endif %}>🇮🇹 +39</option>
+                        <option value="+34" {% if user_country_code == '+34' %}selected{% endif %}>🇪🇸 +34</option>
+                        <option value="+31" {% if user_country_code == '+31' %}selected{% endif %}>🇳🇱 +31</option>
+                        <option value="+46" {% if user_country_code == '+46' %}selected{% endif %}>🇸🇪 +46</option>
+                        <option value="+47" {% if user_country_code == '+47' %}selected{% endif %}>🇳🇴 +47</option>
+                        <option value="+45" {% if user_country_code == '+45' %}selected{% endif %}>🇩🇰 +45</option>
+                        <option value="+7" {% if user_country_code == '+7' %}selected{% endif %}>🇷🇺 +7</option>
+                        <option value="+48" {% if user_country_code == '+48' %}selected{% endif %}>🇵🇱 +48</option>
+                        <option value="+43" {% if user_country_code == '+43' %}selected{% endif %}>🇦🇹 +43</option>
+                        <option value="+41" {% if user_country_code == '+41' %}selected{% endif %}>🇨🇭 +41</option>
+                        <option value="+32" {% if user_country_code == '+32' %}selected{% endif %}>🇧🇪 +32</option>
+                        <option value="+351" {% if user_country_code == '+351' %}selected{% endif %}>🇵🇹 +351</option>
+                        <option value="+30" {% if user_country_code == '+30' %}selected{% endif %}>🇬🇷 +30</option>
+                        <option value="+52" {% if user_country_code == '+52' %}selected{% endif %}>🇲🇽 +52</option>
+                        <option value="+54" {% if user_country_code == '+54' %}selected{% endif %}>🇦🇷 +54</option>
+                        <option value="+56" {% if user_country_code == '+56' %}selected{% endif %}>🇨🇱 +56</option>
+                        <option value="+57" {% if user_country_code == '+57' %}selected{% endif %}>🇨🇴 +57</option>
+                        <option value="+51" {% if user_country_code == '+51' %}selected{% endif %}>🇵🇪 +51</option>
+                        <option value="+58" {% if user_country_code == '+58' %}selected{% endif %}>🇻🇪 +58</option>
+                        <option value="+20" {% if user_country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                  </select>
+                  <input type="tel" name="mobile_number" class="custom-input phone-input" required value="{{ mobile_number|default:user_mobile }}" style="border: 2px solid #72aaf4;">
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Email *</label>
+                <input type="email" name="email" class="custom-input" required value="{{ email|default:user_email }}" style="border: 2px solid #72aaf4;">
+              </div>
+              
+              
+              <!-- Message field for all types -->
+              <div class="col-12">
+                <label class="text-14 fw-700 text-dark-1 mb-10 d-block">Message *</label>
+                <textarea name="message" rows="5" class="custom-input" required style="border: 2px solid #72aaf4;">{{ message }}</textarea>
+              </div>
+            </div>
+            
+            <button class="btn-submit-accent mt-35" type="submit">
+              {% if type == 'karigar' %}Submit Application{% else %}Send Enquiry{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right side: Office info (unchanged) -->
+      <div class="col-lg-5">
+        <div class="pl-30 lg:pl-0">
+          <h3 class="text-22 fw-700 mb-30">Our Office</h3>
+          <div class="y-gap-20">
+            <div class="info-card-modern">
+              <div class="icon-circle"><i class="fas fa-user"></i></div>
+              <div><span class="label">Contact Person</span><p class="value">IZHAR</p></div>
+            </div>
+            <div class="info-card-modern">
+              <div class="icon-circle"><i class="fas fa-envelope"></i></div>
+              <div><span class="label">Email Address</span><p class="value">infofashionchemistry@gmail.com</p></div>
+            </div>
+            <div class="info-card-modern">
+              <div class="icon-circle"><i class="fas fa-phone-alt"></i></div>
+              <div><span class="label">Phone Number</span><p class="value">+91 9022116040</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .hero{ padding-top:120px; }
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
-        position: relative;
-        overflow: hidden;
-    }
-    .bg-white-10 { background: rgba(255, 255, 255, 0.1); }
-    .backdrop-blur { backdrop-filter: blur(10px); }
-
-    /* Custom Input Style */
-    .custom-input {
-        width: 100%;
-        padding: 15px 20px;
-        background-color: #ffffff;
-        border: 2px solid #39495e; 
-        border-radius: 12px;
-        font-size: 15px;
-        color: #1e293b;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .custom-input:focus {
-        outline: none;
-        border-color: #EB662B; 
-        box-shadow: 0 0 0 4px rgba(235, 102, 43, 0.15);
-    }
-
-    /* Unified Mobile Input Style */
-    .mobile-input-group {
-        display: flex;
-        align-items: center;
-    }
-
-    .country-select {
-        flex: 0 0 110px; /* Fixed width for the country code */
-        border-right: none;
-        border-radius: 12px 0 0 12px !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C2.185 5.355 2.398 5 2.733 5h9.534a.25.25 0 0 1 .199.432l-4.83 5.482a.25.25 0 0 1-.389 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        appearance: none;
-        padding-right: 30px;
-    }
-
-    .phone-input {
-        flex: 1;
-        border-radius: 0 12px 12px 0 !important;
-    }
-
-    /* Info Cards */
-    .info-card-modern {
-        display: flex;
-        align-items: center;
-        padding: 20px;
-        background: white;
-        border-radius: 16px;
-        border: 2px solid #f1f5f9;
-        transition: all 0.3s ease;
-    }
-    .info-card-modern:hover {
-        border-color: #EB662B;
-        transform: translateX(5px);
-    }
-
-    .icon-circle {
-        width: 45px;
-        height: 45px;
-        background: rgba(235, 102, 43, 0.1);
-        color: #EB662B;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        flex-shrink: 0;
-    }
-
-    /* Button and Socials */
-    .btn-submit-accent {
-        width: 100%;
-        background: #EB662B;
-        color: white;
-        padding: 18px;
-        border: none;
-        border-radius: 50px;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 10px 20px rgba(235, 102, 43, 0.2);
-    }
-
-    .btn-submit-accent:hover {
-        background: #d45620;
-        transform: translateY(-2px);
-    }
-
-    .social-circle {
-        width: 40px;
-        height: 40px;
-        background: #f1f5f9;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #475569;
-        transition: all 0.3s ease;
-    }
-    .social-circle:hover {
-        background: #EB662B;
-        color: white;
-    }
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #011d54 0%, #0a3d91 50%, #EB662B 100%);
+  }
+  .custom-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+  }
+  .custom-input:focus {
+    border-color: #EB662B;
+    outline: none;
+  }
+  .mobile-input-group {
+    display: flex;
+    align-items: center;
+  }
+  .country-select {
+    flex: 0 0 100px;
+    border-radius: 12px 0 0 12px !important;
+    border-right: none;
+  }
+  .phone-input {
+    flex: 1;
+    border-radius: 0 12px 12px 0 !important;
+  }
+  .btn-submit-accent {
+    background: #EB662B;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    width: 100%;
+    margin-top: 20px;
+  }
+  .info-card-modern {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #eef2f6;
+  }
+  .icon-circle {
+    width: 45px;
+    height: 45px;
+    background: rgba(235,102,43,0.1);
+    color: #EB662B;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+  }
+  .label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+  .value { font-size: 14px; font-weight: 600; margin: 0; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // No tabs, so no need to preserve active tab.
+    // Any additional JS can be added here if needed.
+  });
+</script>
 {% endblock %}

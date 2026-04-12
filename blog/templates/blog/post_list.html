@@ -700,24 +700,27 @@
                 {% endif %}
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-end gap-3">
+                <a href="{% url 'karkahan:factory_list' %}" class="button -outline-accent-1 text-accent-1 rounded-12" style="padding: 12px 24px;">
+                    View Factory
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'blog:post_create' %}" class="button -outline-accent-1 text-accent-1 rounded-12" style="padding: 12px 24px;">
+                        <i class="fas fa-plus mr-10"></i> Create Post
+                    </a>
+                {% endif %}
+            </div>
+        </div>
 
-        <!-- Factory Network Section (unchanged) -->
+        <!-- Factory Network Section (buttons removed from header, added at bottom right) -->
         <section class="mt-5 pt-5 border-top">
             <div class="row y-gap-20 justify-between items-end mb-40">
                 <div class="col-auto">
                     <h2 class="text-26 fw-800 text-dark-1">Industrial Network</h2>
                     <p class="text-15 text-light-2">Factories matching your current search criteria.</p>
                 </div>
-                <div class="col-auto">
-                    <a href="{% url 'karkahan:factory_list' %}" class="button -outline-accent-1 text-accent-1 rounded-12" style="padding: 20px;">View Factory</a>
-                </div>
-                {% if user.is_authenticated %}
-                    <div class="col-auto">
-                        <a href="{% url 'blog:post_create' %}" class="button  -outline-accent-1 text-accent-1 rounded-12" style="padding: 20px;">
-                            <i class="fas fa-plus mr-10"></i> Create Post
-                        </a>
-                    </div>
-                {% endif %}
+                <!-- Buttons removed from here -->
             </div>
 
             <div class="row x-gap-30 y-gap-30 justify-center">
@@ -744,6 +747,8 @@
                     </div>
                 {% endif %}
             </div>
+
+            <!-- Buttons placed at the bottom, aligned to the right side -->
         </section>
     </div>
 </section>
@@ -771,13 +776,17 @@
 
 {% block extra_js %}
 <script>
-    // Function to open share modal and set links
+    // Function to open share modal and set links (includes Pinterest and Telegram)
     function openShareModal(btn) {
         const postTitle = btn.getAttribute('data-post-title');
         const postUrl = btn.getAttribute('data-post-url');
         const fullUrl = window.location.origin + postUrl;
         const encodedUrl = encodeURIComponent(fullUrl);
         const encodedTitle = encodeURIComponent(postTitle);
+        
+        // Add Pinterest and Telegram
+        const pinterestUrl = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`;
+        const telegramUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
         
         const shareLinks = `
             <a href="https://api.whatsapp.com/send?text=${encodedTitle} - ${encodedUrl}" target="_blank" class="share-modal-link">
@@ -795,6 +804,14 @@
             <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodedTitle}" target="_blank" class="share-modal-link">
                 <i class="fab fa-linkedin-in share-modal-icon" style="color:#0077B5;"></i>
                 <span>LinkedIn</span>
+            </a>
+            <a href="${pinterestUrl}" target="_blank" class="share-modal-link">
+                <i class="fab fa-pinterest share-modal-icon" style="color:#E60023;"></i>
+                <span>Pinterest</span>
+            </a>
+            <a href="${telegramUrl}" target="_blank" class="share-modal-link">
+                <i class="fab fa-telegram-plane share-modal-icon" style="color:#26A5E4;"></i>
+                <span>Telegram</span>
             </a>
             <a href="mailto:?subject=${encodedTitle}&body=${encodedUrl}" class="share-modal-link">
                 <i class="fas fa-envelope share-modal-icon" style="color:#EA4335;"></i>

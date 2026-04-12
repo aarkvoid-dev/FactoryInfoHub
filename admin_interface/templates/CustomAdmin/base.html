@@ -417,12 +417,25 @@
                 <i class="fas fa-book"></i>
                 <span>Pages</span>
             </a>
-            <a href="{% url 'admin_interface:admin_contacts' %}" class="sidebar-item" data-page="contacts">
+            <!-- <a href="{% url 'admin_interface:admin_contacts' %}" class="sidebar-item" data-page="contacts">
                 <i class="fas fa-envelope"></i>
                 <span>Contact Messages</span>
-                {% if unread_count > 0 %}
-                <span class="notification-badge">{{ unread_count }}</span>
-                {% endif %}
+            </a> -->
+            <a href="{% url 'admin_interface:admin_contact_enquiry' %}" class="sidebar-item" data-page="enquiry_contacts">
+                <i class="fas fa-envelope"></i>
+                <span>Enquiry Messages</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_contact_export' %}" class="sidebar-item" data-page="export_contacts">
+                <i class="fas fa-envelope"></i>
+                <span>Export Messages</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_contact_karigar' %}" class="sidebar-item" data-page="karigar_contacts">
+                <i class="fas fa-envelope"></i>
+                <span>Karigar Messages</span>
+            </a>
+            <a href="{% url 'admin_interface:admin_contact_online_class' %}" class="sidebar-item" data-page="class_contacts">
+                <i class="fas fa-envelope"></i>
+                <span>Class Messages</span>
             </a>
             <a href="{% url 'admin_interface:admin_faq' %}" class="sidebar-item" data-page="faq">
                 <i class="fas fa-question-circle"></i>

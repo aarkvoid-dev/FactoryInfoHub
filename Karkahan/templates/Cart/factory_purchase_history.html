@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+{% load order_filters %}
+
+{% block title %}Purchase History - {{ factory.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .history-page-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 60px 0;
+    color: white;
+    text-align: center;
+    padding-top: 120px;
+  }
+  .history-page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: white;
+  }
+  .history-page-header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+    color: white;
+  }
+  .order-table-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .order-table thead th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 16px;
+  }
+  .order-table tbody td {
+    padding: 24px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .order-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(235,102,43,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #EB662B;
+    font-size: 1.2rem;
+  }
+  .badge-status {
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-status.completed {
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+  }
+  .stat-card {
+    background: white;
+    border: none;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+    transition: all 0.3s;
+    border: 1px solid #eef2f6;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+  }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(235,102,43,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #EB662B;
+    font-size: 1.5rem;
+    margin-right: 16px;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-accent {
+    background: #EB662B;
+    border: none;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(235,102,43,0.2);
+  }
+  .btn-accent:hover {
+    background: #d94f1a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(235,102,43,0.3);
+    color: white;
+  }
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #0d6efd;
+    background-color: rgba(13,110,253,0.1);
+  }
+  .initials {
+    font-size: 1rem;
+    text-transform: uppercase;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page-header">
+  <div class="container">
+    <h1>Purchase History</h1>
+    <p>{{ factory.name }} – all completed orders</p>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <!-- Factory Info Card -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+              <div>
+                <h2 class="h3 fw-bold mb-1">{{ factory.name }}</h2>
+                <p class="text-muted mb-0">{{ factory.factory_code|default:"No factory code" }}</p>
+              </div>
+              <div>
+                <a href="{% url 'admin_interface:admin_factory_detail' factory.id %}" class="btn btn-outline-secondary rounded-pill px-4">
+                  <i class="fas fa-arrow-left me-2"></i>Back to Factory
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if order_items %}
+      <div class="row">
+        <div class="col-12">
+          <div class="order-table-card">
+            <div class="table-responsive">
+              <table class="table order-table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Purchase Date</th>
+                    <th class="text-center">Amount Paid</th>
+                    <th class="text-center">Payment Method</th>
+                    <th>Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in order_items %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="order-icon">
+                          <i class="fas fa-receipt"></i>
+                        </div>
+                        <div>
+                          <h6 class="fw-bold mb-0">#{{ item.order.id }}</h6>
+                          <small class="text-secondary">{{ item.order.order_number|default:"—" }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-circle">
+                          <span class="initials">{{ item.order.user.first_name|first|upper }}{{ item.order.user.last_name|first|upper }}</span>
+                        </div>
+                        <div>
+                          <div class="fw-semibold">{{ item.order.user.get_full_name|default:item.order.user.username }}</div>
+                          <small class="text-muted">User ID: #{{ item.order.user.id }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ item.order.user.email }}</td>
+                    <td>{{ item.order.order_date|date:"M d, Y H:i" }}</td>
+                    <td class="text-center fw-bold text-accent-1">₹{{ item.price_at_purchase|floatformat:2 }}</td>
+                    <td class="text-center">
+                      <span class="badge bg-secondary">{{ item.order.payment_method|default:"N/A"|title }}</span>
+                    </td>
+                    <td>
+                      <code class="small">{{ item.order.transaction_id|default:"—" }}</code>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row g-4 mt-4">
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div>
+              <div class="stat-value">{{ order_items.count }}</div>
+              <div class="stat-label">Total Purchases</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon" style="color: #10b981; background: rgba(16,185,129,0.1);">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <div class="stat-value">{{ order_items|length }}</div>
+              <div class="stat-label">Unique Customers</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card d-flex align-items-center">
+            <div class="stat-icon" style="color: #0f172a; background: rgba(15,23,42,0.05);">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div>
+              <div class="stat-value">
+                {% with total=0 %}
+                  {% for item in order_items %}{{ total|add:item.price_at_purchase }}{% endfor %}
+                {% endwith %}
+                ₹{{ order_items|sum_price|default:0|floatformat:2 }}
+              </div>
+              <div class="stat-label">Total Revenue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-receipt text-accent-1 fa-5x opacity-50"></i>
+        </div>
+        <h2 class="fw-bold mb-3">No Purchases Yet</h2>
+        <p class="text-secondary mb-4">This factory has not been purchased by any user.</p>
+        <a href="{% url 'admin_interface:admin_factory_detail' factory.id %}" class="btn btn-accent">
+          <i class="fas fa-arrow-left me-2"></i>Back to Factory
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.order-table tbody tr');
+    rows.forEach((row, i) => {
+      row.style.opacity = '0';
+      row.style.transform = 'translateY(20px)';
+      row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 100);
+    });
+  });
+</script>
+{% endblock %}

@@ -54,6 +54,7 @@ from category.models import Category, SubCategory
 from location.models import Country, State, City, District, Region
 from Karkahan.views import process_hierarchical_fields
 from Accounts.decorators import email_verified_required,profile_complete_required
+from django.db.models import Count
 
 class BlogPostListView(ListView):
     model = BlogPost
@@ -62,130 +63,66 @@ class BlogPostListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # If user is not logged in, only show published, non-deleted blogs
+        # Base queryset: public published posts + user's own posts (if authenticated)
         if not self.request.user.is_authenticated:
             queryset = BlogPost.objects.filter(
                 is_published=True,
                 is_deleted=False
             ).select_related('author', 'subcategory', 'region')
         else:
-            # If user is logged in, show:
-            # 1. All published, non-deleted blogs (for public viewing)
-            # 2. User's own blogs regardless of published status (but exclude deleted)
             user_published = BlogPost.objects.filter(
                 is_published=True,
                 is_deleted=False
             ).select_related('author', 'subcategory', 'region')
-            
             user_owned = BlogPost.objects.filter(
                 author=self.request.user,
                 is_deleted=False
             ).select_related('author', 'subcategory', 'region')
-            
-            # Combine the querysets and remove duplicates
             queryset = (user_published | user_owned).distinct()
-        
-        # Prepare initial data for form based on GET parameters
-        initial_data = {}
-        if 'category' in self.request.GET:
-            try:
-                category_id = int(self.request.GET.get('category'))
-                initial_data['category'] = category_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'subcategory' in self.request.GET:
-            try:
-                subcategory_id = int(self.request.GET.get('subcategory'))
-                initial_data['subcategory'] = subcategory_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'country' in self.request.GET:
-            try:
-                country_id = int(self.request.GET.get('country'))
-                initial_data['country'] = country_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'state' in self.request.GET:
-            try:
-                state_id = int(self.request.GET.get('state'))
-                initial_data['state'] = state_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'city' in self.request.GET:
-            try:
-                city_id = int(self.request.GET.get('city'))
-                initial_data['city'] = city_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'district' in self.request.GET:
-            try:
-                district_id = int(self.request.GET.get('district'))
-                initial_data['district'] = district_id
-            except (ValueError, TypeError):
-                pass
-        
-        if 'region' in self.request.GET:
-            try:
-                region_id = int(self.request.GET.get('region'))
-                initial_data['region'] = region_id
-            except (ValueError, TypeError):
-                pass
 
-        # Apply filters using the filter form
+        # Prepare initial data for the filter form
+        initial_data = {}
+        for field in ['category', 'subcategory', 'country', 'state', 'city', 'district', 'region']:
+            value = self.request.GET.get(field)
+            if value and value.isdigit():
+                initial_data[field] = int(value)
+
+        # Apply filters using the form
         self.filter_form = BlogPostFilterForm(self.request.GET, initial=initial_data)
         if self.filter_form.is_valid():
-            category = self.filter_form.cleaned_data.get('category')
-            subcategory = self.filter_form.cleaned_data.get('subcategory')
-            country = self.filter_form.cleaned_data.get('country')
-            state = self.filter_form.cleaned_data.get('state')
-            city = self.filter_form.cleaned_data.get('city')
-            district = self.filter_form.cleaned_data.get('district')
-            region = self.filter_form.cleaned_data.get('region')
+            cleaned = self.filter_form.cleaned_data
+            for field in ['category', 'subcategory', 'country', 'state', 'city', 'district', 'region']:
+                value = cleaned.get(field)
+                if value:
+                    queryset = queryset.filter(**{field: value})
 
-            if category:
-                queryset = queryset.filter(category=category)
-            if subcategory:
-                queryset = queryset.filter(subcategory=subcategory)
-            if country:
-                queryset = queryset.filter(country=country)
-            if state:
-                queryset = queryset.filter(state=state)
-            if city:
-                queryset = queryset.filter(city=city)
-            if district:
-                queryset = queryset.filter(district=district)
-            if region:
-                queryset = queryset.filter(region=region)
-
-        # Apply search with AND for multi-word queries
+        # Apply search (AND across multiple terms)
         search_query = self.request.GET.get('search', '')
         if search_query:
             terms = search_query.split()
             q_objects = Q()
             for term in terms:
-                term_q = Q(title__icontains=term) | Q(content__icontains=term) | Q(excerpt__icontains=term)
-                q_objects &= term_q
+                q_objects &= Q(title__icontains=term) | Q(content__icontains=term) | Q(excerpt__icontains=term)
             queryset = queryset.filter(q_objects)
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Pass filter form and search query to template
         context['filter_form'] = self.filter_form
         context['search_query'] = self.request.GET.get('search', '')
-        context['categories'] = Category.objects.all()
+
+
+        # Get all countries for filter dropdown (no restriction)
         context['countries'] = Country.objects.all()
 
-        # --- Filter Logic for Related Factories ---
+        # --- Related Factories based on current filters ---
         req = self.request.GET
         factory_filters = {}
-        
-        # 1. Location Mapping
+
+        # Location mapping
         loc_mapping = {
             'country': 'country_id',
             'state': 'state_id',
@@ -193,28 +130,31 @@ class BlogPostListView(ListView):
             'district': 'district_id',
             'region': 'region_id',
         }
-
         for url_key, model_field in loc_mapping.items():
             val = req.get(url_key)
-            if val:
+            if val and val.isdigit():
                 factory_filters[model_field] = val
 
-        # 2. Category Mapping
-        # Filters factories based on the blog category selected
+        # Category mapping
         category_val = req.get('category')
-        if category_val:
+        if category_val and category_val.isdigit():
             factory_filters['category_id'] = category_val
 
-        # 3. Execute Query
-        # We use .distinct() in case of complex joins, and limit to 8
-        factories = Factory.objects.filter(**factory_filters).filter(is_active=True, is_verified=True).select_related('city', 'country', 'category')
-        
-        if not factory_filters:
-            # If no filters, show featured/latest
-            context['related_factories'] = factories.order_by('-created_at')[:4]
+        # Execute query
+        if factory_filters:
+            factories = Factory.objects.filter(
+                **factory_filters,
+                is_active=True,
+                is_verified=True,
+                is_deleted=False
+            ).select_related('city', 'country', 'category').distinct()[:8]
+            context['related_factories'] = factories
         else:
-            context['related_factories'] = factories[:8]
-        
+            # If no filters, show latest 4 verified factories
+            context['related_factories'] = Factory.objects.filter(
+                is_active=True, is_verified=True, is_deleted=False
+            ).select_related('city', 'country', 'category').order_by('-created_at')[:4]
+
         return context
 
 
@@ -238,16 +178,25 @@ class BlogPostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.get_object()
-        # Fetch approved comments, newest first
+        # Approved comments, newest first
         context['comments'] = post.comments.filter(is_approved=True).order_by('-created_at')
         context['form'] = CommentForm()
+
+        # ✅ Add categories with post count for the slider
+        context['categories'] = Category.objects.filter(
+            blogs__is_published=True,
+            blogs__is_deleted=False
+        ).distinct().annotate(
+            post_count=Count('blogs')
+        ).order_by('name')
+
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if not request.user.is_authenticated:
             messages.error(request, 'You must be logged in to comment.')
-            return redirect('login') 
+            return redirect('login')
 
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -547,8 +496,16 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
     slug_url_kwarg = 'slug'
     # success_url = reverse_lazy('blog:post_detail')
 
+    # def get_queryset(self):
+    #     return BlogPost.objects.filter(Q(author=self.request.user)) if not self.request.user.is_staff else BlogPost.objects.all()
     def get_queryset(self):
-        return BlogPost.objects.filter(Q(author=self.request.user)) if not self.request.user.is_staff else BlogPost.objects.all()
+        base_qs = BlogPost.objects.select_related(
+            'category', 'subcategory',
+            'country', 'state', 'city', 'district', 'region'
+        )
+        if not self.request.user.is_staff:
+            return base_qs.filter(author=self.request.user)
+        return base_qs.all()
 
     def form_valid(self, form):
         # Use the form's save method which handles images automatically
@@ -584,8 +541,6 @@ def blog_admin_dashboard(request):
     # Recent posts
     recent_posts = BlogPost.objects.all_with_deleted()[:10]
 
-    # Category distribution
-    from django.db.models import Count
     category_stats = BlogPost.objects.values('subcategory__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]

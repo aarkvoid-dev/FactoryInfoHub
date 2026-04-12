@@ -16,3 +16,7 @@ def sum_total(queryset, field_name):
 def total_spent(orders):
     """Calculate total amount spent from orders queryset"""
     return sum(order.total_amount for order in orders if order.total_amount)
+
+@register.filter
+def sum_price(order_items):
+    return sum(item.price_at_purchase for item in order_items)

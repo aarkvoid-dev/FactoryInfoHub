@@ -48,6 +48,7 @@ urlpatterns = [
 
     # Order history
     path('orders/', views.order_history, name='order_history'),
+    path('orderhistory/<int:factory_id>',views.factory_purchase_history, name='purchase_history'),
     
     # Payment error handling
     path('payment/failed/', views.payment_failed, name='payment_failed'),
