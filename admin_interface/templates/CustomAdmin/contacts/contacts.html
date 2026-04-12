@@ -115,6 +115,7 @@
                             <th>Subject</th>
                             <th>Message</th>
                             <th>Phone No.</th>
+                            <th>Brand Name</th>
                             <th>Status</th>
                             <th>Date</th>
                             <th style="width: 70px;">Actions</th>
@@ -157,6 +158,9 @@
                                 <span class="text-muted message-preview">{{ message.mobile_number }}</span>
                             </td>
                             <td>
+                                <span class="text-muted message-preview">{{ message.brand_name }}</span>
+                            </td>
+                            <td>
                                 {% if message.is_read %}
                                 <span class="badge bg-success-soft text-success">
                                     <i class="fas fa-check-circle me-1"></i> Read
@@ -184,6 +188,7 @@
                                                 data-mobile_number="{{ message.mobile_number }}"
                                                 data-email="{{ message.email }}"
                                                 data-subject="{{ message.subject }}"
+                                                data-brand="{{ message.brand_name }}"
                                                 data-message="{{ message.message }}"
                                                 data-user="{{ message.user.username|default:'Guest' }}"
                                                 data-created="{{ message.created_at|date:'M d, Y H:i' }}"
@@ -388,6 +393,11 @@
                         <div class="card border-0 bg-light h-100">
                             <div class="card-body">
                                 <h6 class="fw-semibold mb-3">Message Info</h6>
+                                <div class="mb-2">
+                                    <strong>Subject:</strong>
+                                    <div class="text-muted" id="modal-brand"></div>
+                                </div>
+
                                 <div class="mb-2">
                                     <strong>Subject:</strong>
                                     <div class="text-muted" id="modal-subject"></div>
@@ -775,6 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modal-name').textContent = this.dataset.name;
             document.getElementById('modal-email').textContent = this.dataset.email;
             document.getElementById('modal-phonNo').textContent = this.dataset.mobile_number;
+            document.getElementById('modal-brand').textContent = this.dataset.brand;
             document.getElementById('modal-subject').textContent = this.dataset.subject;
             document.getElementById('modal-message').textContent = this.dataset.message;
             document.getElementById('modal-created').textContent = this.dataset.created;
