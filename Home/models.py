@@ -139,7 +139,7 @@ class HomePageVideo(SoftDeleteModel):
     def delete(self, using=None, keep_parents=False):
         # Check constraint before soft delete
         if self.is_active and HomePageVideo.objects.filter(is_active=True, is_deleted=False).count() <= 1:
-            raise ValidationError('Cannot delete the only active video. Activate another video first.')
+            raise ValidationError('Cannot delete the only active video. Add and Activate another video first.')
         super().delete(using, keep_parents)
 
     class Meta:

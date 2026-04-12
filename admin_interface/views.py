@@ -3433,16 +3433,20 @@ def admin_homepage_video_delete(request, video_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     video = get_object_or_404(HomePageVideo, id=video_id, is_deleted=False)
-    
+
     if request.method == 'POST':
-        video_title = video.title
-        video.delete()
-        messages.success(request, f'Home page video "{video_title}" deleted successfully!')
-        return redirect('admin_interface:admin_homepage_videos')
+        try:
+            video_title = video.title
+            video.delete()
+            messages.success(request, f'Video "{video_title}" deleted successfully!')
+            return redirect('admin_interface:admin_homepage_videos')
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return redirect('admin_interface:admin_homepage_videos')
 
     context = {
         'video': video,
-        'title': f'Delete Home Page Video: {video.title}'
+        'title': f'Delete Video: {video.title}'
     }
     return render(request, 'CustomAdmin/videos/video_delete.html', context)
 
