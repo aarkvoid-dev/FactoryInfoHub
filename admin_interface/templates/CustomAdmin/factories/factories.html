@@ -91,6 +91,24 @@
                     </select>
                 </div>
 
+                <div class="col-6 col-md-3">
+                    <label class="label-xs">Verified Status</label>
+                    <select name="verified" class="form-select form-select-sm border-light bg-light">
+                        <option value="">All</option>
+                        <option value="verified" {% if filters.verified == 'verified' %}selected{% endif %}>Verified</option>
+                        <option value="unverified" {% if filters.verified == 'unverified' %}selected{% endif %}>Not Verified</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="label-xs">Sort By</label>
+                    <select name="sort" class="form-select form-select-sm border-light bg-light">
+                        <option value="-created_at" {% if filters.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="created_at" {% if filters.sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                        <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                        <option value="-name" {% if filters.sort == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                    </select>
+                </div>
+
                 <div class="col-12 col-md-4">
                     <label class="label-xs">Search</label>
                     <input type="text" name="search" class="form-control form-control-sm border-light bg-light" placeholder="Factory name..." value="{{ filters.search }}">

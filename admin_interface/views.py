@@ -22,7 +22,7 @@ from Karkahan.views import send_order_receipt
 from django.db import transaction
 from django.core.paginator import Paginator
 import copy
-
+from django.core.exceptions import ValidationError
 
 
 def and_search_filter(queryset, search_terms, fields):
@@ -668,16 +668,20 @@ def admin_factories(request):
     f_country = request.GET.get('country')
     f_state = request.GET.get('state')
     f_city = request.GET.get('city')
-    f_district = request.GET.get('distric') # Matching your HTML spelling
+    f_district = request.GET.get('distric')  # note spelling
     f_region = request.GET.get('region')
     f_category = request.GET.get('category')
     f_subcategory = request.GET.get('subcategory')
     f_search = request.GET.get('search', '')
     f_status = request.GET.get('status')
-    f_deleted = request.GET.get('deleted', 'active')  # 'active', 'deleted', 'all'
+    f_deleted = request.GET.get('deleted', 'active')
+    f_verified = request.GET.get('verified')   # ✅ NEW: 'verified', 'unverified', or None
+    sort_by = request.GET.get('sort', '-created_at')  # ✅ NEW: default newest first
 
     # 2. Build Factory Queryset
-    factories = Factory.objects.all_with_deleted().select_related('category', 'subcategory', 'country', 'state', 'city', 'district', 'region')
+    factories = Factory.objects.all_with_deleted().select_related(
+        'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
+    )
 
     if f_country: factories = factories.filter(country_id=f_country)
     if f_state: factories = factories.filter(state_id=f_state)
@@ -686,34 +690,49 @@ def admin_factories(request):
     if f_region: factories = factories.filter(region_id=f_region)
     if f_category: factories = factories.filter(category_id=f_category)
     if f_subcategory: factories = factories.filter(subcategory_id=f_subcategory)
+    
+    # ✅ New: verified/unverified filter
+    if f_verified == 'verified':
+        factories = factories.filter(is_verified=True)
+    elif f_verified == 'unverified':
+        factories = factories.filter(is_verified=False)
+    
     if f_search:
         terms = f_search.split()
-        factories = and_search_filter(
-            factories,
-            terms,
-            ['name']   # add more fields if needed, e.g., 'description'
-        )
+        factories = and_search_filter(factories, terms, ['name'])
     
     if f_status == 'active':
         factories = factories.filter(is_active=True)
     elif f_status == 'inactive':
         factories = factories.filter(is_active=False)
 
-    # Filter by deleted status
     if f_deleted == 'deleted':
         factories = factories.filter(is_deleted=True)
     elif f_deleted == 'active':
         factories = factories.filter(is_deleted=False)
 
+    # ✅ Apply sorting
+    valid_sort_fields = ['name', 'created_at', 'updated_at', 'employee_count', 'annual_turnover']
+    # Allow descending with '-'
+    sort_key = sort_by
+    if sort_key.startswith('-'):
+        sort_field = sort_key[1:]
+        if sort_field in valid_sort_fields:
+            factories = factories.order_by(sort_key)
+    else:
+        if sort_by in valid_sort_fields:
+            factories = factories.order_by(sort_by)
+        else:
+            factories = factories.order_by('-created_at')  # default
+
     # 3. CSV Export
     if 'download' in request.GET:
         return export_factories_to_csv(factories)
 
-    # 4. PERSISTENT DROPDOWNS: Fetch options based on current selections
+    # 4. PERSISTENT DROPDOWNS
     countries = Country.objects.filter(is_deleted=False)
     categories = Category.objects.filter(is_deleted=False)
     
-    # Only fetch children if parent is selected
     states = State.objects.filter(country_id=f_country, is_deleted=False) if f_country else State.objects.none()
     cities = City.objects.filter(state_id=f_state, is_deleted=False) if f_state else City.objects.none()
     districs = District.objects.filter(city_id=f_city, is_deleted=False) if f_city else District.objects.none()
@@ -740,6 +759,8 @@ def admin_factories(request):
             'search': f_search,
             'status': f_status,
             'deleted': f_deleted,
+            'verified': f_verified,      # ✅ new
+            'sort': sort_by,             # ✅ new
         }
     }
     return render(request, 'CustomAdmin/factories/factories.html', context)
