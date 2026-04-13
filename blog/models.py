@@ -7,6 +7,8 @@ from location.models import Region, District, City, State, Country
 from Home.models import SoftDeleteModel
 from Karkahan.models import Factory
 from django.utils import timezone
+import os
+from django.utils.deconstruct import deconstructible
 
 class BlogPost(SoftDeleteModel):
     title = models.CharField(max_length=200)
@@ -77,9 +79,6 @@ class BlogPost(SoftDeleteModel):
         """Get all images except the featured one for gallery display"""
         return self.images.exclude(is_featured=True).order_by('order')
 
-
-import os
-from django.utils.deconstruct import deconstructible
 
 @deconstructible
 class BlogImageUploadPath:

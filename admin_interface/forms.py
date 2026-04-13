@@ -618,6 +618,21 @@ class AdminBlogImageForm(forms.ModelForm):
                 'placeholder': 'Enter order number'
             }),
         }
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if not image:
+            raise forms.ValidationError("Please select an image file.")
+        
+        # File size limit (5MB)
+        if image.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("Image file must be less than 5MB.")
+        
+        # File type check
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        if image.content_type not in allowed_types:
+            raise forms.ValidationError("Only JPG, PNG, or WebP images are allowed.")
+        
+        return image
 
 # Admin Forms for Worker Experience Management
 class AdminWorkExperienceForm(forms.ModelForm):

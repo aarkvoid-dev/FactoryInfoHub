@@ -117,6 +117,7 @@ class BlogPostListView(ListView):
 
         # Get all countries for filter dropdown (no restriction)
         context['countries'] = Country.objects.all()
+        context['categories'] = Category.objects.all()
 
         # --- Related Factories based on current filters ---
         req = self.request.GET

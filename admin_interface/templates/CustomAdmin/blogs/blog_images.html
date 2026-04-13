@@ -41,40 +41,28 @@
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            {{ form.image.label_tag }}
-                            {{ form.image }}
-                            {% if form.image.errors %}
-                                <div class="text-danger small">{{ form.image.errors.0 }}</div>
-                            {% endif %}
+                            <label for="id_image" class="form-label">Image *</label>
+                            <input type="file" name="image" id="id_image" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" required>
                             <div class="form-text">Upload a new image for this blog post.</div>
                         </div>
 
                         <div class="mb-3">
-                            {{ form.caption.label_tag }}
-                            {{ form.caption }}
-                            {% if form.caption.errors %}
-                                <div class="text-danger small">{{ form.caption.errors.0 }}</div>
-                            {% endif %}
+                            <label for="id_caption" class="form-label">Caption</label>
+                            <input type="text" name="caption" id="id_caption" class="form-control" placeholder="Enter image caption (optional)">
                             <div class="form-text">Optional caption for the image.</div>
                         </div>
 
                         <div class="mb-3">
                             <div class="form-check">
-                                {{ form.is_featured }}
-                                {{ form.is_featured.label_tag }}
-                                {% if form.is_featured.errors %}
-                                    <div class="text-danger small">{{ form.is_featured.errors.0 }}</div>
-                                {% endif %}
-                                <div class="form-text">Set as featured image (only one image can be featured).</div>
+                                <input type="checkbox" name="is_featured" id="id_is_featured" class="form-check-input">
+                                <label for="id_is_featured" class="form-check-label">Set as featured image</label>
+                                <div class="form-text">Only one image can be featured. Checking this will remove featured status from other images.</div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            {{ form.order.label_tag }}
-                            {{ form.order }}
-                            {% if form.order.errors %}
-                                <div class="text-danger small">{{ form.order.errors.0 }}</div>
-                            {% endif %}
+                            <label for="id_order" class="form-label">Order</label>
+                            <input type="number" name="order" id="id_order" class="form-control" value="0" placeholder="Enter order number">
                             <div class="form-text">Order number for gallery display (lower numbers appear first).</div>
                         </div>
 

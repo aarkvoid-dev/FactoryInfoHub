@@ -619,11 +619,11 @@ $(document).ready(function() {
     });
 
     // Saved values from Django (these are the IDs of the current selections)
-    // const subId = {{ form.subcategory.value|default_if_none:"null" }};
-    // const stateId = {{ form.state.value|default_if_none:"null" }};
-    // const cityId = {{ form.city.value|default_if_none:"null" }};
-    // const distId = {{ form.district.value|default_if_none:"null" }};
-    // const regId = {{ form.region.value|default_if_none:"null" }};
+    const subId = {{ form.subcategory.value|default_if_none:"null" }};
+    const stateId = {{ form.state.value|default_if_none:"null" }};
+    const cityId = {{ form.city.value|default_if_none:"null" }};
+    const distId = {{ form.district.value|default_if_none:"null" }};
+    const regId = {{ form.region.value|default_if_none:"null" }};
 
     
 

@@ -2938,23 +2938,72 @@ def admin_blog_images(request, blog_id):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     blog = get_object_or_404(BlogPost, id=blog_id, is_deleted=False)
-    
-    if request.method == 'POST':
-        form = AdminBlogImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            blog_image = form.save(commit=False)
-            blog_image.blog_post = blog
+
+    # Handle DELETE or SET_FEATURED actions
+    if request.method == 'POST' and 'image_id' in request.POST:
+        image_id = request.POST.get('image_id')
+        action = request.POST.get('action')
+        blog_image = get_object_or_404(BlogImage, id=image_id, blog_post=blog)
+        if action == 'delete':
+            blog_image.delete()
+            messages.success(request, 'Image deleted successfully.')
+        elif action == 'set_featured':
+            blog.images.update(is_featured=False)
+            blog_image.is_featured = True
             blog_image.save()
-            messages.success(request, 'Blog image added successfully!')
+            messages.success(request, 'Featured image updated.')
+        return redirect('admin_interface:admin_blog_images', blog_id=blog_id)
+
+    # Handle new image upload – direct processing without a form
+    if request.method == 'POST':
+        # Get the uploaded file
+        uploaded_file = request.FILES.get('image')
+        if not uploaded_file:
+            messages.error(request, 'Please select an image file.')
             return redirect('admin_interface:admin_blog_images', blog_id=blog_id)
-    else:
-        form = AdminBlogImageForm()
 
+        # Validate file size (5MB)
+        if uploaded_file.size > 5 * 1024 * 1024:
+            messages.error(request, 'Image file must be less than 5MB.')
+            return redirect('admin_interface:admin_blog_images', blog_id=blog_id)
+
+        # Validate file type
+        content_type = uploaded_file.content_type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        if content_type not in allowed_types:
+            messages.error(request, 'Only JPG, PNG, or WebP images are allowed.')
+            return redirect('admin_interface:admin_blog_images', blog_id=blog_id)
+
+        # Get optional fields
+        caption = request.POST.get('caption', '')
+        is_featured = request.POST.get('is_featured') == 'on'  # Checkbox sends 'on' when checked
+        order = request.POST.get('order', 0)
+        try:
+            order = int(order)
+        except ValueError:
+            order = 0
+
+        # Create the BlogImage instance
+        blog_image = BlogImage(
+            blog_post=blog,
+            image=uploaded_file,
+            caption=caption,
+            is_featured=is_featured,
+            order=order
+        )
+        
+        # If this image is set as featured, unset all other featured images
+        if is_featured:
+            BlogImage.objects.filter(blog_post=blog, is_featured=True).update(is_featured=False)
+        
+        blog_image.save()
+        messages.success(request, 'Blog image added successfully!')
+        return redirect('admin_interface:admin_blog_images', blog_id=blog_id)
+
+    # GET request – just display the page with an empty context (no form)
     images = blog.images.all()
-
     context = {
         'blog': blog,
-        'form': form,
         'images': images,
         'title': f'Manage Images: {blog.title}'
     }

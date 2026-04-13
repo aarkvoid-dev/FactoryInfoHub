@@ -89,7 +89,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     brand_name = forms.CharField(
         max_length=50,
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': _('Enter your Brand Name (optinal)')

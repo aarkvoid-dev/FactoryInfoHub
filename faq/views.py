@@ -111,7 +111,7 @@ def faq_search(request):
             Q(tags__icontains=query)
         ).select_related('category').distinct()
     else:
-        questions = FAQQuestion.objects.none()
+        questions = FAQQuestion.objects.all()
     
     # Apply category filter if specified
     if category_filter:
