@@ -166,7 +166,7 @@
                                     <div class="form-group-custom">
                                         <label class="label-tech">{{ form.city.label }}</label>
                                         {{ form.city }}
-                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_city_wrapper')">+ New City</small>
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_city_wrapper')">+ New City/District</small>
                                     </div>
                                     <div id="new_city_wrapper" style="display:none;" class="mt-2">
                                         {{ form.new_city }}
@@ -179,22 +179,23 @@
                                     <div class="form-group-custom">
                                         <label class="label-tech">{{ form.district.label }}</label>
                                         {{ form.district }}
-                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_district_wrapper')">+ New District</small>
+                                        <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_district_wrapper')">+ New Area</small>
                                     </div>
                                     <div id="new_district_wrapper" style="display:none;" class="mt-2">
-                                        {{ form.new_district }}
+                                        {{ form.new_district }} 
                                         <input type="text" class="form-control" placeholder="District name..." 
                                             oninput="document.getElementById('id_new_district').value = this.value">
                                     </div>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4" hidden >
                                     <div class="form-group-custom">
                                         <label class="label-tech">{{ form.region.label }}</label>
                                         {{ form.region }}
                                         <small class="text-accent cursor-pointer d-block mt-1" onclick="toggleNewField('new_region_wrapper')">+ New Region</small>
                                     </div>
                                     <div id="new_region_wrapper" style="display:none;" class="mt-2">
+                                        
                                         {{ form.new_region }}
                                         <input type="text" class="form-control" placeholder="Region name..." 
                                             oninput="document.getElementById('id_new_region').value = this.value">

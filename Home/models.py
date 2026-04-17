@@ -156,7 +156,7 @@ class ContactMessage(SoftDeleteModel):
     INQUIRY_TYPES = (
         ('enquiry', 'General Enquiry'),
         ('export', 'Export Enquiry'),
-        ('karigar', 'Any Question related to staff hiring for boutique/brand/karkhana or any Other.'),
+        ('karigar', 'Staff hiring and Enquiry.'),
         ('online_class', 'Online Class Enquiry'),
     )
     
