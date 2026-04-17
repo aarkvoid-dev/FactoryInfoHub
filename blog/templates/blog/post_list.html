@@ -494,18 +494,18 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>City</label>
+                <label>City/District</label>
                 <select id="mobile-city-select" class="form-select" disabled>
-                    <option value="">Select City</option>
+                    <option value="">Select City/District</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>District</label>
+                <label>Area</label>
                 <select id="mobile-district-select" class="form-select" disabled>
-                    <option value="">Select District</option>
+                    <option value="">Select Area</option>
                 </select>
             </div>
-            <div class="filter-group">
+            <div class="filter-group" hidden>
                 <label>Region</label>
                 <select id="mobile-region-select" class="form-select" disabled>
                     <option value="">Select Region</option>
@@ -554,18 +554,18 @@
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>City</label>
+                            <label>City/District</label>
                             <select id="desktop-city-select" class="form-select" disabled>
-                                <option value="">Select City</option>
+                                <option value="">Select City/District</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>District</label>
+                            <label>Area</label>
                             <select id="desktop-district-select" class="form-select" disabled>
-                                <option value="">Select District</option>
+                                <option value="">Select Area</option>
                             </select>
                         </div>
-                        <div class="filter-group">
+                        <div class="filter-group" hidden>
                             <label>Region</label>
                             <select id="desktop-region-select" class="form-select" disabled>
                                 <option value="">Select Region</option>
@@ -623,7 +623,7 @@
                     <select name="district" class="js-filter-select" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
                         <option value="">District</option>
                     </select>
-                    <select name="region" class="js-filter-select" {% if not request.GET.district %}disabled{% endif %}>
+                    <select name="region" class="js-filter-select" {% if not request.GET.district %}disabled{% endif %} hidden>
                         <option value="">Region</option>
                     </select>
                     <button onclick="window.location.href='?'" class="btn-clear">Clear</button>

@@ -1,7 +1,7 @@
 {% extends 'CustomAdmin/base.html' %}
 {% load static %}
 
-{% block title %}District Management - FactoryHub Admin{% endblock %}
+{% block title %}Area Management - FactoryHub Admin{% endblock %}
 
 {% block content %}
 <div class="district-page">
@@ -9,8 +9,8 @@
     <div class="page-header mb-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
             <div>
-                <h1 class="h2 fw-bold text-white mb-1">District Management</h1>
-                <p class="text-white-80 mb-0">Organize and manage district data within cities for factory and worker locations</p>
+                <h1 class="h2 fw-bold text-white mb-1">Area Management</h1>
+                <p class="text-white-80 mb-0">Organize and manage Area data within cities for factory and worker locations</p>
             </div>
             <div class="mt-3 mt-md-0 d-flex gap-2">
                 <a href="{% url 'admin_interface:admin_locations' %}" class="btn btn-light btn-sm">
@@ -29,7 +29,7 @@
                 </div>
                 <div class="stat-details">
                     <h3 class="stat-value">{{ districts.count }}</h3>
-                    <p class="stat-label">Total Districts</p>
+                    <p class="stat-label">Total Areas</p>
                 </div>
                 <div class="stat-trend text-success">
                     <i class="fas fa-arrow-up me-1"></i>+{{ new_districts|default:"0" }} this month
@@ -87,7 +87,7 @@
                 <i class="fas fa-plus-circle text-primary"></i>
             </div>
             <a href="{% url 'admin_interface:admin_district_create' %}" class="btn btn-sm btn-outline-primary">
-                <h5 class="fw-semibold mb-0">Add New District</h5>
+                <h5 class="fw-semibold mb-0">Add New Area</h5>
             </a>
         </div>
     </div>
@@ -96,7 +96,7 @@
     <div class="content-card">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
             <h5 class="fw-semibold mb-2 mb-sm-0">
-                <i class="fas fa-list me-2 text-primary"></i>Existing Districts
+                <i class="fas fa-list me-2 text-primary"></i>Existing Areas
                 <span class="badge bg-primary-soft text-primary ms-2">{{ districts.count }}</span>
             </h5>
         </div>
@@ -105,7 +105,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>District Name</th>
+                        <th>Area Name</th>
                         <th>Code</th>
                         <th>City</th>
                         <th>State</th>
@@ -154,10 +154,10 @@
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                                <a href="{% url 'admin_interface:admin_district_edit' district.id %}" class="btn btn-outline-primary btn-sm" title="Edit District">
+                                <a href="{% url 'admin_interface:admin_district_edit' district.id %}" class="btn btn-outline-primary btn-sm" title="Edit Area">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{% url 'admin_interface:admin_district_delete' district.id %}" class="btn btn-outline-danger btn-sm" title="Delete District">
+                                <a href="{% url 'admin_interface:admin_district_delete' district.id %}" class="btn btn-outline-danger btn-sm" title="Delete Area">
                                     <i class="fas fa-trash"></i>
                                 </a>
                                 <a href="{% url 'admin_interface:admin_district_detail' district.id %}" class="btn btn-outline-info btn-sm" title="View Details">
@@ -170,7 +170,7 @@
                     <tr>
                         <td colspan="8" class="text-center py-4 text-muted">
                             <i class="fas fa-building fa-2x mb-2 d-block"></i>
-                            No districts found. Add your first district above.
+                            No Areas found. Add your first Area above.
                         </td>
                     </tr>
                     {% endfor %}
@@ -238,8 +238,8 @@
                     <i class="fas fa-plus-circle text-primary"></i>
                 </div>
                 <div class="stat-details">
-                    <h5 class="fw-semibold">Add New District</h5>
-                    <p class="text-muted small">Use the form above to add new districts linked to existing cities.</p>
+                    <h5 class="fw-semibold">Add New Area</h5>
+                    <p class="text-muted small">Use the form above to add new Areas linked to existing cities.</p>
                 </div>
                 <div class="mt-2">
                     <span class="badge bg-primary-soft text-primary">Quick Add</span>
@@ -253,7 +253,7 @@
                 </div>
                 <div class="stat-details">
                     <h5 class="fw-semibold">Location Hierarchy</h5>
-                    <p class="text-muted small">Country → State → City → District → Region</p>
+                    <p class="text-muted small">Country → State → City/District → Area </p>
                 </div>
                 <div class="mt-2">
                     <span class="badge bg-info-soft text-info">Learn More</span>
@@ -267,7 +267,7 @@
                 </div>
                 <div class="stat-details">
                     <h5 class="fw-semibold">Important</h5>
-                    <p class="text-muted small">Regions require districts; create districts before adding regions.</p>
+                    <p class="text-muted small">Regions require Areas; create Areas before adding regions.</p>
                 </div>
                 <div class="mt-2">
                     <span class="badge bg-warning-soft text-warning">Dependencies</span>

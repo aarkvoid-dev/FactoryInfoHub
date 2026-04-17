@@ -77,13 +77,141 @@ def home(request):
     }
     return render(request, 'home/home.html', context)
 
+# @profile_complete_required
+# def contact(request, type='enquiry'):
+#     valid_types = ['enquiry', 'export', 'karigar', 'online_class']
+#     if type not in valid_types:
+#         type = 'enquiry'
+    
+#     # Helper to build common context
+#     def get_base_context(additional=None):
+#         context = {
+#             'type': type,
+#             'title': dict(ContactMessage.INQUIRY_TYPES).get(type, 'Contact Us'),
+#             'user_name': 'User',
+#             'user_email': '',
+#             'user_country_code': '+91',
+#             'user_mobile': '',
+#             'message': '',
+#             'brand_name': '',
+#             'location':'',
+#             'area':'',
+#         }
+#         if request.user.is_authenticated:
+#             context['user_email'] = request.user.email
+#             context['user_name'] = request.user.get_full_name() or request.user.username
+#             if hasattr(request.user, 'profile') and request.user.profile.phone_number:
+#                 phone = request.user.profile.phone_number
+#                 if phone.startswith('+91'):
+#                     context['user_country_code'] = '+91'
+#                     context['user_mobile'] = phone[3:].strip()
+#                 else:
+#                     context['user_country_code'] = '+91'
+#                     context['user_mobile'] = phone
+            
+#         if additional:
+#             context.update(additional)
+#         context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
+#         return context
+
+#     if request.method == 'POST':
+#         inquiry_type = request.POST.get('type', type)
+        
+#         name = request.POST.get('name')
+#         email = request.POST.get('email')
+#         country_code = request.POST.get('country_code', '+91')
+#         mobile_number = request.POST.get('mobile_number', '')
+#         message = request.POST.get('message')
+#         brand_name = request.POST.get('brand_name', '')
+#         subject = request.POST.get('subject', '')
+#         location = request.POST.get('location', '')
+#         area = request.POST.get('area', '')
+#         attachment_file = request.FILES.get('attachment')
+        
+#         if not all([name, email, message]):
+#             messages.error(request, 'Please fill in all required fields.')
+#             # Re-render with submitted data
+#             context = get_base_context({
+#                 'name': name,
+#                 'email': email,
+#                 'brand_name': brand_name,
+#                 'mobile_number': mobile_number,
+#                 'message': message,
+#                 'country_code': country_code,
+#                 'location':location,
+#                 'area':area
+#             })
+#             return render(request, 'home/contact.html', context)
+        
+#         full_mobile = f"{country_code} {mobile_number}" if mobile_number else ''
+        
+#         if attachment_file:
+#             # 5MB limit
+#             if attachment_file.size > 5 * 1024 * 1024:
+#                 messages.error(request, 'File size must be less than 5MB.')
+#                 return render(request, 'home/contact.html', get_base_context(...))
+#             allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 
+#                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+#             if attachment_file.content_type not in allowed_types:
+#                 messages.error(request, 'Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX.')
+#                 return render(request, 'home/contact.html', get_base_context(...))
+            
+#         try:
+#             contact_message = ContactMessage.objects.create(
+#                 type=inquiry_type,
+#                 name=name,
+#                 brand_name=brand_name,
+#                 email=email,
+#                 mobile_number=full_mobile,
+#                 subject=subject or f"{dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Enquiry')} - {name}",
+#                 message=message,
+#                 user=request.user if request.user.is_authenticated else None,
+#                 location=location,
+#                 area=area,
+#                 attachment=attachment_file  # save file
+#             )
+            
+#             # Email notifications (unchanged)...
+#             try:
+#                 admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
+#                 admin_message = f"{message}"
+#                 admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
+#                 admin_location = f"{location}, {area}" if location and area else location or "Not specified"
+#                 admin_message = admin_message + f"\n\nLocation: {admin_location}\n\n"
+#                 send_mail(admin_subject, admin_message, settings.DEFAULT_FROM_EMAIL, admin_recipients, fail_silently=False)
+                
+#                 user_subject = "Thank you for contacting FactoryInfoHub"
+#                 user_message = f"{message}"
+#                 send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
+#             except Exception as e:
+#                 print(f"Email error: {e}")
+            
+#             messages.success(request, 'Your message has been sent successfully!')
+#             # return redirect('contact', type=inquiry_type)
+#         except Exception as e:
+#             messages.error(request, f'An error occurred. Please try again later,{e}')
+#             context = get_base_context({
+#                 'name': name,
+#                 'email': email,
+#                 'brand_name': brand_name,
+#                 'mobile_number': mobile_number,
+#                 'message': message,
+#                 'country_code': country_code,
+#                 'location':location,
+#                 'area':area
+#             })
+#             return render(request, 'home/contact.html', context)
+    
+#     # GET request
+#     context = get_base_context()
+#     return render(request, 'home/contact.html', context)
+
 @profile_complete_required
 def contact(request, type='enquiry'):
     valid_types = ['enquiry', 'export', 'karigar', 'online_class']
     if type not in valid_types:
         type = 'enquiry'
     
-    # Helper to build common context
     def get_base_context(additional=None):
         context = {
             'type': type,
@@ -92,6 +220,10 @@ def contact(request, type='enquiry'):
             'user_email': '',
             'user_country_code': '+91',
             'user_mobile': '',
+            'message': '',
+            'brand_name': '',
+            'location': '',
+            'area': '',
         }
         if request.user.is_authenticated:
             context['user_email'] = request.user.email
@@ -119,10 +251,12 @@ def contact(request, type='enquiry'):
         message = request.POST.get('message')
         brand_name = request.POST.get('brand_name', '')
         subject = request.POST.get('subject', '')
+        location = request.POST.get('location', '')
+        area = request.POST.get('area', '')
+        attachment_file = request.FILES.get('attachment')
         
         if not all([name, email, message]):
             messages.error(request, 'Please fill in all required fields.')
-            # Re-render with submitted data
             context = get_base_context({
                 'name': name,
                 'email': email,
@@ -130,10 +264,35 @@ def contact(request, type='enquiry'):
                 'mobile_number': mobile_number,
                 'message': message,
                 'country_code': country_code,
+                'location': location,
+                'area': area,
+                'attachment': attachment_file  # keep for re-render
             })
             return render(request, 'home/contact.html', context)
         
         full_mobile = f"{country_code} {mobile_number}" if mobile_number else ''
+        
+        # Validate attachment
+        if attachment_file:
+            if attachment_file.size > 50 * 1024 * 1024:
+                messages.error(request, 'File size must be less than 5MB.')
+                context = get_base_context({
+                    'name': name, 'email': email, 'brand_name': brand_name,
+                    'mobile_number': mobile_number, 'message': message,
+                    'country_code': country_code, 'location': location, 'area': area
+                })
+                return render(request, 'home/contact.html', context)
+            allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 
+                             'application/msword',
+                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            if attachment_file.content_type not in allowed_types:
+                messages.error(request, 'Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX.')
+                context = get_base_context({
+                    'name': name, 'email': email, 'brand_name': brand_name,
+                    'mobile_number': mobile_number, 'message': message,
+                    'country_code': country_code, 'location': location, 'area': area
+                })
+                return render(request, 'home/contact.html', context)
         
         try:
             contact_message = ContactMessage.objects.create(
@@ -144,26 +303,42 @@ def contact(request, type='enquiry'):
                 mobile_number=full_mobile,
                 subject=subject or f"{dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Enquiry')} - {name}",
                 message=message,
-                user=request.user if request.user.is_authenticated else None
+                user=request.user if request.user.is_authenticated else None,
+                location=location,
+                area=area,
+                attachment=attachment_file
             )
             
-            # Email notifications (unchanged)...
-            try:
-                admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
-                admin_message = f"""..."""
-                admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
-                send_mail(admin_subject, admin_message, settings.DEFAULT_FROM_EMAIL, admin_recipients, fail_silently=False)
-                
-                user_subject = "Thank you for contacting FactoryInfoHub"
-                user_message = f"""..."""
-                send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
-            except Exception as e:
-                print(f"Email error: {e}")
+            # --- Send email with attachment using EmailMessage ---
+            from django.core.mail import EmailMessage
+            
+            admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
+            admin_location = f"{location}, {area}" if location and area else location or "Not specified"
+            admin_message = f"{message}\n\nLocation: {admin_location}"
+            admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
+            
+            admin_email = EmailMessage(
+                subject=admin_subject,
+                body=admin_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=admin_recipients,
+            )
+            if attachment_file:
+                admin_email.attach(attachment_file.name, attachment_file.read(), attachment_file.content_type)
+                # Reset file pointer for any further use (though not needed)
+                attachment_file.seek(0)
+            admin_email.send(fail_silently=False)
+            
+            # User confirmation email (no attachment)
+            user_subject = "Thank you for contacting FactoryInfoHub"
+            user_message = f"Dear {name},\n\nWe have received your message:\n{message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
+            send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
             
             messages.success(request, 'Your message has been sent successfully!')
-            # return redirect('contact', type=inquiry_type)
+            return redirect('contact', type=inquiry_type)
+            
         except Exception as e:
-            messages.error(request, f'An error occurred. Please try again later,{e}')
+            messages.error(request, f'An error occurred. Please try again later: {str(e)}')
             context = get_base_context({
                 'name': name,
                 'email': email,
@@ -171,10 +346,11 @@ def contact(request, type='enquiry'):
                 'mobile_number': mobile_number,
                 'message': message,
                 'country_code': country_code,
+                'location': location,
+                'area': area
             })
             return render(request, 'home/contact.html', context)
     
-    # GET request
     context = get_base_context()
     return render(request, 'home/contact.html', context)
 

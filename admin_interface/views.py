@@ -1538,7 +1538,7 @@ def admin_district_create(request):
         form = AdminDistrictForm(request.POST)
         if form.is_valid():
             district = form.save()
-            messages.success(request, f'District "{district.name}" created successfully!')
+            messages.success(request, f'Area "{district.name}" created successfully!')
             return redirect('admin_interface:admin_districts')
         else:
             messages.error(request, 'Please correct the errors below.')
@@ -1548,7 +1548,7 @@ def admin_district_create(request):
     context = {
         'form': form,
         'action': 'create',
-        'title': 'Create New District'
+        'title': 'Create New Area'
     }
     return render(request, 'CustomAdmin/locations/district_form.html', context)
 
@@ -1566,7 +1566,7 @@ def admin_district_edit(request, district_id):
         form = AdminDistrictForm(request.POST, instance=district)
         if form.is_valid():
             district = form.save()
-            messages.success(request, f'District "{district.name}" updated successfully!')
+            messages.success(request, f'Area "{district.name}" updated successfully!')
             return redirect('admin_interface:admin_districts')
         else:
             messages.error(request, 'Please correct the errors below.')
@@ -1576,7 +1576,7 @@ def admin_district_edit(request, district_id):
     context = {
         'form': form,
         'action': 'edit',
-        'title': f'Edit District: {district.name}',
+        'title': f'Edit Area: {district.name}',
         'district': district
     }
     return render(request, 'CustomAdmin/locations/district_form.html', context)

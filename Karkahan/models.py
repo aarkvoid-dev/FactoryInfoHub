@@ -50,7 +50,7 @@ class Factory(SoftDeleteModel):
     features = models.TextField(blank=True, help_text="Enter each feature on a new line or separate with commas (e.g., ISO Certified, 24/7 Operations, Export Quality)")
     
     # Additional fields
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_factories', help_text="User who created this factory record")
     created_at = models.DateTimeField(auto_now_add=True)

@@ -115,8 +115,15 @@
                             <th>Subject</th>
                             <th>Message</th>
                             <th>Phone No.</th>
+                            {% if not current_type == 'online_class' %}
                             <th>Brand Name</th>
+                            {% endif %}
+                            {% if not current_type == 'enquiry' %}
+                            <th>Locations</th>
+                            <th>Area</th>
+                            {% endif %}
                             <th>Status</th>
+                            <th>Attach</th>
                             <th>Date</th>
                             <th style="width: 70px;">Actions</th>
                         </tr>
@@ -157,9 +164,20 @@
                             <td>
                                 <span class="text-muted message-preview">{{ message.mobile_number }}</span>
                             </td>
+                            {% if not current_type == 'online_class' %}
                             <td>
                                 <span class="text-muted message-preview">{{ message.brand_name }}</span>
                             </td>
+                            {% endif %}
+                            
+                            {% if not current_type == 'enquiry' %}
+                            <td>
+                                <span class="text-muted message-preview">{{ message.location }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted message-preview">{{ message.area }}</span>
+                            </td>
+                            {% endif %}
                             <td>
                                 {% if message.is_read %}
                                 <span class="badge bg-success-soft text-success">
@@ -169,6 +187,23 @@
                                 <span class="badge bg-warning-soft text-warning">
                                     <i class="fas fa-envelope me-1"></i> Unread
                                 </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if message.attachment %}
+                                    {% with ext=message.attachment.name|lower %}
+                                        {% if ext|slice:"-4:" == '.jpg' or ext|slice:"-5:" == '.jpeg' or ext|slice:"-4:" == '.png' or ext|slice:"-4:" == '.gif' or ext|slice:"-5:" == '.webp' %}
+                                            <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Preview image">
+                                                <i class="fas fa-image"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Download attachment">
+                                                <i class="fas fa-paperclip"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -193,7 +228,12 @@
                                                 data-user="{{ message.user.username|default:'Guest' }}"
                                                 data-created="{{ message.created_at|date:'M d, Y H:i' }}"
                                                 data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
-                                                data-is-read="{{ message.is_read }}">
+                                                data-is-read="{{ message.is_read }}"
+                                                {% if message.attachment %}
+                                                data-attachment-url="{{ message.attachment.url|default:'' }}"
+                                                data-attachment-type="{{ message.attachment.name|slice:'-4:'|lower|default:'' }}"
+                                                {% endif %}
+                                                >
                                                 <i class="fas fa-eye me-2"></i> View
                                             </button>
                                         </li>
@@ -250,7 +290,6 @@
                                 </li>
                             {% endif %}
                             
-                            <!-- Show only current, first, last, and neighbours on mobile -->
                             {% for num in Messages.paginator.page_range %}
                                 {% if Messages.number == num %}
                                     <li class="page-item active d-none d-sm-block"><span class="page-link">{{ num }}</span></li>
@@ -394,10 +433,9 @@
                             <div class="card-body">
                                 <h6 class="fw-semibold mb-3">Message Info</h6>
                                 <div class="mb-2">
-                                    <strong>Subject:</strong>
+                                    <strong>Brand:</strong>
                                     <div class="text-muted" id="modal-brand"></div>
                                 </div>
-
                                 <div class="mb-2">
                                     <strong>Subject:</strong>
                                     <div class="text-muted" id="modal-subject"></div>
@@ -418,6 +456,13 @@
                     <div class="card-body">
                         <h6 class="fw-semibold mb-3">Message Content</h6>
                         <div id="modal-message" class="p-3 bg-white rounded border" style="white-space: pre-wrap; min-height: 120px;"></div>
+                    </div>
+                </div>
+                <!-- Attachment preview card -->
+                <div class="card border-0 bg-light mt-4" id="attachment-card" style="display: none;">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Attachment</h6>
+                        <div id="attachment-preview"></div>
                     </div>
                 </div>
             </div>
@@ -801,6 +846,26 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 statusDisplay.innerHTML = '<span class="badge bg-warning-soft text-warning">Unread</span>';
                 readAt.textContent = 'Not read yet';
+            }
+
+            // Handle attachment preview
+            const attachmentUrl = this.dataset.attachmentUrl;
+            const attachmentType = this.dataset.attachmentType;
+            const attachmentCard = document.getElementById('attachment-card');
+            const attachmentPreview = document.getElementById('attachment-preview');
+
+            if (attachmentUrl) {
+                attachmentCard.style.display = 'block';
+                const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+                const isImage = imageExts.some(ext => attachmentType.includes(ext));
+                if (isImage) {
+                    attachmentPreview.innerHTML = `<img src="${attachmentUrl}" class="img-fluid rounded border" style="max-height: 200px;">`;
+                } else {
+                    attachmentPreview.innerHTML = `<a href="${attachmentUrl}" target="_blank" class="btn btn-outline-primary"><i class="fas fa-download me-2"></i>Download Attachment</a>`;
+                }
+            } else {
+                attachmentCard.style.display = 'none';
+                attachmentPreview.innerHTML = '';
             }
 
             document.getElementById('modal-reply-btn').setAttribute('data-message-id', this.dataset.messageId);

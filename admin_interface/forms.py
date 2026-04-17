@@ -43,7 +43,8 @@ class AdminFactoryForm(forms.ModelForm):
         'class': 'form-control',
         'accept': 'image/*',
     }))
-    
+    district = forms.ModelChoiceField(queryset=District.objects.none(),label="Area",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
+    city = forms.ModelChoiceField(queryset=City.objects.none(),label="City/Distric",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -386,11 +387,11 @@ class AdminDistrictForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter district name'
+                'placeholder': 'Enter Area name'
             }),
             'code': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter district code'
+                'placeholder': 'Enter Area code'
             }),
             'city': forms.Select(attrs={
                 'class': 'form-control'
@@ -457,6 +458,8 @@ class AdminSubCategoryForm(forms.ModelForm):
 
 # Admin Forms for Blog Management
 class AdminBlogForm(forms.ModelForm):
+    district = forms.ModelChoiceField(queryset=District.objects.none(),label="Area",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
+    city = forms.ModelChoiceField(queryset=City.objects.none(),label="City/Distric",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         

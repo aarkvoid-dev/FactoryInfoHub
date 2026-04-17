@@ -192,7 +192,7 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
     district = forms.ModelChoiceField(
         queryset=District.objects.none(), 
         required=False, 
-        empty_label=_("Select District"),
+        empty_label=_("Select Area"),
         widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_district'})
     )
     region = forms.ModelChoiceField(
@@ -250,7 +250,7 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
             'country': 'Country related to your blog post content (optional). Select if your content is location-specific.',
             'state': 'State or province related to your blog post content (optional). Select if your content is region-specific.',
             'city': 'City or municipality related to your blog post content (optional). Select if your content is city-specific.',
-            'district': 'District or area related to your blog post content (optional). Select for more specific location targeting.',
+            'district': 'Area or area related to your blog post content (optional). Select for more specific location targeting.',
             'region': 'Specific region or locality related to your blog post content (optional). Use for hyper-local content.',
             'related_factories': 'Select factories that are relevant to your blog post content. This helps readers discover related businesses and improves content relevance.',
             'is_published': 'Check to publish your blog post immediately and make it visible to all users. Uncheck to save as draft for later publishing.',
@@ -266,8 +266,8 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         self.fields['subcategory'].required = True
         self.fields['state'].required = True
         self.fields['city'].required = True
-        self.fields['district'].required = True
-        self.fields['region'].required = True
+        self.fields['district'].required = False
+        self.fields['region'].required = False
 
         # For edit mode, set initial values but keep querysets unrestricted
         # This allows JavaScript to handle the cascading properly

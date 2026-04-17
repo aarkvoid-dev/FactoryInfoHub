@@ -535,21 +535,21 @@
                     <option value="">Select State</option>
                     {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
                 </select>
-                <label for="city">City</label>
+                <label for="city">City/District</label>
                 <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
-                    <option value="">Select City</option>
+                    <option value="">Select City/District</option>
                     {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
                 </select>
-                <label for="district">District</label>
+                <label for="district">Area</label>
                 <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
-                    <option value="">Select District</option>
+                    <option value="">Select Area</option>
                     {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                 </select>
-                <label for="region">Region</label>
+                <!-- <label for="region">Region</label>
                 <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                     <option value="">Select Region</option>
                     {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
-                </select>
+                </select> -->
               </div>
 
               <div class="filter-group">
@@ -605,21 +605,21 @@
                           <option value="">Select State</option>
                           {% for state in filter_form.fields.state.queryset %}<option value="{{ state.id }}" {% if request.GET.state == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>{% endfor %}
                       </select>
-                      <label for="city">City</label>
+                      <label for="city">City/District</label>
                       <select name="city" class="js-filter-select modern-select-top" data-next="district" {% if not request.GET.state %}disabled{% endif %}>
-                          <option value="">Select City</option>
+                          <option value="">Select City/District</option>
                           {% for city in filter_form.fields.city.queryset %}<option value="{{ city.id }}" {% if request.GET.city == city.id|stringformat:'s' %}selected{% endif %}>{{ city.name }}</option>{% endfor %}
                       </select>
-                      <label for="district">District</label>
+                      <label for="district">Area</label>
                       <select name="district" class="js-filter-select modern-select-top" data-next="region" {% if not request.GET.city %}disabled{% endif %}>
-                          <option value="">Select District</option>
+                          <option value="">Select Area</option>
                           {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                       </select>
-                      <label for="region">Region</label>
+                      <!-- <label for="region">Region</label>
                       <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
                           <option value="">Select Region</option>
                           {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
-                      </select>
+                      </select> -->
                     </div>
 
                     <div class="filter-group">

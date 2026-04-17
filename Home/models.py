@@ -161,7 +161,8 @@ class ContactMessage(SoftDeleteModel):
     )
     
     type = models.CharField(max_length=20, choices=INQUIRY_TYPES, default='enquiry')
-    
+    location = models.CharField(max_length=100, blank=True, null=True)
+    area = models.CharField(max_length=100, blank=True, null=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=254)
     mobile_number = models.CharField(
@@ -169,6 +170,13 @@ class ContactMessage(SoftDeleteModel):
         blank=True, 
         null=True,
         help_text="Contact phone number (optional)"
+    )
+    attachment = models.FileField(
+        upload_to='contact_attachments/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text="Optional file attachment (e.g., design sketch, requirement document)"
     )
     subject = models.CharField(max_length=200)
     message = models.TextField()

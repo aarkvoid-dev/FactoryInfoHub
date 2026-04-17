@@ -68,7 +68,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Brand name</label>
-                            <div class="text-muted">{{ message.brand_name }}</div>
+                            <div class="text-muted">{{ message.brand_name|default:"—" }}</div>
                         </div>
 
                         <div class="col-md-6">
@@ -99,6 +99,46 @@
                             {{ message.message }}
                         </div>
                     </div>
+
+                    <!-- Attachment Section -->
+                    {% if message.attachment %}
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold">Attachment</label>
+                        <div class="p-3 bg-light rounded border">
+                            {% with ext=message.attachment.name|lower %}
+                                {% if ext|slice:"-4:" == '.jpg' or ext|slice:"-5:" == '.jpeg' or ext|slice:"-4:" == '.png' or ext|slice:"-4:" == '.gif' or ext|slice:"-5:" == '.webp' %}
+                                    <div class="text-center">
+                                        <img src="{{ message.attachment.url }}" alt="Attachment" class="img-fluid rounded" style="max-height: 300px;">
+                                        <div class="mt-2">
+                                            <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary" download>
+                                                <i class="fas fa-download me-1"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% elif ext|slice:"-4:" == '.pdf' %}
+                                    <div class="text-center">
+                                        <i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>
+                                        <p class="mb-2">{{ message.attachment.name|slice:"12:" }}</p>
+                                        <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i> View PDF
+                                        </a>
+                                        <a href="{{ message.attachment.url }}" download class="btn btn-sm btn-outline-secondary ms-2">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center">
+                                        <i class="fas fa-paperclip fa-3x text-secondary mb-2"></i>
+                                        <p class="mb-2">{{ message.attachment.name|slice:"12:" }}</p>
+                                        <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i> Download Attachment
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -414,10 +454,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let messageIdToDelete = null;
 
     deleteBtn?.addEventListener('click', function() {
-        messageIdToDelete = messageId; // Use the messageId from the template
-        const subject = document.querySelector('#modal-subject') ? document.querySelector('#modal-subject').textContent : document.querySelector('h6').textContent;
-        document.querySelector('#deleteModal .modal-body p').textContent = 
-            `Are you sure you want to delete the message "${subject}"?`;
+        messageIdToDelete = messageId;
+        const subject = this.dataset.messageSubject || 'this message';
+        const modalBody = document.querySelector('#deleteModal .modal-body p');
+        if (modalBody) modalBody.textContent = `Are you sure you want to delete "${subject}"?`;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     });
 
@@ -435,8 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Reset form
     document.getElementById('reset-form-btn')?.addEventListener('click', function() {
-        document.getElementById('reply-subject').value = 
-            '{{ message.subject|escapejs|default:"" }}';
+        const originalSubject = '{{ message.subject|escapejs }}';
+        document.getElementById('reply-subject').value = originalSubject.toLowerCase().startsWith('re:') ? originalSubject : `Re: ${originalSubject}`;
         document.getElementById('reply-message').value = '';
         document.getElementById('mark-as-read-checkbox').checked = true;
         showToast('Form reset successfully', 'info');
@@ -466,19 +506,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update UI
                 if (action === 'mark-read') {
-                    document.querySelector('.badge.bg-warning-soft').className = 'badge bg-success-soft text-success';
-                    document.querySelector('.badge.bg-warning-soft').innerHTML = '<i class="fas fa-check-circle me-1"></i> Read';
-                    document.getElementById('mark-read-btn').remove();
-                    document.querySelector('.card-body').insertAdjacentHTML('beforeend', 
-                        '<button class="btn btn-warning btn-sm" id="mark-unread-btn" data-message-id="' + messageId + '"><i class="fas fa-envelope me-2"></i> Mark as Unread</button>'
-                    );
+                    const statusBadge = document.querySelector('.card-header .badge.bg-warning-soft');
+                    if (statusBadge) {
+                        statusBadge.className = 'badge bg-success-soft text-success';
+                        statusBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> Read';
+                    }
+                    const markReadBtn = document.getElementById('mark-read-btn');
+                    if (markReadBtn) {
+                        markReadBtn.remove();
+                        const actionsContainer = document.querySelector('.card-body .d-grid');
+                        if (actionsContainer) {
+                            actionsContainer.insertAdjacentHTML('beforeend', 
+                                '<button class="btn btn-warning btn-sm" id="mark-unread-btn" data-message-id="' + messageId + '"><i class="fas fa-envelope me-2"></i> Mark as Unread</button>'
+                            );
+                        }
+                    }
                 } else {
-                    document.querySelector('.badge.bg-success-soft').className = 'badge bg-warning-soft text-warning';
-                    document.querySelector('.badge.bg-success-soft').innerHTML = '<i class="fas fa-envelope me-1"></i> Unread';
-                    document.getElementById('mark-unread-btn').remove();
-                    document.querySelector('.card-body').insertAdjacentHTML('beforeend', 
-                        '<button class="btn btn-success btn-sm" id="mark-read-btn" data-message-id="' + messageId + '"><i class="fas fa-check-circle me-2"></i> Mark as Read</button>'
-                    );
+                    const statusBadge = document.querySelector('.card-header .badge.bg-success-soft');
+                    if (statusBadge) {
+                        statusBadge.className = 'badge bg-warning-soft text-warning';
+                        statusBadge.innerHTML = '<i class="fas fa-envelope me-1"></i> Unread';
+                    }
+                    const markUnreadBtn = document.getElementById('mark-unread-btn');
+                    if (markUnreadBtn) {
+                        markUnreadBtn.remove();
+                        const actionsContainer = document.querySelector('.card-body .d-grid');
+                        if (actionsContainer) {
+                            actionsContainer.insertAdjacentHTML('beforeend', 
+                                '<button class="btn btn-success btn-sm" id="mark-read-btn" data-message-id="' + messageId + '"><i class="fas fa-check-circle me-2"></i> Mark as Read</button>'
+                            );
+                        }
+                    }
                 }
             } else {
                 throw new Error(result.error || 'Failed to update message status');
@@ -545,14 +603,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 showToast(result.message, 'success');
-                
-                // Reset form
                 document.getElementById('reply-message').value = '';
-                
-                // Refresh the page to show new reply
                 setTimeout(() => {
                     window.location.reload();
-                }, 1000);
+                }, 1500);
             } else {
                 throw new Error(result.error || 'Failed to send reply');
             }
@@ -584,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
         bsToast.show();
         
-        // Remove toast after animation
         toast.addEventListener('hidden.bs.toast', () => {
             toast.remove();
         });

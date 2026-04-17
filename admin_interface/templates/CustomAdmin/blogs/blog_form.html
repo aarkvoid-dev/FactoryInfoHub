@@ -301,7 +301,7 @@
                                     <div class="text-danger small mt-1">{{ form.district.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" hidden>
                                 <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
                                 {{ form.region }}
                                 {% if form.region.errors %}
@@ -584,7 +584,7 @@
 <script src="https://cdn.tiny.cloud/1/w8flzfvw98k2d81w3bs97eegftzmbgt2dnu7lpvvy0we7toq/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize TinyMCE for content field
+    // ========== TinyMCE INIT ==========
     tinymce.init({
         selector: '#{{ form.content.id_for_label }}',
         height: 500,
@@ -606,6 +606,27 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadcare_public_key: '991ed6e508887096946a'
     });
 
+    // ========== HELPER: LOAD DATA VIA AJAX ==========
+    async function loadData(url, targetElement, placeholderName) {
+        if (!targetElement) return;
+        targetElement.innerHTML = `<option value="">Loading ${placeholderName}...</option>`;
+        targetElement.disabled = true;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            targetElement.innerHTML = `<option value="">Select ${placeholderName}</option>`;
+            data.forEach(item => {
+                const option = new Option(item.name, item.id);
+                targetElement.add(option);
+            });
+            targetElement.disabled = false;
+        } catch (error) {
+            targetElement.innerHTML = `<option value="">Error loading data</option>`;
+            targetElement.disabled = false;
+        }
+    }
+
+    // ========== ELEMENT REFERENCES ==========
     const titleInput = document.getElementById('{{ form.title.id_for_label }}');
     const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
     const contentInput = document.getElementById('{{ form.content.id_for_label }}');
@@ -613,11 +634,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const contentCounter = document.getElementById('content-counter');
     const excerptCounter = document.getElementById('excerpt-counter');
 
-    // Toggle Switch for Published Status
+    // Published toggle
     const originalCheckbox = document.getElementById('{{ form.is_published.id_for_label }}');
     const toggleSwitch = document.querySelector('.switch');
     const statusTextSpan = document.getElementById('publish-status-text');
 
+    // Cascading selects
+    const categorySelect = document.getElementById('{{ form.category.id_for_label }}');
+    const subcategorySelect = document.getElementById('{{ form.subcategory.id_for_label }}');
+    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
+    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
+    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+    const districtSelect = document.getElementById('{{ form.district.id_for_label }}');
+    const regionSelect = document.getElementById('{{ form.region.id_for_label }}');
+
+    // ========== TOGGLE SWITCH ==========
     function updateToggleState() {
         const isChecked = originalCheckbox.checked;
         if (isChecked) {
@@ -628,36 +659,29 @@ document.addEventListener('DOMContentLoaded', function() {
             statusTextSpan.innerHTML = '<span class="draft">Draft</span>';
         }
     }
-
     if (originalCheckbox && toggleSwitch) {
-        // Initial state
         updateToggleState();
-
-        // Add click event to toggle
         toggleSwitch.addEventListener('click', function(e) {
             e.preventDefault();
             originalCheckbox.checked = !originalCheckbox.checked;
             updateToggleState();
-            // Trigger a change event to ensure any form‑wide validations update
             const changeEvent = new Event('change', { bubbles: true });
             originalCheckbox.dispatchEvent(changeEvent);
         });
     }
 
-    // Auto-generate slug from title (only if slug is empty)
+    // ========== AUTO SLUG ==========
     if (titleInput && slugInput) {
         titleInput.addEventListener('input', function() {
             if (!slugInput.value || slugInput.value === '') {
                 const title = this.value;
-                const slug = title.toLowerCase()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
+                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
                 slugInput.value = slug;
             }
         });
     }
 
-    // Character counters
+    // ========== CHARACTER COUNTERS ==========
     if (contentInput && contentCounter) {
         const updateContentCounter = () => {
             const len = contentInput.value.length;
@@ -675,7 +699,95 @@ document.addEventListener('DOMContentLoaded', function() {
         updateExcerptCounter();
     }
 
-    // Form validation
+    // ========== CATEGORY → SUBCATEGORY ==========
+    if (categorySelect && subcategorySelect) {
+        categorySelect.addEventListener('change', function() {
+            if (this.value) {
+                loadData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
+            } else {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                subcategorySelect.disabled = true;
+            }
+        });
+    }
+
+    // ========== LOCATION CASCADES (NO AUTO-TRIGGER ON PAGE LOAD) ==========
+    // Country → State
+    if (countrySelect && stateSelect) {
+        countrySelect.addEventListener('change', function() {
+            if (this.value) {
+                loadData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
+                // Clear downstream selects
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                stateSelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
+    }
+
+    // State → City
+    if (stateSelect && citySelect) {
+        stateSelect.addEventListener('change', function() {
+            if (this.value && !stateSelect.disabled) {
+                loadData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
+                // Clear downstream selects
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
+    }
+
+    // City → District
+    if (citySelect && districtSelect) {
+        citySelect.addEventListener('change', function() {
+            if (this.value && !citySelect.disabled) {
+                loadData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
+                // Clear region
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
+    }
+
+    // District → Region
+    if (districtSelect && regionSelect) {
+        districtSelect.addEventListener('change', function() {
+            if (this.value && !districtSelect.disabled) {
+                loadData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
+            } else {
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
+    }
+
+    // ========== FORM VALIDATION ==========
     const form = document.getElementById('blogForm');
     form.addEventListener('submit', function(e) {
         let isValid = true;
@@ -694,219 +806,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please fill in all required fields.');
         }
     });
-
-    // Category → Subcategory dynamic filtering
-    const categorySelect = document.getElementById('{{ form.category.id_for_label }}');
-    const subcategorySelect = document.getElementById('{{ form.subcategory.id_for_label }}');
-    if (categorySelect && subcategorySelect) {
-        function loadSubcategories() {
-            const categoryId = categorySelect.value;
-            if (categoryId) {
-                subcategorySelect.innerHTML = '<option value="">Loading...</option>';
-                subcategorySelect.disabled = true;
-                fetch(`/categories/ajax/load-subcategories/${categoryId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-                        data.forEach(sub => {
-                            const option = document.createElement('option');
-                            option.value = sub.id;
-                            option.textContent = sub.name;
-                            subcategorySelect.appendChild(option);
-                        });
-                        subcategorySelect.disabled = false;
-                    })
-                    .catch(() => {
-                        subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
-                        subcategorySelect.disabled = true;
-                    });
-            } else {
-                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-                subcategorySelect.disabled = true;
-            }
-        }
-        categorySelect.addEventListener('change', loadSubcategories);
-        // Trigger on page load if a category is preselected
-        if (categorySelect.value) loadSubcategories();
-    }
-
-    // Location cascade (Country → State → City → District → Region)
-    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
-    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
-    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
-    const districtSelect = document.getElementById('{{ form.district.id_for_label }}');
-    const regionSelect = document.getElementById('{{ form.region.id_for_label }}');
-
-    if (countrySelect && stateSelect) {
-        function loadStates() {
-            const countryId = countrySelect.value;
-            if (countryId) {
-                stateSelect.innerHTML = '<option value="">Loading...</option>';
-                stateSelect.disabled = true;
-                fetch(`/location/ajax/states-by-country/${countryId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        stateSelect.innerHTML = '<option value="">Select State</option>';
-                        data.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            stateSelect.appendChild(option);
-                        });
-                        stateSelect.disabled = false;
-                        // Reset dependent selects
-                        citySelect.innerHTML = '<option value="">Select City</option>';
-                        citySelect.disabled = true;
-                        if (districtSelect) {
-                            districtSelect.innerHTML = '<option value="">Select District</option>';
-                            districtSelect.disabled = true;
-                        }
-                        if (regionSelect) {
-                            regionSelect.innerHTML = '<option value="">Select Region</option>';
-                            regionSelect.disabled = true;
-                        }
-                    })
-                    .catch(() => {
-                        stateSelect.innerHTML = '<option value="">Error loading states</option>';
-                        stateSelect.disabled = true;
-                    });
-            } else {
-                stateSelect.innerHTML = '<option value="">Select State</option>';
-                stateSelect.disabled = true;
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                citySelect.disabled = true;
-                if (districtSelect) {
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
-                    districtSelect.disabled = true;
-                }
-                if (regionSelect) {
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                }
-            }
-        }
-        countrySelect.addEventListener('change', loadStates);
-        if (countrySelect.value) loadStates();
-    }
-
-    if (stateSelect && citySelect) {
-        function loadCities() {
-            const stateId = stateSelect.value;
-            if (stateId && stateSelect.disabled === false) {
-                citySelect.innerHTML = '<option value="">Loading...</option>';
-                citySelect.disabled = true;
-                fetch(`/location/ajax/cities-by-state/${stateId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        citySelect.innerHTML = '<option value="">Select City</option>';
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            citySelect.appendChild(option);
-                        });
-                        citySelect.disabled = false;
-                        // Reset dependent selects
-                        if (districtSelect) {
-                            districtSelect.innerHTML = '<option value="">Select District</option>';
-                            districtSelect.disabled = true;
-                        }
-                        if (regionSelect) {
-                            regionSelect.innerHTML = '<option value="">Select Region</option>';
-                            regionSelect.disabled = true;
-                        }
-                    })
-                    .catch(() => {
-                        citySelect.innerHTML = '<option value="">Error loading cities</option>';
-                        citySelect.disabled = true;
-                    });
-            } else {
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                citySelect.disabled = true;
-                if (districtSelect) {
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
-                    districtSelect.disabled = true;
-                }
-                if (regionSelect) {
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                }
-            }
-        }
-        stateSelect.addEventListener('change', loadCities);
-        if (stateSelect.value && !stateSelect.disabled) loadCities();
-    }
-
-    if (citySelect && districtSelect) {
-        function loadDistricts() {
-            const cityId = citySelect.value;
-            if (cityId && citySelect.disabled === false) {
-                districtSelect.innerHTML = '<option value="">Loading...</option>';
-                districtSelect.disabled = true;
-                fetch(`/location/ajax/districts-by-city/${cityId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        districtSelect.innerHTML = '<option value="">Select District</option>';
-                        data.forEach(district => {
-                            const option = document.createElement('option');
-                            option.value = district.id;
-                            option.textContent = district.name;
-                            districtSelect.appendChild(option);
-                        });
-                        districtSelect.disabled = false;
-                        // Reset region select
-                        if (regionSelect) {
-                            regionSelect.innerHTML = '<option value="">Select Region</option>';
-                            regionSelect.disabled = true;
-                        }
-                    })
-                    .catch(() => {
-                        districtSelect.innerHTML = '<option value="">Error loading districts</option>';
-                        districtSelect.disabled = true;
-                    });
-            } else {
-                districtSelect.innerHTML = '<option value="">Select District</option>';
-                districtSelect.disabled = true;
-                if (regionSelect) {
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                }
-            }
-        }
-        citySelect.addEventListener('change', loadDistricts);
-        if (citySelect.value && !citySelect.disabled) loadDistricts();
-    }
-
-    if (districtSelect && regionSelect) {
-        function loadRegions() {
-            const districtId = districtSelect.value;
-            if (districtId && districtSelect.disabled === false) {
-                regionSelect.innerHTML = '<option value="">Loading...</option>';
-                regionSelect.disabled = true;
-                fetch(`/location/ajax/regions-by-district/${districtId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        regionSelect.innerHTML = '<option value="">Select Region</option>';
-                        data.forEach(region => {
-                            const option = document.createElement('option');
-                            option.value = region.id;
-                            option.textContent = region.name;
-                            regionSelect.appendChild(option);
-                        });
-                        regionSelect.disabled = false;
-                    })
-                    .catch(() => {
-                        regionSelect.innerHTML = '<option value="">Error loading regions</option>';
-                        regionSelect.disabled = true;
-                    });
-            } else {
-                regionSelect.innerHTML = '<option value="">Select Region</option>';
-                regionSelect.disabled = true;
-            }
-        }
-        districtSelect.addEventListener('change', loadRegions);
-        if (districtSelect.value && !districtSelect.disabled) loadRegions();
-    }
 });
 </script>
 {% endblock %}

@@ -10,11 +10,11 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
             <div>
                 <h1 class="h2 fw-bold text-white mb-1">{{ district.name }}</h1>
-                <p class="text-white-80 mb-0">District Code: {{ district.code }} | City: {{ district.city.name }} | State: {{ district.city.state.name }}</p>
+                <p class="text-white-80 mb-0">Area Code: {{ district.code }} | City: {{ district.city.name }} | State: {{ district.city.state.name }}</p>
             </div>
             <div class="mt-3 mt-md-0 d-flex gap-2">
                 <a href="{% url 'admin_interface:admin_districts' %}" class="btn btn-light btn-sm">
-                    <i class="fas fa-arrow-left me-1"></i> Back to Districts
+                    <i class="fas fa-arrow-left me-1"></i> Back to Areas
                 </a>
                 <a href="{% url 'admin_interface:admin_district_edit' district.id %}" class="btn btn-light btn-sm">
                     <i class="fas fa-edit me-1"></i> Edit
@@ -29,7 +29,7 @@
             <div class="icon-shape bg-primary-soft me-3">
                 <i class="fas fa-building text-primary"></i>
             </div>
-            <h5 class="fw-semibold mb-0">District Information</h5>
+            <h5 class="fw-semibold mb-0">Area Information</h5>
         </div>
 
         <div class="row">
@@ -39,7 +39,7 @@
                     <span class="detail-value">{{ district.name }}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">District Code:</span>
+                    <span class="detail-label">Area Code:</span>
                     <span class="detail-value">{{ district.code|default:"N/A" }}</span>
                 </div>
             </div>
@@ -61,7 +61,7 @@
     </div>
 
     <!-- Related Regions -->
-    <div class="content-card mt-4">
+    <!-- <div class="content-card mt-4">
         <div class="d-flex align-items-center mb-3">
             <div class="icon-shape bg-info-soft me-3">
                 <i class="fas fa-map text-info"></i>
@@ -127,7 +127,7 @@
                 </a>
             </div>
         {% endif %}
-    </div>
+    </div> -->
 
     <!-- Quick Actions -->
     <div class="content-card mt-4">
@@ -139,7 +139,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
                 <a href="{% url 'admin_interface:admin_region_create' %}?district={{ district.id }}" class="btn btn-primary w-100 mb-2">
                     <i class="fas fa-plus me-2"></i>Add Region
                 </a>
@@ -148,15 +148,15 @@
                 <a href="{% url 'admin_interface:admin_regions' %}?district={{ district.id }}" class="btn btn-info w-100 mb-2">
                     <i class="fas fa-list me-2"></i>View Regions
                 </a>
-            </div>
+            </div> -->
             <div class="col-md-3">
                 <a href="{% url 'admin_interface:admin_district_edit' district.id %}" class="btn btn-warning w-100 mb-2">
-                    <i class="fas fa-edit me-2"></i>Edit District
+                    <i class="fas fa-edit me-2"></i>Edit Area
                 </a>
             </div>
             <div class="col-md-3">
                 <a href="{% url 'admin_interface:admin_district_delete' district.id %}" class="btn btn-danger w-100 mb-2">
-                    <i class="fas fa-trash me-2"></i>Delete District
+                    <i class="fas fa-trash me-2"></i>Delete Area
                 </a>
             </div>
         </div>

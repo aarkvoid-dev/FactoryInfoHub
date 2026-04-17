@@ -56,12 +56,14 @@
                     {{ form.factory_type }}
                   </div>
                 </div>
+                {% if request.user.is_superuser %}
                 <div class="col-md-6">
                   <div class="form-group-custom">
                     <label class="label-tech">Contact Price</label>
                     {{ form.price }}
                   </div>
                 </div>
+                {% endif %}
                 <div class="col-md-6">
                   <div class="form-group-custom">
                     <label class="label-tech">Start Year</label>
@@ -301,13 +303,13 @@
                   <option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>
                   {% endfor %}
                 </select>
-                <select name="region" id="id_region" class="select2-searchable">
+                <!-- <select name="region" id="id_region" class="select2-searchable">
                   {% for r in form.region.field.queryset %}
                   <option value="{{ r.id }}" {% if form.region.value == r.id %}selected{% endif %}>{{ r.name }}</option>
                   {% endfor %}
-                </select>
+                </select> -->
                 <div class="form-group-custom mt-2">
-                  <label class="label-tech-sm">Street Address</label>
+                  <label name='address' class="label-tech-sm">Street Address</label>
                   {{ form.address }}
                 </div>
                 <div class="form-group-custom">
@@ -323,6 +325,10 @@
                   <div class="d-flex align-items-center justify-content-between mb-3">
                     <span class="fw-bold small">System Verification</span>
                     <div class="form-check form-switch m-0">{{ form.is_verified }}</div>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between mb-4">
+                    <span class="fw-bold small">Is Active</span>
+                    <div class="form-check form-switch m-0">{{ form.is_active }}</div>
                   </div>
                 {% else %}
                   <div class="d-flex align-items-center justify-content-between mb-3">
@@ -341,11 +347,28 @@
                       {% endif %}
                     </div>
                   </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold small">Is Active</span>
+                    <div class="verification-status-badge">
+                        {% if factory and factory.is_active %}
+                          <span class="badge badge-verified text-white px-3 py-2 rounded-3 fw-600">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Active
+                          </span>
+                        {% else %}
+                          <span class="badge badge-unverified text-white px-3 py-2 rounded-3 fw-600">
+                            <i class="fas fa-clock me-2"></i>
+                            Pending
+                          </span>
+                        {% endif %}
+                    </div>
+                  </div>
                 {% endif %}
-                <div class="d-flex align-items-center justify-content-between mb-4">
+                <!-- <div class="d-flex align-items-center justify-content-between mb-4">
                   <span class="fw-bold small">Is Active</span>
                   <div class="form-check form-switch m-0">{{ form.is_active }}</div>
-                </div>
+                </div> -->
                 <button type="submit" class="btn-action-main w-100">
                   <span>{% if factory %}Update Node{% else %}Initialize Node{% endif %}</span>
                   <i class="fas fa-rocket"></i>
@@ -951,7 +974,8 @@ if (videoUrlInput) {
     // Enhanced validation before fetch
     $('#main-editor-form').on('submit', function(e) {
         let isValid = true;
-        const requiredFields = ['name', 'description', 'price', 'contact_person', 'contact_email', 'contact_phone', 'category', 'subcategory'];
+        // const requiredFields = ['name', 'description', 'price', 'contact_person', 'contact_email', 'contact_phone', 'category', 'subcategory'];
+        const requiredFields = ['name', 'description', 'contact_person', 'contact_phone', 'category', 'subcategory','country','state','city','address'];
         const missingFields = [];
         const invalidFields = [];
         
@@ -1004,7 +1028,7 @@ if (videoUrlInput) {
         const hasExisting = document.getElementById('image-forms-container').querySelectorAll('.image-form-row[data-image-id]').length > 0;
         const hasNew = typeof newImageFiles !== 'undefined' && newImageFiles.length > 0;
         if (!hasExisting && !hasNew) {
-            showImageRequiredModal();
+            // showImageRequiredModal();
             isValid = false;
         }
     }

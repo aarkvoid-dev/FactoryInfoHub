@@ -398,7 +398,7 @@ def factory_edit(request, slug):
 
         form = FactoryForm(post_data, instance=factory)
         formset = FactoryImageFormSet(request.POST, request.FILES, instance=factory, prefix='images')
-
+        print(form.errors)
         if form.is_valid() and formset.is_valid():
 
             # factory = form.save()
@@ -701,8 +701,12 @@ def get_regions(request):
 # Factory Detail with Purchase Logic
 def factory_detail(request, slug):
     """Display factory details with purchase options"""
-    factory = get_object_or_404(Factory, slug=slug, is_active=True, is_deleted=False)
     
+    factory = get_object_or_404(Factory, slug=slug)
+    
+    if not factory.is_active and not request.user.is_staff:
+        messages.warning(request,f"{slug} - This factory is currently inactive.")
+        return redirect('karkahan:factory_list')
     # Track factory view (only track for non-admin users to avoid skewing stats)
     if not request.user.is_staff:
         from .utils import track_factory_view

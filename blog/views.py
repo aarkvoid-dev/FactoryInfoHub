@@ -305,7 +305,7 @@ def create_blog_post(request):
 def create_blog_post_form(request):
     if request.method == 'POST':
         data = request.POST.copy()                 # make mutable copy
-        process_hierarchical_fields(data)           # convert new names to IDs
+        process_hierarchical_fields(data)           # convert new names to IDs BEFORE initializing form
         form = BlogPostForm(data, request.FILES)    # use the modified data
         if form.is_valid():
             try:
@@ -352,7 +352,7 @@ def edit_blog_post(request, slug):
 
     if request.method == 'POST':
         data = request.POST.copy()
-        process_hierarchical_fields(data)
+        process_hierarchical_fields(data)          # convert new names to IDs BEFORE initializing form
         form = BlogPostForm(data, request.FILES, instance=blog)
         if form.is_valid():
             # The form's save method now handles images automatically
@@ -364,6 +364,9 @@ def edit_blog_post(request, slug):
     context = {
         'form': form,
         'blog': blog,
+        'featured_image':blog.get_featured_image(),
+        'gallery_images':blog.get_gallery_images(),
+        'related_factories':blog.related_factories.filter(is_active=True),
         'categories': Category.objects.all(),
         'countries': Country.objects.all(),
         'factories': Factory.objects.filter(is_active=True),

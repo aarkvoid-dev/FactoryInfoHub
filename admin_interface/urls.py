@@ -52,12 +52,12 @@ urlpatterns = [
     path('locations/cities/detail/<int:city_id>/', views.admin_city_detail, name='admin_city_detail'),
     
     # Districts CRUD
-    path('locations/districts/', views.admin_districts, name='admin_districts'),
-    path('locations/districts/create/', views.admin_district_create, name='admin_district_create'),
-    path('locations/districts/edit/<int:district_id>/', views.admin_district_edit, name='admin_district_edit'),
-    path('locations/districts/delete/<int:district_id>/', views.admin_district_delete, name='admin_district_delete'),
-    path('locations/districts/restore/<int:district_id>/', views.admin_district_restore, name='admin_district_restore'),
-    path('locations/districts/detail/<int:district_id>/', views.admin_district_detail, name='admin_district_detail'),
+    path('locations/area/', views.admin_districts, name='admin_districts'),
+    path('locations/area/create/', views.admin_district_create, name='admin_district_create'),
+    path('locations/area/edit/<int:district_id>/', views.admin_district_edit, name='admin_district_edit'),
+    path('locations/area/delete/<int:district_id>/', views.admin_district_delete, name='admin_district_delete'),
+    path('locations/area/restore/<int:district_id>/', views.admin_district_restore, name='admin_district_restore'),
+    path('locations/area/detail/<int:district_id>/', views.admin_district_detail, name='admin_district_detail'),
     
     # Regions CRUD
     path('locations/regions/', views.admin_regions, name='admin_regions'),

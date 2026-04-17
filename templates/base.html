@@ -89,6 +89,18 @@
             display: flex !important;
         }
     }
+
+    @media (max-width: 1024px) {
+        .header__right a {
+            font-size: 0;          /* hides the text */
+        }
+        .header__right a i {
+            font-size: 1rem;       /* ensures icon remains visible */
+            margin-right: 0;
+        }
+    }
+
+
   </style>
 
   <!-- CSRF Token -->

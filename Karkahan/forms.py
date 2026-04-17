@@ -38,10 +38,24 @@ class FactoryForm(ModelForm):
                 'data-video-preview': 'true'
             }),
             'established_year': forms.NumberInput(attrs={'min': 1900, 'max': 2030, 'class': 'form-control', 'placeholder': 'e.g., 2015'}),
-            'employee_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'placeholder': 'e.g., 150'}),
-            'annual_turnover': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'placeholder': 'e.g., 5000000.00'}),
+            # 'employee_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'placeholder': 'e.g., 150'}),
+            'employee_count': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 150',
+                'oninput': "this.value = this.value.replace(/[^0-9]/g, '')",
+                'pattern': '[0-9]+(\\.[0-9]+)?',
+                'title': 'Please enter only numbers (no hyphens, plus signs, or letters)'
+            }),
+            # 'annual_turnover': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control', 'placeholder': 'e.g., 5000000.00'}),
+            'annual_turnover': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 5000000',
+                'oninput': "this.value = this.value.replace(/[^0-9]/g, '')",
+                'pattern': '[0-9]+(\\.[0-9]+)?',
+                'title': 'Please enter only numbers (no hyphens, plus signs, or letters)'
+            }),
             'factory_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Textile Manufacturing, Electronics Assembly, Food Processing'}),
-            'production_capacity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Bulk/Avrage/Small'}),
+            'production_capacity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Bulk/Average/Small'}),
             'working_hours': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 9:00 AM - 6:00 PM, Monday to Saturday'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., ABC Textiles Pvt. Ltd.'}),
             'pincode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 400001'}),
@@ -113,7 +127,7 @@ class FactoryForm(ModelForm):
         # Make name required
         self.fields['name'].required = True
         self.fields['description'].required = True
-        self.fields['price'].required = True
+        self.fields['price'].required = False
         self.fields['contact_person'].required = True
         self.fields['contact_email'].required = False
         self.fields['contact_phone'].required = True
