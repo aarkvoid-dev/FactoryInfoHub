@@ -2183,21 +2183,68 @@ def export_factories_to_csv(factories):
     response['Content-Disposition'] = 'attachment; filename="factories.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Factory Name','Contact Person','Contact', 'Category', 'Sub Category', 'Location', 'Capacity', 'Owner', 'Status'])
+    writer.writerow([
+        'ID', 'Factory Code', 'Name', 'Slug', 'Description', 'Category', 'Subcategory',
+        'Country', 'State', 'City', 'District', 'Region', 'Address', 'Pincode',
+        'Contact Person', 'Contact Phone', 'Contact Email', 'Website', 'Established Year',
+        'Employee Count', 'Annual Turnover (INR)', 'Price (per unit)', 'Factory Type',
+        'Production Capacity', 'Working Hours', 'Holidays', 'Features', 'Video URL',
+        'Is Active', 'Is Verified', 'Created By', 'Created At', 'Updated At',
+        'Owner(s)', 'Total Images'
+    ])
 
     for factory in factories:
-        owner = ', '.join([profile.user.username for profile in factory.profiles.all()]) if factory.profiles.exists() else 'No owner'
-        location = f"{factory.city.name}, {factory.state.name}, {factory.country.name}"
+        # Handle related names with safe fallbacks
+        category_name = factory.category.name if factory.category else 'N/A'
+        subcategory_name = factory.subcategory.name if factory.subcategory else 'N/A'
+        country_name = factory.country.name if factory.country else 'N/A'
+        state_name = factory.state.name if factory.state else 'N/A'
+        city_name = factory.city.name if factory.city else 'N/A'
+        district_name = factory.district.name if factory.district else 'N/A'
+        region_name = factory.region.name if factory.region else 'N/A'
+        
+        # Owner(s) – from profiles (many-to-many through Profile)
+        owners = ', '.join([profile.user.username for profile in factory.profiles.all()]) if factory.profiles.exists() else 'No owner'
+        
+        # Created by (User)
+        created_by = factory.created_by.username if factory.created_by else 'System'
+        
         writer.writerow([
             factory.id,
+            factory.factory_code or '',
             factory.name,
+            factory.slug,
+            factory.description,
+            category_name,
+            subcategory_name,
+            country_name,
+            state_name,
+            city_name,
+            district_name,
+            region_name,
+            factory.address,
+            factory.pincode,
             factory.contact_person,
             factory.contact_phone,
-            factory.category.name,
-            factory.subcategory.name if factory.subcategory else 'N/A',
-            location,
-            owner,
+            factory.contact_email,
+            factory.website,
+            factory.established_year or '',
+            factory.employee_count or '',
+            factory.annual_turnover or '',
+            factory.price or '',
+            factory.factory_type,
+            factory.production_capacity,
+            factory.working_hours,
+            factory.holidays,
+            factory.features,
+            factory.video_url or '',
             'Active' if factory.is_active else 'Inactive',
+            'Verified' if factory.is_verified else 'Not Verified',
+            created_by,
+            factory.created_at.strftime('%Y-%m-%d %H:%M:%S') if factory.created_at else '',
+            factory.updated_at.strftime('%Y-%m-%d %H:%M:%S') if factory.updated_at else '',
+            owners,
+            factory.images.count()  # assuming related_name='images' on FactoryImage
         ])
 
     return response
@@ -2207,7 +2254,7 @@ def export_workers_to_csv(workers):
     response['Content-Disposition'] = 'attachment; filename="workers.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name','Phone No.', 'Category', 'Position', 'Factory', 'Experience', 'Age', 'Gender', 'Status'])
+    writer.writerow(['ID', 'Name','Phone No.', 'Category', 'Skills', 'Expected wage', 'Experience', 'Age', 'Gender', 'Status','Country','State','City'])
 
     for worker in workers:
         
@@ -2221,12 +2268,15 @@ def export_workers_to_csv(workers):
             worker.full_name,
             worker.phone_number,
             worker.category,
-     
-         
+            worker.skills,
+            worker.expected_daily_wage,
             f"{worker.years_of_experience} years",
             f"{age} years" if age else 'N/A',
             worker.gender,
             'Active' if worker.is_active else 'Inactive',
+            worker.country,
+            worker.state,
+            worker.city,
         ])
 
     return response
@@ -3365,18 +3415,33 @@ def bulk_actions(request):
 
 def export_contact_messages_to_csv(messages, type_label=None):
     response = HttpResponse(content_type='text/csv')
-    filename = f"contact_messages_{type_label or 'all'}_{timezone.now().strftime('%Y%m%d')}.csv"
+    filename = f"contact_messages_{type_label or 'all'}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Type', 'Name', 'Phone No.', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At'])
+
+    # Base headers always present
+    base_headers = ['ID', 'Type', 'Name', 'Phone No.', 'Email', 'Subject', 'Message', 'User', 'Status', 'Created At', 'Read At']
+
+    # Determine extra headers based on type
+    extra_headers = []
+    if type_label != 'online_class':
+        extra_headers.append('Brand Name')
+    if type_label != 'enquiry':
+        extra_headers.append('Location')
+        extra_headers.append('Area')
+
+    # Combine headers: base + extra (inserting brand after Name, location after Email, etc.)
+    # For simplicity, we'll add extra columns at the end
+    headers = base_headers + extra_headers
+    writer.writerow(headers)
 
     for message in messages:
-        writer.writerow([
+        row = [
             message.id,
             message.get_type_display(),
             message.name,
-            message.mobile_number,
+            message.mobile_number or '',
             message.email,
             message.subject,
             message.message.replace('\n', ' ').replace('\r', ''),
@@ -3384,7 +3449,16 @@ def export_contact_messages_to_csv(messages, type_label=None):
             'Read' if message.is_read else 'Unread',
             message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             message.read_at.strftime('%Y-%m-%d %H:%M:%S') if message.read_at else '',
-        ])
+        ]
+
+        # Add extra fields based on type
+        if type_label != 'online_class':
+            row.append(message.brand_name or '')
+        if type_label != 'enquiry':
+            row.append(message.location or '')
+            row.append(message.area or '')
+
+        writer.writerow(row)
 
     return response
 
