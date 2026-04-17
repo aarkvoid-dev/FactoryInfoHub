@@ -23,6 +23,7 @@ from django.db import transaction
 from django.core.paginator import Paginator
 import copy
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 
 def and_search_filter(queryset, search_terms, fields):
@@ -83,7 +84,9 @@ def admin_dashboard(request):
             'message': f'User {user.username} created',
             'timestamp': user.date_joined,
             'icon': 'fas fa-user-plus',
-            'color': 'text-primary'
+            'color': 'text-primary',
+            'id': user.id,
+            'url': reverse('admin_interface:admin_user_edit', args=[user.id]) 
         })
 
     # Add factory creation activities
@@ -97,7 +100,10 @@ def admin_dashboard(request):
             'message': f'Factory {factory.name} created',
             'timestamp': factory.created_at,
             'icon': 'fas fa-industry',
-            'color': 'text-success'
+            'color': 'text-success',
+            'id': factory.id,
+            'slug': factory.slug,
+            'url': reverse('admin_interface:admin_factory_detail', args=[factory.id])
         })
 
     # Add worker creation activities
@@ -111,7 +117,9 @@ def admin_dashboard(request):
             'message': f'Worker {worker.full_name} created',
             'timestamp': worker.created_at,
             'icon': 'fas fa-user-tie',
-            'color': 'text-warning'
+            'color': 'text-warning',
+            'id': worker.id,
+            'url': reverse('admin_interface:admin_worker_detail', args=[worker.id])
         })
 
     # Add contact message activities
@@ -126,7 +134,9 @@ def admin_dashboard(request):
             'message': f'New message from {contact.name}: {contact.subject}',
             'timestamp': contact.created_at,
             'icon': 'fas fa-envelope',
-            'color': 'text-info'
+            'color': 'text-info',
+            'id': contact.id,
+            'url': reverse('admin_interface:admin_contact_detail', args=[contact.id])
         })
 
     # Add blog post activities
@@ -141,7 +151,10 @@ def admin_dashboard(request):
             'message': f'Blog post "{blog.title}" published',
             'timestamp': blog.created_at,
             'icon': 'fas fa-file-alt',
-            'color': 'text-secondary'
+            'color': 'text-secondary',
+            'id': blog.id,
+            'slug': blog.slug,
+            'url': reverse('admin_interface:admin_blog_detail', args=[blog.id])
         })
 
     # Sort activities by timestamp
