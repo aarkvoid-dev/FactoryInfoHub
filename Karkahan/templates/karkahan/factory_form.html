@@ -283,21 +283,25 @@
                 <h6 class="mb-0 fw-800"><i class="fas fa-map-marked-alt me-2"></i>Geo-Location</h6>
               </div>
               <div class="p-4 bg-white d-grid gap-3">
+                <label name='address' class="label-tech-sm">Country</label>
                 <select name="country" id="id_country" class="select2-searchable">
                   {% for c in form.country.field.queryset %}
                   <option value="{{ c.id }}" {% if form.country.value == c.id %}selected{% endif %}>{{ c.name }}</option>
                   {% endfor %}
                 </select>
+                <label name='address' class="label-tech-sm">State</label>
                 <select name="state" id="id_state" class="select2-searchable">
                   {% for s in form.state.field.queryset %}
                   <option value="{{ s.id }}" {% if form.state.value == s.id %}selected{% endif %}>{{ s.name }}</option>
                   {% endfor %}
                 </select>
+                <label name='address' class="label-tech-sm">City/Distric </label>
                 <select name="city" id="id_city" class="select2-searchable">
                   {% for c in form.city.field.queryset %}
                   <option value="{{ c.id }}" {% if form.city.value == c.id %}selected{% endif %}>{{ c.name }}</option>
                   {% endfor %}
                 </select>
+                <label name='address' class="label-tech-sm">Area </label>
                 <select name="district" id="id_district" class="select2-searchable">
                   {% for d in form.district.field.queryset %}
                   <option value="{{ d.id }}" {% if form.district.value == d.id %}selected{% endif %}>{{ d.name }}</option>
