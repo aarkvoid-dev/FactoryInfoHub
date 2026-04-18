@@ -83,7 +83,6 @@ def home(request):
 #     if type not in valid_types:
 #         type = 'enquiry'
     
-#     # Helper to build common context
 #     def get_base_context(additional=None):
 #         context = {
 #             'type': type,
@@ -94,8 +93,8 @@ def home(request):
 #             'user_mobile': '',
 #             'message': '',
 #             'brand_name': '',
-#             'location':'',
-#             'area':'',
+#             'location': '',
+#             'area': '',
 #         }
 #         if request.user.is_authenticated:
 #             context['user_email'] = request.user.email
@@ -108,7 +107,6 @@ def home(request):
 #                 else:
 #                     context['user_country_code'] = '+91'
 #                     context['user_mobile'] = phone
-            
 #         if additional:
 #             context.update(additional)
 #         context['pages'] = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
@@ -130,7 +128,6 @@ def home(request):
         
 #         if not all([name, email, message]):
 #             messages.error(request, 'Please fill in all required fields.')
-#             # Re-render with submitted data
 #             context = get_base_context({
 #                 'name': name,
 #                 'email': email,
@@ -138,24 +135,36 @@ def home(request):
 #                 'mobile_number': mobile_number,
 #                 'message': message,
 #                 'country_code': country_code,
-#                 'location':location,
-#                 'area':area
+#                 'location': location,
+#                 'area': area,
+#                 'attachment': attachment_file  # keep for re-render
 #             })
 #             return render(request, 'home/contact.html', context)
         
 #         full_mobile = f"{country_code} {mobile_number}" if mobile_number else ''
         
+#         # Validate attachment
 #         if attachment_file:
-#             # 5MB limit
-#             if attachment_file.size > 5 * 1024 * 1024:
+#             if attachment_file.size > 50 * 1024 * 1024:
 #                 messages.error(request, 'File size must be less than 5MB.')
-#                 return render(request, 'home/contact.html', get_base_context(...))
-#             allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 
+#                 context = get_base_context({
+#                     'name': name, 'email': email, 'brand_name': brand_name,
+#                     'mobile_number': mobile_number, 'message': message,
+#                     'country_code': country_code, 'location': location, 'area': area
+#                 })
+#                 return render(request, 'home/contact.html', context)
+#             allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 
+#                              'application/msword',
 #                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 #             if attachment_file.content_type not in allowed_types:
 #                 messages.error(request, 'Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX.')
-#                 return render(request, 'home/contact.html', get_base_context(...))
-            
+#                 context = get_base_context({
+#                     'name': name, 'email': email, 'brand_name': brand_name,
+#                     'mobile_number': mobile_number, 'message': message,
+#                     'country_code': country_code, 'location': location, 'area': area
+#                 })
+#                 return render(request, 'home/contact.html', context)
+        
 #         try:
 #             contact_message = ContactMessage.objects.create(
 #                 type=inquiry_type,
@@ -168,28 +177,39 @@ def home(request):
 #                 user=request.user if request.user.is_authenticated else None,
 #                 location=location,
 #                 area=area,
-#                 attachment=attachment_file  # save file
+#                 attachment=attachment_file
 #             )
             
-#             # Email notifications (unchanged)...
-#             try:
-#                 admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
-#                 admin_message = f"{message}"
-#                 admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
-#                 admin_location = f"{location}, {area}" if location and area else location or "Not specified"
-#                 admin_message = admin_message + f"\n\nLocation: {admin_location}\n\n"
-#                 send_mail(admin_subject, admin_message, settings.DEFAULT_FROM_EMAIL, admin_recipients, fail_silently=False)
-                
-#                 user_subject = "Thank you for contacting FactoryInfoHub"
-#                 user_message = f"{message}"
-#                 send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
-#             except Exception as e:
-#                 print(f"Email error: {e}")
+#             # --- Send email with attachment using EmailMessage ---
+#             from django.core.mail import EmailMessage
+            
+#             admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
+#             admin_location = f"{location}, {area}" if location and area else location or "Not specified"
+#             admin_message = f"{message}\n\nLocation: {admin_location}"
+#             admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
+            
+#             admin_email = EmailMessage(
+#                 subject=admin_subject,
+#                 body=admin_message,
+#                 from_email=settings.DEFAULT_FROM_EMAIL,
+#                 to=admin_recipients,
+#             )
+#             if attachment_file:
+#                 admin_email.attach(attachment_file.name, attachment_file.read(), attachment_file.content_type)
+#                 # Reset file pointer for any further use (though not needed)
+#                 attachment_file.seek(0)
+#             admin_email.send(fail_silently=False)
+            
+#             # User confirmation email (no attachment)
+#             user_subject = "Thank you for contacting FactoryInfoHub"
+#             user_message = f"Dear {name},\n\nWe have received your message:\n{message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
+#             send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
             
 #             messages.success(request, 'Your message has been sent successfully!')
-#             # return redirect('contact', type=inquiry_type)
+#             return redirect('contact', type=inquiry_type)
+            
 #         except Exception as e:
-#             messages.error(request, f'An error occurred. Please try again later,{e}')
+#             messages.error(request, f'An error occurred. Please try again later: {str(e)}')
 #             context = get_base_context({
 #                 'name': name,
 #                 'email': email,
@@ -197,14 +217,40 @@ def home(request):
 #                 'mobile_number': mobile_number,
 #                 'message': message,
 #                 'country_code': country_code,
-#                 'location':location,
-#                 'area':area
+#                 'location': location,
+#                 'area': area
 #             })
 #             return render(request, 'home/contact.html', context)
     
-#     # GET request
 #     context = get_base_context()
 #     return render(request, 'home/contact.html', context)
+
+def send_emails_async(contact_message, admin_recipients, attachment_file=None):
+    """Background thread function to send emails."""
+    try:
+        # Admin email
+        admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(contact_message.type, 'Contact')} from {contact_message.name}"
+        admin_location = f"{contact_message.location}, {contact_message.area}" if contact_message.location and contact_message.area else contact_message.location or "Not specified"
+        admin_message = f"{contact_message.message}\n\nLocation: {admin_location}"
+        
+        admin_email = EmailMessage(
+            subject=admin_subject,
+            body=admin_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=admin_recipients,
+        )
+        if attachment_file:
+            # attachment_file is already read into memory as bytes
+            admin_email.attach(attachment_file['name'], attachment_file['content'], attachment_file['content_type'])
+        admin_email.send(fail_silently=False)
+        
+        # User confirmation email (no attachment)
+        user_subject = "Thank you for contacting FactoryInfoHub"
+        user_message = f"Dear {contact_message.name},\n\nWe have received your message:\n{contact_message.message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
+        send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [contact_message.email], fail_silently=True)
+    except Exception as e:
+        # Log error but don't interrupt user
+        print(f"Email sending error: {e}")
 
 @profile_complete_required
 def contact(request, type='enquiry'):
@@ -266,16 +312,16 @@ def contact(request, type='enquiry'):
                 'country_code': country_code,
                 'location': location,
                 'area': area,
-                'attachment': attachment_file  # keep for re-render
             })
             return render(request, 'home/contact.html', context)
         
         full_mobile = f"{country_code} {mobile_number}" if mobile_number else ''
         
         # Validate attachment
+        attachment_data = None
         if attachment_file:
             if attachment_file.size > 50 * 1024 * 1024:
-                messages.error(request, 'File size must be less than 5MB.')
+                messages.error(request, 'File size must be less than 50MB.')
                 context = get_base_context({
                     'name': name, 'email': email, 'brand_name': brand_name,
                     'mobile_number': mobile_number, 'message': message,
@@ -293,6 +339,12 @@ def contact(request, type='enquiry'):
                     'country_code': country_code, 'location': location, 'area': area
                 })
                 return render(request, 'home/contact.html', context)
+            # Read file content into memory for the background thread
+            attachment_data = {
+                'name': attachment_file.name,
+                'content': attachment_file.read(),
+                'content_type': attachment_file.content_type,
+            }
         
         try:
             contact_message = ContactMessage.objects.create(
@@ -306,34 +358,19 @@ def contact(request, type='enquiry'):
                 user=request.user if request.user.is_authenticated else None,
                 location=location,
                 area=area,
-                attachment=attachment_file
+                attachment=attachment_file  # save the file object (Django will handle storage)
             )
             
-            # --- Send email with attachment using EmailMessage ---
-            from django.core.mail import EmailMessage
-            
-            admin_subject = f"New {dict(ContactMessage.INQUIRY_TYPES).get(inquiry_type, 'Contact')} from {name}"
-            admin_location = f"{location}, {area}" if location and area else location or "Not specified"
-            admin_message = f"{message}\n\nLocation: {admin_location}"
+            # Start background thread to send emails
             admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
-            
-            admin_email = EmailMessage(
-                subject=admin_subject,
-                body=admin_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=admin_recipients,
+            thread = threading.Thread(
+                target=send_emails_async,
+                args=(contact_message, admin_recipients, attachment_data)
             )
-            if attachment_file:
-                admin_email.attach(attachment_file.name, attachment_file.read(), attachment_file.content_type)
-                # Reset file pointer for any further use (though not needed)
-                attachment_file.seek(0)
-            admin_email.send(fail_silently=False)
+            thread.daemon = True
+            thread.start()
             
-            # User confirmation email (no attachment)
-            user_subject = "Thank you for contacting FactoryInfoHub"
-            user_message = f"Dear {name},\n\nWe have received your message:\n{message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
-            send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
-            
+            # No success message or very quick one (optional)
             messages.success(request, 'Your message has been sent successfully!')
             return redirect('contact', type=inquiry_type)
             

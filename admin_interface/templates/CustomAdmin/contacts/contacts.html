@@ -125,7 +125,7 @@
                             <th>Status</th>
                             <th>Attach</th>
                             <th>Date</th>
-                            <th style="width: 70px;">Actions</th>
+                            <th style="width: 110px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,51 +210,34 @@
                                 <div>{{ message.created_at|date:"M d, Y" }}</div>
                                 <small class="text-muted">{{ message.created_at|date:"H:i" }}</small>
                             </td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-icon btn-soft-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
-                                        <i class="fas fa-ellipsis-v"></i>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button class="btn btn-sm btn-outline-primary view-message-btn"
+                                        data-message-id="{{ message.id }}"
+                                        data-name="{{ message.name }}"
+                                        data-mobile_number="{{ message.mobile_number }}"
+                                        data-email="{{ message.email }}"
+                                        data-subject="{{ message.subject }}"
+                                        data-brand="{{ message.brand_name }}"
+                                        data-message="{{ message.message }}"
+                                        data-user="{{ message.user.username|default:'Guest' }}"
+                                        data-created="{{ message.created_at|date:'M d, Y H:i' }}"
+                                        data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
+                                        data-is-read="{{ message.is_read }}"
+                                        {% if message.attachment %}
+                                        data-attachment-url="{{ message.attachment.url|default:'' }}"
+                                        data-attachment-type="{{ message.attachment.name|slice:'-4:'|lower|default:'' }}"
+                                        {% endif %}>
+                                        <i class="fas fa-eye me-1"></i> View
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li>
-                                            <button class="dropdown-item view-message" 
-                                                data-message-id="{{ message.id }}"
-                                                data-name="{{ message.name }}"
-                                                data-mobile_number="{{ message.mobile_number }}"
-                                                data-email="{{ message.email }}"
-                                                data-subject="{{ message.subject }}"
-                                                data-brand="{{ message.brand_name }}"
-                                                data-message="{{ message.message }}"
-                                                data-user="{{ message.user.username|default:'Guest' }}"
-                                                data-created="{{ message.created_at|date:'M d, Y H:i' }}"
-                                                data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
-                                                data-is-read="{{ message.is_read }}"
-                                                {% if message.attachment %}
-                                                data-attachment-url="{{ message.attachment.url|default:'' }}"
-                                                data-attachment-type="{{ message.attachment.name|slice:'-4:'|lower|default:'' }}"
-                                                {% endif %}
-                                                >
-                                                <i class="fas fa-eye me-2"></i> View
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'admin_interface:admin_contact_detail' message.id %}">
-                                                <i class="fas fa-info-circle me-2"></i> Details
-                                            </a>
-                                        </li>
-                                        {% if not message.is_read %}
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'admin_interface:mark_message_read' message.id %}">
-                                                <i class="fas fa-check me-2"></i> Mark Read
-                                            </a>
-                                        </li>
-                                        {% endif %}
-                                        <li>
-                                            <a class="dropdown-item text-danger" href="{% url 'admin_interface:delete_message' message.id %}">
-                                                <i class="fas fa-trash me-2"></i> Delete
-                                            </a>
-                                        </li>
-                                    </ul>
+                                    <!-- <a href="{% url 'admin_interface:delete_message' message.id %}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Move this message to trash? You can restore it later.')">
+                                        <i class="fas fa-trash me-1"></i> Delete
+                                    </a> -->
+                                    <a class="btn btn-sm btn-outline-primary" href="{% url 'admin_interface:admin_contact_detail' message.id %}">
+                                        <i class="fas fa-info-circle me-2"></i> Details
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -764,17 +747,10 @@
         .message-preview {
             max-width: 120px;
         }
-        /* Improve dropdown on mobile */
-        .dropdown-menu {
-            position: fixed !important;
-            top: auto !important;
-            left: 10px !important;
-            right: 10px !important;
-            width: auto !important;
-            min-width: unset;
-        }
-        .dropdown-item {
-            padding: 0.75rem 1rem;
+        /* Improve buttons on mobile */
+        .btn-sm {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
         }
         /* Adjust modal content for small screens */
         .modal-body {
@@ -823,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // View message modal
     const modal = new bootstrap.Modal(document.getElementById('messageModal'));
-    const viewButtons = document.querySelectorAll('.view-message');
+    const viewButtons = document.querySelectorAll('.view-message-btn');
     viewButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -853,11 +829,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const attachmentType = this.dataset.attachmentType;
             const attachmentCard = document.getElementById('attachment-card');
             const attachmentPreview = document.getElementById('attachment-preview');
-
             if (attachmentUrl) {
                 attachmentCard.style.display = 'block';
                 const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-                const isImage = imageExts.some(ext => attachmentType.includes(ext));
+                const isImage = imageExts.some(ext => attachmentType && attachmentType.includes(ext));
                 if (isImage) {
                     attachmentPreview.innerHTML = `<img src="${attachmentUrl}" class="img-fluid rounded border" style="max-height: 200px;">`;
                 } else {
