@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Reset dependent selects
                     citySelect.innerHTML = '<option value="">Select City</option>';
                     citySelect.disabled = true;
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.innerHTML = '<option value="">Select Area</option>';
                     districtSelect.disabled = true;
                     regionSelect.innerHTML = '<option value="">Select Region</option>';
                     regionSelect.disabled = true;
@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stateSelect.disabled = true;
             citySelect.innerHTML = '<option value="">Select City</option>';
             citySelect.disabled = true;
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.innerHTML = '<option value="">Select Area</option>';
             districtSelect.disabled = true;
             regionSelect.innerHTML = '<option value="">Select Region</option>';
             regionSelect.disabled = true;
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     citySelect.disabled = false;
                     // Reset deeper levels
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.innerHTML = '<option value="">Select Area</option>';
                     districtSelect.disabled = true;
                     regionSelect.innerHTML = '<option value="">Select Region</option>';
                     regionSelect.disabled = true;
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             citySelect.innerHTML = '<option value="">Select City</option>';
             citySelect.disabled = true;
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.innerHTML = '<option value="">Select Area</option>';
             districtSelect.disabled = true;
             regionSelect.innerHTML = '<option value="">Select Region</option>';
             regionSelect.disabled = true;
@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/location/ajax/districts-by-city/${cityId}/`)
                 .then(response => response.json())
                 .then(districts => {
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.innerHTML = '<option value="">Select Area</option>';
                     districts.forEach(district => {
                         const option = document.createElement('option');
                         option.value = district.id;
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => console.error('Error loading districts:', error));
         } else {
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.innerHTML = '<option value="">Select Area</option>';
             districtSelect.disabled = true;
             regionSelect.innerHTML = '<option value="">Select Region</option>';
             regionSelect.disabled = true;
