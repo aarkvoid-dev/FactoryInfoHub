@@ -309,23 +309,23 @@ function setupCascade(parentId, childId, url, clearChildren = []) {
         const parentVal = $(this).val();
         if (parentVal && !isNaN(parentVal)) {
             $.getJSON(url.replace('0', parentVal), function(data) {
-                let options = '<option value="">---------</option>';
+                let options = '<option value="">Please Select or add option</option>';
                 data.forEach(item => {
                     options += `<option value="${item.id}">${item.name}</option>`;
                 });
                 $child.html(options);
                 clearChildren.forEach(id => {
-                    $('#' + id).html('<option value="">---------</option>').trigger('change');
+                    $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
                 });
             }).fail(() => console.error('Failed to load', parentId));
         } else if (parentVal && typeof parentVal === 'string') {
             clearChildren.forEach(id => {
-                $('#' + id).html('<option value="">---------</option>').trigger('change');
+                $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
             });
         } else {
-            $child.html('<option value="">---------</option>');
+            $child.html('<option value="">Please Select or add option</option>');
             clearChildren.forEach(id => {
-                $('#' + id).html('<option value="">---------</option>').trigger('change');
+                $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
             });
         }
     });

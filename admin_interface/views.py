@@ -16,7 +16,7 @@ from blog.models import BlogPost, BlogImage
 from Accounts.models import Profile
 from Home.models import ContactMessage, HomePageVideo, ContactReply, Page, PageSection
 from .models import PaymentIssueReport
-from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm, AdminPaymentGatewayForm, AdminPageForm, AdminPageSectionForm
+from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm,WorkExperienceFormSet, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm, AdminPaymentGatewayForm, AdminPageForm, AdminPageSectionForm
 from faq.models import FAQQuestion
 from Karkahan.views import send_order_receipt
 from django.db import transaction
@@ -947,6 +947,7 @@ def admin_worker_create(request):
     return render(request, 'CustomAdmin/workers/worker_form.html', context)
 
 
+
 @login_required
 def admin_worker_edit(request, worker_id):
     profile = request.user.profile
@@ -959,17 +960,21 @@ def admin_worker_edit(request, worker_id):
 
     if request.method == 'POST':
         form = AdminWorkerForm(request.POST, instance=worker)
-        if form.is_valid():
+        formset = WorkExperienceFormSet(request.POST, instance=worker)
+        if form.is_valid() and formset.is_valid():
             worker = form.save()
+            formset.save()
             messages.success(request, f'Worker "{worker.full_name}" updated successfully!')
             return redirect('admin_interface:admin_workers')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = AdminWorkerForm(instance=worker)
+        formset = WorkExperienceFormSet(instance=worker)
 
     context = {
         'form': form,
+        'formset': formset,
         'action': 'edit',
         'title': f'Edit Worker: {worker.full_name}',
         'worker': worker,

@@ -9,6 +9,7 @@ from blog.models import BlogPost, BlogImage
 from Home.models import HomePageVideo, Page, PageSection
 from faq.models import FAQQuestion
 from tinymce.widgets import TinyMCE
+from django.forms import inlineformset_factory
 
 class AdminUserForm(forms.ModelForm):
     class Meta:
@@ -188,82 +189,130 @@ class AdminWorkerForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter address'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'created_by': forms.Select(attrs={'class': 'form-control', 'disabled': 'disabled'}),
-            'created_at': forms.DateTimeInput(attrs={'class': 'form-control', 'disabled': 'disabled', 'readonly': 'readonly'}),
+        }
+        labels = {
+            'city': 'City/District',
+            'district': 'Area',
+            # optional: adjust other labels as needed
+            'full_name': 'Full Name',
+            'date_of_birth': 'Date of Birth',
+            'phone_number': 'Phone Number',
+            'email': 'Email Address',
+            'category': 'Primary Trade/Skill',
+            'subcategory': 'Specialization',
+            'years_of_experience': 'Years of Experience',
+            'skills': 'Skills & Competencies',
+            'availability': 'Availability Status',
+            'expected_daily_wage': 'Expected Daily Wage (₹)',
+            'country': 'Country',
+            'state': 'State',
+            'region': 'Region',
+            'address': 'Complete Address',
+            'is_active': 'Active Profile',
+            'is_verified': 'Verified Worker',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Mark required fields
+        # Required fields
         self.fields['full_name'].required = True
         self.fields['category'].required = True
         self.fields['years_of_experience'].required = True
 
-        # ---------- Category/subcategory cascading ----------
-        if 'category' in self.data:
+        # ---- Subcategory cascading ----
+        if self.instance.pk and self.instance.category:
+            # Editing: show subcategories for the current category
+            self.fields['subcategory'].queryset = SubCategory.objects.filter(
+                category=self.instance.category, is_active=True
+            ).order_by('name')
+            if self.instance.subcategory:
+                self.fields['subcategory'].initial = self.instance.subcategory.id
+        elif 'category' in self.data:
             try:
                 category_id = int(self.data.get('category'))
                 self.fields['subcategory'].queryset = SubCategory.objects.filter(
                     category_id=category_id, is_active=True
                 ).order_by('name')
             except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['subcategory'].queryset = self.instance.category.subcategories.filter(
-                is_active=True
-            ).order_by('name')
+                self.fields['subcategory'].queryset = SubCategory.objects.none()
         else:
             self.fields['subcategory'].queryset = SubCategory.objects.none()
 
-        # ---------- Location cascading ----------
+        # ---- Location cascading ----
         # Country → State
-        if 'country' in self.data:
+        if self.instance.pk and self.instance.country:
+            self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
+            if self.instance.state:
+                self.fields['state'].initial = self.instance.state.id
+        elif 'country' in self.data:
             try:
                 country_id = int(self.data.get('country'))
                 self.fields['state'].queryset = State.objects.filter(country_id=country_id).order_by('name')
             except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.country:
-            self.fields['state'].queryset = self.instance.country.states.all().order_by('name')
+                self.fields['state'].queryset = State.objects.none()
         else:
             self.fields['state'].queryset = State.objects.none()
 
         # State → City
-        if 'state' in self.data:
+        if self.instance.pk and self.instance.state:
+            self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
+            if self.instance.city:
+                self.fields['city'].initial = self.instance.city.id
+        elif 'state' in self.data:
             try:
                 state_id = int(self.data.get('state'))
                 self.fields['city'].queryset = City.objects.filter(state_id=state_id).order_by('name')
             except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.state:
-            self.fields['city'].queryset = self.instance.state.cities.all().order_by('name')
+                self.fields['city'].queryset = City.objects.none()
         else:
             self.fields['city'].queryset = City.objects.none()
 
         # City → District
-        if 'city' in self.data:
+        if self.instance.pk and self.instance.city:
+            self.fields['district'].queryset = self.instance.city.districts.all().order_by('name')
+            if self.instance.district:
+                self.fields['district'].initial = self.instance.district.id
+        elif 'city' in self.data:
             try:
                 city_id = int(self.data.get('city'))
                 self.fields['district'].queryset = District.objects.filter(city_id=city_id).order_by('name')
             except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.city:
-            self.fields['district'].queryset = self.instance.city.districts.all().order_by('name')
+                self.fields['district'].queryset = District.objects.none()
         else:
             self.fields['district'].queryset = District.objects.none()
 
         # District → Region
-        if 'district' in self.data:
+        if self.instance.pk and self.instance.district:
+            self.fields['region'].queryset = self.instance.district.regions.all().order_by('name')
+            if self.instance.region:
+                self.fields['region'].initial = self.instance.region.id
+        elif 'district' in self.data:
             try:
                 district_id = int(self.data.get('district'))
                 self.fields['region'].queryset = Region.objects.filter(district_id=district_id).order_by('name')
             except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.district:
-            self.fields['region'].queryset = self.instance.district.regions.all().order_by('name')
+                self.fields['region'].queryset = Region.objects.none()
         else:
             self.fields['region'].queryset = Region.objects.none()
+
+
+# WorkExperience inline formset
+WorkExperienceFormSet = inlineformset_factory(
+    Worker,
+    WorkExperience,
+    fields=('company_name', 'job_title', 'start_date', 'end_date', 'is_current', 'description'),
+    extra=1,
+    can_delete=True,
+    widgets={
+        'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company name'}),
+        'job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Job title'}),
+        'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Job description'}),
+        'is_current': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    }
+)
 
 class ReportForm(forms.Form):
     REPORT_TYPES = [
