@@ -2582,7 +2582,7 @@ def admin_factory_edit(request, factory_id):
                 messages.success(request, f'{len(image_files)} image(s) uploaded successfully for factory "{factory.name}"!')
             
             messages.success(request, f'Factory "{factory.name}" updated successfully!')
-            return redirect('admin_interface:admin_factories')
+            return redirect('admin_interface:admin_factory_edit', factory_id=factory.id)
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
