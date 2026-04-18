@@ -76,7 +76,7 @@
                                     <div id="new_cat_wrapper" style="display:none;" class="mt-2">
                                         <label class="label-tech-sm">New Category Name</label>
                                         {{ form.new_category }} <input type="text" class="form-control" placeholder="Type category name..." 
-                                            oninput="document.getElementById('id_new_category').value = this.value">
+                                            oninput="document.getElementById('id_new_category').value = this.value" style="border: 2px solid rgb(99, 8, 8);">
                                     </div>
                                 </div>
 
@@ -262,6 +262,9 @@
         --border-soft: #E5E7EB;
         --text-muted: #6B7280;
     }
+    .form-control{
+        border: 2px solid #0d1e42;
+    }
 
     body { font-family: 'Inter', sans-serif; background-color: var(--surface); }
     .font-syne { font-family: 'Syne', sans-serif; }
@@ -429,8 +432,8 @@ function updateChain(parentId, childId, urlTemplate, clearIds = []) {
         const childEl = $(`#${childId}`);
         
         // Reset children
-        childEl.html('<option value="">---</option>');
-        clearIds.forEach(id => $(`#${id}`).html('<option value="">---</option>'));
+        childEl.html('<option value="">Select Option</option>');
+        clearIds.forEach(id => $(`#${id}`).html('<option value="">Select Option</option>'));
 
         // Only run AJAX if the value is a number (Existing ID)
         // If it's a new manual entry, we can't fetch children from DB yet

@@ -11,6 +11,7 @@ from category.models import Category
 from location.models import Country,City
 from .models import HomePageVideo, ContactMessage,Page
 from Accounts.decorators import profile_complete_required
+import threading
 
 def home(request):
     # Fetch featured factories (verified and active)
