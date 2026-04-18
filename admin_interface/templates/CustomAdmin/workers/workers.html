@@ -30,7 +30,7 @@
     <div class="collapse {% if request.GET %}show{% endif %} mb-4" id="filterCollapse">
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
             <form method="get" id="filterForm" class="row g-2 g-md-3">
-                <!-- Search Field (NEW) -->
+                <!-- Search Field -->
                 <div class="col-12">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
@@ -67,8 +67,8 @@
                     <label class="small text-muted fw-bold">Registry</label>
                     <select name="deleted" class="form-select form-select-sm border-0 bg-light">
                         <option value="active" {% if filters.deleted == 'active' %}selected{% endif %}>Current</option>
-                        <option value="deleted" {% if filters.deleted == 'deleted' %}selected{% endif %}>Trash</option>
-                        <option value="all" {% if filters.deleted == 'all' %}selected{% endif %}>Show Deleted</option>
+                        <option value="deleted" {% if filters.deleted == 'deleted' %}selected{% endif %}>Deleted Workers</option>
+                        <option value="all" {% if filters.deleted == 'all' %}selected{% endif %}>Show All</option>
                     </select>
                 </div>
 
@@ -200,9 +200,10 @@
                             <div class="d-flex gap-1 justify-content-end">
                                 <a href="{% url 'admin_interface:admin_worker_edit' worker.id %}" class="btn btn-sm btn-light rounded-pill px-3 border shadow-sm">Edit</a>
                                 {% if worker.is_deleted %}
-                                <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">Restore</a>
+                                    <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">Restore</a>
+                                    <a href="{% url 'admin_interface:admin_worker_hard_delete' worker.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Permanently delete this worker? This action cannot be undone!')">Hard Delete</a>
                                 {% else %}
-                                <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Move to trash?')">Delete</a>
+                                    <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Move to trash? You can restore later.')">Delete</a>
                                 {% endif %}
                             </div>
                         </td>
@@ -253,9 +254,10 @@
                                 <i class="fas fa-edit me-1"></i> Edit
                             </a>
                             {% if worker.is_deleted %}
-                            <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success w-100 rounded-pill">Restore</a>
+                                <a href="{% url 'admin_interface:admin_worker_restore' worker.id %}" class="btn btn-sm btn-outline-success w-100 rounded-pill">Restore</a>
+                                <a href="{% url 'admin_interface:admin_worker_hard_delete' worker.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="return confirm('Permanently delete? Cannot be undone!')">Hard Delete</a>
                             {% else %}
-                            <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="return confirm('Move to trash?')">Delete</a>
+                                <a href="{% url 'admin_interface:admin_worker_delete' worker.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="return confirm('Move to trash?')">Delete</a>
                             {% endif %}
                         </div>
                     </div>
@@ -298,20 +300,17 @@
 </div>
 
 <script>
-    // Same JS as before, with optional addition to preserve search query in pagination
     document.addEventListener('DOMContentLoaded', async function() {
         const filterCollapse = document.getElementById('filterCollapse');
         const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
         const filterIcon = document.getElementById('filterIcon');
         const filterText = document.getElementById('filterText');
         
-        // Initialize toggle state from localStorage or URL parameters
         function initToggleState() {
             const hasFilters = window.location.search.includes('=') || filterCollapse.classList.contains('show');
             updateToggleUI(hasFilters);
         }
         
-        // Update toggle button UI based on current state
         function updateToggleUI(isExpanded) {
             if (isExpanded) {
                 filterIcon.className = 'fas fa-filter-slash me-1';
@@ -322,27 +321,16 @@
             }
         }
         
-        // Toggle filters function
         window.toggleFilters = function() {
-            const bsCollapse = new bootstrap.Collapse(filterCollapse, {
-                toggle: true
-            });
-            
-            // Update UI after toggle
+            const bsCollapse = new bootstrap.Collapse(filterCollapse, { toggle: true });
             setTimeout(() => {
                 const isExpanded = filterCollapse.classList.contains('show');
                 updateToggleUI(isExpanded);
-            }, 150); // Match Bootstrap transition duration
+            }, 150);
         };
         
-        // Listen for collapse events to update UI
-        filterCollapse.addEventListener('shown.bs.collapse', () => {
-            updateToggleUI(true);
-        });
-        
-        filterCollapse.addEventListener('hidden.bs.collapse', () => {
-            updateToggleUI(false);
-        });
+        filterCollapse.addEventListener('shown.bs.collapse', () => updateToggleUI(true));
+        filterCollapse.addEventListener('hidden.bs.collapse', () => updateToggleUI(false));
 
         async function updateOptions(sourceId, targetId, endpoint, placeholder, selectedValue) {
             const source = document.getElementById(sourceId);
@@ -391,7 +379,6 @@
 
         chains.forEach(c => bindChangeListener(c.src, c.tgt, c.url, c.label, c.children));
 
-        // Initial load of selected values
         for (const link of chains) {
             const sourceEl = document.getElementById(link.src);
             const targetEl = document.getElementById(link.tgt);
@@ -401,7 +388,6 @@
             }
         }
         
-        // Initialize toggle state
         initToggleState();
     });
 

@@ -16,14 +16,18 @@ def register_worker(request):
         form = WorkerForm(request.POST)
         if form.is_valid():
             worker = form.save(commit=False)
-            worker.created_by = request.user
+            # Only set created_by if user is authenticated
+            worker.created_by = request.user if request.user.is_authenticated else None
+            # For unauthenticated users, force is_active and is_verified to False
+            if not request.user.is_authenticated:
+                worker.is_active = False
+                worker.is_verified = False
             worker.save()
             messages.success(request, f'Worker "{worker.full_name}" has been registered successfully!')
             return redirect('workers:worker_detail', slug=worker.slug)
     else:
         form = WorkerForm()
     return render(request, 'workers/register.html', {'form': form, 'title': 'Register as Worker'})
-
 # @allow_unverified
 # @login_required
 def worker_profile(request):
