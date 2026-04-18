@@ -370,6 +370,35 @@ def admin_users(request):
     # Order by most recent first
     users = users.order_by('-date_joined')
 
+
+    if 'download' in request.GET:
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="users_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        writer = csv.writer(response)
+        
+        # Write headers
+        writer.writerow([
+            'ID', 'Username', 'Full Name', 'Email', 'Phone', 'Role', 'Status',
+            'Brand Name', 'Email Verified', 'Last Login', 'Date Joined'
+        ])
+        
+        for user in users:
+            writer.writerow([
+                user.id,
+                user.username,
+                user.get_full_name(),
+                user.email,
+                user.profile.phone_number if hasattr(user, 'profile') else '',
+                user.profile.role if hasattr(user, 'profile') else 'user',
+                'Active' if user.is_active else 'Inactive',
+                user.profile.brand_name if hasattr(user, 'profile') else '',
+                'Yes' if hasattr(user, 'profile') and user.profile.email_verified else 'No',
+                user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else '',
+                user.date_joined.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+        
+        return response
+
     context = {
         'users': users,
         'search_query': search_query,
@@ -4901,65 +4930,131 @@ def factory_tracker_detail(request, factory_id):
 
 @login_required
 def factory_stats_charts(request):
-    """Display visual charts for factory view statistics."""
+    """Display visual charts for factory view statistics with multi-factory comparison."""
     if not (request.user.is_staff or request.user.is_superuser):
         messages.error(request, "You don't have permission to view this page.")
         return redirect('admin_interface:admin_dashboard')
 
-    # Get selected factory for line chart (default to first factory with stats)
-    selected_factory_id = request.GET.get('factory')
-    selected_factory = None
-    if selected_factory_id:
+    # Get parameters
+    selected_factory_ids = request.GET.getlist('factories') or request.GET.get('factories', '').split(',')
+    selected_factory_ids = [int(fid) for fid in selected_factory_ids if fid.isdigit()]
+    
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    # Default to last 30 days
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=30)
+    if start_date_str:
         try:
-            selected_factory = Factory.objects.get(id=selected_factory_id)
-        except Factory.DoesNotExist:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
             pass
 
-    # If no factory selected, pick the one with the most views
-    if not selected_factory:
-        top_stats = FactoryViewStats.objects.select_related('factory').order_by('-total_views').first()
-        if top_stats:
-            selected_factory = top_stats.factory
+    # If no factories selected, default to top 3 most viewed
+    if not selected_factory_ids:
+        top_stats = FactoryViewStats.objects.select_related('factory').order_by('-total_views')[:3]
+        selected_factory_ids = [stat.factory.id for stat in top_stats]
 
-    # Prepare data for the line chart (daily views for the last 30 days)
-    line_chart_labels = []
-    line_chart_data = []
-    if selected_factory:
-        end_date = timezone.now().date()
-        start_date = end_date - timedelta(days=30)
-        # Query trackers for the factory, grouped by day
-        from django.db.models import Count
-        from django.db.models.functions import TruncDate
-
+    factories = Factory.objects.filter(id__in=selected_factory_ids).order_by('name')
+    
+    # Prepare data for line chart (daily views for each factory)
+    from django.db.models import Count
+    from django.db.models.functions import TruncDate
+    
+    line_chart_data = {}  # factory_id -> list of counts
+    all_dates = []
+    
+    for factory in factories:
         daily_counts = (
             FactoryViewTracker.objects
-            .filter(factory=selected_factory, viewed_at__date__gte=start_date)
+            .filter(factory=factory, viewed_at__date__gte=start_date, viewed_at__date__lte=end_date)
             .annotate(day=TruncDate('viewed_at'))
             .values('day')
             .annotate(count=Count('id'))
             .order_by('day')
         )
-        # Build lists for all 31 days (including days with zero views)
         date_dict = {d['day']: d['count'] for d in daily_counts}
+        # Build list for all dates in range
         current = start_date
+        counts = []
         while current <= end_date:
-            line_chart_labels.append(current.strftime('%b %d'))
-            line_chart_data.append(date_dict.get(current, 0))
+            if current not in date_dict:
+                counts.append(0)
+            else:
+                counts.append(date_dict[current])
             current += timedelta(days=1)
-
-    # Prepare bar chart data for top 10 factories by total views
+        line_chart_data[factory.id] = counts
+    
+    # Generate date labels once
+    current = start_date
+    all_dates = []
+    while current <= end_date:
+        all_dates.append(current.strftime('%b %d'))
+        current += timedelta(days=1)
+    
+    # Prepare comparison bar chart (total views for selected factories)
+    bar_labels = [factory.name[:30] for factory in factories]
+    bar_data = []
+    for factory in factories:
+        total = FactoryViewTracker.objects.filter(
+            factory=factory,
+            viewed_at__date__gte=start_date,
+            viewed_at__date__lte=end_date
+        ).count()
+        bar_data.append(total)
+    
+    # Summary stats for selected factories
+    summary_stats = []
+    for factory in factories:
+        prev_start = start_date - timedelta(days=(end_date - start_date).days)
+        prev_end = start_date - timedelta(days=1)
+        current_views = FactoryViewTracker.objects.filter(
+            factory=factory,
+            viewed_at__date__gte=start_date,
+            viewed_at__date__lte=end_date
+        ).count()
+        previous_views = FactoryViewTracker.objects.filter(
+            factory=factory,
+            viewed_at__date__gte=prev_start,
+            viewed_at__date__lte=prev_end
+        ).count()
+        change = ((current_views - previous_views) / previous_views * 100) if previous_views > 0 else 0
+        avg_daily = current_views / max(1, (end_date - start_date).days + 1)
+        summary_stats.append({
+            'factory': factory,
+            'total_views': current_views,
+            'avg_daily': round(avg_daily, 1),
+            'change': round(change, 1),
+            'trend_up': change >= 0,
+        })
+    
+    # Top 10 factories overall (for bar chart)
     top_factories = FactoryViewStats.objects.select_related('factory').order_by('-total_views')[:10]
-    bar_labels = [stat.factory.name[:30] for stat in top_factories]  # truncate long names
-    bar_data = [stat.total_views for stat in top_factories]
+    top_bar_labels = [stat.factory.name[:30] for stat in top_factories]
+    top_bar_data = [stat.total_views for stat in top_factories]
+
+    # All factories for multi-select dropdown
+    all_factories = Factory.objects.filter(view_stats__isnull=False).order_by('name')
 
     context = {
-        'title': 'Factory View Charts',
+        'title': 'Factory View Analytics',
+        'selected_factories': factories,
+        'all_factories': all_factories,
+        'line_labels': all_dates,
+        'line_datasets': line_chart_data,
         'bar_labels': bar_labels,
         'bar_data': bar_data,
-        'line_labels': line_chart_labels,
-        'line_data': line_chart_data,
-        'selected_factory': selected_factory,
-        'factories': Factory.objects.filter(view_stats__isnull=False).order_by('name'),
+        'top_bar_labels': top_bar_labels,
+        'top_bar_data': top_bar_data,
+        'summary_stats': summary_stats,
+        'start_date': start_date.strftime('%Y-%m-%d'),
+        'end_date': end_date.strftime('%Y-%m-%d'),
     }
     return render(request, 'CustomAdmin/FactoryStat/factory_stats_charts.html', context)
 
