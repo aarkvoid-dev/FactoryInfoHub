@@ -1138,6 +1138,15 @@ def admin_countries(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     countries = Country.objects.filter(is_deleted=False)
+    search_query = request.GET.get('search', '')
+    if search_query:
+
+        terms = search_query.split()
+        countries = and_search_filter(
+            countries,
+            terms,
+            ['name', 'code', 'slug']
+        )
     
     # Add pagination
     paginator = Paginator(countries, 15)
@@ -1283,6 +1292,14 @@ def admin_states(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     states = State.objects.filter(is_deleted=False)
+    search_query = request.GET.get('search', '')
+    if search_query:
+        terms = search_query.split()
+        states = and_search_filter(
+            states,
+            terms,
+            ['name', 'code', 'slug','country']
+        )
     
     # Add pagination
     paginator = Paginator(states, 15)
@@ -1421,6 +1438,14 @@ def admin_cities(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     cities = City.objects.filter(is_deleted=False)
+    search_query = request.GET.get('search', '')
+    if search_query:
+        terms = search_query.split()
+        cities = and_search_filter(
+            cities,
+            terms,
+            ['name', 'code', 'slug','state']
+        )
     
     # Add pagination
     paginator = Paginator(cities, 15)
@@ -1561,6 +1586,14 @@ def admin_districts(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     districts = District.objects.filter(is_deleted=False)
+    search_query = request.GET.get('search', '')
+    if search_query:
+        terms = search_query.split()
+        districts = and_search_filter(
+            districts,
+            terms,
+            ['name', 'code', 'slug','city']
+        )
     
     # Add pagination
     paginator = Paginator(districts, 15)
@@ -1703,6 +1736,14 @@ def admin_regions(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     regions = Region.objects.filter(is_deleted=False)
+    search_query = request.GET.get('search', '')
+    if search_query:
+        terms = search_query.split()
+        regions = and_search_filter(
+            regions,
+            terms,
+            ['name', 'code', 'slug','district']
+        )
     
     # Add pagination
     paginator = Paginator(regions, 15)
@@ -2582,7 +2623,7 @@ def admin_factory_edit(request, factory_id):
                 messages.success(request, f'{len(image_files)} image(s) uploaded successfully for factory "{factory.name}"!')
             
             messages.success(request, f'Factory "{factory.name}" updated successfully!')
-            return redirect('admin_interface:admin_factory_edit', factory_id=factory.id)
+            return redirect('admin_interface:admin_factories')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
