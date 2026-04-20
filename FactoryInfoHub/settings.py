@@ -27,7 +27,7 @@ from pathlib import Path
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-not-for-production-use-this-is-very-weak-and-should-be-changed')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'True')
 
 # Allowed hosts configuration
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
@@ -628,3 +628,7 @@ LOGGING = {
 
 # EMAIL_HOST_USER = "arfatur.shaikh@gmail.com"
 # EMAIL_HOST_PASSWORD = "lyfq xmir oiul voqe"
+
+
+# Custom 404 error handler
+handler404 = 'django.views.defaults.page_not_found'

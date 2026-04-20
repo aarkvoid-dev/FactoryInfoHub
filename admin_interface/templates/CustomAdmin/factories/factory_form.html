@@ -240,7 +240,7 @@
                                             <!-- Action Buttons -->
                                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                                                 {% if not image.is_primary %}
-                                                <button class="btn btn-outline-primary btn-sm" onclick="setPrimaryImage({{ image.id }})">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setPrimaryImage({{ image.id }})">
                                                     <i class="fas fa-star me-1"></i>Set Primary
                                                 </button>
                                                 {% else %}
@@ -248,7 +248,7 @@
                                                     <i class="fas fa-star me-1"></i>Primary
                                                 </span>
                                                 {% endif %}
-                                                <button class="btn btn-outline-danger btn-sm" onclick="deleteImage({{ image.id }})">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteImage({{ image.id }})">
                                                     <i class="fas fa-trash me-1"></i>Delete
                                                 </button>
                                             </div>

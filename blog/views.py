@@ -118,6 +118,7 @@ class BlogPostListView(ListView):
         # Get all countries for filter dropdown (no restriction)
         context['countries'] = Country.objects.all()
         context['categories'] = Category.objects.all()
+        context['is_paginated'] = context['paginator'].num_pages > 1   # already there
 
         # --- Related Factories based on current filters ---
         req = self.request.GET

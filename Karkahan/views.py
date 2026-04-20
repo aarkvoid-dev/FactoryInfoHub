@@ -233,7 +233,7 @@ def factory_list(request):
     paginator = Paginator(factories, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    is_paginated = page_obj.has_other_pages()
      # Get random published blog posts for slider
     random_blogs = BlogPost.objects.filter(
         is_published=True,
@@ -248,6 +248,7 @@ def factory_list(request):
         'cart_items_count': cart_items_count,
         'cart_items': cart_items,
         'random_blogs': random_blogs,   # add this line
+        'is_paginated': is_paginated,
     }
     return render(request, 'karkahan/factory_list.html', context)
 
@@ -704,18 +705,23 @@ def factory_detail(request, slug):
     
     factory = get_object_or_404(Factory, slug=slug)
     
-    if not factory.is_active and not request.user.is_staff:
-        messages.warning(request,f"{slug} - This factory is currently inactive.")
-        return redirect('karkahan:factory_list')
+    # if not factory.is_active and not request.user.is_staff:
+    #     messages.warning(request,f"{slug} - This factory is currently inactive.")
+    #     return redirect('karkahan:factory_list')
     # Track factory view (only track for non-admin users to avoid skewing stats)
     if not request.user.is_staff:
         from .utils import track_factory_view
         track_factory_view(factory, request)
     
     # Get related factories (same category, excluding current factory)
+    # related_factories = Factory.objects.filter(
+    #     category=factory.category,
+    #     is_active=True,
+    #     is_deleted=False
+    # ).exclude(slug=factory.slug).order_by('?')[:3]
+
     related_factories = Factory.objects.filter(
         category=factory.category,
-        is_active=True,
         is_deleted=False
     ).exclude(slug=factory.slug).order_by('?')[:3]
 

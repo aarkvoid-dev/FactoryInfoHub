@@ -1298,7 +1298,7 @@ def admin_states(request):
         states = and_search_filter(
             states,
             terms,
-            ['name', 'code', 'slug','country']
+            ['name', 'code', 'slug']
         )
     
     # Add pagination
@@ -1444,7 +1444,7 @@ def admin_cities(request):
         cities = and_search_filter(
             cities,
             terms,
-            ['name', 'code', 'slug','state']
+            ['name', 'code', 'slug']
         )
     
     # Add pagination
@@ -1592,7 +1592,7 @@ def admin_districts(request):
         districts = and_search_filter(
             districts,
             terms,
-            ['name', 'code', 'slug','city']
+            ['name', 'code', 'slug']
         )
     
     # Add pagination
@@ -1742,7 +1742,7 @@ def admin_regions(request):
         regions = and_search_filter(
             regions,
             terms,
-            ['name', 'code', 'slug','district']
+            ['name', 'code', 'slug']
         )
     
     # Add pagination

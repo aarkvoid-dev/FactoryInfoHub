@@ -520,6 +520,12 @@
                     title="Share on Pinterest">
                         <i class="fab fa-pinterest-p"></i>
                     </a>
+                    <a href="https://www.threads.net/intent/post?text={{ factory.name }}%20-%20{{ factory.city.name }},%20{{ factory.state.name }}%20-%20&url={{ request.build_absolute_uri|urlencode }}" 
+                    target="_blank" 
+                    class="btn btn-dark btn-sm rounded-circle p-2"
+                    title="Share on Threads">
+                        <i class="fab fa-threads"></i>
+                    </a>
                     <button class="btn btn-outline-light btn-sm rounded-circle p-2" 
                             onclick="copyLinkToClipboard()" 
                             title="Copy link to clipboard">
@@ -556,9 +562,10 @@
         <div class="purchase-actions">
             {% if user.is_authenticated %}
                 <!-- AJAX Add to Cart button (green if already in cart) -->
-                <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-secondary">
+                 <a href="{% url 'karkahan:add_to_cart' factory.slug %}" class="btn-secondary">
                     <i class="fas fa-shopping-bag me-2"></i> Buy Now
                 </a>
+                
                 <button class="btn-purchase add-to-cart-ajax {% if in_cart %}added{% endif %}" 
                         data-factory-slug="{{ factory.slug }}" 
                         data-factory-price="{{ factory.price }}"
@@ -566,9 +573,13 @@
                     <i class="fas fa-shopping-cart me-2"></i> 
                     {% if in_cart %} Added to Cart {% else %} Add to Cart {% endif %}
                 </button>
-                <a href="{% url 'karkahan:purchase_history' factory.id %}" class="btn-secondary">
-                    <i class="fas fa-shopping-bag me-2"></i> View Purchase History
-                </a>
+                
+                {% if user.is_superuser %}
+                    <a href="{% url 'karkahan:purchase_history' factory.id %}" class="btn-secondary">
+                        <i class="fas fa-shopping-bag me-2"></i> View Purchase History
+                    </a>
+                {% endif %}
+                
                 
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn-purchase">
@@ -925,24 +936,14 @@
         }
     });
 
-    function copyLinkToClipboard() {
+    function copyLinkToClipboard(event) {
         const currentUrl = window.location.href;
-        navigator.clipboard.writeText(currentUrl).then(function() {
-            const button = event.currentTarget;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check me-2"></i> Copied!';
-            button.classList.remove('btn-outline-light');
-            button.classList.add('btn-success');
-            setTimeout(function() {
-                button.innerHTML = originalText;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-outline-light');
-            }, 2000);
-        }).catch(function(err) {
+        navigator.clipboard.writeText(currentUrl).catch(function(err) {
             console.error('Could not copy text: ', err);
             alert('Failed to copy link. Please try again.');
         });
     }
+
 
     function showDeleteModal(slug, name, type) {
         const existingModal = document.getElementById('deleteModal');

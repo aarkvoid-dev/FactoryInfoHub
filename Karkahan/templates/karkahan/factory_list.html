@@ -832,15 +832,15 @@
                 <div class="row g-3 text-center">
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-whatsapp" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
-                                <i class="fab fa-whatsapp fa-2x text-success"></i>
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fab fa-whatsapp text-success"></i>
                             </div>
                             <span class="small">WhatsApp</span>
                         </a>
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-facebook" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-primary-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fab fa-facebook-f fa-2x text-primary"></i>
                             </div>
                             <span class="small">Facebook</span>
@@ -848,7 +848,7 @@
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-twitter" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-info-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fab fa-twitter fa-2x text-info"></i>
                             </div>
                             <span class="small">Twitter</span>
@@ -856,7 +856,7 @@
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-linkedin" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-secondary-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fab fa-linkedin-in fa-2x text-secondary"></i>
                             </div>
                             <span class="small">LinkedIn</span>
@@ -864,7 +864,7 @@
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-email" class="d-block text-decoration-none">
-                            <div class="bg-warning-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fas fa-envelope fa-2x text-warning"></i>
                             </div>
                             <span class="small">Email</span>
@@ -872,7 +872,7 @@
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-telegramUrl" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-secondary-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fab fa-telegram-plane fa-2x text-secondary"></i>
                             </div>
                             <span class="small">Telegram</span>
@@ -880,15 +880,23 @@
                     </div>
                     <div class="col-4 col-md-2">
                         <a href="#" id="share-pinterestUrl" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-warning-soft rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fab fa-pinterest fa-2x text-warning"></i>
                             </div>
                             <span class="small">Pinterest</span>
                         </a>
                     </div>
                     <div class="col-4 col-md-2">
+                        <a href="#" id="share-threadsUrl" target="_blank" class="d-block text-decoration-none">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fab fa-threads fa-2x text-warning"></i>
+                            </div>
+                            <span class="small">Threads</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-2">
                         <button id="copy-link-btn" class="btn d-block text-decoration-none w-100">
-                            <div class="bg-light rounded-circle p-3 mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                 <i class="fas fa-link fa-2x text-dark"></i>
                             </div>
                             <span class="small">Copy Link</span>
@@ -906,7 +914,7 @@
 
 <!-- Random Blog Slider Section -->
 {% if random_blogs %}
-<section class="mt-5 pt-5 border-top">
+<section class="mt-5 pt-5 pb-20 border-top">
     <div class="container px-0">
         <div class="row y-gap-20 justify-between items-end mb-40">
             <div class="col-auto">
@@ -1162,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---------- Social Share Modal ----------
+    // ---------- Social Share Modal (FIXED: correct Threads URL) ----------
     const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
     const shareButtons = document.querySelectorAll('.share-factory-btn');
 
@@ -1171,13 +1179,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const factoryUrl = `${baseUrl}/karkhana/factories/${factorySlug}/`;
         const encodedUrl = encodeURIComponent(factoryUrl);
         const encodedTitle = encodeURIComponent(factoryName);
-        document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${encodedTitle} - ${encodedUrl}`;
+        
+        // Set all share links
+        document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${encodedTitle}%20-%20${encodedUrl}`;
         document.getElementById('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
         document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
         document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         document.getElementById('share-email').href = `mailto:?subject=Check out ${encodedTitle}&body=I thought you might be interested in this factory: ${factoryUrl}`;
-        document.getElementById('share-pinterestUrl').href  = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&text=${encodedTitle}`;
+        document.getElementById('share-pinterestUrl').href = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&text=${encodedTitle}`;
         document.getElementById('share-telegramUrl').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
+        
+        // FIXED: Correct Threads share URL using 'text' parameter (includes both title and URL)
+        document.getElementById('share-threadsUrl').href = `https://www.threads.net/intent/post?text=${encodedTitle}%20-%20${encodedUrl}`;
 
         const copyBtn = document.getElementById('copy-link-btn');
         const copyMessage = document.getElementById('copy-message');
