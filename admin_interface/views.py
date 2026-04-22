@@ -2781,13 +2781,13 @@ def admin_factory_copy(request, factory_id):
     factory_copy.save()
 
     # Copy images (the same files, not new uploads)
-    for img in original.images.all():
-        FactoryImage.objects.create(
-            factory=factory_copy,
-            image=img.image,          # same file reference
-            alt_text=img.alt_text,
-            is_primary=img.is_primary
-        )
+    # for img in original.images.all():
+    #     FactoryImage.objects.create(
+    #         factory=factory_copy,
+    #         image=img.image,          # same file reference
+    #         alt_text=img.alt_text,
+    #         is_primary=img.is_primary
+    #     )
 
     messages.success(request, f'Factory "{original.name}" duplicated. You can now edit the copy.')
     return redirect('admin_interface:admin_factory_edit', factory_id=factory_copy.id)
