@@ -70,26 +70,26 @@
                     </select>
                 </div>
                 <div class="col-4 col-md-2">
-                    <label class="label-xs">City</label>
+                    <label class="label-xs">City/Distric</label>
                     <select name="city" id="filter_city" class="form-select form-select-sm border-light bg-light">
-                        <option value="">City</option>
+                        <option value="">City/Distric</option>
                         {% for ci in cities %}<option value="{{ ci.id }}" {% if filters.city == ci.id|stringformat:"s" %}selected{% endif %}>{{ ci.name }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="col-4 col-md-3">
-                    <label class="label-xs">District</label>
+                    <label class="label-xs">Area</label>
                     <select name="distric" id="filter_distric" class="form-select form-select-sm border-light bg-light">
-                        <option value="">District</option>
+                        <option value="">Area</option>
                         {% for d in districs %}<option value="{{ d.id }}" {% if filters.distric == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
                     </select>
                 </div>
-                <div class="col-4 col-md-3">
+                <!-- <div class="col-4 col-md-3">
                     <label class="label-xs">Region</label>
                     <select name="region" id="filter_region" class="form-select form-select-sm border-light bg-light">
                         <option value="">Region</option>
                         {% for r in regions %}<option value="{{ r.id }}" {% if filters.region == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
                     </select>
-                </div>
+                </div> -->
 
                 <div class="col-6 col-md-3">
                     <label class="label-xs">Verified Status</label>

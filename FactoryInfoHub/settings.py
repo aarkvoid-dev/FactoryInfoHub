@@ -27,13 +27,12 @@ from pathlib import Path
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-not-for-production-use-this-is-very-weak-and-should-be-changed')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.environ.get('DEBUG', 'False')
+DEBUG = os.environ.get('DEBUG', 'False')
 # print("DEBUG :",DEBUG)
-DEBUG = False
+# DEBUG = False
 # Allowed hosts configuration
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
-
 # Security settings for production
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if os.environ.get('SECURE_PROXY_SSL_HEADER', '').lower() == 'true' else None
