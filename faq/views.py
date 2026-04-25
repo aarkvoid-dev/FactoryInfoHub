@@ -146,13 +146,13 @@ def faq_search(request):
 
 @login_required
 @require_POST
-def submit_feedback(request, question_slug):
+def submit_feedback(request, slug):
     """
     Submit feedback for a question.
     
     AJAX endpoint for submitting rating and feedback.
     """
-    question = get_object_or_404(FAQQuestion, slug=question_slug, status='published')
+    question = get_object_or_404(FAQQuestion, slug=slug, status='published')
     
     # Check if user already provided feedback for this question
     existing_feedback = FAQFeedback.objects.filter(
@@ -162,7 +162,7 @@ def submit_feedback(request, question_slug):
     
     if existing_feedback:
         messages.error(request, 'You have already provided feedback for this question.')
-        return redirect('faq:question_detail', slug=question_slug)
+        return redirect('faq:question_detail', slug=slug)
     
     # Get form data
     rating = request.POST.get('rating')
@@ -188,7 +188,7 @@ def submit_feedback(request, question_slug):
     )
     
     messages.success(request, 'Thank you for your feedback!')
-    return redirect('faq:question_detail', slug=question_slug)
+    return redirect('faq:question_detail', slug=slug)
 
 
 def faq_all_questions(request):
