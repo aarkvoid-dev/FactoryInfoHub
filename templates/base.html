@@ -758,7 +758,6 @@
             <div class="col-lg-4 col-md-6">
               <h4 class="text-20 fw-500">Management</h4>
               <div class="y-gap-10 mt-20">
-                <a class="d-block" href="{% url 'karkahan:dashboard' %}">Dashboard</a>
                 <a class="d-block" href="{% url 'karkahan:factory_list' %}">All Establishments</a>
                 <a class="d-block" href="{% url 'contact_enquiry' %}">General Enquiry</a>
                 <a class="d-block" href="{% url 'contact_enquiry' %}">Embroidery Enquiry</a>
@@ -774,7 +773,7 @@
               <h4 class="text-20 fw-500">Quick Links</h4>
               <div class="y-gap-10 mt-20">
                 <a class="d-block fw-500" href="{% url 'home' %}">Home</a>
-                <a class="d-block fw-500" href="{% url 'karkahan:dashboard' %}">Factories</a>
+                <a class="d-block fw-500" href="{% url 'karkahan:factory_list' %}">Factories</a>
                 <a class="d-block fw-500" href="{% url 'blog:post_list' %}">Blog</a>
                 {% if user.is_authenticated %}
                 <a class="d-block fw-500" href="{% url 'blog:post_create' %}">Add Blog</a>

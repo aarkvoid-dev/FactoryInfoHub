@@ -310,10 +310,10 @@
                                 <span>Subtotal ({{ cart.items.count }} items)</span>
                                 <span>₹{{ cart.total_price|floatformat:2 }}</span>
                             </div>
-                            <div class="summary-row">
+                            <!-- <div class="summary-row">
                                 <span>Taxes & Fees</span>
                                 <span>Included</span>
-                            </div>
+                            </div> -->
                             <div class="summary-total">
                                 <span>Total Amount</span>
                                 <span class="text-accent-1">₹{{ cart.total_price|floatformat:2 }}</span>
@@ -385,6 +385,9 @@
                     <p class="text-muted small">Please review all the Terms & Conditions and the Disclaimer before proceeding further. If you have any questions, kindly refer to our FAQ or contact us for assistance.</p>
                 </div>
                 
+                
+
+                {% if not pages %}
                 <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
                     <a href="{% url 'disclaimer' %}" class="text-accent-1 small" target="_blank">Full Disclaimer <i class="fas fa-external-link-alt ms-1"></i></a>
                     <span class="text-muted">|</span>
@@ -392,6 +395,14 @@
                     <span class="text-muted">|</span>
                     <a href="{% url 'refund_policy' %}" class="text-accent-1 small" target="_blank">Refund Policy <i class="fas fa-external-link-alt ms-1"></i></a>
                 </div>
+                {% else %}
+                <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                    {% for page in pages %}
+                            <a href="{% url 'page_detail' page.slug %}" class="text-accent-1 small" target="_blank">{{ page.title }} <i class="fas fa-external-link-alt ms-1"></i></a>
+                            <span class="text-muted">|</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <!-- Formal message before checkbox -->
                 <div class="alert alert-warning py-2 px-3 small mb-3" role="alert">

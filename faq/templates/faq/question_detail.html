@@ -169,7 +169,7 @@
         text-decoration: none;
     }
 
-    /* Simplified Feedback Section */
+    /* ========== REDESIGNED FEEDBACK SECTION ========== */
     .feedback-section {
         background: white;
         padding: 2rem;
@@ -178,23 +178,139 @@
         margin-bottom: 2rem;
         text-align: center;
     }
-    .feedback-section h3 {
+    .feedback-header {
+        margin-bottom: 2rem;
+    }
+    .feedback-header h3 {
         font-size: 1.5rem;
         font-weight: 700;
         color: #1e293b;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
-    .feedback-section p {
+    .feedback-header p {
         color: #6c757d;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0;
     }
     .feedback-form {
-        background: var(--gray-light);
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        text-align: left;
-        max-width: 500px;
+        max-width: 550px;
         margin: 0 auto;
+        background: var(--gray-light);
+        padding: 1.75rem;
+        border-radius: 1rem;
+        text-align: left;
+    }
+    .feedback-row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: start;
+    }
+    .feedback-row .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        padding-top: 0.5rem;
+        margin-bottom: 0;
+    }
+    .feedback-row .form-label .required {
+        color: #dc2626;
+        margin-left: 2px;
+    }
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .star-rating input {
+        display: none;
+    }
+    .star-rating label {
+        font-size: 1.8rem;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: color 0.2s;
+        line-height: 1;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+        color: #fbbf24;
+    }
+    .rating-hint {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-left: 0.5rem;
+        white-space: nowrap;
+    }
+    .yesno-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+    }
+    .yesno-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .yesno-option:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    .yesno-option input {
+        margin: 0;
+        width: 1rem;
+        height: 1rem;
+        accent-color: var(--primary);
+    }
+    .yesno-option span {
+        font-size: 0.9rem;
+        color: #334155;
+    }
+    .optional-badge {
+        font-size: 0.7rem;
+        background: #e2e8f0;
+        padding: 0.2rem 0.6rem;
+        border-radius: 1rem;
+        color: #475569;
+    }
+    textarea.form-control {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.9rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        resize: vertical;
+    }
+    textarea.form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(43,75,235,0.1);
+    }
+    .submit-feedback-btn {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .submit-feedback-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(43,75,235,0.3);
     }
     .feedback-login {
         background: var(--gray-light);
@@ -206,24 +322,25 @@
         color: var(--primary);
         font-weight: 600;
     }
-    .btn-primary {
-        background: var(--primary);
-        border-color: var(--primary);
-        transition: all 0.2s;
+    @media (max-width: 640px) {
+        .feedback-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        .feedback-row .form-label {
+            padding-top: 0;
+        }
+        .rating-hint {
+            white-space: normal;
+            margin-left: 0;
+            margin-top: 0.25rem;
+        }
+        .yesno-group {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        border-color: var(--primary-dark);
-        transform: translateY(-1px);
-    }
-    .btn-outline-primary {
-        border-color: var(--primary);
-        color: var(--primary);
-    }
-    .btn-outline-primary:hover {
-        background: var(--primary);
-        color: white;
-    }
+    /* ========== END FEEDBACK REDESIGN ========== */
 
     /* Related Questions */
     .related-questions {
@@ -401,33 +518,59 @@
                     </div>
                 </div>
 
-                <!-- Simplified Feedback Section -->
+                <!-- ========== REDESIGNED FEEDBACK SECTION ========== -->
                 <div class="feedback-section">
-                    <h3>Was this answer helpful?</h3>
-                    <p>Your feedback helps us improve our FAQ</p>
+                    <div class="feedback-header">
+                        <h3>Was this answer helpful?</h3>
+                        <p>Your feedback helps us improve our FAQ</p>
+                    </div>
 
                     {% if user.is_authenticated %}
                     <div class="feedback-form">
                         <form method="POST" action="{% url 'faq:submit_feedback' question.slug %}">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Was this answer helpful?</label>
-                                <div class="d-flex gap-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="is_helpful" id="helpful-yes" value="true" required>
-                                        <label class="form-check-label" for="helpful-yes">Yes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="is_helpful" id="helpful-no" value="false" required>
-                                        <label class="form-check-label" for="helpful-no">No</label>
-                                    </div>
+
+                            <!-- Star Rating Row -->
+                            <div class="feedback-row">
+                                <div class="form-label">Your rating <span class="required">*</span></div>
+                                <div class="star-rating">
+                                    <input type="radio" id="star5" name="rating" value="5" required>
+                                    <label for="star5" title="Excellent">★</label>
+                                    <input type="radio" id="star4" name="rating" value="4">
+                                    <label for="star4" title="Good">★</label>
+                                    <input type="radio" id="star3" name="rating" value="3">
+                                    <label for="star3" title="Average">★</label>
+                                    <input type="radio" id="star2" name="rating" value="2">
+                                    <label for="star2" title="Poor">★</label>
+                                    <input type="radio" id="star1" name="rating" value="1">
+                                    <label for="star1" title="Bad">★</label>
+                                    <span class="rating-hint">(1=poor, 5=excellent)</span>
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="comment" class="form-label">Additional feedback (optional):</label>
-                                <textarea name="comment" id="comment" class="form-control" rows="3" placeholder="Tell us more about your experience..."></textarea>
+
+                            <!-- Yes/No Row -->
+                            <div class="feedback-row">
+                                <div class="form-label">Was it helpful?</div>
+                                <div class="yesno-group">
+                                    <label class="yesno-option">
+                                        <input type="radio" name="is_helpful" value="true">
+                                        <span>👍 Yes, it helped</span>
+                                    </label>
+                                    <label class="yesno-option">
+                                        <input type="radio" name="is_helpful" value="false">
+                                        <span>👎 No, not helpful</span>
+                                    </label>
+                                    <span class="optional-badge">Optional</span>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Submit Feedback</button>
+
+                            <!-- Comment Row -->
+                            <div class="feedback-row">
+                                <div class="form-label">Additional feedback</div>
+                                <textarea name="comment" rows="3" class="form-control" placeholder="Tell us more... (optional)"></textarea>
+                            </div>
+
+                            <button type="submit" class="submit-feedback-btn">Submit Feedback</button>
                         </form>
                     </div>
                     {% else %}
@@ -436,6 +579,7 @@
                     </div>
                     {% endif %}
                 </div>
+                <!-- ========== END FEEDBACK REDESIGN ========== -->
 
                 <!-- Related Questions -->
                 {% if related_questions %}

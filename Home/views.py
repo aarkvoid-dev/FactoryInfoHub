@@ -12,6 +12,7 @@ from location.models import Country,City
 from .models import HomePageVideo, ContactMessage,Page
 from Accounts.decorators import profile_complete_required
 import threading
+from django.core.mail import EmailMessage, send_mail
 
 def home(request):
     # Fetch featured factories (verified and active)
@@ -373,7 +374,9 @@ def contact(request, type='enquiry'):
             
             # No success message or very quick one (optional)
             messages.success(request, 'Your message has been sent successfully!')
-            return redirect('contact', type=inquiry_type)
+            # return redirect('contact', type=inquiry_type)
+            return redirect(request.path)
+
             
         except Exception as e:
             messages.error(request, f'An error occurred. Please try again later: {str(e)}')
