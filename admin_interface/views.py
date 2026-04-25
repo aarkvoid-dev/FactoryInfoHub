@@ -17,13 +17,17 @@ from Accounts.models import Profile
 from Home.models import ContactMessage, HomePageVideo, ContactReply, Page, PageSection
 from .models import PaymentIssueReport
 from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm,WorkExperienceFormSet, AdminBlogForm, AdminBlogImageForm, AdminLocationForm, AdminCategoryForm, AdminCountryForm, AdminStateForm, AdminCityForm, AdminDistrictForm, AdminRegionForm, AdminSubCategoryForm, AdminFAQQuestionForm, AdminHomePageVideoForm, AdminPaymentGatewayForm, AdminPageForm, AdminPageSectionForm
-from faq.models import FAQQuestion
+from faq.models import FAQQuestion,FAQFeedback
 from Karkahan.views import send_order_receipt
-from django.db import transaction
+from django.db import transaction,models
 from django.core.paginator import Paginator
 import copy
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def and_search_filter(queryset, search_terms, fields):
@@ -32,7 +36,7 @@ def and_search_filter(queryset, search_terms, fields):
     search_terms: list of strings (words)
     fields: list of field names (e.g., ['username', 'email'])
     """
-    from django.db.models import Q
+    
     if not search_terms:
         return queryset
     q_objects = Q()
@@ -2747,7 +2751,7 @@ def admin_factory_copy(request, factory_id):
 
     # Create a copy by resetting primary key and unique fields
     factory_copy = Factory(
-        name=f"Copy of {original.name}",
+        name=f"Copy {original.name}",
         slug=None,                     # will be auto‑generated on save
         factory_code=None,             # will be auto‑generated
         description=original.description,
@@ -3148,6 +3152,20 @@ def admin_blog_images(request, blog_id):
     return render(request, 'CustomAdmin/blogs/blog_images.html', context)
 
 
+
+
+@csrf_exempt  # or use @csrf_protect and send CSRF token correctly
+def upload_tinymce_image(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        uploaded_file = request.FILES['file']
+        # Validate file type/size if needed
+        file_path = default_storage.save(f'tinymce_uploads/{uploaded_file.name}', ContentFile(uploaded_file.read()))
+        file_url = default_storage.url(file_path)
+        return JsonResponse({'location': file_url})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
 @login_required
 def admin_faq_list(request):
     profile = request.user.profile
@@ -3259,6 +3277,30 @@ def admin_faq_edit(request, pk):
         'question': question,
     }
     return render(request, 'CustomAdmin/faq/faq_form.html', context)
+
+
+
+@staff_member_required
+def admin_faq_question_detail(request, question_id):
+    question = get_object_or_404(FAQQuestion, id=question_id)
+    feedback_list = FAQFeedback.objects.filter(question=question).select_related('user').order_by('-created_at')
+    
+    # Optional statistics
+    total_feedback = feedback_list.count()
+    avg_rating = feedback_list.aggregate(models.Avg('rating'))['rating__avg']
+    helpful_count = feedback_list.filter(is_helpful=True).count()
+    not_helpful_count = feedback_list.filter(is_helpful=False).count()
+    
+    context = {
+        'question': question,
+        'feedback_list': feedback_list,
+        'total_feedback': total_feedback,
+        'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+        'helpful_count': helpful_count,
+        'not_helpful_count': not_helpful_count,
+    }
+    return render(request, 'CustomAdmin/faq/faq_question_detail.html', context)
+
 
 
 @login_required

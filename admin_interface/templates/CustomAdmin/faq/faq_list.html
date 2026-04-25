@@ -92,6 +92,7 @@
                         </td>
                         <td class="text-end">
                             <a href="{% url 'admin_interface:admin_faq_edit' question.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'admin_interface:admin_faq_question_detail' question.id %}" class="btn btn-sm btn-outline-primary">Details</a>
                             <a href="{% url 'admin_interface:admin_faq_delete' question.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
                         </td>
                     </tr>

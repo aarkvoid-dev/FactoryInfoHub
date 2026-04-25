@@ -110,11 +110,14 @@ urlpatterns = [
     path('blogs/soft-delete/<int:blog_id>/', views.admin_blog_soft_delete, name='admin_blog_soft_delete'),
     path('blogs/hard-delete/<int:blog_id>/', views.admin_blog_hard_delete, name='admin_blog_hard_delete'),
     path('blogs/permanent-delete/<int:blog_id>/', views.admin_blog_permanent_delete, name='admin_blog_permanent_delete'),
+
+    path('upload-tinymce/', views.upload_tinymce_image, name='upload_tinymce_image'),
     
     # CRUD URLs for FAQ
     path('faq/', views.admin_faq_list, name='admin_faq'),
     path('faq/create/', views.admin_faq_create, name='admin_faq_create'),
     path('faq/<int:pk>/edit/', views.admin_faq_edit, name='admin_faq_edit'),
+    path('faq/question/<int:question_id>/', views.admin_faq_question_detail, name='admin_faq_question_detail'),
     path('faq/<int:pk>/delete/', views.admin_faq_delete, name='admin_faq_delete'),
     
     # Contact Messages URLs
