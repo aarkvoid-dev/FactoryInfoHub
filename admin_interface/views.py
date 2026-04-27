@@ -439,6 +439,7 @@ def admin_user_create(request):
         password_confirm = request.POST.get('password_confirm')
         is_active = 'is_active' in request.POST
         role = request.POST.get('role', 'user')
+        address = request.POST.get('address', '').strip() or None
         
 
         # Validation
@@ -486,7 +487,8 @@ def admin_user_create(request):
                 user=user,
                 role=role,
                 email_notifications=True,
-                in_app_notifications=True
+                in_app_notifications=True,
+                address=address,
             )
         except Exception as e:
             # Log the error and create a fallback profile with minimal settings
@@ -530,7 +532,12 @@ def admin_user_edit(request, user_id):
         user.first_name = request.POST.get('first_name')
         user.last_name = request.POST.get('last_name')
         user.is_active = 'is_active' in request.POST
-        user.profile.brand_name = request.POST.get('brand_name') if request.POST.get('brand_name') is not None else None
+        # user.profile.brand_name = request.POST.get('brand_name') if request.POST.get('brand_name') is not None else None
+        # user.profile.email_verified = 'email_verified' in request.POST
+        # user.profile.email_notifications = 'email_notifications' in request.POST
+        # user.profile.in_app_notifications = 'in_app_notifications' in request.POST
+        user.profile.brand_name = request.POST.get('brand_name', '').strip() or None
+        user.profile.address = request.POST.get('address', '').strip() or None
         # Update role if provided
         new_role = request.POST.get('role')
         if new_role in ['admin', 'staff', 'user']:
@@ -914,7 +921,7 @@ def admin_workers(request):
         return export_workers_to_csv(workers)
 
     # ----- Pagination (10 per page) -----
-    paginator = Paginator(workers, 10)
+    paginator = Paginator(workers, 3)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -2874,7 +2881,7 @@ def admin_blogs(request):
         )
 
     page = request.GET.get('page', 1)
-    paginator = Paginator(blogs, 15)  # 15 blogs per page
+    paginator = Paginator(blogs, 5)  # 15 blogs per page
     try:
         paginated_blogs = paginator.page(page)
     except PageNotAnInteger:

@@ -44,6 +44,18 @@
                             <input type="text" name="brand_name" value="{{ user_obj.profile.brand_name|default:'' }}" class="form-control rounded-3 border-0 bg-light py-2 py-md-3" placeholder="Enter Brand Name">
                         </div>
                     </div>
+                   <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address</label>
+                            <!-- Use textarea instead of input -->
+                            <textarea 
+                            name="address" 
+                            class="form-control rounded-3 border-0 bg-light py-2 py-md-3" 
+                            placeholder="Enter Address"
+                            rows="3"
+                            >{{ user_obj.profile.address|default:'' }}</textarea>
+                        </div>
+                    </div>
 
                     <div class="row g-3 mt-1">
                         <div class="col-12 col-md-4">
