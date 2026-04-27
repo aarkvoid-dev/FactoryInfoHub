@@ -20,7 +20,7 @@ from .forms import AdminUserForm, AdminFactoryForm, AdminWorkerForm,WorkExperien
 from faq.models import FAQQuestion,FAQFeedback
 from Karkahan.views import send_order_receipt
 from django.db import transaction,models
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 import copy
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -374,6 +374,15 @@ def admin_users(request):
     # Order by most recent first
     users = users.order_by('-date_joined')
 
+    page = request.GET.get('page', 1)
+    paginator = Paginator(users, 20)
+    try:
+        paginated_users = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_users = paginator.page(1)
+    except EmptyPage:
+        paginated_users = paginator.page(paginator.num_pages)
+
 
     if 'download' in request.GET:
         response = HttpResponse(content_type='text/csv')
@@ -404,7 +413,9 @@ def admin_users(request):
         return response
 
     context = {
-        'users': users,
+        'users': paginated_users,
+        'paginator': paginator,
+        'page_obj': paginated_users,
         'search_query': search_query,
         'role_filter': role_filter,
         'status_filter': status_filter,
@@ -771,6 +782,16 @@ def admin_factories(request):
         else:
             factories = factories.order_by('-created_at')  # default
 
+
+    page = request.GET.get('page', 1)
+    paginator = Paginator(factories, 5)  # Show 20 factories per page
+    try:
+        paginated_factories = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_factories = paginator.page(1)
+    except EmptyPage:
+        paginated_factories = paginator.page(paginator.num_pages)
+
     # 3. CSV Export
     if 'download' in request.GET:
         return export_factories_to_csv(factories)
@@ -786,7 +807,9 @@ def admin_factories(request):
     subcategories = SubCategory.objects.filter(category_id=f_category, is_deleted=False) if f_category else SubCategory.objects.none()
 
     context = {
-        'factories': factories,
+        'factories': paginated_factories,  # <-- use paginated object
+        'paginator': paginator,
+        'page_obj': paginated_factories,
         'countries': countries,
         'states': states,
         'cities': cities,
@@ -2850,6 +2873,16 @@ def admin_blogs(request):
             ['title', 'excerpt', 'content', 'author__username', 'category__name']
         )
 
+    page = request.GET.get('page', 1)
+    paginator = Paginator(blogs, 15)  # 15 blogs per page
+    try:
+        paginated_blogs = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_blogs = paginator.page(1)
+    except EmptyPage:
+        paginated_blogs = paginator.page(paginator.num_pages)
+
+
     # 3. Persistent Dropdowns (Fetch options based on current selections)
     countries = Country.objects.filter(is_deleted=False)
     categories = Category.objects.filter(is_deleted=False)
@@ -2863,7 +2896,9 @@ def admin_blogs(request):
     subcategories = SubCategory.objects.filter(category_id=f_category, is_deleted=False) if f_category else SubCategory.objects.none()
 
     context = {
-        'blogs': blogs,
+        'blogs': paginated_blogs,
+        'paginator': paginator,
+        'page_obj': paginated_blogs,
         'countries': countries,
         'states': states,
         'cities': cities,
@@ -3544,9 +3579,12 @@ def export_contact_messages_to_csv(messages, type_label=None):
     extra_headers = []
     if type_label != 'online_class':
         extra_headers.append('Brand Name')
-    if type_label != 'enquiry':
-        extra_headers.append('Location')
-        extra_headers.append('Area')
+    # if type_label != 'enquiry':
+    #     extra_headers.append('Location')
+    #     extra_headers.append('Area')
+
+    extra_headers.append('Location')
+    extra_headers.append('Area')
 
     # Combine headers: base + extra (inserting brand after Name, location after Email, etc.)
     # For simplicity, we'll add extra columns at the end
@@ -3571,9 +3609,11 @@ def export_contact_messages_to_csv(messages, type_label=None):
         # Add extra fields based on type
         if type_label != 'online_class':
             row.append(message.brand_name or '')
-        if type_label != 'enquiry':
-            row.append(message.location or '')
-            row.append(message.area or '')
+        # if type_label != 'enquiry':
+        #     row.append(message.location or '')
+        #     row.append(message.area or '')
+        row.append(message.location or '')
+        row.append(message.area or '')
 
         writer.writerow(row)
 

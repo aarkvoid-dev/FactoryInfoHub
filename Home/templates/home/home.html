@@ -719,7 +719,7 @@ html { font-size: 14px; }
           <div class="col-auto"><a href="{% url 'karkahan:factory_list' %}" class="buttonArrow d-flex items-center"><span>See all</span><i class="icon-arrow-top-right text-16 ml-10"></i></a></div>
         </div>
         <div data-anim-child="slide-up delay-2" class="relative pt-40 sm:pt-20">
-          <div class="js-section-slider" data-gap="30" data-slider-cols="xl-3 lg-3 md-2 sm-1 base-1" data-nav-prev="js-slider1-prev" data-nav-next="js-slider1-next">
+          <div class="js-section-slider" data-gap="2" data-slider-cols="xl-3 lg-3 md-2 sm-1 base-1" data-nav-prev="js-slider1-prev" data-nav-next="js-slider1-next">
             <div class="swiper-wrapper">
               {% for factory in featured_factories %}
               <div class="swiper-slide">
@@ -999,6 +999,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 
 // Video controls
 function toggleMute() {
