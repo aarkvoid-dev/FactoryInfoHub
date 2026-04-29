@@ -67,6 +67,10 @@
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone No.</label>
+                            <div class="text-muted">{{ message.mobile_number|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Brand name</label>
                             <div class="text-muted">{{ message.brand_name|default:"—" }}</div>
                         </div>
@@ -161,6 +165,7 @@
                 </div>
                 <div class="card-body">
                     <form id="replyForm">
+                        {% csrf_token %}  <!-- ✅ CSRF token added -->
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">To</label>
@@ -449,6 +454,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const messageId = {{ message.id|escapejs }};
     
+    // Helper to get CSRF token from the form input or cookie
+    function getCsrfToken() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (input && input.value) return input.value;
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        if (cookieValue) return cookieValue.split('=')[1];
+        console.warn('CSRF token not found');
+        return '';
+    }
+
     // Mark as read/unread functionality
     document.getElementById('mark-read-btn')?.addEventListener('click', function() {
         markMessageStatus(messageId, 'mark-read');
@@ -478,10 +493,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Reply form submission
-    document.getElementById('replyForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        sendReply();
-    });
+    const replyForm = document.getElementById('replyForm');
+    if (replyForm) {
+        replyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendReply();
+        });
+    }
 
     // Reset form
     document.getElementById('reset-form-btn')?.addEventListener('click', function() {
@@ -495,8 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // API Functions
     async function markMessageStatus(messageId, action) {
         try {
-            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
-            const csrfToken = csrfElement ? csrfElement.value : '';
+            const csrfToken = getCsrfToken();
             const response = await fetch('{% url "admin_interface:mark_messages_api" %}', {
                 method: 'POST',
                 headers: {
@@ -559,8 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function deleteMessage(messageId) {
         try {
-            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
-            const csrfToken = csrfElement ? csrfElement.value : '';
+            const csrfToken = getCsrfToken();
             const response = await fetch(`/admin_interface/contacts/delete/${messageId}/`, {
                 method: 'POST',
                 headers: {
@@ -592,9 +608,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const sendButton = document.getElementById('send-reply-btn');
+        const originalText = sendButton.innerHTML;
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+
         try {
-            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
-            const csrfToken = csrfElement ? csrfElement.value : '';
+            const csrfToken = getCsrfToken();
+            console.log('Sending reply with CSRF:', csrfToken);
+            
             const response = await fetch('{% url "admin_interface:send_contact_reply" %}', {
                 method: 'POST',
                 headers: {
@@ -610,25 +632,37 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const result = await response.json();
+            console.log('Reply response:', result);
             
-            if (response.ok) {
-                showToast(result.message, 'success');
+            if (response.ok && result.success) {
+                showToast(result.message || 'Reply sent successfully!', 'success');
                 document.getElementById('reply-message').value = '';
+                // Reload after a short delay to show the new reply in history
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
             } else {
-                throw new Error(result.error || 'Failed to send reply');
+                throw new Error(result.error || result.message || 'Failed to send reply');
             }
         } catch (error) {
-            console.error('Error:', error);
-            showToast('Failed to send reply. Please try again.', 'error');
+            console.error('Send reply error:', error);
+            showToast(error.message || 'Failed to send reply. Please try again.', 'error');
+        } finally {
+            sendButton.disabled = false;
+            sendButton.innerHTML = originalText;
         }
     }
 
     // Toast notification function
     function showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toast-container');
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
         
         const toast = document.createElement('div');
         toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0`;
@@ -638,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         toast.innerHTML = `
             <div class="d-flex">
-                <div class="toast-body">${message}</div>
+                <div class="toast-body">${escapeHtml(message)}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         `;
@@ -651,6 +685,13 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.addEventListener('hidden.bs.toast', () => {
             toast.remove();
         });
+    }
+
+    // Helper to escape HTML in toast messages
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 });
 </script>

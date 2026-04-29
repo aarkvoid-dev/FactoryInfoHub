@@ -791,7 +791,7 @@ def admin_factories(request):
 
 
     page = request.GET.get('page', 1)
-    paginator = Paginator(factories, 5)  # Show 20 factories per page
+    paginator = Paginator(factories, 20)  # Show 20 factories per page
     try:
         paginated_factories = paginator.page(page)
     except PageNotAnInteger:

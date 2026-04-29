@@ -220,6 +220,8 @@
                                         data-subject="{{ message.subject }}"
                                         data-brand="{{ message.brand_name }}"
                                         data-message="{{ message.message }}"
+                                        data-country="{{ message.area }}"
+                                        data-city="{{ message.location }}"
                                         data-user="{{ message.user.username|default:'Guest' }}"
                                         data-created="{{ message.created_at|date:'M d, Y H:i' }}"
                                         data-read="{{ message.read_at|date:'M d, Y H:i'|default:'' }}"
@@ -408,6 +410,16 @@
                                         <span id="modal-status-display"></span>
                                     </div>
                                 </div>
+                                <div class="row text-muted small">
+                                    <div class="col-6">
+                                        <strong>country/state:</strong><br>
+                                        <span id="modal-country"></span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>City/distric:</strong><br>
+                                        <span id="modal-city"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -524,6 +536,8 @@
         </div>
     </div>
 </div>
+
+{% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
 
 <!-- Hidden Bulk Action Form -->
 <form id="bulkActionForm" method="POST" action="{% url 'admin_interface:bulk_actions' %}" style="display: none;">
@@ -771,6 +785,14 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Helper: get CSRF token from cookie or hidden input
+    function getCsrfToken() {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        if (cookieValue) return cookieValue.split('=')[1];
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        return input ? input.value : '';
+    }
+
     // Toggle filter offcanvas
     const toggleBtn = document.getElementById('toggle-filters');
     if (toggleBtn) {
@@ -799,15 +821,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // View message modal
     const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    let currentMessageId = null;  // store current message ID for reply
+
     const viewButtons = document.querySelectorAll('.view-message-btn');
     viewButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
+            currentMessageId = this.dataset.messageId;
             document.getElementById('modal-name').textContent = this.dataset.name;
             document.getElementById('modal-email').textContent = this.dataset.email;
             document.getElementById('modal-phonNo').textContent = this.dataset.mobile_number;
             document.getElementById('modal-brand').textContent = this.dataset.brand;
             document.getElementById('modal-subject').textContent = this.dataset.subject;
+            document.getElementById('modal-country').textContent = this.dataset.country;
+            document.getElementById('modal-city').textContent = this.dataset.city;
             document.getElementById('modal-message').textContent = this.dataset.message;
             document.getElementById('modal-created').textContent = this.dataset.created;
             document.getElementById('modal-user').textContent = this.dataset.user;
@@ -843,31 +870,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 attachmentPreview.innerHTML = '';
             }
 
-            document.getElementById('modal-reply-btn').setAttribute('data-message-id', this.dataset.messageId);
             modal.show();
         });
     });
 
-    // Reply Modal population
+    // Reply Modal – pre‑fill using stored currentMessageId
     const replyModal = new bootstrap.Modal(document.getElementById('replyModal'));
     const replyBtn = document.getElementById('modal-reply-btn');
     if (replyBtn) {
         replyBtn.addEventListener('click', function() {
-            let messageId = this.dataset.messageId;
-            let email = document.getElementById('modal-email').textContent;
+            if (!currentMessageId) {
+                showToast('No message selected', 'warning');
+                return;
+            }
+            const email = document.getElementById('modal-email').textContent;
             let subject = document.getElementById('modal-subject').textContent;
+            if (!subject.toLowerCase().startsWith('re:')) subject = `Re: ${subject}`;
             document.getElementById('reply-to').value = email;
-            document.getElementById('reply-subject').value = subject.toLowerCase().startsWith('re:') ? subject : `Re: ${subject}`;
+            document.getElementById('reply-subject').value = subject;
             document.getElementById('reply-message').value = '';
-            document.getElementById('send-reply-btn').setAttribute('data-message-id', messageId);
+            // Store the current message ID on the send button
+            const sendBtn = document.getElementById('send-reply-btn');
+            if (sendBtn) sendBtn.dataset.messageId = currentMessageId;
         });
     }
 
-    // Send reply via AJAX
+    // Send reply via AJAX (improved)
     const sendReplyBtn = document.getElementById('send-reply-btn');
     if (sendReplyBtn) {
         sendReplyBtn.addEventListener('click', function() {
             const messageId = this.dataset.messageId;
+            if (!messageId) {
+                showToast('Missing message ID', 'error');
+                return;
+            }
             const subject = document.getElementById('reply-subject').value;
             const messageContent = document.getElementById('reply-message').value;
             const markAsRead = document.getElementById('mark-as-read-checkbox').checked;
@@ -881,11 +917,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
             this.disabled = true;
 
-            fetch('{% url "admin_interface:send_contact_reply" %}', {
+            // Build absolute URL for the endpoint – use the correct named URL
+            const url = "{% url 'admin_interface:send_contact_reply' %}";
+            const csrfToken = getCsrfToken();
+
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({
                     message_id: messageId,
@@ -894,20 +934,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     mark_as_read: markAsRead
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+            .then(response => response.json().then(data => ({ status: response.status, data })))
+            .then(({ status, data }) => {
+                if (status === 200 && data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
                     bootstrap.Modal.getInstance(document.getElementById('messageModal')).hide();
                     showToast('Reply sent successfully!', 'success');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    const errorMsg = data.error || data.message || 'Unknown error';
+                    showToast(`Error: ${errorMsg}`, 'error');
+                    console.error('Reply error:', data);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                showToast('Failed to send reply. Please try again.', 'error');
+                console.error('Network error:', error);
+                showToast('Failed to send reply. Please check your connection and try again.', 'error');
             })
             .finally(() => {
                 this.innerHTML = originalText;
@@ -916,7 +958,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Bulk actions
+    // Bulk actions (unchanged but ensure CSRF token works)
     const bulkForm = document.getElementById('bulkActionForm');
     document.querySelectorAll('.bulk-action').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -925,20 +967,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('Please select at least one message.', 'warning');
                 return;
             }
-
             let confirmMsg = '';
             if (this.dataset.action === 'delete') confirmMsg = `Delete ${selected.length} message(s)? This cannot be undone.`;
             else if (this.dataset.action === 'mark-read') confirmMsg = `Mark ${selected.length} message(s) as read?`;
             else if (this.dataset.action === 'mark-unread') confirmMsg = `Mark ${selected.length} message(s) as unread?`;
             if (!confirm(confirmMsg)) return;
-
             document.getElementById('bulkActionInput').value = this.dataset.action;
             document.getElementById('selectedIdsInput').value = selected.join(',');
             bulkForm.submit();
         });
     });
 
-    // Mark all read
+    // Mark all read (unchanged)
     const markAllBtn = document.getElementById('mark-all-read');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function() {
@@ -957,7 +997,7 @@ document.addEventListener('DOMContentLoaded', function() {
             form.method = 'POST';
             form.action = '{% url "admin_interface:bulk_actions" %}';
             form.innerHTML = `
-                <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${getCsrfToken()}">
                 <input type="hidden" name="action" value="mark-all-read">
                 <input type="hidden" name="selected_ids" value="">
             `;
@@ -966,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Toast notification
+    // Toast notification (unchanged)
     function showToast(message, type = 'info') {
         let toastContainer = document.getElementById('toast-container');
         if (!toastContainer) {
@@ -976,7 +1016,6 @@ document.addEventListener('DOMContentLoaded', function() {
             toastContainer.style.zIndex = '9999';
             document.body.appendChild(toastContainer);
         }
-
         const toast = document.createElement('div');
         toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0`;
         toast.setAttribute('role', 'alert');

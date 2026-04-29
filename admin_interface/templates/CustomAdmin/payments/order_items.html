@@ -9,7 +9,7 @@
 function deleteOrderItem(itemId, factoryName) {
     if (confirm(`Are you sure you want to delete the item for factory "${factoryName}"? This action cannot be undone.`)) {
         // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/order-items/${itemId}/delete/`;
+        window.location.href = `/admin_interface/payments/order-items/delete/${itemId}/`;
     }
 }
 </script>
@@ -284,5 +284,6 @@ function deleteOrderItem(itemId, factoryName) {
             </div>
         </div>
     </div>
+    {% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
 </div>
 {% endblock %}

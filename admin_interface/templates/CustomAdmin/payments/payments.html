@@ -220,19 +220,19 @@
                                         <small class="text-muted">{{ payment.user.email }}</small>
                                     </td>
                                     <td>
-                                        <strong>₹{{ payment.amount }}</strong>
+                                        <strong>₹{{ payment.total_amount }}</strong>
                                         <br><small class="text-muted">{{ payment.currency }}</small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ payment.get_payment_method_display }}</span>
+                                        {% if payment.payment_method %} <span class="badge bg-secondary">{{ payment.payment_method }}</span>{% else %}  -  {% endif %}
                                     </td>
                                     <td>
-                                        {% if payment.status == 'completed' %}
-                                            <span class="badge bg-success">{{ payment.get_status_display }}</span>
-                                        {% elif payment.status == 'pending' %}
-                                            <span class="badge bg-warning">{{ payment.get_status_display }}</span>
+                                        {% if payment.payment_status == 'completed' %}
+                                            <span class="badge bg-success">{{ payment.payment_status }}</span>
+                                        {% elif payment.payment_status == 'pending' %}
+                                            <span class="badge bg-warning">{{ payment.payment_status }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">{{ payment.get_status_display }}</span>
+                                            <span class="badge bg-danger">{{ payment.payment_status }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -320,6 +320,7 @@
             </div>
         </div>
     </div>
+    {% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
 </div>
 
 <!-- JavaScript for payment actions -->

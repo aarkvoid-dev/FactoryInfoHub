@@ -103,6 +103,9 @@
                         <td>
                             <span class="small text-dark fw-medium"><i class="fas fa-briefcase me-1 opacity-50"></i> {{ user.profile.brand_name }}</span>
                         </td>
+                        <td>
+                            <span class="small text-dark fw-medium"><i class="fas fa-briefcase me-1 opacity-50"></i> {{ user.profile.citys }}</span>
+                        </td>
                         <td class="d-none d-md-table-cell">
                             <div class="small text-muted">
                                 {{ user.last_login|date:"M d, Y"|default:"Never" }}<br>
@@ -142,6 +145,8 @@
             </table>
         </div>
     </div>
+    {% include 'CustomAdmin/includes/pagination.html' %}
+     {% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
 </div>
 
 <style>

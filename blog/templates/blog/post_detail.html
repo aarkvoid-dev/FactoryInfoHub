@@ -124,7 +124,7 @@
                 <div class="hero-overlay"></div>
                 <img src="{{ post.get_featured_image.image.url }}" alt="Featured" class="hero-img">
                 <div class="hero-content">
-                    <span class="badge-featured">CURRENT HERO IMAGE</span>
+                    <!-- <span class="badge-featured">CURRENT HERO IMAGE</span> -->
                     <h1 class="text-white text-40 md:text-30 fw-700 mt-10">{{ post.title }}</h1>
                     <div class="text-white opacity-70">Author: {{ post.author.get_full_name|default:post.author.username }}</div>
                 </div>
@@ -184,14 +184,14 @@
                 {% endwith %}
 
                 <!-- Related Factories Section -->
-                {% if post.related_factories %}
+                {% if post.related_factories.exists %}
                     <div class="line mt-30 mb-30"></div>
                     <h3 class="text-24 fw-600 mb-20">Related Factories</h3>
 
                     {% if user.is_authenticated and user == post.author or user.is_staff %}
                         <div class="mb-20">
                             <div class="form-input">
-                                <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control">
+                                <input type="text" id="related-factory-search" placeholder="Search related factories..." class="form-control" style="border: solid 1px #477b97">
                                 <label class="lh-1 text-14">Search Related Factories</label>
                             </div>
                         </div>
@@ -266,7 +266,7 @@
                 <div class="line mt-30 mb-30"></div>
 
                 <!-- ========== COMMENTS SECTION ========== -->
-                <div class="comments-section">
+                {% comment %} <div class="comments-section">
                     <h3 class="h4 mb-4">Comments ({{ comments.count }})</h3>
 
                     <!-- Comment Form -->
@@ -346,7 +346,7 @@
                             <p class="text-muted">No comments yet. Be the first to share your thoughts!</p>
                         {% endif %}
                     </div>
-                </div>
+                </div> {% endcomment %}
 
                 <div class="line mt-30 mb-30"></div>
 

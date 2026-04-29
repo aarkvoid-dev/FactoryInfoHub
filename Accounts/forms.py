@@ -298,7 +298,7 @@ class ProfileForm(forms.ModelForm):
     
     class Meta:
         model = Profile
-        fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address','brand_name']
+        fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address','brand_name','citys']
         widgets = {
             'factory': forms.Select(attrs={
                 'class': 'form-control',
@@ -330,5 +330,9 @@ class ProfileForm(forms.ModelForm):
             'brand_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': _('Enter your Brand Name')
+            }),
+            'citys': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Enter your City/Distric')
             }),
         }

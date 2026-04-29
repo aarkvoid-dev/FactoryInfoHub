@@ -68,6 +68,13 @@ class Profile(models.Model):
         null=True,
         help_text="Your address"
     )
+    
+    citys = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Your City"
+    )
 
     # Role and permissions
     role = models.CharField(

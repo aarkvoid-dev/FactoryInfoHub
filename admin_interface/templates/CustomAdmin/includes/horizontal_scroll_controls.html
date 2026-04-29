@@ -1,0 +1,181 @@
+{% load static %}
+
+<style>
+    /* Horizontal scroll controls */
+    .horizontal-scroll-controls {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        background: rgba(248, 250, 252, 0.98);
+        backdrop-filter: blur(8px);
+        padding: 0.5rem 1rem;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        z-index: 100;
+        border-top: 1px solid rgba(235,102,43,0.2);
+        width: 100%;
+    }
+    .scroll-btn {
+        background: #e2e8f0;
+        border: none;
+        border-radius: 40px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        color: #1e293b;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .scroll-btn:hover {
+        background: #cbd5e1;
+        transform: scale(1.05);
+    }
+    .scroll-progress {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+    }
+    .scroll-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #EB662B;
+        border-radius: 6px;
+        transition: width 0.05s linear;
+        pointer-events: none;
+    }
+    @media (max-width: 767.98px) {
+        .horizontal-scroll-controls {
+            padding: 0.4rem 0.75rem;
+        }
+        .scroll-btn {
+            width: 36px;
+            height: 36px;
+        }
+    }
+</style>
+
+<div class="horizontal-scroll-controls" id="scrollControls" style="display: none;">
+    <button class="scroll-btn scroll-left" id="scrollLeftBtn" title="Scroll left">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="scroll-progress" id="scrollProgressTrack">
+        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+    </div>
+    <button class="scroll-btn scroll-right" id="scrollRightBtn" title="Scroll right">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+</div>
+
+<script>
+    (function() {
+        function initHorizontalScroll() {
+            // Find the first .table-responsive container on the page
+            const container = document.querySelector('.table-responsive');
+            if (!container) return;
+            
+            const controls = document.getElementById('scrollControls');
+            if (!controls) return;
+            
+            const leftBtn = document.getElementById('scrollLeftBtn');
+            const rightBtn = document.getElementById('scrollRightBtn');
+            const progressTrack = document.getElementById('scrollProgressTrack');
+            const progressBar = document.getElementById('scrollProgressBar');
+            
+            if (!leftBtn || !rightBtn || !progressTrack || !progressBar) return;
+            
+            let isDragging = false;
+            
+            function updateControlsVisibility() {
+                const hasOverflow = container.scrollWidth > container.clientWidth;
+                controls.style.display = hasOverflow ? 'flex' : 'none';
+                if (hasOverflow) updateProgressBar();
+            }
+            
+            function updateProgressBar() {
+                const scrollLeft = container.scrollLeft;
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                const percent = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+                progressBar.style.width = percent + '%';
+            }
+            
+            function scrollToPosition(percent) {
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                const targetScroll = (percent / 100) * maxScroll;
+                container.scrollTo({ left: targetScroll, behavior: 'smooth' });
+            }
+            
+            function scrollTable(direction) {
+                const step = container.clientWidth * 0.8;
+                container.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
+            }
+            
+            leftBtn.addEventListener('click', () => scrollTable('left'));
+            rightBtn.addEventListener('click', () => scrollTable('right'));
+            
+            function getTrackClickPercent(e) {
+                const rect = progressTrack.getBoundingClientRect();
+                let clientX;
+                if (e.type === 'mousemove' || e.type === 'mousedown') {
+                    clientX = e.clientX;
+                } else if (e.type === 'touchmove' || e.type === 'touchstart') {
+                    clientX = e.touches[0].clientX;
+                } else {
+                    return 0;
+                }
+                let clickX = clientX - rect.left;
+                clickX = Math.max(0, Math.min(clickX, rect.width));
+                return (clickX / rect.width) * 100;
+            }
+            
+            function onDragStart(e) {
+                e.preventDefault();
+                isDragging = true;
+                const percent = getTrackClickPercent(e);
+                scrollToPosition(percent);
+            }
+            
+            function onDragMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const percent = getTrackClickPercent(e);
+                scrollToPosition(percent);
+            }
+            
+            function onDragEnd() {
+                isDragging = false;
+            }
+            
+            progressTrack.addEventListener('mousedown', onDragStart);
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            progressTrack.addEventListener('touchstart', onDragStart);
+            window.addEventListener('touchmove', onDragMove);
+            window.addEventListener('touchend', onDragEnd);
+            
+            container.addEventListener('scroll', () => requestAnimationFrame(updateProgressBar));
+            window.addEventListener('resize', updateControlsVisibility);
+            
+            const observer = new MutationObserver(() => updateControlsVisibility());
+            observer.observe(container, { childList: true, subtree: true, attributes: true });
+            
+            updateControlsVisibility();
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHorizontalScroll);
+        } else {
+            initHorizontalScroll();
+        }
+    })();
+</script>

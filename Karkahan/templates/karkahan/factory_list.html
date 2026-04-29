@@ -82,7 +82,7 @@
         flex: 0 0 280px;
         background: #F8F9FB;
         overflow: hidden;
-        max-height: 300px;
+        /* max-height: 300px; */
     }
     .factoryCard__image img {
         width: 100%;
@@ -694,6 +694,18 @@
                         <button class="indicator-badge share-factory-btn" data-factory-name="{{ factory.name }}" data-factory-slug="{{ factory.slug }}" title="Share">
                             <i class="fas fa-share-alt"></i>
                         </button>
+
+                    {% if factory.images.exists %}
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" class="indicator-badge" title="Gallary">
+                            <i class="fas fa-images"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% if factory.video_url %}
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#video" class="indicator-badge" title="Video">
+                            <i class="fas fa-play"></i>
+                        </a>
+                    {% endif %}
                     </div>
                   </div>
 
@@ -730,7 +742,7 @@
                         </div>
                       </div>
                       <div class="btn-group">
-                        {% if factory.images.exists %}
+                        <!-- {% if factory.images.exists %}
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" 
                            class="button btn-outline">
                            <i class="fas fa-images me-1"></i> Gallery ({{ factory.images.count }})
@@ -742,7 +754,7 @@
                            class="button btn-outline">
                            <i class="fas fa-play me-1"></i> Video
                         </a>
-                        {% endif %}
+                        {% endif %} -->
                         
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
                            class="button btn-outline">
