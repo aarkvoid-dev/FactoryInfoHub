@@ -1,9 +1,6 @@
 from django.apps import AppConfig
 
 
-class AccountsConfig(AppConfig):
+class AdminInterfaceConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'Accounts'
-
-    def ready(self):
-        import Accounts.signals
+    name = 'admin_interface'
