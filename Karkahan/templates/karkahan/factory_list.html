@@ -85,7 +85,7 @@
         height: 80px;
     }
 
-    /* ===== FACTORY CARD STYLES ===== */
+    /* ===== FACTORY CARD STYLES – FIXED IMAGE SIZE ===== */
     .factoryCard {
         background: white;
         border-radius: 16px;
@@ -95,25 +95,25 @@
         display: flex;
         flex-direction: row;
         gap: 0;
-        min-height: 280px;
+        min-height: auto;           /* let content decide height */
     }
     .factoryCard:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     }
 
-    /* Image Section */
+    /* Image Section – fixed width, fills height */
     .factoryCard__image {
         position: relative;
-        flex: 0 0 280px;
+        flex: 0 0 280px;            /* fixed width, no grow/shrink */
         background: #F8F9FB;
         overflow: hidden;
-        /* max-height: 300px; */
+        align-self: stretch;         /* match parent row height */
     }
     .factoryCard__image img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: cover;           /* cover area without distortion */
         transition: transform 0.3s ease;
     }
     .factoryCard__image:hover img {
@@ -257,7 +257,6 @@
         gap: 8px;
         flex-wrap: wrap;
     }
-    /* --- Adjusted button sizes for smaller, better fit --- */
     .btn-group .button {
         font-size: 12px;
         padding: 6px 12px;
@@ -285,7 +284,6 @@
         box-shadow: 0 2px 8px rgba(235,102,43,0.2);
     }
 
-    /* New button styles for list page */
     .btn-purchase-list {
         background: #EB662B;
         border: none;
@@ -322,7 +320,7 @@
     .bg-secondary-soft { background-color: rgba(108, 117, 125, 0.1); }
     .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
 
-    /* Blog Circle Card (matching factory circle card) */
+    /* Blog Circle Card */
     .blog-circle-card {
         display: flex;
         flex-direction: column;
@@ -373,15 +371,15 @@
         .blog-circle-card__name { font-size: 13px; }
     }
 
-    /* Responsive */
+    /* Responsive Fixes */
     @media (max-width: 991px) {
         .factoryCard {
             flex-direction: column;
-            min-height: auto;
         }
         .factoryCard__image {
             flex: 0 0 auto;
-            height: 200px;
+            width: 100%;
+            height: 200px;           /* fixed height on mobile */
         }
         .factoryCard__content {
             padding: 20px;
@@ -571,11 +569,6 @@
                     <option value="">Select Area</option>
                     {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                 </select>
-                <!-- <label for="region">Region</label>
-                <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
-                    <option value="">Select Region</option>
-                    {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
-                </select> -->
               </div>
 
               <div class="filter-group">
@@ -641,11 +634,6 @@
                           <option value="">Select Area</option>
                           {% for district in filter_form.fields.district.queryset %}<option value="{{ district.id }}" {% if request.GET.district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}
                       </select>
-                      <!-- <label for="region">Region</label>
-                      <select name="region" class="js-filter-select modern-select-top" {% if not request.GET.district %}disabled{% endif %}>
-                          <option value="">Select Region</option>
-                          {% for region in filter_form.fields.region.queryset %}<option value="{{ region.id }}" {% if request.GET.region == region.id|stringformat:'s' %}selected{% endif %}>{{ region.name }}</option>{% endfor %}
-                      </select> -->
                     </div>
 
                     <div class="filter-group">
@@ -683,14 +671,13 @@
             {% for factory in page_obj %}
               <div class="col-12">
                 <div class="factoryCard">
-                  <!-- Image Section -->
+                  <!-- Image Section (fixed: always an <img> with fallback) -->
                   <div class="factoryCard__image">
                     {% with primary_image=factory.get_primary_image %}
                       {% if primary_image %}
                         <img src="{{ primary_image }}" alt="{{ factory.name }}">
                       {% else %}
                         <img src="{% static 'img/tourCards/1/8.png' %}" alt="{{ factory.name }}">
-                        <div class="placeholder-icon h-100 center bg-light-1"><i class="fas fa-industry fa-4x text-accent-1 opacity-20"></i></div>
                       {% endif %}
                     {% endwith %}
                     
@@ -703,17 +690,16 @@
                     <div class="factoryCard__indicators">
                       {% if user.is_authenticated %}
                         {% if factory.id in cart_items %}
-                          <span class="indicator-badge bg-success text-white" title="In Cart" hidden>
-                            <i class="fas fa-heart"></i>
+                          <span class="indicator-badge bg-success text-white" title="In Cart">
+                            <i class="fas fa-check"></i>
                           </span>
                         {% else %}
-                          <button class="indicator-badge cart-add-btn" data-factory-slug="{{ factory.slug }}" data-factory-name="{{ factory.name }}" title="Add to Cart" hidden>
+                          <button class="indicator-badge cart-add-btn" data-factory-slug="{{ factory.slug }}" data-factory-name="{{ factory.name }}" title="Add to Cart">
                             <i class="fas fa-heart"></i>
                           </button>
                         {% endif %}
-                        
                       {% else %}
-                        <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart" hidden>
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart">
                           <i class="fas fa-heart"></i>
                         </a>
                       {% endif %}
@@ -722,7 +708,7 @@
                         </button>
 
                     {% if factory.images.exists %}
-                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" class="indicator-badge" title="Gallary">
+                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" class="indicator-badge" title="Gallery">
                             <i class="fas fa-images"></i>
                         </a>
                     {% endif %}
@@ -742,7 +728,7 @@
                         <div class="factoryCard__location">
                           <i class="icon-pin"></i> {{ factory.city.name }}, {{ factory.state.name }}
                         </div>
-                        <h3 class="factoryCard__title">{{ factory.name }} {% if factory.is_verified %}<i style="background-color: #28a745; text-align: right; color: #F8F9FB; font-size:10px;  border-radius: 20%" > verified  </i> {% endif %} </h3>
+                        <h3 class="factoryCard__title">{{ factory.name }} {% if factory.is_verified %}<i style="background-color: #28a745; text-align: right; color: #F8F9FB; font-size:10px; border-radius: 20%"> verified</i> {% endif %} </h3>
                         <p class="factoryCard__text">
                           {{ factory.description|default:"Detailed manufacturing data for this facility is available in the profile."|truncatewords:20 }}
                         </p>
@@ -756,7 +742,7 @@
                       </div>
                     </a>
 
-                    <!-- Action Buttons & Price – Two-button system -->
+                    <!-- Action Buttons & Price -->
                     <div class="factoryCard__actions">
                       <div class="price-tag">
                         <div class="price-value">
@@ -768,20 +754,6 @@
                         </div>
                       </div>
                       <div class="btn-group">
-                        <!-- {% if factory.images.exists %}
-                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#gallery" 
-                           class="button btn-outline">
-                           <i class="fas fa-images me-1"></i> Gallery ({{ factory.images.count }})
-                        </a>
-                        {% endif %}
-                        
-                        {% if factory.video_url %}
-                        <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}#video" 
-                           class="button btn-outline">
-                           <i class="fas fa-play me-1"></i> Video
-                        </a>
-                        {% endif %} -->
-                        
                         <a href="{% url 'karkahan:factory_detail' slug=factory.slug %}" 
                            class="button btn-outline">
                            <i class="fas fa-info-circle me-1"></i> Details
@@ -966,7 +938,6 @@
             </div>
         </div>
 
-        <!-- Swiper Slider with circular cards -->
         <div class="swiper-container blog-circle-slider">
             <div class="swiper-wrapper">
                 {% for post in random_blogs %}
@@ -984,15 +955,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <!-- Navigation buttons -->
-            <!-- <div class="d-flex justify-center mt-40 gap-2">
-                <div class="blog-circle-prev button -outline-accent-1 rounded-12 px-20 py-10">
-                    <i class="icon-arrow-left"></i> Prev
-                </div>
-                <div class="blog-circle-next button -outline-accent-1 rounded-12 px-20 py-10">
-                    Next <i class="icon-arrow-right"></i>
-                </div>
-            </div> -->
         </div>
     </div>
 </section>
@@ -1208,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---------- Social Share Modal (FIXED: correct Threads URL) ----------
+    // ---------- Social Share Modal ----------
     const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
     const shareButtons = document.querySelectorAll('.share-factory-btn');
 
@@ -1218,7 +1180,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const encodedUrl = encodeURIComponent(factoryUrl);
         const encodedTitle = encodeURIComponent(factoryName);
         
-        // Set all share links
         document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${encodedTitle}%20-%20${encodedUrl}`;
         document.getElementById('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
         document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
@@ -1226,8 +1187,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('share-email').href = `mailto:?subject=Check out ${encodedTitle}&body=I thought you might be interested in this factory: ${factoryUrl}`;
         document.getElementById('share-pinterestUrl').href = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&text=${encodedTitle}`;
         document.getElementById('share-telegramUrl').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
-        
-        // FIXED: Correct Threads share URL using 'text' parameter (includes both title and URL)
         document.getElementById('share-threadsUrl').href = `https://www.threads.net/intent/post?text=${encodedTitle}%20-%20${encodedUrl}`;
 
         const copyBtn = document.getElementById('copy-link-btn');
@@ -1253,13 +1212,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---------- Initialize Blog Circle Slider ----------
+    // Initialize Blog Circle Slider
     const blogCircleSlider = document.querySelector('.blog-circle-slider');
     if (blogCircleSlider) {
         new Swiper(blogCircleSlider, {
             slidesPerView: 2,
             spaceBetween: 20,
-            loop: false,           // ✅ Prevents repeating slides
+            loop: false,
             autoplay: {
                 delay: 4000,
                 disableOnInteraction: false,
