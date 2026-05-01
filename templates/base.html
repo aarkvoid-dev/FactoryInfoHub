@@ -125,7 +125,15 @@
     <meta property="twitter:title" content="{% block twitter_title %}{% endblock %}">
     <meta property="twitter:description" content="{% block twitter_description %}{% endblock %}">
     <meta property="twitter:image" content="{% block twitter_image %}{% endblock %}">
+
+    <!-- Canonical -->
+    {% block canonical %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
+
+    <!-- Robots -->
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
   {% endblock %}
+
+  {% block structured_data %}{% endblock %}
 
   <title>{% block title %}Fashion Chemistry{% endblock %}</title>
   

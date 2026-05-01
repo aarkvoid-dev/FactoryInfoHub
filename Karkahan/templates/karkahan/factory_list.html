@@ -1,7 +1,33 @@
 {% extends 'home/base.html' %}
 {% load static humanize %}
 
-{% block title %}Factory Inventory - Factory Chemistry{% endblock %}
+{% block title %}Factory Inventory{% if request.GET.search %} - "{{ request.GET.search }}"{% endif %} - Fashion Chemistry{% endblock %}
+
+{% block meta_description %}Browse {{ page_obj.paginator.count }} factories and industrial facilities{% if request.GET.search %} matching "{{ request.GET.search }}"{% endif %}. Find manufacturers by category, location, and more.{% endblock %}
+{% block meta_keywords %}factory inventory, manufacturing facilities, industrial units, fashion chemistry{% if request.GET.category %}, {{ request.GET.category }}{% endif %}{% endblock %}
+
+{% block og_title %}Factory Inventory - Fashion Chemistry{% endblock %}
+{% block og_description %}Browse factories and industrial facilities. Find manufacturers by category, location, and more.{% endblock %}
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_list' %}{% endblock %}
+
+{% block twitter_title %}Factory Inventory - Fashion Chemistry{% endblock %}
+{% block twitter_description %}Browse factories and industrial facilities. Find manufacturers by category, location, and more.{% endblock %}
+
+{% block canonical %}<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_list' %}">{% endblock %}
+{% block robots %}index, follow{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Factory Inventory",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_list' %}",
+  "description": "Browse factories and industrial facilities across our global network.",
+  "numberOfItems": {{ page_obj.paginator.count }}
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>

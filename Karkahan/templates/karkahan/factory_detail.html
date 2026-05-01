@@ -7,32 +7,51 @@
 {% block meta_keywords %}{% if factory.category %}{{ factory.category.name }}, {% endif %}{{ factory.name }}, factory, manufacturing, {{ factory.city.name }}, {{ factory.state.name }}{% endblock %}
 
 {% block og_type %}website{% endblock %}
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_detail' factory.slug %}{% endblock %}
 {% block og_title %}{{ factory.name }} - {{ factory.city.name }}, {{ factory.state.name }}{% endblock %}
 {% block og_description %}{{ factory.description|default:factory.name|truncatechars:160 }}{% endblock %}
-{% comment %} {% block og_image %}{% if factory.get_primary_image %}{{ factory.get_primary_image }}{% endif %}{% endblock %} {% endcomment %}
 
 {% block twitter_title %}{{ factory.name }} - {{ factory.city.name }}, {{ factory.state.name }}{% endblock %}
 {% block twitter_description %}{{ factory.description|default:factory.name|truncatechars:160 }}{% endblock %}
-{% comment %} {% block twitter_image %}{% if factory.get_primary_image %}{{ factory.get_primary_image }}{% endif %}{% endblock %} {% endcomment %}
 
 {% block og_image %}
     {% with primary_image=factory.get_primary_image %}
-        {% if primary_image %}
-            {{ request.build_absolute_uri }}{{ primary_image }}
-        {% else %}
-            {{ request.build_absolute_uri }}{% static 'img/default-share.jpg' %}
-        {% endif %}
+        {% if primary_image %}{{ request.scheme }}://{{ request.get_host }}{{ primary_image }}{% endif %}
     {% endwith %}
 {% endblock %}
 
 {% block twitter_image %}
     {% with primary_image=factory.get_primary_image %}
-        {% if primary_image %}
-            {{ request.build_absolute_uri }}{{ primary_image }}
-        {% else %}
-            {{ request.build_absolute_uri }}{% static 'img/default-share.jpg' %}
-        {% endif %}
+        {% if primary_image %}{{ request.scheme }}://{{ request.get_host }}{{ primary_image }}{% endif %}
     {% endwith %}
+{% endblock %}
+
+{% block meta_tags %}
+  {{ block.super }}
+  <meta property="og:site_name" content="Fashion Chemistry">
+{% endblock %}
+
+{% block canonical %}<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_detail' factory.slug %}">{% endblock %}
+{% block robots %}index, follow{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "{{ factory.name|escapejs }}",
+  "description": "{{ factory.description|default:factory.name|truncatechars:160|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'karkahan:factory_detail' factory.slug %}",
+  {% with primary_image=factory.get_primary_image %}{% if primary_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ primary_image }}",{% endif %}{% endwith %}
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "{{ factory.city.name|escapejs }}",
+    "addressRegion": "{{ factory.state.name|escapejs }}",
+    "addressCountry": "{{ factory.country.name|escapejs }}"
+  }{% if factory.category %},
+  "category": "{{ factory.category.name|escapejs }}"{% endif %}
+}
+</script>
 {% endblock %}
 
 

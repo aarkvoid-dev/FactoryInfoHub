@@ -1,7 +1,37 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Blog Posts - FactoryInfoHub{% endblock %}
+{% block title %}{% if search_query %}"{{ search_query }}" - {% endif %}Blog - Fashion Chemistry{% endblock %}
+
+{% block meta_description %}Explore blog posts about factories, manufacturing, and industrial insights{% if search_query %} for "{{ search_query }}"{% endif %}. Discover stories from local businesses across India.{% endblock %}
+{% block meta_keywords %}factory blog, manufacturing insights, industrial stories, fashion chemistry blog{% if search_query %}, {{ search_query }}{% endif %}{% endblock %}
+
+{% block og_title %}{% if search_query %}"{{ search_query }}" - {% endif %}Blog - Fashion Chemistry{% endblock %}
+{% block og_description %}Explore blog posts about factories, manufacturing, and industrial insights. Discover stories from local businesses across India.{% endblock %}
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'blog:post_list' %}{% endblock %}
+
+{% block twitter_title %}{% if search_query %}"{{ search_query }}" - {% endif %}Blog - Fashion Chemistry{% endblock %}
+{% block twitter_description %}Explore blog posts about factories, manufacturing, and industrial insights. Discover stories from local businesses across India.{% endblock %}
+
+{% block canonical %}<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'blog:post_list' %}">{% endblock %}
+{% block robots %}index, follow{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Fashion Chemistry Blog",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:post_list' %}",
+  "description": "Explore blog posts about factories, manufacturing, and industrial insights.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fashion Chemistry",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -631,6 +661,76 @@
                 </div>
 
                 <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                            <div class="blogCard">
+                                <div class="blogCard__image">
+                                    
+                                        <img src="{% static 'img/blogCards/1/1.png' %}" alt="">
+                                  
+                           
+                                    <div class="blogCard__badge">{{ post.subcategory.name }}</div>
+                                  
+                                    
+                                    <!-- Share button -->
+                                    <button class="share-btn" data-post-title="{{ post.title }}" data-post-url="{{ post.get_absolute_url }}" onclick="openShareModal(this)">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="blogCard__content">
+                                    <a href="{{ post.get_absolute_url }}" class="text-decoration-none">
+                                        <div class="blogCard__info mb-2">
+                                            <i class="far fa-calendar-alt"></i> {{ post.published_at|date:"M d, Y" }} 
+                                            <span class="mx-1">|</span>
+                                            <i class="far fa-user"></i> {{ post.author.username }}
+                                        </div>
+                                        <h3 class="blogCard__title">{{ post.title }}</h3>
+                                        {% if post.excerpt %}
+                                            <p class="text-13 text-muted mt-2 line-clamp-3">{{ post.excerpt|truncatechars:100 }}</p>
+                                        {% endif %}
+                                        <div class="blogCard__meta mt-3">
+                                            {% if post.country %}<span><i class="fas fa-globe"></i> {{ post.country.name }}</span>{% endif %}
+                                            <span class="ms-3"><i class="fas fa-clock"></i> {{ post.read_time }} min read</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blogCard">
+                                <div class="blogCard__image">
+                                    {% if post.get_featured_image %}
+                                        <img src="{{ post.get_featured_image.image.url }}" alt="{{ post.title }}">
+                                    {% else %}
+                                        <img src="{% static 'img/blogCards/1/1.png' %}" alt="{{ post.title }}">
+                                    {% endif %}
+                                    {% if post.subcategory %}
+                                    <div class="blogCard__badge">{{ post.subcategory.name }}</div>
+                                    {% endif %}
+                                    
+                                    <!-- Share button -->
+                                    <button class="share-btn" data-post-title="{{ post.title }}" data-post-url="{{ post.get_absolute_url }}" onclick="openShareModal(this)">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="blogCard__content">
+                                    <a href="{{ post.get_absolute_url }}" class="text-decoration-none">
+                                        <div class="blogCard__info mb-2">
+                                            <i class="far fa-calendar-alt"></i> {{ post.published_at|date:"M d, Y" }} 
+                                            <span class="mx-1">|</span>
+                                            <i class="far fa-user"></i> {{ post.author.username }}
+                                        </div>
+                                        <h3 class="blogCard__title">{{ post.title }}</h3>
+                                        {% if post.excerpt %}
+                                            <p class="text-13 text-muted mt-2 line-clamp-3">{{ post.excerpt|truncatechars:100 }}</p>
+                                        {% endif %}
+                                        <div class="blogCard__meta mt-3">
+                                            {% if post.country %}<span><i class="fas fa-globe"></i> {{ post.country.name }}</span>{% endif %}
+                                            <span class="ms-3"><i class="fas fa-clock"></i> {{ post.read_time }} min read</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     {% if posts %}
                         {% for post in posts %}
                         <div class="col-lg-4 col-md-6">
