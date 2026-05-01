@@ -120,6 +120,21 @@
         transform: scale(1.02);
     }
 
+    /* Laptop/Desktop fix: ensure card content drives height */
+    @media (min-width: 992px) {
+        .factoryCard {
+            align-items: stretch;
+        }
+        .factoryCard__image {
+            min-height: 0;           /* allow flex child to size freely */
+            align-self: stretch;
+        }
+        .factoryCard__image img {
+            height: 100%;
+            display: block;
+        }
+    }
+
     /* Badges & Indicators */
     .factoryCard__badge {
         position: absolute;
@@ -371,7 +386,7 @@
         .blog-circle-card__name { font-size: 13px; }
     }
 
-    /* Responsive Fixes */
+    /* Responsive Fixes – Mobile only */
     @media (max-width: 991px) {
         .factoryCard {
             flex-direction: column;
@@ -379,7 +394,7 @@
         .factoryCard__image {
             flex: 0 0 auto;
             width: 100%;
-            height: 200px;           /* fixed height on mobile */
+            height: 200px;           /* fixed height on mobile, ok */
         }
         .factoryCard__content {
             padding: 20px;
