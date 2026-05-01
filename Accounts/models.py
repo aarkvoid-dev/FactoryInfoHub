@@ -4,6 +4,41 @@ from Karkahan.models import Factory
 from django.utils import timezone
 from django.core.validators import FileExtensionValidator
 import hashlib
+from django.db.models import Q, Value, CharField
+from django.db.models.functions import Length
+
+
+class ProfileManager(models.Manager):
+    def verified(self):
+        """Return only verified profiles (email verified & user active)"""
+        return self.filter(email_verified=True, user__is_active=True)
+    
+    def unverified(self):
+        """Return only unverified profiles (email not verified & user inactive)"""
+        return self.filter(email_verified=False, user__is_active=False)
+    
+    def spam_suspected(self):
+        """
+        Return profiles that look like junk/spam based on heuristics.
+        Does not delete – just identifies for review.
+        """
+      
+        
+        return self.filter(
+            Q(user__first_name__regex=r'^([a-z])\1{3,}$') |   # 'aaaa', '1111'
+            Q(user__last_name__regex=r'^([a-z])\1{3,}$') |
+            Q(user__username__regex=r'^[a-z0-9]{10,}$') |    # long random string
+            Q(user__email__icontains='mailinator') |
+            Q(user__email__icontains='tempmail') |
+            Q(user__email__icontains='guerrillamail') |
+            Q(email_verified=False)
+        ).annotate(
+            first_len=Length('user__first_name'),
+            last_len=Length('user__last_name'),
+        ).filter(first_len__lt=2, last_len__lt=2)  # very short names
+    
+    def non_spam(self):
+        return self.exclude(id__in=self.spam_suspected().values('id'))
 
 class Profile(models.Model):
     """
@@ -116,9 +151,12 @@ class Profile(models.Model):
         blank=True,
         null=True,
     )
+    is_spam = models.BooleanField(default=False, help_text="Marked as suspected spam")
+    objects = ProfileManager()
 
     def __str__(self):
         return f"Profile for {self.user.username} - {self.factory.name if self.factory else 'No Factory'}"
+
 
     class Meta:
         verbose_name = "Factory Profile"
