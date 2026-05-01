@@ -19,9 +19,11 @@
         </a>
     </div>
 
+    <!-- Filter Collapse -->
     <div class="collapse mb-4" id="filterCollapse">
         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
             <form method="get" class="row g-2 g-md-3">
+                <!-- Role filter -->
                 <div class="col-6 col-md-3">
                     <label class="extra-small text-muted fw-bold text-uppercase">Role</label>
                     <select name="role" class="form-select border-0 bg-light">
@@ -31,6 +33,7 @@
                         <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
                     </select>
                 </div>
+                <!-- Status filter -->
                 <div class="col-6 col-md-3">
                     <label class="extra-small text-muted fw-bold text-uppercase">Status</label>
                     <select name="status" class="form-select border-0 bg-light">
@@ -39,6 +42,16 @@
                         <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                     </select>
                 </div>
+                <!-- Spam filter (NEW) -->
+                <div class="col-6 col-md-3">
+                    <label class="extra-small text-muted fw-bold text-uppercase">Spam</label>
+                    <select name="spam" class="form-select border-0 bg-light">
+                        <option value="">All</option>
+                        <option value="no" {% if spam_filter == 'no' %}selected{% endif %}>Not Spam</option>
+                        <option value="yes" {% if spam_filter == 'yes' %}selected{% endif %}>Spam</option>
+                    </select>
+                </div>
+                <!-- Action buttons -->
                 <div class="col-12 d-flex gap-2">
                     <button type="button" class="btn btn-light w-100 rounded-pill" onclick="resetFilters()">Reset</button>
                     <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Apply</button>
@@ -47,6 +60,7 @@
         </div>
     </div>
 
+    <!-- User Table -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive scrollable-table">
             <table class="table table-hover align-middle custom-user-table mb-0">
@@ -56,7 +70,9 @@
                         <th>Contact Info</th>
                         <th>Access Role</th>
                         <th>Status</th>
+                        <th>Spam</th>
                         <th>Brand Name</th>
+                        <th>City</th>
                         <th>Last Login</th>
                         <th class="text-end pe-4">Manage</th>
                     </tr>
@@ -64,6 +80,7 @@
                 <tbody>
                     {% for user in users %}
                     <tr class="user-row">
+                        <!-- User Details -->
                         <td class="ps-md-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-md rounded-circle me-3 bg-soft-primary text-primary fw-bold d-flex align-items-center justify-content-center">
@@ -78,12 +95,14 @@
                                 </div>
                             </div>
                         </td>
+                        <!-- Contact Info -->
                         <td>
                             <div class="d-flex flex-column">
                                 <span class="small text-dark fw-medium"><i class="fas fa-envelope me-1 opacity-50"></i> {{ user.email }}</span>
                                 <span class="small text-muted"><i class="fas fa-phone me-1 opacity-50"></i> {{ user.profile.phone_number|default:"No Phone" }}</span>
                             </div>
                         </td>
+                        <!-- Access Role -->
                         <td data-label="Role: ">
                             {% if user.profile.role == 'admin' %}
                                 <div class="role-pill admin"><i class="fas fa-shield-alt me-1"></i> Admin</div>
@@ -93,6 +112,7 @@
                                 <div class="role-pill user"><i class="fas fa-user me-1"></i> User</div>
                             {% endif %}
                         </td>
+                        <!-- Status -->
                         <td data-label="Status: ">
                             {% if user.is_active %}
                                 <span class="badge-status online"></span> <span class="small fw-medium">Active</span>
@@ -100,18 +120,30 @@
                                 <span class="badge-status offline"></span> <span class="small fw-medium text-muted">Suspended</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <span class="small text-dark fw-medium"><i class="fas fa-briefcase me-1 opacity-50"></i> {{ user.profile.brand_name }}</span>
+                        <!-- Spam (NEW) -->
+                        <td data-label="Spam: ">
+                            {% if user.profile.is_spam %}
+                                <span class="badge bg-danger">Spam</span>
+                            {% else %}
+                                <span class="badge bg-success">Clean</span>
+                            {% endif %}
                         </td>
+                        <!-- Brand Name -->
                         <td>
-                            <span class="small text-dark fw-medium"><i class="fas fa-briefcase me-1 opacity-50"></i> {{ user.profile.citys }}</span>
+                            <span class="small text-dark fw-medium"><i class="fas fa-briefcase me-1 opacity-50"></i> {{ user.profile.brand_name|default:"—" }}</span>
                         </td>
+                        <!-- City -->
+                        <td>
+                            <span class="small text-dark fw-medium"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> {{ user.profile.citys|default:"—" }}</span>
+                        </td>
+                        <!-- Last Login -->
                         <td class="d-none d-md-table-cell">
                             <div class="small text-muted">
                                 {{ user.last_login|date:"M d, Y"|default:"Never" }}<br>
                                 <span class="extra-small">{{ user.last_login|time:"H:i" }}</span>
                             </div>
                         </td>
+                        <!-- Manage actions -->
                         <td class="text-end pe-md-4">
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{% url 'admin_interface:admin_user_edit' user.id %}" class="action-icon text-primary bg-soft-primary">
@@ -133,7 +165,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="9" class="text-center py-5">
                             <div class="opacity-50">
                                 <i class="fas fa-users-slash fa-3x mb-3"></i>
                                 <h5>No Users Found</h5>
@@ -145,8 +177,9 @@
             </table>
         </div>
     </div>
+
     {% include 'CustomAdmin/includes/pagination.html' %}
-     {% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
+    {% include 'CustomAdmin/includes/horizontal_scroll_controls.html' %}
 </div>
 
 <style>
@@ -231,11 +264,9 @@
 
     /* Mobile card layout (<768px) */
     @media (max-width: 767.98px) {
-        /* Hide table header */
         .sticky-header {
             display: none !important;
         }
-        /* Convert table to block (card style) */
         .custom-user-table,
         .custom-user-table tbody,
         .custom-user-table tr,
@@ -257,14 +288,12 @@
             padding: 5px 0 !important;
             text-align: left;
         }
-        /* Action icons in top-right */
         .user-row td:last-child {
             position: absolute;
             top: 15px;
             right: 15px;
             width: auto;
         }
-        /* Data labels */
         .user-row td[data-label]::before {
             content: attr(data-label);
             font-size: 11px;
@@ -273,21 +302,18 @@
             text-transform: uppercase;
             margin-right: 5px;
         }
-        /* Ensure last login also appears in card view */
         .user-row td.d-none.d-md-table-cell {
             display: block !important;
         }
         .form-select, .form-control {
             font-size: 16px !important;
         }
-        /* Remove horizontal scroll on mobile */
         .scrollable-table {
             overflow-x: visible;
         }
         .custom-user-table {
             min-width: auto;
         }
-        /* Keep button text visible on mobile */
         .btn .btn-text {
             display: inline;
         }

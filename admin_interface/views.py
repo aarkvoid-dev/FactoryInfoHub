@@ -349,6 +349,7 @@ def admin_users(request):
     search_query = request.GET.get('search', '')
     role_filter = request.GET.get('role', '')
     status_filter = request.GET.get('status', '')
+    spam_filter = request.GET.get('spam', '')          # NEW
 
     users = User.objects.select_related('profile').all()
 
@@ -371,11 +372,18 @@ def admin_users(request):
     elif status_filter == 'inactive':
         users = users.filter(is_active=False)
 
+    # NEW: Apply spam filter
+    if spam_filter == 'yes':
+        users = users.filter(profile__is_spam=True)
+    elif spam_filter == 'no':
+        users = users.filter(profile__is_spam=False)
+
     # Order by most recent first
     users = users.order_by('-date_joined')
 
+    # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(users, 20)
+    paginator = Paginator(users, 5)
     try:
         paginated_users = paginator.page(page)
     except PageNotAnInteger:
@@ -383,16 +391,16 @@ def admin_users(request):
     except EmptyPage:
         paginated_users = paginator.page(paginator.num_pages)
 
-
+    # CSV export
     if 'download' in request.GET:
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = f'attachment; filename="users_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
         writer = csv.writer(response)
         
-        # Write headers
+        # Write headers (updated with Spam column)
         writer.writerow([
             'ID', 'Username', 'Full Name', 'Email', 'Phone', 'Role', 'Status',
-            'Brand Name', 'Email Verified', 'Last Login', 'Date Joined'
+            'Spam', 'Brand Name', 'City', 'Last Login', 'Date Joined'
         ])
         
         for user in users:
@@ -404,8 +412,9 @@ def admin_users(request):
                 user.profile.phone_number if hasattr(user, 'profile') else '',
                 user.profile.role if hasattr(user, 'profile') else 'user',
                 'Active' if user.is_active else 'Inactive',
+                'Yes' if user.profile.is_spam else 'No',   # NEW
                 user.profile.brand_name if hasattr(user, 'profile') else '',
-                'Yes' if hasattr(user, 'profile') and user.profile.email_verified else 'No',
+                user.profile.citys if hasattr(user, 'profile') else '',
                 user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else '',
                 user.date_joined.strftime('%Y-%m-%d %H:%M:%S')
             ])
@@ -419,6 +428,7 @@ def admin_users(request):
         'search_query': search_query,
         'role_filter': role_filter,
         'status_filter': status_filter,
+        'spam_filter': spam_filter,          # NEW
     }
     return render(request, 'CustomAdmin/users/users.html', context)
 

@@ -677,17 +677,17 @@
                     <div class="factoryCard__indicators">
                       {% if user.is_authenticated %}
                         {% if factory.id in cart_items %}
-                          <span class="indicator-badge bg-success text-white" title="In Cart">
+                          <span class="indicator-badge bg-success text-white" title="In Cart" hidden>
                             <i class="fas fa-heart"></i>
                           </span>
                         {% else %}
-                          <button class="indicator-badge cart-add-btn" data-factory-slug="{{ factory.slug }}" data-factory-name="{{ factory.name }}" title="Add to Cart">
+                          <button class="indicator-badge cart-add-btn" data-factory-slug="{{ factory.slug }}" data-factory-name="{{ factory.name }}" title="Add to Cart" hidden>
                             <i class="fas fa-heart"></i>
                           </button>
                         {% endif %}
                         
                       {% else %}
-                        <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart">
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="indicator-badge" title="Login to Add to Cart" hidden>
                           <i class="fas fa-heart"></i>
                         </a>
                       {% endif %}
