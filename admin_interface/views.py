@@ -383,7 +383,7 @@ def admin_users(request):
 
     # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(users, 5)
+    paginator = Paginator(users, 10)
     try:
         paginated_users = paginator.page(page)
     except PageNotAnInteger:
@@ -931,7 +931,7 @@ def admin_workers(request):
         return export_workers_to_csv(workers)
 
     # ----- Pagination (10 per page) -----
-    paginator = Paginator(workers, 3)
+    paginator = Paginator(workers, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -2891,7 +2891,7 @@ def admin_blogs(request):
         )
 
     page = request.GET.get('page', 1)
-    paginator = Paginator(blogs, 5)  # 15 blogs per page
+    paginator = Paginator(blogs, 10)  # 15 blogs per page
     try:
         paginated_blogs = paginator.page(page)
     except PageNotAnInteger:
