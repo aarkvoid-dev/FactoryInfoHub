@@ -33,6 +33,15 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as _
+import threading
+import logging
+from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from .forms import CustomUserCreationForm, CustomUserChangeForm, CustomPasswordChangeForm, CustomPasswordResetForm, CustomSetPasswordForm,ProfileForm
 from .utils import (
     validate_user_registration_data, update_user_profile, send_password_reset_email,
@@ -80,7 +89,11 @@ def register(request):
                 logger = logging.getLogger(__name__)
                 logger.error(f"Failed to send verification email: {e}")
             
-            messages.success(request, _('Registration successful! Welcome to Fashion Chemistry.'))
+            messages.success(request, _('Registration successful! Welcome to Fashion Chemistry. Kindly check you Email for verification Link'))
+            if not user.profile.email_verified:
+                # Send verification email in background
+                messages.error(request, f"The email is not verified kindly check you email : {user.email} for virification Link")
+                return redirect('profile')
             return redirect('home')
         else:
             # Add form validation errors to messages
@@ -131,7 +144,6 @@ def login_view(request):
             # Check if account is locked
             if profile.is_account_locked():
                 # Calculate remaining lockout time
-                from django.utils import timezone
                 remaining_time = 0
                 minutes = 0
                 seconds = 0
@@ -414,10 +426,6 @@ def resend_verification_email(request):
     Returns:
         HttpResponse: JSON response with success/error status
     """
-    from django.http import JsonResponse
-    from django.views.decorators.http import require_POST
-    from django.views.decorators.csrf import csrf_exempt
-    from django.utils.decorators import method_decorator
     
     if request.method == 'POST':
         # Check rate limiting for resend requests
@@ -509,8 +517,7 @@ def clear_profile_redirect_message(request):
     Returns:
         HttpResponse: JSON response indicating success
     """
-    from django.http import JsonResponse
-    from django.views.decorators.http import require_POST
+    
     
     if request.method == 'POST':
         if 'profile_redirect_message' in request.session:
