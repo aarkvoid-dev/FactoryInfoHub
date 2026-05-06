@@ -27,9 +27,9 @@ from pathlib import Path
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-not-for-production-use-this-is-very-weak-and-should-be-changed')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False')
+# DEBUG = os.environ.get('DEBUG', 'False')
 # print("DEBUG :",DEBUG)
-# DEBUG = False
+DEBUG = False
 # Allowed hosts configuration
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
@@ -500,7 +500,7 @@ TINYMCE_SPELLCHECKER_DEFAULT_LANGUAGE = 'en'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Contact form email recipients
-CONTACT_EMAIL_RECIPIENTS = ['arfatur.shaikh@gmail.com', 'support@factoryinfohub.com']
+CONTACT_EMAIL_RECIPIENTS = ['infofashionchemistry@gmail.com']
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
