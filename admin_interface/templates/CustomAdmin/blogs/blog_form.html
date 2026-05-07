@@ -581,30 +581,71 @@
 
 {% block extra_js %}
 <!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/w8flzfvw98k2d81w3bs97eegftzmbgt2dnu7lpvvy0we7toq/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ========== TinyMCE INIT ==========
     tinymce.init({
-        selector: '#{{ form.content.id_for_label }}',
+        selector: '#id_content',  // Use your actual field ID
         height: 500,
-        plugins: [
-            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-            'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'uploadcare', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-        ],
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography uploadcare | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-        menubar: 'edit insert format table tools',
-        content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
-        image_title: true,
-        automatic_uploads: true,
-        file_picker_types: 'image',
-        relative_urls: false,
-        remove_script_host: false,
+        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+        toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
+        menubar: 'edit insert view format table tools',
         branding: false,
         promotion: false,
-        tinycomments_mode: 'embedded',
-        uploadcare_public_key: '991ed6e508887096946a',
-        contextmenu:false,
+
+        // Allow drag/drop of images
+        paste_data_images: true,
+        // Optional: automatically upload pasted/dropped images
+        automatic_uploads: true,
+
+        // Custom file picker (opens system file dialog)
+        file_picker_callback: function(callback, value, meta) {
+            // Create an invisible file input element
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            
+            // Set accepted file types based on what the user is picking
+            if (meta.filetype === 'image') {
+                input.setAttribute('accept', 'image/*');
+            } else if (meta.filetype === 'media') {
+                input.setAttribute('accept', 'video/*,audio/*');
+            } else {
+                input.setAttribute('accept', '*/*');
+            }
+            
+            input.onchange = function() {
+                const file = this.files[0];
+                if (!file) return;
+                
+                // If you want to upload the file to your server:
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('_token', '{{ csrf_token }}'); // Django CSRF
+                
+                fetch('/upload-tinymce/', {  // Create this URL in your Django urls.py
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.location) {
+                        callback(data.location);  // Insert the image URL
+                    } else {
+                        console.error('Upload failed');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+                
+                // Alternative: embed file as Base64 (no server upload)
+                // const reader = new FileReader();
+                // reader.onload = function(e) {
+                //     callback(e.target.result);
+                // };
+                // reader.readAsDataURL(file);
+            };
+            
+            input.click();  // Open file explorer
+        },
     });
 
     // ========== HELPER: LOAD DATA VIA AJAX ==========
