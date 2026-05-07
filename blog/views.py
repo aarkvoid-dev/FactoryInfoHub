@@ -283,12 +283,16 @@ def create_blog_post(request):
         
         # 6. Handle Multiple Images
         images = request.FILES.getlist('images')
+        try:
+            featured_index = int(request.POST.get('featured_image_index', 0))
+        except (ValueError, TypeError):
+            featured_index = 0
         for i, image in enumerate(images):
             BlogImage.objects.create(
                 blog_post=blog,
                 image=image,
                 order=i,
-                is_featured=(i == 0)  # First image is featured by default
+                is_featured=(i == featured_index)
             )
         
         return redirect('blog:post_list')
@@ -301,18 +305,58 @@ def create_blog_post(request):
     return render(request, 'blog/create_blog_manual.html', context)
 
 
+def _save_blog_images(request, blog, is_new=False):
+    """Save uploaded images to a blog post, deduplicating by content hash."""
+    import hashlib
+    images = request.FILES.getlist('images')
+    if not images:
+        return
+    try:
+        featured_index = int(request.POST.get('featured_image_index', 0))
+    except (ValueError, TypeError):
+        featured_index = 0
+
+    existing_hashes = set()
+    for bi in blog.images.all():
+        try:
+            with bi.image.open('rb') as f:
+                existing_hashes.add(hashlib.md5(f.read()).hexdigest())
+        except Exception:
+            pass
+
+    next_order = 0 if is_new else blog.images.count()
+    saved = 0
+    for i, image in enumerate(images):
+        image.seek(0)
+        file_hash = hashlib.md5(image.read()).hexdigest()
+        if file_hash in existing_hashes:
+            continue
+        existing_hashes.add(file_hash)
+        image.seek(0)
+        # featured_index == -1 means an existing image is already featured, don't mark any new upload
+        is_featured = is_new and featured_index != -1 and i == featured_index
+        BlogImage.objects.create(
+            blog_post=blog,
+            image=image,
+            order=next_order + saved,
+            is_featured=is_featured,
+        )
+        saved += 1
+
+
 @email_verified_required
 @login_required
 def create_blog_post_form(request):
     if request.method == 'POST':
-        data = request.POST.copy()                 # make mutable copy
-        process_hierarchical_fields(data)           # convert new names to IDs BEFORE initializing form
-        form = BlogPostForm(data, request.FILES)    # use the modified data
+        data = request.POST.copy()
+        process_hierarchical_fields(data)
+        if 'featured_image_index' not in data:
+            data['featured_image_index'] = '0'
+        form = BlogPostForm(data, request.FILES)
         if form.is_valid():
             try:
-                # The form's save method now handles images automatically
                 blog = form.save(commit=True, author=request.user)
-                
+                _save_blog_images(request, blog, is_new=True)
                 messages.success(request, _('Blog post created successfully!'))
                 return redirect('blog:post_list')
             except Exception as e:
@@ -352,12 +396,33 @@ def edit_blog_post(request, slug):
     blog = get_object_or_404(BlogPost, slug=slug)
 
     if request.method == 'POST':
+        # Handle AJAX image actions
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            action = request.POST.get('action')
+            if action == 'clear_featured':
+                blog.images.update(is_featured=False)
+                return JsonResponse({'ok': True})
+            image_id = request.POST.get('image_id')
+            image = get_object_or_404(BlogImage, id=image_id, blog_post=blog)
+            if action == 'delete':
+                image.delete()
+                for i, img in enumerate(blog.images.order_by('order')):
+                    img.order = i
+                    img.save(update_fields=['order'])
+                return JsonResponse({'ok': True})
+            if action == 'set_featured':
+                blog.images.update(is_featured=False)
+                image.is_featured = True
+                image.save(update_fields=['is_featured'])
+                return JsonResponse({'ok': True})
+            return JsonResponse({'ok': False}, status=400)
+
         data = request.POST.copy()
-        process_hierarchical_fields(data)          # convert new names to IDs BEFORE initializing form
+        process_hierarchical_fields(data)
         form = BlogPostForm(data, request.FILES, instance=blog)
         if form.is_valid():
-            # The form's save method now handles images automatically
             blog = form.save(commit=True, author=request.user)
+            _save_blog_images(request, blog, is_new=False)
             return redirect('blog:post_detail', slug=blog.slug)
     else:
         form = BlogPostForm(instance=blog)

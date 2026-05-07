@@ -10,13 +10,24 @@
     .position-relative:hover .hover-opacity-100 { opacity: 1; }
     .transition-opacity { transition: opacity 0.3s ease; }
     .clickable-image { cursor: pointer; }
-    .upload-area { border: 2px dashed #E5E7EB; border-radius: 1rem; padding: 2rem; text-align: center; background: #F9FAFB; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
-    .upload-area:hover, .upload-area.drag-over { border-color: #EB662B; background: #FFF9F6; }
-    .upload-icon { font-size: 2.5rem; color: #EB662B; margin-bottom: 0.5rem; }
-    .image-preview-card { background: white; border-radius: 0.75rem; overflow: hidden; border: 1px solid #eef2f6; transition: transform 0.2s; position: relative; }
-    .image-preview-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .image-preview-card img { width: 100%; height: 150px; object-fit: cover; }
-    .image-preview-card .card-body { padding: 0.75rem; }
+    .upload-area { border: 2px dashed #E5E7EB; border-radius: 1rem; padding: 2.5rem 2rem; text-align: center; background: #F9FAFB; cursor: pointer; transition: all 0.25s; margin-bottom: 1.5rem; }
+    .upload-area:hover, .upload-area.drag-over { border-color: #EB662B; background: #FFF9F6; transform: scale(1.005); }
+    .upload-icon { font-size: 3rem; color: #EB662B; margin-bottom: 0.75rem; }
+    .upload-area .upload-hint { font-size: 0.8rem; color: #9ca3af; margin-top: 0.25rem; }
+    .img-count-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff3ee; color: #EB662B; border: 1px solid #fbd5c0; border-radius: 100px; padding: 4px 14px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; }
+    .image-preview-card { background: white; border-radius: 0.875rem; overflow: hidden; border: 1px solid #eef2f6; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+    .image-preview-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.09); }
+    .image-preview-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .image-preview-card .card-body { padding: 0.65rem 0.75rem; }
+    .img-overlay { position: absolute; inset: 0; height: 160px; background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%); opacity: 0; transition: opacity 0.2s; display: flex; align-items: flex-end; justify-content: space-between; padding: 0.6rem; }
+    .image-preview-card:hover .img-overlay { opacity: 1; }
+    .img-overlay-btn { background: rgba(255,255,255,0.18); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 5px 10px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+    .img-overlay-btn:hover { background: rgba(255,255,255,0.32); }
+    .img-overlay-btn.danger:hover { background: rgba(220,38,38,0.7); }
+    .featured-badge { position: absolute; top: 8px; left: 8px; background: #EB662B; color: white; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; display: flex; align-items: center; gap: 4px; }
+    .set-featured-btn { width: 100%; border: 1px solid #e5e7eb; background: white; border-radius: 6px; padding: 5px; font-size: 0.75rem; color: #64748b; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .set-featured-btn:hover, .set-featured-btn.active { background: #fff3ee; border-color: #EB662B; color: #EB662B; }
+    .img-filename { font-size: 0.72rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
     .image-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
     .btn-icon { background: none; border: none; cursor: pointer; padding: 0.25rem; border-radius: 50%; transition: background 0.2s; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; }
     .btn-icon.delete { color: #dc2626; }
@@ -224,14 +235,20 @@
                         </div>
                     {% endif %}
 
-                    <h2 class="text-24 fw-700 pt-40 mb-20">Post Gallery</h2>
+                    <div class="d-flex align-items-center justify-content-between pt-40 mb-10">
+                        <h2 class="text-24 fw-700 mb-0">Post Gallery</h2>
+                        <span class="img-count-badge" id="img-count-badge" style="display:none !important;"><i class="fas fa-images"></i> <span id="img-count-num">0</span> image(s)</span>
+                    </div>
+                    <p class="text-muted small mb-20">Upload images for your post. The first image is set as featured by default.</p>
+
                     <div class="upload-area" id="dropzone">
                         <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                        <h6 class="fw-bold mt-2">Drag & Drop or Click to Upload</h6>
-                        <p class="text-muted small">Supports JPG, PNG, GIF. Max 5MB per file.</p>
-                        {{ form.images }}
+                        <h6 class="fw-600 mt-2 mb-1">Drag & Drop or Click to Upload</h6>
+                        <p class="upload-hint mb-0">JPG, PNG, GIF &nbsp;·&nbsp; Max 5 MB per file</p>
+                        <input type="file" id="id_images" name="images" multiple accept="image/*" style="display:none;">
                     </div>
-                    <div id="image-preview-grid" class="row g-3 mt-3"></div>
+                    <input type="hidden" name="featured_image_index" id="featured_image_index" value="{% if blog %}-1{% else %}0{% endif %}">
+                    <div id="image-preview-grid" class="row g-3 mt-2"></div>
 
                     <!-- Image Preview Modal -->
                     <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
@@ -268,7 +285,12 @@
 <div id="existing-images-data" style="display: none;">
     {% if blog and blog.images.exists %}
         {% for image in blog.images.all %}
-            <div class="existing-image-info" data-index="{{ forloop.counter0 }}" data-placeholder="[image:{{ forloop.counter0 }}]" data-url="{{ image.image.url }}"></div>
+            <div class="existing-image-info"
+                 data-index="{{ forloop.counter0 }}"
+                 data-placeholder="[image:{{ forloop.counter0 }}]"
+                 data-url="{{ image.image.url }}"
+                 data-id="{{ image.id }}"
+                 data-featured="{{ image.is_featured|yesno:'true,false' }}"></div>
         {% endfor %}
     {% endif %}
 </div>
@@ -282,10 +304,199 @@
 
 <script>
 // ==========================================
-// TinyMCE
+// Global variables
+// ==========================================
+let uploadedImages = [];
+const isEditMode = {% if blog %}true{% else %}false{% endif %};
+
+// ==========================================
+// Helper functions (defined globally)
+// ==========================================
+function insertImagePlaceholder(placeholder) {
+    const editor = tinymce.get('id_content');
+    if (editor) editor.insertContent(placeholder);
+}
+
+function addLink() {
+    const editor = tinymce.get('id_content');
+    if (editor) editor.execCommand('mceLink');
+}
+
+function updateCountBadge() {
+    const existing = document.querySelectorAll('#existing-images-data .existing-image-info').length;
+    const total = existing + uploadedImages.length;
+    const badge = document.getElementById('img-count-badge');
+    const num = document.getElementById('img-count-num');
+    if (total > 0) {
+        badge.style.removeProperty('display');
+        num.textContent = total;
+    } else {
+        badge.style.setProperty('display', 'none', 'important');
+    }
+}
+
+function addInlineButton(placeholder, imageUrl) {
+    const container = document.getElementById('inline-image-buttons');
+    if (!container) return;
+    const btnCol = document.createElement('div');
+    btnCol.className = 'col-4 col-sm-3 col-md-2 col-lg-1';
+    btnCol.innerHTML = `<button type="button" onclick="insertImagePlaceholder('${placeholder}')" style="width:100%; aspect-ratio:1/1; background-image:url('${imageUrl}'); background-size:cover; background-position:center; border:none; border-radius:10px; cursor:pointer;"></button>`;
+    container.appendChild(btnCol);
+}
+
+function deleteExistingImage(imageId, colEl) {
+    if (!confirm('Remove this image?')) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+        body: new URLSearchParams({ action: 'delete', image_id: imageId })
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            colEl.remove();
+            // remove from hidden existing images container
+            const existingDiv = document.querySelector(`#existing-images-data .existing-image-info[data-id="${imageId}"]`);
+            if (existingDiv) existingDiv.remove();
+            updateCountBadge();
+            renderPreviews(); // re-render to reorder inline buttons
+        }
+    });
+}
+
+function setFeaturedExisting(imageId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+        body: new URLSearchParams({ action: 'set_featured', image_id: imageId })
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            // Update data-featured attribute in hidden container
+            document.querySelectorAll('#existing-images-data .existing-image-info').forEach(el => {
+                if (el.dataset.id === String(imageId)) {
+                    el.dataset.featured = 'true';
+                } else {
+                    el.dataset.featured = 'false';
+                }
+            });
+            // Reset new-image featured index to -1
+            document.getElementById('featured_image_index').value = '-1';
+            renderPreviews(); // re-render to show correct featured badges
+        }
+    });
+}
+
+function renderPreviews() {
+    const previewGrid = document.getElementById('image-preview-grid');
+    const inlineContainer = document.getElementById('inline-image-buttons');
+    if (!previewGrid || !inlineContainer) return;
+    previewGrid.innerHTML = '';
+    inlineContainer.innerHTML = '';
+
+    // Process existing images from hidden div
+    const existingInfos = document.querySelectorAll('#existing-images-data .existing-image-info');
+    existingInfos.forEach(info => {
+        const placeholder = info.dataset.placeholder;
+        const url = info.dataset.url;
+        const imageId = info.dataset.id;
+        const isFeatured = info.dataset.featured === 'true';
+        addInlineButton(placeholder, url);
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-sm-6';
+        col.dataset.existingId = imageId;
+        col.innerHTML = `
+            <div class="image-preview-card">
+                ${isFeatured ? '<span class="featured-badge"><i class="fas fa-star"></i> Featured</span>' : ''}
+                <img src="${url}" alt="">
+                <div class="img-overlay">
+                    <button type="button" class="img-overlay-btn insert" data-placeholder="${placeholder}"><i class="fas fa-plus-circle"></i> Insert</button>
+                    <button type="button" class="img-overlay-btn danger delete-existing" data-id="${imageId}"><i class="fas fa-trash"></i> Remove</button>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="set-featured-btn ${isFeatured ? 'active' : ''} set-featured-existing" data-id="${imageId}">
+                        <i class="fas fa-star"></i> ${isFeatured ? 'Featured Image' : 'Set as Featured'}
+                    </button>
+                </div>
+            </div>`;
+        // Attach event listeners
+        col.querySelector('.insert').addEventListener('click', () => insertImagePlaceholder(placeholder));
+        col.querySelector('.delete-existing').addEventListener('click', () => deleteExistingImage(imageId, col));
+        const featBtn = col.querySelector('.set-featured-existing');
+        if (featBtn) featBtn.addEventListener('click', () => setFeaturedExisting(imageId));
+        previewGrid.appendChild(col);
+    });
+
+    // Process newly uploaded images (still in memory)
+    uploadedImages.forEach((file, idx) => {
+        const placeholder = `[image:new:${idx}]`;
+        const reader = new FileReader();
+        reader.onload = e => {
+            addInlineButton(placeholder, e.target.result);
+            const featuredNewIdx = parseInt(document.getElementById('featured_image_index').value ?? '-1');
+            const isFeatured = (isEditMode ? false : (featuredNewIdx === idx));
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6';
+            col.dataset.newIndex = idx;
+            col.innerHTML = `
+                <div class="image-preview-card">
+                    ${isFeatured ? '<span class="featured-badge"><i class="fas fa-star"></i> Featured</span>' : ''}
+                    <img src="${e.target.result}" alt="">
+                    <div class="img-overlay">
+                        <button type="button" class="img-overlay-btn insert" data-placeholder="${placeholder}"><i class="fas fa-plus-circle"></i> Insert</button>
+                        <button type="button" class="img-overlay-btn danger delete-new" data-index="${idx}"><i class="fas fa-trash"></i> Remove</button>
+                    </div>
+                    <div class="card-body">
+                        <button type="button" class="set-featured-btn ${isFeatured ? 'active' : ''}" data-index="${idx}">
+                            <i class="fas fa-star"></i> ${isFeatured ? 'Featured Image' : 'Set as Featured'}
+                        </button>
+                        <div class="img-filename">${file.name}</div>
+                    </div>
+                </div>`;
+            col.querySelector('.insert').addEventListener('click', () => insertImagePlaceholder(placeholder));
+            col.querySelector('.delete-new').addEventListener('click', () => {
+                uploadedImages.splice(idx, 1);
+                const fi = parseInt(document.getElementById('featured_image_index').value || '-1');
+                if (fi >= uploadedImages.length) document.getElementById('featured_image_index').value = '-1';
+                renderPreviews();
+            });
+            const setFeatBtn = col.querySelector('.set-featured-btn');
+            setFeatBtn.addEventListener('click', () => {
+                if (isEditMode) {
+                    // Clear any featured existing images via AJAX
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+                        body: new URLSearchParams({ action: 'clear_featured' })
+                    }).then(r => r.json()).then(data => {
+                        if (data.ok) {
+                            document.querySelectorAll('#existing-images-data .existing-image-info').forEach(el => el.dataset.featured = 'false');
+                            document.getElementById('featured_image_index').value = idx;
+                            renderPreviews();
+                        }
+                    });
+                } else {
+                    document.getElementById('featured_image_index').value = idx;
+                    renderPreviews();
+                }
+            });
+            previewGrid.appendChild(col);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    if (existingInfos.length === 0 && uploadedImages.length === 0) {
+        inlineContainer.innerHTML = '<div class="col-12"><small class="text-muted">No images available. Upload images above to get insertion buttons.</small></div>';
+    }
+    updateCountBadge();
+}
+
+// ==========================================
+// DOM Ready
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-   tinymce.init({
+    // TinyMCE init
+    tinymce.init({
         selector: '#{{ form.content.id_for_label }}',
         height: 500,
         plugins: 'anchor autolink charmap codesample emoticons link lists media searchreplace table visualblocks wordcount',
@@ -294,44 +505,39 @@ document.addEventListener('DOMContentLoaded', function() {
         content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
         branding: false,
         promotion: false,
-        contextmenu:false,
+        contextmenu: false,
     });
-});
 
-// ==========================================
-// CASCADING SELECTS (preserve new tags)
-// ==========================================
-function setupCascade(parentId, childId, url, clearChildren = []) {
-    const $parent = $('#' + parentId);
-    const $child = $('#' + childId);
-
-    $parent.on('change', function() {
-        const parentVal = $(this).val();
-        if (parentVal && !isNaN(parentVal)) {
-            $.getJSON(url.replace('0', parentVal), function(data) {
-                let options = '<option value="">Please Select or add option</option>';
-                data.forEach(item => {
-                    options += `<option value="${item.id}">${item.name}</option>`;
-                });
-                $child.html(options);
+    // Cascading selects (unchanged)
+    function setupCascade(parentId, childId, url, clearChildren = []) {
+        const $parent = $('#' + parentId);
+        const $child = $('#' + childId);
+        $parent.on('change', function() {
+            const parentVal = $(this).val();
+            if (parentVal && !isNaN(parentVal)) {
+                $.getJSON(url.replace('0', parentVal), function(data) {
+                    let options = '<option value="">Please Select or add option</option>';
+                    data.forEach(item => {
+                        options += `<option value="${item.id}">${item.name}</option>`;
+                    });
+                    $child.html(options);
+                    clearChildren.forEach(id => {
+                        $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
+                    });
+                }).fail(() => console.error('Failed to load', parentId));
+            } else if (parentVal && typeof parentVal === 'string') {
                 clearChildren.forEach(id => {
                     $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
                 });
-            }).fail(() => console.error('Failed to load', parentId));
-        } else if (parentVal && typeof parentVal === 'string') {
-            clearChildren.forEach(id => {
-                $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
-            });
-        } else {
-            $child.html('<option value="">Please Select or add option</option>');
-            clearChildren.forEach(id => {
-                $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
-            });
-        }
-    });
-}
+            } else {
+                $child.html('<option value="">Please Select or add option</option>');
+                clearChildren.forEach(id => {
+                    $('#' + id).html('<option value="">Please Select or add option</option>').trigger('change');
+                });
+            }
+        });
+    }
 
-$(document).ready(function() {
     $('.select2-searchable').select2({
         tags: true,
         width: '100%',
@@ -352,85 +558,39 @@ $(document).ready(function() {
         $('#title-live-preview').text($(this).val() || "Untitled Article");
     });
 
-    // ========== IMAGE UPLOAD ==========
+    // Image upload logic
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.querySelector('#id_images');
-    const previewGrid = document.getElementById('image-preview-grid');
-    const inlineContainer = document.getElementById('inline-image-buttons');
-    let uploadedImages = [];
-
-    function addInlineButton(placeholder, imageUrl) {
-        const btnCol = document.createElement('div');
-        btnCol.className = 'col-4 col-sm-3 col-md-2 col-lg-1';
-        btnCol.innerHTML = `<button type="button" onclick="insertImagePlaceholder('${placeholder}')" style="width:100%; aspect-ratio:1/1; background-image:url('${imageUrl}'); background-size:cover; background-position:center; border:none; border-radius:10px; cursor:pointer;"></button>`;
-        inlineContainer.appendChild(btnCol);
-    }
-
-    function renderPreviews() {
-        previewGrid.innerHTML = '';
-        inlineContainer.innerHTML = '';
-        const existing = document.querySelectorAll('#existing-images-data .existing-image-info');
-        existing.forEach(info => {
-            const placeholder = info.dataset.placeholder;
-            const url = info.dataset.url;
-            addInlineButton(placeholder, url);
-            const col = document.createElement('div');
-            col.className = 'col-md-4 col-sm-6';
-            col.innerHTML = `<div class="image-preview-card"><img src="${url}"><div class="card-body"><div class="image-actions"><button type="button" class="btn-icon insert" data-placeholder="${placeholder}"><i class="fas fa-image"></i> Insert</button><span class="badge bg-warning text-dark">Existing</span></div></div></div>`;
-            col.querySelector('.insert').addEventListener('click', () => insertImagePlaceholder(placeholder));
-            previewGrid.appendChild(col);
-        });
-        uploadedImages.forEach((file, idx) => {
-            const placeholder = `[image:new:${idx}]`;
-            const reader = new FileReader();
-            reader.onload = e => {
-                addInlineButton(placeholder, e.target.result);
-                const col = document.createElement('div');
-                col.className = 'col-md-4 col-sm-6';
-                col.innerHTML = `<div class="image-preview-card"><img src="${e.target.result}"><div class="card-body"><div class="image-actions"><button type="button" class="btn-icon insert" data-placeholder="${placeholder}"><i class="fas fa-image"></i> Insert</button><button type="button" class="btn-icon delete" data-index="${idx}"><i class="fas fa-trash-alt"></i> Delete</button></div><div class="small text-muted">${file.name}</div></div></div>`;
-                col.querySelector('.insert').addEventListener('click', () => insertImagePlaceholder(placeholder));
-                col.querySelector('.delete').addEventListener('click', () => {
-                    uploadedImages.splice(idx, 1);
-                    renderPreviews();
-                });
-                previewGrid.appendChild(col);
-            };
-            reader.readAsDataURL(file);
-        });
-        if (existing.length === 0 && uploadedImages.length === 0) {
-            inlineContainer.innerHTML = '<div class="col-12"><small class="text-muted">No images available. Upload images above to get insertion buttons.</small></div>';
+    if (dropzone && fileInput) {
+        function handleFiles(files) {
+            uploadedImages = [...uploadedImages, ...files];
+            renderPreviews();
+            const firstNew = files[0];
+            if (firstNew) {
+                const reader = new FileReader();
+                reader.onload = e => document.getElementById('hero-preview').src = e.target.result;
+                reader.readAsDataURL(firstNew);
+            }
         }
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            handleFiles(Array.from(e.dataTransfer.files));
+        });
+        fileInput.addEventListener('change', e => {
+            handleFiles(Array.from(e.target.files));
+            fileInput.value = '';
+        });
     }
 
-    function handleFiles(files) {
-        uploadedImages = [...files];
-        renderPreviews();
-        if (uploadedImages.length) {
-            const reader = new FileReader();
-            reader.onload = e => document.getElementById('hero-preview').src = e.target.result;
-            reader.readAsDataURL(uploadedImages[0]);
-        }
-    }
-
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-    dropzone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        handleFiles(Array.from(e.dataTransfer.files));
-    });
-    fileInput.addEventListener('change', e => {
-        handleFiles(Array.from(e.target.files));
-        fileInput.value = '';
-    });
-    renderPreviews();
-
-    // ========== PUBLISH TOGGLE ==========
+    // Publish toggle
     const origCheckbox = document.getElementById('{{ form.is_published.id_for_label }}');
     const toggle = document.getElementById('publish-toggle');
     const statusSpan = document.getElementById('publish-status-text');
-    if (origCheckbox && toggle) {
+    if (origCheckbox && toggle && statusSpan) {
         function updateToggle() {
             if (origCheckbox.checked) {
                 toggle.classList.add('active');
@@ -448,7 +608,7 @@ $(document).ready(function() {
         });
     }
 
-    // ========== FACTORY SEARCH ==========
+    // Factory search & select all
     $('#factory-search').on('input', function() {
         const term = $(this).val().toLowerCase();
         $('.factory-card-item').each(function() {
@@ -458,7 +618,7 @@ $(document).ready(function() {
     $('#select-all-factories').click(() => $('.factory-card-item:visible input').prop('checked', true));
     $('#clear-all-factories').click(() => $('.factory-card-item input').prop('checked', false));
 
-    // ========== FORM SUBMISSION ==========
+    // Form submission
     const form = document.getElementById('blog-form');
     let submitting = false;
     form.addEventListener('submit', async function(e) {
@@ -466,14 +626,17 @@ $(document).ready(function() {
         if (submitting) return;
         submitting = true;
 
+        if (typeof tinymce !== 'undefined') tinymce.triggerSave();
+        const fileInputField = document.querySelector('#id_images');
+        if (fileInputField) fileInputField.disabled = true;
         const formData = new FormData(form);
+        if (fileInputField) fileInputField.disabled = false;
         uploadedImages.forEach(file => formData.append('images', file));
 
         try {
-            const response = await fetch(form.action, {
+            const response = await fetch(form.action || window.location.href, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
             });
             if (response.redirected) {
                 window.location.href = response.url;
@@ -486,20 +649,12 @@ $(document).ready(function() {
         } catch (err) {
             console.error(err);
             alert('Submission failed. Please try again.');
-        } finally {
             submitting = false;
         }
     });
+
+    // Initial render of existing images (must be called after DOM ready)
+    renderPreviews();
 });
-
-function insertImagePlaceholder(placeholder) {
-    const editor = tinymce.get('id_content');
-    if (editor) editor.insertContent(placeholder);
-}
-
-function addLink() {
-    const editor = tinymce.get('id_content');
-    if (editor) editor.execCommand('mceLink');
-}
 </script>
 {% endblock %}

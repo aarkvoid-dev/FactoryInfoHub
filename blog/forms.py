@@ -10,7 +10,6 @@ Classes:
     BlogImageFormSet: Formset for managing multiple blog images
 """
 
-import hashlib
 from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -202,13 +201,6 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         widget=forms.Select(attrs={'class': 'form-control select2-searchable', 'id': 'id_region'})
     )
 
-    # Use the custom MultipleFileField
-    images = MultipleFileField(
-        required=False,
-        label=_('Upload Images'),
-        help_text=_('Select multiple images to upload. The first image will be set as featured. Recommended: High-quality images in JPG/PNG format, minimum 800x600 pixels')
-    )
-    
     # Related factories field
     related_factories = forms.ModelMultipleChoiceField(
         queryset=Factory.objects.filter(is_active=True),
@@ -326,78 +318,9 @@ class BlogPostForm(LocationCascadingMixin, CategoryCascadingMixin, UserFormMixin
         instance = super().save(commit=False)
         if author:
             instance.author = author
-
         if commit:
             instance.save()
             self.save_m2m()
-
-            # Handle new images - only if images were uploaded
-            images = self.cleaned_data.get('images', [])
-            if images:
-                # Use content-based deduplication to prevent duplicates
-                # This works even when Django generates unique filenames
-                
-                # Get existing image content hashes from database
-                existing_hashes = set()
-                for blog_image in instance.images.all():
-                    try:
-                        with blog_image.image.open('rb') as f:
-                            content = f.read()
-                            file_hash = hashlib.md5(content).hexdigest()
-                            existing_hashes.add(file_hash)
-                    except Exception as e:
-                        print(f"Error reading existing image {blog_image.image.name}: {e}")
-                        continue
-                
-                # Log image processing for debugging
-                print(f"Processing {len(images)} images for blog post: {instance.title}")
-                print(f"Existing image hashes: {existing_hashes}")
-                
-                # Filter out images that already exist based on content hash
-                new_images = []
-                for image in images:
-                    try:
-                        # Read image content and calculate hash
-                        image.seek(0)  # Reset file pointer to beginning
-                        content = image.read()
-                        file_hash = hashlib.md5(content).hexdigest()
-                        
-                        if file_hash not in existing_hashes:
-                            new_images.append((image, file_hash))
-                            print(f"New image to save: {image.name} (hash: {file_hash})")
-                            existing_hashes.add(file_hash)  # Add to set to prevent processing same file multiple times in this request
-                        else:
-                            print(f"Image content already exists, skipping: {image.name} (hash: {file_hash})")
-                    except Exception as e:
-                        print(f"Error processing image {image.name}: {e}")
-                        continue
-                
-                if not new_images:
-                    print("No new images to save")
-                    return instance
-                
-                # For new blog posts, create images starting from order 0
-                if not instance.pk:
-                    for i, (image, file_hash) in enumerate(new_images):
-                        BlogImage.objects.create(
-                            blog_post=instance,
-                            image=image,
-                            order=i,
-                            is_featured=(i == 0)  # First image is featured by default
-                        )
-                # For existing blog posts, append new images to existing ones
-                else:
-                    # Get the next order number after existing images
-                    next_order = instance.images.count()
-                    print(f"Appending {len(new_images)} new images to existing blog post. Next order: {next_order}")
-                    for i, (image, file_hash) in enumerate(new_images):
-                        BlogImage.objects.create(
-                            blog_post=instance,
-                            image=image,
-                            order=next_order + i,
-                            is_featured=False  # Don't set as featured when appending to existing images
-                        )
-
         return instance
 
 
