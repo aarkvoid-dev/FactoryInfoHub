@@ -57,11 +57,15 @@ class BlogPost(SoftDeleteModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.title)
+            max_len = self._meta.get_field('slug').max_length  # 200
+            base_slug = slugify(self.title)[:max_len]
             self.slug = base_slug
             counter = 1
             while BlogPost.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
-                self.slug = f"{base_slug}-{counter}"
+                suffix = f"-{counter}"
+                # trim base slug to fit the suffix
+                trimmed_base = base_slug[:max_len - len(suffix)]
+                self.slug = f"{trimmed_base}{suffix}"
                 counter += 1
         super().save(*args, **kwargs)
 
