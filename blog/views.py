@@ -362,8 +362,9 @@ def create_blog_post_form(request):
             except Exception as e:
                 form.add_error(None, _('An error occurred while saving the blog post. Please try again.'))
                 print(f"Error saving blog post: {e}")
+                messages.error(request, _(f"Error saving blog post: {e}"))
         else:
-            print(f"Form errors: {form.errors}")
+            messages.error(request, _(f"Form errors: {form.errors}"))
     else:
         form = BlogPostForm()
 
