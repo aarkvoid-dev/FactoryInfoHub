@@ -12,7 +12,7 @@ from django.utils.deconstruct import deconstructible
 
 class BlogPost(SoftDeleteModel):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True,max_length=200)
     content = models.TextField()
     excerpt = models.TextField(blank=True, help_text="Brief summary of the post")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts',blank=True, null=True)
