@@ -41,7 +41,7 @@ def location_dashboard(request):
     return render(request, 'location/dashboard.html', context)
 
 
-@profile_complete_required
+# @profile_complete_required
 def location_hierarchy(request):
     """
     Display all countries with states and cities.
