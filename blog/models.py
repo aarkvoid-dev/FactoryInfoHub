@@ -114,10 +114,11 @@ class BlogImage(models.Model):
         return f"{self.blog_post.title} - Image {self.order}"
     
     def save(self, *args, **kwargs):
-        # Ensure featured image logic
         if self.is_featured:
-            # Unset featured status for other images of the same blog post
-            BlogImage.objects.filter(blog_post=self.blog_post, is_featured=True).update(is_featured=False)
+            # Only run the UPDATE when actually setting as featured
+            BlogImage.objects.filter(
+                blog_post=self.blog_post, is_featured=True
+            ).exclude(pk=self.pk).update(is_featured=False)
         super().save(*args, **kwargs)
 
 

@@ -15,59 +15,50 @@ import threading
 from django.core.mail import EmailMessage, send_mail
 
 def home(request):
-    # Fetch featured factories (verified and active)
+    from django.core.cache import cache
+
+    # Cache the entire home context for 5 minutes (non-user-specific data)
+    cached = cache.get('home_page_context')
+    if cached:
+        return render(request, 'home/home.html', cached)
+
     featured_factories = Factory.objects.filter(
-        is_verified=True,
-        is_active=True,
-        is_deleted=False
-    ).order_by('-created_at')[:10]
+        is_verified=True, is_active=True, is_deleted=False
+    ).select_related('category', 'city', 'state').order_by('-created_at')[:10]
 
-    # Fetch latest blog posts
     latest_posts = BlogPost.objects.filter(
-        is_published=True,
-        is_deleted=False
-    ).order_by('-created_at')[:10]
+        is_published=True, is_deleted=False
+    ).select_related('author', 'category', 'subcategory').order_by('-created_at')[:10]
 
-    # Get category statistics
     category_stats = Category.objects.annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
-    ).order_by('?')   # '?' means random order
+    ).order_by('-factory_count')
 
-    # Get all cities, randomly ordered
     city_stats = City.objects.annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
-    ).order_by('?')
+    ).filter(factory_count__gt=0).order_by('-factory_count')[:20]
 
-    # Get overall statistics
     total_factories = Factory.objects.filter(is_deleted=False).count()
     active_factories = Factory.objects.filter(is_active=True, is_deleted=False).count()
     verified_factories = Factory.objects.filter(is_verified=True, is_deleted=False).count()
     categories_with_factories = Category.objects.filter(
-        factories__isnull=False,
-        factories__is_deleted=False
+        factories__isnull=False, factories__is_deleted=False
     ).distinct().count()
     countries_covered = Country.objects.filter(
-        factories__isnull=False,
-        factories__is_deleted=False
+        factories__isnull=False, factories__is_deleted=False
     ).distinct().count()
     cities_covered = City.objects.filter(
-        factories__isnull=False,
-        factories__is_deleted=False
+        factories__isnull=False, factories__is_deleted=False
     ).distinct().count()
-
-    # Get total monthly capacity (if available)
     total_capacity = Factory.objects.filter(is_deleted=False).aggregate(
         total_capacity=Sum('annual_turnover')
     )['total_capacity'] or 0
 
-    # Get all published pages for footer
-    # pages = Page.objects.filter(is_published=True, is_deleted=False).order_by('title')
-    
     context = {
-        'featured_factories': featured_factories,
-        'latest_posts': latest_posts,
-        'category_stats': category_stats,
-        'city_stats': city_stats,
+        'featured_factories': list(featured_factories),
+        'latest_posts': list(latest_posts),
+        'category_stats': list(category_stats),
+        'city_stats': list(city_stats),
         'total_factories': total_factories,
         'active_factories': active_factories,
         'verified_factories': verified_factories,
@@ -75,8 +66,8 @@ def home(request):
         'countries_covered': countries_covered,
         'total_capacity': total_capacity,
         'home_page_video': HomePageVideo.objects.filter(is_active=True).first(),
-        # 'pages': pages,
     }
+    cache.set('home_page_context', context, 300)  # cache for 5 minutes
     return render(request, 'home/home.html', context)
 
 # @profile_complete_required

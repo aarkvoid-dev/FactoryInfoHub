@@ -68,16 +68,16 @@ class BlogPostListView(ListView):
             queryset = BlogPost.objects.filter(
                 is_published=True,
                 is_deleted=False
-            ).select_related('author', 'subcategory', 'region')
+            ).select_related('author', 'category', 'subcategory', 'country', 'state', 'city', 'region')
         else:
             user_published = BlogPost.objects.filter(
                 is_published=True,
                 is_deleted=False
-            ).select_related('author', 'subcategory', 'region')
+            ).select_related('author', 'category', 'subcategory', 'country', 'state', 'city', 'region')
             user_owned = BlogPost.objects.filter(
                 author=self.request.user,
                 is_deleted=False
-            ).select_related('author', 'subcategory', 'region')
+            ).select_related('author', 'category', 'subcategory', 'country', 'state', 'city', 'region')
             queryset = (user_published | user_owned).distinct()
 
         # Prepare initial data for the filter form

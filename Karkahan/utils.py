@@ -19,52 +19,39 @@ def get_client_ip(request: HttpRequest) -> str:
     return ip
 
 
+from django.db import models as db_models
+
+
 def track_factory_view(factory, request: HttpRequest, view_timeout_minutes: int = 15):
-    """
-    Track a factory view with duplicate prevention
-    
-    Args:
-        factory: Factory instance
-        request: Django HttpRequest
-        view_timeout_minutes: Time window to prevent duplicate views from same IP (default: 15 minutes)
-    
-    Returns:
-        bool: True if view was tracked, False if duplicate was prevented
-    """
     try:
         ip_address = get_client_ip(request)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
         user = request.user if request.user.is_authenticated else None
-        
-        # Check for recent view from same IP to prevent spam
+
         recent_window = timezone.now() - timezone.timedelta(minutes=view_timeout_minutes)
-        recent_views = FactoryViewTracker.objects.filter(
-            factory=factory,
-            ip_address=ip_address,
-            viewed_at__gte=recent_window
-        )
-        
-        if not recent_views.exists():
-            # Create new view tracker
-            view_tracker = FactoryViewTracker.objects.create(
+        already_viewed = FactoryViewTracker.objects.filter(
+            factory=factory, ip_address=ip_address, viewed_at__gte=recent_window
+        ).exists()
+
+        if not already_viewed:
+            FactoryViewTracker.objects.create(
                 factory=factory,
                 ip_address=ip_address,
-                user_agent=user_agent,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 user=user
             )
-            
-            # Update aggregated stats
-            stats, created = FactoryViewStats.objects.get_or_create(
-                factory=factory
+            # Single atomic UPDATE instead of fetch + increment + save
+            FactoryViewStats.objects.update_or_create(
+                factory=factory,
+                defaults={},
             )
-            stats.increment_views()
-            
-            logger.info(f"Factory view tracked: {factory.name} (IP: {ip_address}, User: {user.username if user else 'Anonymous'})")
+            FactoryViewStats.objects.filter(factory=factory).update(
+                total_views=db_models.F('total_views') + 1,
+                today_views=db_models.F('today_views') + 1,
+                weekly_views=db_models.F('weekly_views') + 1,
+                monthly_views=db_models.F('monthly_views') + 1,
+            )
             return True
-        else:
-            logger.debug(f"Duplicate factory view prevented: {factory.name} (IP: {ip_address})")
-            return False
-            
+        return False
     except Exception as e:
         logger.error(f"Error tracking factory view for {factory.name}: {e}")
         return False

@@ -236,9 +236,8 @@ def factory_list(request):
     is_paginated = page_obj.has_other_pages()
      # Get random published blog posts for slider
     random_blogs = BlogPost.objects.filter(
-        is_published=True,
-        is_deleted=False
-    ).order_by('?')[:8]  # 6 random posts
+        is_published=True, is_deleted=False
+    ).select_related('author', 'category').order_by('-created_at')[:8]
 
     context = {
         'page_obj': page_obj,
@@ -634,9 +633,13 @@ def dashboard(request):
         total=models.Sum('total_views')
     )['total'] or 0
     
-    today_views = FactoryViewStats.objects.aggregate(
-        today=models.Sum('today_views')
-    )['today'] or 0
+    # today_views = FactoryViewStats.objects.aggregate(
+    #     today=models.Sum('today_views')
+    # )['today'] or 0
+    today = timezone.now().date()
+    today_views = FactoryViewStats.objects.filter(
+        last_updated__date=today
+    ).aggregate(total=models.Sum('total_views'))['total'] or 0
     
     # Most viewed factory
     most_viewed_factory = FactoryViewStats.objects.select_related('factory').order_by('-total_views').first()
@@ -721,9 +724,8 @@ def factory_detail(request, slug):
     # ).exclude(slug=factory.slug).order_by('?')[:3]
 
     related_factories = Factory.objects.filter(
-        category=factory.category,
-        is_deleted=False
-    ).exclude(slug=factory.slug).order_by('?')[:3]
+        category=factory.category, is_deleted=False
+    ).exclude(slug=factory.slug).select_related('city', 'state').order_by('-created_at')[:3]
 
     user_has_purchased = False
     if request.user.is_authenticated:
