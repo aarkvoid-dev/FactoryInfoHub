@@ -144,7 +144,6 @@ urlpatterns = [
     
     # Payment Management URLs
     path('payments/', views.admin_payments, name='admin_payments'),
-    path('payments/<int:order_id>/', views.admin_payment_detail, name='admin_payment_detail'),
     
     # Payment Gateway URLs
     path('payments/gateways/', views.admin_payment_gateways, name='admin_payment_gateways'),
@@ -160,6 +159,9 @@ urlpatterns = [
     path('payments/orders/<int:order_id>/retry-email/', views.admin_retry_order_email, name='admin_retry_order_email'),
     path('payments/pending-orders/', views.admin_pending_orders, name='admin_pending_orders'),
     path('payments/orders/delete/<int:order_id>/', views.admin_order_delete, name='admin_order_delete'),
+    
+    # Payment Detail URL (must be after all specific payments/* routes)
+    path('payments/<int:order_id>/', views.admin_payment_detail, name='admin_payment_detail'),
     
     # Order Item URLs
     path('payments/order-items/', views.admin_order_items, name='admin_order_items'),

@@ -7,19 +7,15 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0 text-gray-800">Payment Details</h1>
-                    <p class="text-muted mb-0">Order #{{ order.order_number }} - Payment Information</p>
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin_interface:admin_payments' %}">Payments</a></li>
+                        <li class="breadcrumb-item active">{{ order.order_number }}</li>
+                    </ol>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'admin_interface:admin_payments' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Payments
-                    </a>
-                    <a href="{% url 'admin_interface:admin_dashboard' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                </div>
+                <h4 class="page-title">Payment Details - {{ order.order_number }}</h4>
             </div>
         </div>
     </div>
@@ -357,36 +353,31 @@
 <script>
 function markPaymentAsCompleted(orderId) {
     if (confirm('Are you sure you want to mark this payment as completed? This will also complete the associated order and clear the user\'s cart.')) {
-        // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/complete/${orderId}/`;
+        window.location.href = "{% url 'admin_interface:admin_order_complete' order.id %}";
     }
 }
 
 function markPaymentAsFailed(orderId) {
     if (confirm('Are you sure you want to mark this payment as failed? This will also mark the associated order as failed.')) {
-        // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/failed/${orderId}/`;
+        window.location.href = `/admin_interface/payments/orders/${orderId}/failed/`;
     }
 }
 
 function retryPayment(orderId) {
-    if (confirm('Are you sure you want to retry this payment? This will redirect the user to complete the payment.')) {
-        // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/retry/${orderId}/`;
+    if (confirm('Are you sure you want to retry this payment?')) {
+        window.location.href = `/admin_interface/payments/orders/${orderId}/retry/`;
     }
 }
 
 function completeOrder(orderId) {
     if (confirm('Are you sure you want to complete this order? This will mark the payment as completed and clear the user\'s cart.')) {
-        // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/complete/${orderId}/`;
+        window.location.href = "{% url 'admin_interface:admin_order_complete' order.id %}";
     }
 }
 
 function sendReceipt(orderId) {
     if (confirm('Are you sure you want to resend the receipt for this order?')) {
-        // This would typically make an AJAX call to a backend endpoint
-        window.location.href = `/admin/payments/resend-receipt/${orderId}/`;
+        window.location.href = "{% url 'admin_interface:admin_retry_order_email' order.id %}";
     }
 }
 </script>
