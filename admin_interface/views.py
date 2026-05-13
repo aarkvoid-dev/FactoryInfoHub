@@ -1920,6 +1920,7 @@ def admin_region_detail(request, region_id):
 def admin_categories(request):
     profile = request.user.profile
     role = profile.role
+    search_query = request.GET.get('search', '')
 
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
@@ -1961,6 +1962,14 @@ def admin_categories(request):
         category.delete()
         messages.success(request, f'Category "{category_name}" deleted successfully!')
         return redirect('admin_interface:admin_categories')
+
+    if search_query:
+        terms = search_query.split()
+        users = and_search_filter(
+            users,
+            terms,
+            ['name', 'description']
+        )
 
     # Add pagination
     paginator = Paginator(categories, 15)  # Show 25 categories per page
