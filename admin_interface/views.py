@@ -1926,6 +1926,15 @@ def admin_categories(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     categories = Category.objects.filter(is_deleted=False)
+
+    search_filter = request.GET.get('search')
+    if search_filter:
+        terms = search_filter.split()
+        categories = and_search_filter(
+            categories,
+            terms,
+            ['name', 'description']
+        )
     
     # Calculate summary statistics
     subcategories_total = sum(category.subcategories.count() for category in categories)
@@ -1963,13 +1972,6 @@ def admin_categories(request):
         messages.success(request, f'Category "{category_name}" deleted successfully!')
         return redirect('admin_interface:admin_categories')
 
-    if search_query:
-        terms = search_query.split()
-        users = and_search_filter(
-            users,
-            terms,
-            ['name', 'description']
-        )
 
     # Add pagination
     paginator = Paginator(categories, 15)  # Show 25 categories per page
