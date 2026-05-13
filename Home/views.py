@@ -194,8 +194,8 @@ def home(request):
 #             admin_email.send(fail_silently=False)
             
 #             # User confirmation email (no attachment)
-#             user_subject = "Thank you for contacting FactoryInfoHub"
-#             user_message = f"Dear {name},\n\nWe have received your message:\n{message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
+#             user_subject = "Thank you for contacting FashionChemistry"
+#             user_message = f"Dear {name},\n\nWe have received your message:\n{message}\n\nWe will get back to you shortly.\n\nBest regards,\nFashionChemistry Team"
 #             send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
             
 #             messages.success(request, 'Your message has been sent successfully!')
@@ -238,8 +238,8 @@ def send_emails_async(contact_message, admin_recipients, attachment_file=None):
         admin_email.send(fail_silently=False)
         
         # User confirmation email (no attachment)
-        user_subject = "Thank you for contacting FactoryInfoHub"
-        user_message = f"Dear {contact_message.name},\n\nWe have received your message:\n{contact_message.message}\n\nWe will get back to you shortly.\n\nBest regards,\nFactoryInfoHub Team"
+        user_subject = "Thank you for contacting FashionChemistry"
+        user_message = f"Dear {contact_message.name},\n\nWe have received your message:\n{contact_message.message}\n\nWe will get back to you shortly.\n\nBest regards,\nFashionChemistry Team"
         send_mail(user_subject, user_message, settings.DEFAULT_FROM_EMAIL, [contact_message.email], fail_silently=True)
     except Exception as e:
         # Log error but don't interrupt user
