@@ -270,32 +270,25 @@ class Factory(SoftDeleteModel):
     @property
     def today_views(self):
         """Return today's view count for this factory"""
-        try:
-            return self.view_stats.today_views
-        except FactoryViewStats.DoesNotExist:
-            # Create stats if they don't exist
-            stats = FactoryViewStats.objects.create(factory=self)
-            return stats.today_views
+        from django.utils import timezone
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        return self.view_trackers.filter(viewed_at__gte=today_start).count()
 
     @property
     def weekly_views(self):
-        """Return weekly view count for this factory"""
-        try:
-            return self.view_stats.weekly_views
-        except FactoryViewStats.DoesNotExist:
-            # Create stats if they don't exist
-            stats = FactoryViewStats.objects.create(factory=self)
-            return stats.weekly_views
+        """Return this week's view count for this factory"""
+        from django.utils import timezone
+        from datetime import timedelta
+        week_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)
+        return self.view_trackers.filter(viewed_at__gte=week_start).count()
 
     @property
     def monthly_views(self):
-        """Return monthly view count for this factory"""
-        try:
-            return self.view_stats.monthly_views
-        except FactoryViewStats.DoesNotExist:
-            # Create stats if they don't exist
-            stats = FactoryViewStats.objects.create(factory=self)
-            return stats.monthly_views
+        """Return this month's view count for this factory"""
+        from django.utils import timezone
+        from datetime import timedelta
+        month_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30)
+        return self.view_trackers.filter(viewed_at__gte=month_start).count()
 
 
 class FactoryImage(models.Model):

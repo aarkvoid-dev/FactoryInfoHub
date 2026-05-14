@@ -247,7 +247,8 @@ def admin_dashboard_api(request):
             'message': f'User {user.username} created',
             'timestamp': user.date_joined.isoformat(),
             'icon': 'fas fa-user-plus',
-            'color': 'text-primary'
+            'color': 'text-primary',
+            'url': reverse('admin_interface:admin_user_edit', args=[user.id])
         })
 
     # Add factory creation activities
@@ -261,7 +262,8 @@ def admin_dashboard_api(request):
             'message': f'Factory {factory.name} created',
             'timestamp': factory.created_at.isoformat(),
             'icon': 'fas fa-industry',
-            'color': 'text-success'
+            'color': 'text-success',
+            'url': reverse('admin_interface:admin_factory_detail', args=[factory.id])
         })
 
     # Add worker creation activities
@@ -275,7 +277,8 @@ def admin_dashboard_api(request):
             'message': f'Worker {worker.full_name} created',
             'timestamp': worker.created_at.isoformat(),
             'icon': 'fas fa-user-tie',
-            'color': 'text-warning'
+            'color': 'text-warning',
+            'url': reverse('admin_interface:admin_worker_detail', args=[worker.id])
         })
 
     # Add contact message activities
@@ -290,7 +293,8 @@ def admin_dashboard_api(request):
             'message': f'New message from {contact.name}: {contact.subject}',
             'timestamp': contact.created_at.isoformat(),
             'icon': 'fas fa-envelope',
-            'color': 'text-info'
+            'color': 'text-info',
+            'url': reverse('admin_interface:admin_contact_detail', args=[contact.id])
         })
 
     # Sort activities by timestamp
@@ -383,7 +387,7 @@ def admin_users(request):
 
     # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(users, 10)
+    paginator = Paginator(users, 5)
     try:
         paginated_users = paginator.page(page)
     except PageNotAnInteger:
@@ -931,7 +935,7 @@ def admin_workers(request):
         return export_workers_to_csv(workers)
 
     # ----- Pagination (10 per page) -----
-    paginator = Paginator(workers, 10)
+    paginator = Paginator(workers, 3)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1920,21 +1924,11 @@ def admin_region_detail(request, region_id):
 def admin_categories(request):
     profile = request.user.profile
     role = profile.role
-    search_query = request.GET.get('search', '')
 
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     categories = Category.objects.filter(is_deleted=False)
-
-    search_filter = request.GET.get('search')
-    if search_filter:
-        terms = search_filter.split()
-        categories = and_search_filter(
-            categories,
-            terms,
-            ['name', 'description']
-        )
     
     # Calculate summary statistics
     subcategories_total = sum(category.subcategories.count() for category in categories)
@@ -1971,7 +1965,6 @@ def admin_categories(request):
         category.delete()
         messages.success(request, f'Category "{category_name}" deleted successfully!')
         return redirect('admin_interface:admin_categories')
-
 
     # Add pagination
     paginator = Paginator(categories, 15)  # Show 25 categories per page
@@ -2902,7 +2895,7 @@ def admin_blogs(request):
         )
 
     page = request.GET.get('page', 1)
-    paginator = Paginator(blogs, 10)  # 15 blogs per page
+    paginator = Paginator(blogs, 5)  # 15 blogs per page
     try:
         paginated_blogs = paginator.page(page)
     except PageNotAnInteger:
@@ -4151,14 +4144,11 @@ def admin_payments(request):
     if order_status:
         payments = payments.filter(payment_status=order_status)
     if start_date:
-        from django.utils import timezone
-        from datetime import datetime
+        
         # Convert naive date to timezone-aware datetime
         start_datetime = timezone.make_aware(datetime.combine(datetime.strptime(start_date, '%Y-%m-%d').date(), datetime.min.time()))
         payments = payments.filter(order_date__date__gte=start_datetime.date())
     if end_date:
-        from django.utils import timezone
-        from datetime import datetime
         # Convert naive date to timezone-aware datetime
         end_datetime = timezone.make_aware(datetime.combine(datetime.strptime(end_date, '%Y-%m-%d').date(), datetime.max.time()))
         payments = payments.filter(order_date__date__lte=end_datetime.date())
@@ -4187,7 +4177,6 @@ def admin_payments(request):
         return export_payments_to_csv(payments)
 
     # 5. Pagination
-    from django.core.paginator import Paginator
     paginator = Paginator(payments, 20)  # Show 20 payments per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -4721,7 +4710,6 @@ def admin_order_items(request):
         return export_order_items_to_csv(order_items)
 
     # 4. Pagination
-    from django.core.paginator import Paginator
     paginator = Paginator(order_items, 20)  # Show 20 order items per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

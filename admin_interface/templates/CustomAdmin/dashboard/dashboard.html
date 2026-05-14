@@ -96,6 +96,7 @@
                                                 <i class="fa-solid fa-chevron-right"></i>
                                             </a>
                                         {% else %}
+                                        
                                             <i class="fas fa-chevron-right text-muted"></i>
                                         {% endif %}
                                     </td>
@@ -351,9 +352,9 @@
             window.location.href = "{% url 'admin_interface:admin_contacts' %}";
         });
         
-        // Initial animations
-        const cards = document.querySelectorAll('.card, .kpi-card');
-        cards.forEach((card, index) => {
+        // Initial animations (kpi-cards only, not .card to avoid breaking borders/buttons)
+        const kpiCards = document.querySelectorAll('.kpi-card');
+        kpiCards.forEach((card, index) => {
             card.style.opacity = "0";
             card.style.transform = "translateY(20px)";
             setTimeout(() => {
@@ -465,7 +466,10 @@
                     <span class="badge bg-light text-dark">${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                 </td>
                 <td class="text-end pe-4">
-                    <i class="fas fa-chevron-right text-muted clickable"></i>
+                    ${activity.url 
+                        ? `<a href="${activity.url}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-chevron-right"></i></a>`
+                        : `<i class="fas fa-chevron-right text-muted"></i>`
+                    }
                 </td>
             `;
             tbody.appendChild(row);

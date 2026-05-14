@@ -69,12 +69,17 @@ def get_factory_view_stats(factory):
     """
     try:
         stats, created = FactoryViewStats.objects.get_or_create(factory=factory)
-        
+
+        now = timezone.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        week_start = today_start - timezone.timedelta(days=7)
+        month_start = today_start - timezone.timedelta(days=30)
+
         return {
             'total_views': stats.total_views,
-            'today_views': stats.today_views,
-            'weekly_views': stats.weekly_views,
-            'monthly_views': stats.monthly_views,
+            'today_views': factory.view_trackers.filter(viewed_at__gte=today_start).count(),
+            'weekly_views': factory.view_trackers.filter(viewed_at__gte=week_start).count(),
+            'monthly_views': factory.view_trackers.filter(viewed_at__gte=month_start).count(),
             'last_updated': stats.last_updated,
         }
     except Exception as e:
