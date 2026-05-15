@@ -360,7 +360,7 @@ def contact(request, type='enquiry'):
             admin_recipients += [email] 
             thread = threading.Thread(
                 target=send_emails_async,
-                args=(contact_message, email, attachment_data)
+                args=(contact_message, admin_recipients, attachment_data)
             )
             thread.daemon = True
             thread.start()
