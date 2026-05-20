@@ -1016,33 +1016,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ----- VIDEO LAZY-LOAD & CONTROL SETUP -----
     const video = document.getElementById('mainVideo');
     if (video) {
-        // Do NOT start loading video data immediately.
-        // Instead, observe when the video container enters the viewport.
-        const videoContainer = document.querySelector('.video-container');
-        let videoLoaded = false;
-
-        const loadVideo = () => {
-            if (videoLoaded) return;
-            // Force the video to actually begin loading metadata (and then streaming)
-            // `preload="metadata"` already tells browser to load only metadata,
-            // but we can also set the src again if needed, or just trigger play.
-            // The browser will start fetching the actual media once autoplay is called.
-            video.load();   // ensures that the browser starts fetching the file
-            videoLoaded = true;
-            observer.disconnect();
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    loadVideo();
-                }
-            });
-        }, { rootMargin: '300px' });  // start loading 300px before it becomes visible
-
-        observer.observe(videoContainer);
-
-        // Set up mute button
+        // Mute button
         const muteBtn = document.getElementById('muteBtn');
         if (muteBtn) {
             muteBtn.addEventListener('click', () => {
@@ -1051,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Set up fullscreen button
+        // Fullscreen button
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         if (fullscreenBtn) {
             fullscreenBtn.addEventListener('click', () => {
@@ -1070,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Listen for fullscreen change events to update the button icon
+        // Update fullscreen button icon when exiting via ESC
         document.addEventListener('fullscreenchange', () => {
             if (fullscreenBtn) {
                 if (document.fullscreenElement) {
