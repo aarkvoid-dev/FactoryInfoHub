@@ -679,8 +679,20 @@ html { font-size: 14px; }
         <div class="row justify-center items-center min-vh-50-md">
           <div class="col-lg-10">
             <div class="video-container">
-              <video id="mainVideo" class="w-full h-auto" autoplay loop muted playsinline>
-                <source src="{{ home_page_video.video.url }}" type="video/mp4">
+              <video 
+                id="mainVideo" 
+                autoplay 
+                loop 
+                muted 
+                playsinline 
+                preload="metadata"
+                poster="{% static 'img/video-placeholder.jpg' %}"
+              >
+                {% if home_page_video and home_page_video.video %}
+                  <source src="{{ home_page_video.video.url }}" type="video/mp4">
+                {% else %}
+                  <source src="" type="video/mp4">
+                {% endif %}
                 Your browser does not support the video tag.
               </video>
               <div class="video-controls">
