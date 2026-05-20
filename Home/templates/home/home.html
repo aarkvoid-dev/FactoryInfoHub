@@ -673,33 +673,19 @@ html { font-size: 14px; }
       </div>
     </section>
 
-    <!-- Video Section (OPTIMIZED) -->
+    <!-- Video Section -->
     <section class="layout-pt-xl layout-pb-xl">
       <div class="container">
         <div class="row justify-center items-center min-vh-50-md">
           <div class="col-lg-10">
             <div class="video-container">
-              <video 
-                id="mainVideo" 
-                autoplay 
-                loop 
-                muted 
-                playsinline 
-                preload="metadata"
-                {% if home_page_video and home_page_video.thumbnail %}
-                  poster="{{ home_page_video.thumbnail.url }}"
-                {% else %}
-                  poster="{% static 'img/video-placeholder.jpg' %}"
-                {% endif %}
-              >
-                {% if home_page_video %}
-                  <source src="{{ home_page_video.video.url }}" type="video/mp4">
-                {% endif %}
+              <video id="mainVideo" class="w-full h-auto" autoplay loop muted playsinline>
+                <source src="{{ home_page_video.video.url }}" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
               <div class="video-controls">
-                <button id="muteBtn" class="video-control-btn"><i class="fas fa-volume-mute"></i></button>
-                <button id="fullscreenBtn" class="video-control-btn"><i class="fas fa-expand"></i></button>
+                <button id="muteBtn" class="video-control-btn" onclick="toggleMute()"><i class="fas fa-volume-mute"></i></button>
+                <button id="fullscreenBtn" class="video-control-btn" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
               </div>
             </div>
           </div>
@@ -1012,48 +998,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
 
-    // ----- VIDEO LAZY-LOAD & CONTROL SETUP -----
+// Video controls
+function toggleMute() {
     const video = document.getElementById('mainVideo');
-    if (video) {
-        // Mute button
-        const muteBtn = document.getElementById('muteBtn');
-        if (muteBtn) {
-            muteBtn.addEventListener('click', () => {
-                video.muted = !video.muted;
-                muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
-            });
-        }
-
-        // Fullscreen button
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', () => {
-                const container = document.querySelector('.video-container');
-                if (!document.fullscreenElement) {
-                    if (container.requestFullscreen) container.requestFullscreen();
-                    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
-                    else if (container.msRequestFullscreen) container.msRequestFullscreen();
-                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                    else if (document.msExitFullscreen) document.msExitFullscreen();
-                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                }
-            });
-        }
-
-        // Update fullscreen button icon when exiting via ESC
-        document.addEventListener('fullscreenchange', () => {
-            if (fullscreenBtn) {
-                if (document.fullscreenElement) {
-                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                } else {
-                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                }
-            }
-        });
+    const btn = document.getElementById('muteBtn');
+    video.muted = !video.muted;
+    btn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+}
+function toggleFullscreen() {
+    const container = document.querySelector('.video-container');
+    const btn = document.getElementById('fullscreenBtn');
+    if (!document.fullscreenElement) {
+        if (container.requestFullscreen) container.requestFullscreen();
+        else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+        else if (container.msRequestFullscreen) container.msRequestFullscreen();
+        btn.innerHTML = '<i class="fas fa-compress"></i>';
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+        btn.innerHTML = '<i class="fas fa-expand"></i>';
+    }
+}
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        window.scrollTo(window.scrollX, window.scrollY);
+        document.body.style.display = 'none';
+        document.body.offsetHeight;
+        document.body.style.display = '';
     }
 });
 </script>
