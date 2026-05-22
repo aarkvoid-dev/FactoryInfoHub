@@ -393,6 +393,37 @@
     }
 
     /* Clickable gallery images */
+    /* Copy Link Toast Notification */
+    .copy-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        z-index: 99999;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        animation: toastSlideUp 0.4s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .copy-toast i { color: #22c55e; font-size: 18px; }
+    @keyframes toastSlideUp {
+        from { transform: translateX(-50%) translateY(30px); opacity: 0; }
+        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    .copy-toast-hide {
+        animation: toastFadeOut 0.3s ease-in forwards;
+    }
+    @keyframes toastFadeOut {
+        to { transform: translateX(-50%) translateY(-10px); opacity: 0; }
+    }
+
     .clickable-image {
         cursor: pointer;
         transition: transform 0.2s ease;
@@ -572,9 +603,15 @@
                             title="Copy link to clipboard">
                         <i class="fas fa-link"></i>
                     </button>
-                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2" 
-                            onclick="copyLinkToClipboard()" 
-                            title="Share on YouTube (Copy link)">
+                    <!-- <a href="https://www.youtube.com/results?search_query={{ factory.name|urlencode }}" 
+                    target="_blank" 
+                    class="btn btn-outline-danger btn-sm rounded-circle p-2"
+                    title="Search YouTube for this factory">
+                        <i class="fab fa-youtube"></i>
+                    </a> -->
+                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2"
+                            onclick="shareViaYouTube()"
+                            title="Copy link and open YouTube">
                         <i class="fab fa-youtube"></i>
                     </button>
                 </div>
@@ -979,7 +1016,17 @@
 
     function copyLinkToClipboard(event) {
         const currentUrl = window.location.href;
-        navigator.clipboard.writeText(currentUrl).catch(function(err) {
+        navigator.clipboard.writeText(currentUrl).then(function() {
+            // Show "Link copied!" toast notification
+            const toast = document.createElement('div');
+            toast.className = 'copy-toast';
+            toast.innerHTML = '<i class="fas fa-check-circle me-2"></i> Link copied to clipboard!';
+            document.body.appendChild(toast);
+            setTimeout(function() {
+                toast.classList.add('copy-toast-hide');
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 2000);
+        }).catch(function(err) {
             console.error('Could not copy text: ', err);
             alert('Failed to copy link. Please try again.');
         });
@@ -1167,6 +1214,8 @@
         modal.show();
     }
 
+
+
     function changeImage(direction) {
         if (galleryImages.length === 0) return;
         currentImageIndex += direction;
@@ -1174,6 +1223,30 @@
         if (currentImageIndex >= galleryImages.length) currentImageIndex = 0;
         const modalImage = document.getElementById('modalImage');
         modalImage.src = galleryImages[currentImageIndex];
+    }
+
+    function shareViaYouTube() {
+        // Copy the current page URL to clipboard
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            // Show "Link copied!" toast (reuses the same style as copyLinkToClipboard)
+            const toast = document.createElement('div');
+            toast.className = 'copy-toast';
+            toast.innerHTML = '<i class="fas fa-check-circle me-2"></i> Link copied! Opening YouTube...';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('copy-toast-hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+            
+            // Open YouTube in a new tab
+            window.open('https://www.youtube.com', '_blank');
+        }).catch(err => {
+            console.error('Could not copy link: ', err);
+            alert('Unable to copy link. You can manually copy the URL.');
+            // Still open YouTube even if copy fails
+            window.open('https://www.youtube.com', '_blank');
+        });
     }
 
     document.addEventListener('keydown', function(e) {
