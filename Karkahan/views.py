@@ -39,6 +39,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 import razorpay
+import re
 
 # Initialize Stripe API key from database
 def get_stripe_api_key():
@@ -207,18 +208,37 @@ def factory_list(request):
 
     # Apply search with AND for multi-word queries
     search_query = request.GET.get('search', '')
+    # if search_query:
+    #     terms = search_query.split()
+    #     q_objects = Q()
+    #     for term in terms:
+    #         term_q = (
+    #             Q(name__icontains=term) |
+    #             Q(description__icontains=term) |
+    #             Q(address__icontains=term) |
+    #             Q(contact_person__icontains=term) |
+    #             Q(factory_type__icontains=term)
+    #         )
+    #         q_objects &= term_q
+    #     factories = factories.filter(q_objects)
+
     if search_query:
         terms = search_query.split()
         q_objects = Q()
+
         for term in terms:
+            escaped_term = re.escape(term)
+
             term_q = (
-                Q(name__icontains=term) |
-                Q(description__icontains=term) |
-                Q(address__icontains=term) |
-                Q(contact_person__icontains=term) |
-                Q(factory_type__icontains=term)
+                Q(name__iregex=rf'\b{escaped_term}\b') |
+                Q(description__iregex=rf'\b{escaped_term}\b') |
+                Q(address__iregex=rf'\b{escaped_term}\b') |
+                Q(contact_person__iregex=rf'\b{escaped_term}\b') |
+                Q(factory_type__iregex=rf'\b{escaped_term}\b')
             )
+
             q_objects &= term_q
+
         factories = factories.filter(q_objects)
 
     sort_by = request.GET.get('sort', 'name')

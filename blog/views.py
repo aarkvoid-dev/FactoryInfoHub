@@ -55,6 +55,7 @@ from location.models import Country, State, City, District, Region
 from Karkahan.views import process_hierarchical_fields
 from Accounts.decorators import email_verified_required,profile_complete_required
 from django.db.models import Count
+import re
 
 class BlogPostListView(ListView):
     model = BlogPost
@@ -98,11 +99,18 @@ class BlogPostListView(ListView):
 
         # Apply search (AND across multiple terms)
         search_query = self.request.GET.get('search', '')
+        # if search_query:
+        #     terms = search_query.split()
+        #     q_objects = Q()
+        #     for term in terms:
+        #         q_objects &= Q(title__icontains=term) | Q(content__icontains=term) | Q(excerpt__icontains=term)
+        #     queryset = queryset.filter(q_objects)
         if search_query:
             terms = search_query.split()
             q_objects = Q()
             for term in terms:
-                q_objects &= Q(title__icontains=term) | Q(content__icontains=term) | Q(excerpt__icontains=term)
+                escaped_term = re.escape(term)
+                q_objects &= (Q(title__iregex=rf'\b{escaped_term}\b') | Q(content__iregex=rf'\b{escaped_term}\b') | Q(excerpt__iregex=rf'\b{escaped_term}\b'))
             queryset = queryset.filter(q_objects)
 
         return queryset

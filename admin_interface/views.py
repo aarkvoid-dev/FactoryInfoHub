@@ -1929,6 +1929,15 @@ def admin_categories(request):
         return render(request, 'CustomAdmin/permission_denied.html')
 
     categories = Category.objects.filter(is_deleted=False)
+
+    search_filter = request.GET.get('search')
+    if search_filter:
+        terms = search_filter.split()
+        categories = and_search_filter(
+            categories,
+            terms,
+            ['name', 'description']
+        )
     
     # Calculate summary statistics
     subcategories_total = sum(category.subcategories.count() for category in categories)
