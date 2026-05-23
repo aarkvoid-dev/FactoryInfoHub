@@ -28,50 +28,24 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-import re
+
 
 def and_search_filter(queryset, search_terms, fields):
     """
-    Apply AND search across multiple fields using whole-word matching.
-
+    Apply AND search across multiple fields.
     search_terms: list of strings (words)
     fields: list of field names (e.g., ['username', 'email'])
     """
+    
     if not search_terms:
         return queryset
-
     q_objects = Q()
-
     for term in search_terms:
-        escaped_term = re.escape(term)
-
         term_q = Q()
-
         for field in fields:
-            term_q |= Q(**{
-                f"{field}__iregex": rf"\b{escaped_term}\b"
-            })
-
+            term_q |= Q(**{f"{field}__icontains": term})
         q_objects &= term_q
-
     return queryset.filter(q_objects)
-
-# def and_search_filter(queryset, search_terms, fields):
-#     """
-#     Apply AND search across multiple fields.
-#     search_terms: list of strings (words)
-#     fields: list of field names (e.g., ['username', 'email'])
-#     """
-    
-#     if not search_terms:
-#         return queryset
-#     q_objects = Q()
-#     for term in search_terms:
-#         term_q = Q()
-#         for field in fields:
-#             term_q |= Q(**{f"{field}__icontains": term})
-#         q_objects &= term_q
-#     return queryset.filter(q_objects)
 
 
 @login_required
