@@ -82,159 +82,331 @@ def and_search_filter(queryset, search_terms, fields, strict_words=True):
     return queryset
 
 
+# @login_required
+# def admin_dashboard(request):
+#     # Get user role
+#     profile = request.user.profile
+#     role = profile.role
+
+#     # Check if user has admin access
+#     if role != 'admin' and not (request.user.is_staff or request.user.is_superuser):
+#         return render(request, 'CustomAdmin/permission_denied.html')
+
+#     # Get statistics
+#     user_count = User.objects.count()
+#     factory_count = Factory.objects.count()
+#     worker_count = Worker.objects.count()
+#     contact_count = ContactMessage.objects.filter(is_deleted=False).count()
+
+#     # Get today's counts
+#     today = datetime.now().date()
+#     new_users_today = User.objects.filter(date_joined__date=today).count()
+#     new_factories_today = Factory.objects.filter(created_at__date=today).count()
+#     new_workers_today = Worker.objects.filter(created_at__date=today).count()
+#     new_contacts_today = ContactMessage.objects.filter(created_at__date=today, is_deleted=False).count()
+
+#     # Get pending reports (unread contact messages)
+#     pending_reports = ContactMessage.objects.filter(is_read=False, is_deleted=False).count()
+
+#     # Get recent activities
+#     recent_activities = []
+
+#     # Add user creation activities
+#     recent_user_creations = User.objects.filter(
+#         date_joined__gte=today - timedelta(days=7)
+#     ).order_by('-date_joined')[:5]
+
+#     for user in recent_user_creations:
+#         recent_activities.append({
+#             'type': 'user_created',
+#             'message': f'User {user.username} created',
+#             'timestamp': user.date_joined,
+#             'icon': 'fas fa-user-plus',
+#             'color': 'text-primary',
+#             'id': user.id,
+#             'url': reverse('admin_interface:admin_user_edit', args=[user.id]) 
+#         })
+
+#     # Add factory creation activities
+#     recent_factory_creations = Factory.objects.filter(
+#         created_at__gte=today - timedelta(days=7)
+#     ).order_by('-created_at')[:5]
+
+#     for factory in recent_factory_creations:
+#         recent_activities.append({
+#             'type': 'factory_created',
+#             'message': f'Factory {factory.name} created',
+#             'timestamp': factory.created_at,
+#             'icon': 'fas fa-industry',
+#             'color': 'text-success',
+#             'id': factory.id,
+#             'slug': factory.slug,
+#             'url': reverse('admin_interface:admin_factory_detail', args=[factory.id])
+#         })
+
+#     # Add worker creation activities
+#     recent_worker_creations = Worker.objects.filter(
+#         created_at__gte=today - timedelta(days=7)
+#     ).order_by('-created_at')[:5]
+
+#     for worker in recent_worker_creations:
+#         recent_activities.append({
+#             'type': 'worker_created',
+#             'message': f'Worker {worker.full_name} created',
+#             'timestamp': worker.created_at,
+#             'icon': 'fas fa-user-tie',
+#             'color': 'text-warning',
+#             'id': worker.id,
+#             'url': reverse('admin_interface:admin_worker_detail', args=[worker.id])
+#         })
+
+#     # Add contact message activities
+#     recent_contacts = ContactMessage.objects.filter(
+#         created_at__gte=today - timedelta(days=7),
+#         is_deleted=False
+#     ).order_by('-created_at')[:5]
+
+#     for contact in recent_contacts:
+#         recent_activities.append({
+#             'type': 'contact_message',
+#             'message': f'New message from {contact.name}: {contact.subject}',
+#             'timestamp': contact.created_at,
+#             'icon': 'fas fa-envelope',
+#             'color': 'text-info',
+#             'id': contact.id,
+#             'url': reverse('admin_interface:admin_contact_detail', args=[contact.id])
+#         })
+
+#     # Add blog post activities
+#     recent_blogs = BlogPost.objects.filter(
+#         created_at__gte=today - timedelta(days=7),
+#         is_deleted=False
+#     ).order_by('-created_at')[:5]
+
+#     for blog in recent_blogs:
+#         recent_activities.append({
+#             'type': 'blog_created',
+#             'message': f'Blog post "{blog.title}" published',
+#             'timestamp': blog.created_at,
+#             'icon': 'fas fa-file-alt',
+#             'color': 'text-secondary',
+#             'id': blog.id,
+#             'slug': blog.slug,
+#             'url': reverse('admin_interface:admin_blog_detail', args=[blog.id])
+#         })
+
+#     # Sort activities by timestamp
+#     recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+#     recent_activities = recent_activities[:10]
+
+#     # Calculate infrastructure status
+#     from django.db import connection
+    
+#     try:
+#         # Database connection test
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT 1")
+#             db_status = "Connected"
+#             db_health = 100
+#     except:
+#         db_status = "Disconnected"
+#         db_health = 0
+
+#     # Storage usage (simplified - using a default value since psutil is not available)
+#     storage_percentage = 50  # Default value when psutil is not available
+
+#     # System uptime (simplified)
+#     system_uptime = "24/7"  # This would need more complex implementation
+
+#     context = {
+#         'user_count': user_count,
+#         'factory_count': factory_count,
+#         'worker_count': worker_count,
+#         'contact_count': contact_count,
+#         'pending_reports': pending_reports,
+#         'new_users_today': new_users_today,
+#         'new_factories_today': new_factories_today,
+#         'new_workers_today': new_workers_today,
+#         'new_contacts_today': new_contacts_today,
+#         'recent_activities': recent_activities,
+#         'db_status': db_status,
+#         'db_health': db_health,
+#         'storage_percentage': storage_percentage,
+#         'system_uptime': system_uptime,
+#         'unread_messages': ContactMessage.objects.filter(is_read=False, is_deleted=False).count(),
+#         'pending_verifications': User.objects.filter(profile__email_verified=False).count(),
+#     }
+
+#     return render(request, 'CustomAdmin/dashboard/dashboard.html', context)
+
 @login_required
 def admin_dashboard(request):
-    # Get user role
-    profile = request.user.profile
-    role = profile.role
-
-    # Check if user has admin access
+    # Security Validation
+    role = getattr(request.user.profile, 'role', None)
     if role != 'admin' and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
 
-    # Get statistics
-    user_count = User.objects.count()
-    factory_count = Factory.objects.count()
-    worker_count = Worker.objects.count()
-    contact_count = ContactMessage.objects.filter(is_deleted=False).count()
+    # Timezone-aware date configurations
+    now = timezone.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    seven_days_ago = today_start - timedelta(days=7)
 
-    # Get today's counts
-    today = datetime.now().date()
-    new_users_today = User.objects.filter(date_joined__date=today).count()
-    new_factories_today = Factory.objects.filter(created_at__date=today).count()
-    new_workers_today = Worker.objects.filter(created_at__date=today).count()
-    new_contacts_today = ContactMessage.objects.filter(created_at__date=today, is_deleted=False).count()
+    # Consolidate core management statistics using conditional aggregation
+    user_stats = User.objects.aggregate(
+        total=Count('id'),
+        today=Count('id', filter=Q(date_joined__gte=today_start)),
+        pending_verifications=Count('id', filter=Q(profile__email_verified=False))
+    )
 
-    # Get pending reports (unread contact messages)
-    pending_reports = ContactMessage.objects.filter(is_read=False, is_deleted=False).count()
+    factory_stats = Factory.objects.aggregate(
+        total=Count('id'),
+        today=Count('id', filter=Q(created_at__gte=today_start))
+    )
 
-    # Get recent activities
+    worker_stats = Worker.objects.aggregate(
+        total=Count('id'),
+        today=Count('id', filter=Q(created_at__gte=today_start))
+    )
+
+    contact_stats = ContactMessage.objects.filter(is_deleted=False).aggregate(
+        total=Count('id'),
+        today=Count('id', filter=Q(created_at__gte=today_start)),
+        unread=Count('id', filter=Q(is_read=False))
+    )
+
+    # --- GLOBAL SEARCH LOGIC ---
+    search_query = request.GET.get('search', '').strip()
+    is_search_active = bool(search_query)
+    search_results = []
+
+    if is_search_active:
+        terms = search_query.split()
+        
+        # Build strict word boundary logic dependent on database platform
+        is_postgres = connection.vendor == 'postgresql'
+        
+        # Base filter tracking sets
+        user_q, factory_q, worker_q, contact_q, blog_q = Q(), Q(), Q(), Q(), Q()
+
+        for term in terms:
+            escaped_term = re.escape(term)
+            pattern = rf'\m{escaped_term}\M' if is_postgres else rf'\b{escaped_term}\b'
+
+            user_q &= (Q(username__iregex=pattern) | Q(email__iregex=pattern))
+            factory_q &= (Q(name__iregex=pattern) | Q(description__iregex=pattern) | Q(factory_type__iregex=pattern))
+            worker_q &= Q(full_name__iregex=pattern)
+            contact_q &= (Q(name__iregex=pattern) | Q(subject__iregex=pattern) | Q(message__iregex=pattern))
+            blog_q &= (Q(title__iregex=pattern) | Q(content__iregex=pattern))
+
+        # Perform individual search reads
+        matched_users = User.objects.filter(user_q)[:10]
+        for u in matched_users:
+            search_results.append({
+                'category': 'User', 'title': u.username, 'meta': u.email, 'icon': 'fas fa-user',
+                'url': reverse('admin_interface:admin_user_edit', args=[u.id])
+            })
+
+        matched_factories = Factory.objects.filter(factory_q)[:10]
+        for f in matched_factories:
+            search_results.append({
+                'category': 'Factory', 'title': f.name, 'meta': f.factory_type or "Factory Resource", 'icon': 'fas fa-industry',
+                'url': reverse('admin_interface:admin_factory_detail', args=[f.id])
+            })
+
+        matched_workers = Worker.objects.filter(worker_q)[:10]
+        for w in matched_workers:
+            search_results.append({
+                'category': 'Worker', 'title': w.full_name, 'meta': "Factory Worker Profile", 'icon': 'fas fa-user-tie',
+                'url': reverse('admin_interface:admin_worker_detail', args=[w.id])
+            })
+
+        matched_contacts = ContactMessage.objects.filter(contact_q, is_deleted=False)[:10]
+        for c in matched_contacts:
+            search_results.append({
+                'category': 'Message', 'title': f"From {c.name}", 'meta': c.subject, 'icon': 'fas fa-envelope',
+                'url': reverse('admin_interface:admin_contact_detail', args=[c.id])
+            })
+
+        matched_blogs = BlogPost.objects.filter(blog_q, is_deleted=False)[:10]
+        for b in matched_blogs:
+            search_results.append({
+                'category': 'Blog', 'title': b.title, 'meta': "Published Article" if b.is_published else "Draft Document", 'icon': 'fas fa-file-alt',
+                'url': reverse('admin_interface:admin_blog_detail', args=[b.id])
+            })
+
+    # --- RECENT ACTIVITY TIMELINE LOGIC ---
+    # We load this block only if a search query is not active
     recent_activities = []
+    if not is_search_active:
+        recent_users = User.objects.filter(date_joined__gte=seven_days_ago).order_by('-date_joined')[:5]
+        for user in recent_users:
+            recent_activities.append({
+                'type': 'user_created', 'message': f'User {user.username} created', 'timestamp': user.date_joined,
+                'icon': 'fas fa-user-plus', 'color': 'text-primary', 'url': reverse('admin_interface:admin_user_edit', args=[user.id])
+            })
 
-    # Add user creation activities
-    recent_user_creations = User.objects.filter(
-        date_joined__gte=today - timedelta(days=7)
-    ).order_by('-date_joined')[:5]
+        recent_factories = Factory.objects.filter(created_at__gte=seven_days_ago).order_by('-created_at')[:5]
+        for factory in recent_factories:
+            recent_activities.append({
+                'type': 'factory_created', 'message': f'Factory {factory.name} created', 'timestamp': factory.created_at,
+                'icon': 'fas fa-industry', 'color': 'text-success', 'url': reverse('admin_interface:admin_factory_detail', args=[factory.id])
+            })
 
-    for user in recent_user_creations:
-        recent_activities.append({
-            'type': 'user_created',
-            'message': f'User {user.username} created',
-            'timestamp': user.date_joined,
-            'icon': 'fas fa-user-plus',
-            'color': 'text-primary',
-            'id': user.id,
-            'url': reverse('admin_interface:admin_user_edit', args=[user.id]) 
-        })
+        recent_workers = Worker.objects.filter(created_at__gte=seven_days_ago).order_by('-created_at')[:5]
+        for worker in recent_workers:
+            recent_activities.append({
+                'type': 'worker_created', 'message': f'Worker {worker.full_name} created', 'timestamp': worker.created_at,
+                'icon': 'fas fa-user-tie', 'color': 'text-warning', 'url': reverse('admin_interface:admin_worker_detail', args=[worker.id])
+            })
 
-    # Add factory creation activities
-    recent_factory_creations = Factory.objects.filter(
-        created_at__gte=today - timedelta(days=7)
-    ).order_by('-created_at')[:5]
+        recent_contacts = ContactMessage.objects.filter(created_at__gte=seven_days_ago, is_deleted=False).order_by('-created_at')[:5]
+        for contact in recent_contacts:
+            recent_activities.append({
+                'type': 'contact_message', 'message': f'New message from {contact.name}: {contact.subject}', 'timestamp': contact.created_at,
+                'icon': 'fas fa-envelope', 'color': 'text-info', 'url': reverse('admin_interface:admin_contact_detail', args=[contact.id])
+            })
 
-    for factory in recent_factory_creations:
-        recent_activities.append({
-            'type': 'factory_created',
-            'message': f'Factory {factory.name} created',
-            'timestamp': factory.created_at,
-            'icon': 'fas fa-industry',
-            'color': 'text-success',
-            'id': factory.id,
-            'slug': factory.slug,
-            'url': reverse('admin_interface:admin_factory_detail', args=[factory.id])
-        })
+        recent_blogs = BlogPost.objects.filter(created_at__gte=seven_days_ago, is_deleted=False).order_by('-created_at')[:5]
+        for blog in recent_blogs:
+            recent_activities.append({
+                'type': 'blog_created', 'message': f'Blog post "{blog.title}" published', 'timestamp': blog.created_at,
+                'icon': 'fas fa-file-alt', 'color': 'text-secondary', 'url': reverse('admin_interface:admin_blog_detail', args=[blog.id])
+            })
 
-    # Add worker creation activities
-    recent_worker_creations = Worker.objects.filter(
-        created_at__gte=today - timedelta(days=7)
-    ).order_by('-created_at')[:5]
+        recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+        recent_activities = recent_activities[:10]
 
-    for worker in recent_worker_creations:
-        recent_activities.append({
-            'type': 'worker_created',
-            'message': f'Worker {worker.full_name} created',
-            'timestamp': worker.created_at,
-            'icon': 'fas fa-user-tie',
-            'color': 'text-warning',
-            'id': worker.id,
-            'url': reverse('admin_interface:admin_worker_detail', args=[worker.id])
-        })
-
-    # Add contact message activities
-    recent_contacts = ContactMessage.objects.filter(
-        created_at__gte=today - timedelta(days=7),
-        is_deleted=False
-    ).order_by('-created_at')[:5]
-
-    for contact in recent_contacts:
-        recent_activities.append({
-            'type': 'contact_message',
-            'message': f'New message from {contact.name}: {contact.subject}',
-            'timestamp': contact.created_at,
-            'icon': 'fas fa-envelope',
-            'color': 'text-info',
-            'id': contact.id,
-            'url': reverse('admin_interface:admin_contact_detail', args=[contact.id])
-        })
-
-    # Add blog post activities
-    recent_blogs = BlogPost.objects.filter(
-        created_at__gte=today - timedelta(days=7),
-        is_deleted=False
-    ).order_by('-created_at')[:5]
-
-    for blog in recent_blogs:
-        recent_activities.append({
-            'type': 'blog_created',
-            'message': f'Blog post "{blog.title}" published',
-            'timestamp': blog.created_at,
-            'icon': 'fas fa-file-alt',
-            'color': 'text-secondary',
-            'id': blog.id,
-            'slug': blog.slug,
-            'url': reverse('admin_interface:admin_blog_detail', args=[blog.id])
-        })
-
-    # Sort activities by timestamp
-    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
-    recent_activities = recent_activities[:10]
-
-    # Calculate infrastructure status
-    from django.db import connection
-    
+    # Infrastructure status checks
     try:
-        # Database connection test
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-            db_status = "Connected"
-            db_health = 100
-    except:
-        db_status = "Disconnected"
-        db_health = 0
-
-    # Storage usage (simplified - using a default value since psutil is not available)
-    storage_percentage = 50  # Default value when psutil is not available
-
-    # System uptime (simplified)
-    system_uptime = "24/7"  # This would need more complex implementation
+            db_status, db_health = "Connected", 100
+    except Exception:
+        db_status, db_health = "Disconnected", 0
 
     context = {
-        'user_count': user_count,
-        'factory_count': factory_count,
-        'worker_count': worker_count,
-        'contact_count': contact_count,
-        'pending_reports': pending_reports,
-        'new_users_today': new_users_today,
-        'new_factories_today': new_factories_today,
-        'new_workers_today': new_workers_today,
-        'new_contacts_today': new_contacts_today,
+        'user_count': user_stats['total'],
+        'new_users_today': user_stats['today'],
+        'pending_verifications': user_stats['pending_verifications'],
+        'factory_count': factory_stats['total'],
+        'new_factories_today': factory_stats['today'],
+        'worker_count': worker_stats['total'],
+        'new_workers_today': worker_stats['today'],
+        'contact_count': contact_stats['total'],
+        'new_contacts_today': contact_stats['today'],
+        'pending_reports': contact_stats['unread'],
+        'unread_messages': contact_stats['unread'],
+        
+        # Search & Activity data bindings
+        'search_query': search_query,
+        'is_search_active': is_search_active,
+        'search_results': search_results,
         'recent_activities': recent_activities,
+        
         'db_status': db_status,
         'db_health': db_health,
-        'storage_percentage': storage_percentage,
-        'system_uptime': system_uptime,
-        'unread_messages': ContactMessage.objects.filter(is_read=False, is_deleted=False).count(),
-        'pending_verifications': User.objects.filter(profile__email_verified=False).count(),
+        'storage_percentage': 50,
+        'system_uptime': "24/7",
     }
 
     return render(request, 'CustomAdmin/dashboard/dashboard.html', context)
