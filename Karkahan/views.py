@@ -228,15 +228,16 @@ def factory_list(request):
 
         for term in terms:
             escaped_term = re.escape(term)
+            # \m = start of word, \M = end of word in Postgres
+            pattern = rf'\m{escaped_term}\M'
 
             term_q = (
-                Q(name__iregex=rf'\b{escaped_term}\b') |
-                Q(description__iregex=rf'\b{escaped_term}\b') |
-                Q(address__iregex=rf'\b{escaped_term}\b') |
-                Q(contact_person__iregex=rf'\b{escaped_term}\b') |
-                Q(factory_type__iregex=rf'\b{escaped_term}\b')
+                Q(name__iregex=pattern) |
+                Q(description__iregex=pattern) |
+                Q(address__iregex=pattern) |
+                Q(contact_person__iregex=pattern) |
+                Q(factory_type__iregex=pattern)
             )
-
             q_objects &= term_q
 
         factories = factories.filter(q_objects)
