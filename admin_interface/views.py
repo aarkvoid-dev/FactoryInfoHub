@@ -278,7 +278,7 @@ def admin_dashboard(request):
     search_query = request.GET.get('search', '').strip()
     is_search_active = bool(search_query)
     search_results = []
-
+    is_search_active = False
     if is_search_active:
         terms = search_query.split()
         
