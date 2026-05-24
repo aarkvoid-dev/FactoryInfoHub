@@ -28,24 +28,58 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import connection
+import re
 
-
-def and_search_filter(queryset, search_terms, fields):
-    """
-    Apply AND search across multiple fields.
-    search_terms: list of strings (words)
-    fields: list of field names (e.g., ['username', 'email'])
-    """
+# def and_search_filter(queryset, search_terms, fields):
+#     """
+#     Apply AND search across multiple fields.
+#     search_terms: list of strings (words)
+#     fields: list of field names (e.g., ['username', 'email'])
+#     """
     
-    if not search_terms:
+#     if not search_terms:
+#         return queryset
+#     q_objects = Q()
+#     for term in search_terms:
+#         term_q = Q()
+#         for field in fields:
+#             term_q |= Q(**{f"{field}__icontains": term})
+#         q_objects &= term_q
+#     return queryset.filter(q_objects)
+
+def and_search_filter(queryset, search_terms, fields, strict_words=True):
+    """
+    Apply multi-word AND search across multiple fields dynamically.
+    
+    search_terms: list of strings (words)
+    fields: list of field names (e.g., ['name', 'description'])
+    strict_words: If True, uses database-specific regex boundaries to avoid partial matches.
+    """
+    if not search_terms or not fields:
         return queryset
-    q_objects = Q()
+
+    # Detect active database engine once per execution sequence
+    is_postgres = connection.vendor == 'postgresql'
+
     for term in search_terms:
         term_q = Q()
-        for field in fields:
-            term_q |= Q(**{f"{field}__icontains": term})
-        q_objects &= term_q
-    return queryset.filter(q_objects)
+        
+        if strict_words:
+            escaped_term = re.escape(term)
+            pattern = rf'\m{escaped_term}\M' if is_postgres else rf'\b{escaped_term}\b'
+            
+            for field in fields:
+                term_q |= Q(**{f"{field}__iregex": pattern})
+        else:
+            # Fallback to loose lookup if strict_words=False is passed
+            for field in fields:
+                term_q |= Q(**{f"{field}__icontains": term})
+        
+        # Chain filters sequentially. Django automatically handles these as an 'AND' connection
+        queryset = queryset.filter(term_q)
+
+    return queryset
 
 
 @login_required
