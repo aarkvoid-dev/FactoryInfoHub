@@ -282,60 +282,53 @@ def admin_dashboard(request):
     if is_search_active:
         terms = search_query.split()
         
-        # Build strict word boundary logic dependent on database platform
-        is_postgres = connection.vendor == 'postgresql'
-        
-        # Base filter tracking sets
-        user_q, factory_q, worker_q, contact_q, blog_q = Q(), Q(), Q(), Q(), Q()
+        # Initialize QuerySets
+        user_qs = User.objects.all()
+        factory_qs = Factory.objects.all()
+        worker_qs = Worker.objects.all()
+        contact_qs = ContactMessage.objects.filter(is_deleted=False)
+        blog_qs = BlogPost.objects.filter(is_deleted=False)
 
+        # Apply multi-word AND search across models via sequential filtering
         for term in terms:
-            escaped_term = re.escape(term)
-            pattern = rf'\m{escaped_term}\M' if is_postgres else rf'\b{escaped_term}\b'
+            user_qs = user_qs.filter(Q(username__icontains=term) | Q(email__icontains=term))
+            factory_qs = factory_qs.filter(Q(name__icontains=term) | Q(description__icontains=term) | Q(factory_type__icontains=term))
+            worker_qs = worker_qs.filter(Q(full_name__icontains=term))
+            contact_qs = contact_qs.filter(Q(name__icontains=term) | Q(subject__icontains=term) | Q(message__icontains=term))
+            blog_qs = blog_qs.filter(Q(title__icontains=term) | Q(content__icontains=term))
 
-            user_q &= (Q(username__iregex=pattern) | Q(email__iregex=pattern))
-            factory_q &= (Q(name__iregex=pattern) | Q(description__iregex=pattern) | Q(factory_type__iregex=pattern))
-            worker_q &= Q(full_name__iregex=pattern)
-            contact_q &= (Q(name__iregex=pattern) | Q(subject__iregex=pattern) | Q(message__iregex=pattern))
-            blog_q &= (Q(title__iregex=pattern) | Q(content__iregex=pattern))
-
-        # Perform individual search reads
-        matched_users = User.objects.filter(user_q)[:10]
-        for u in matched_users:
+        # Perform capped data lookups
+        for u in user_qs[:10]:
             search_results.append({
                 'category': 'User', 'title': u.username, 'meta': u.email, 'icon': 'fas fa-user',
                 'url': reverse('admin_interface:admin_user_edit', args=[u.id])
             })
 
-        matched_factories = Factory.objects.filter(factory_q)[:10]
-        for f in matched_factories:
+        for f in factory_qs[:10]:
             search_results.append({
                 'category': 'Factory', 'title': f.name, 'meta': f.factory_type or "Factory Resource", 'icon': 'fas fa-industry',
                 'url': reverse('admin_interface:admin_factory_detail', args=[f.id])
             })
 
-        matched_workers = Worker.objects.filter(worker_q)[:10]
-        for w in matched_workers:
+        for w in worker_qs[:10]:
             search_results.append({
                 'category': 'Worker', 'title': w.full_name, 'meta': "Factory Worker Profile", 'icon': 'fas fa-user-tie',
                 'url': reverse('admin_interface:admin_worker_detail', args=[w.id])
             })
 
-        matched_contacts = ContactMessage.objects.filter(contact_q, is_deleted=False)[:10]
-        for c in matched_contacts:
+        for c in contact_qs[:10]:
             search_results.append({
                 'category': 'Message', 'title': f"From {c.name}", 'meta': c.subject, 'icon': 'fas fa-envelope',
                 'url': reverse('admin_interface:admin_contact_detail', args=[c.id])
             })
 
-        matched_blogs = BlogPost.objects.filter(blog_q, is_deleted=False)[:10]
-        for b in matched_blogs:
+        for b in blog_qs[:10]:
             search_results.append({
                 'category': 'Blog', 'title': b.title, 'meta': "Published Article" if b.is_published else "Draft Document", 'icon': 'fas fa-file-alt',
                 'url': reverse('admin_interface:admin_blog_detail', args=[b.id])
             })
 
     # --- RECENT ACTIVITY TIMELINE LOGIC ---
-    # We load this block only if a search query is not active
     recent_activities = []
     if not is_search_active:
         recent_users = User.objects.filter(date_joined__gte=seven_days_ago).order_by('-date_joined')[:5]
@@ -4372,7 +4365,7 @@ def admin_payments(request):
         payments = and_search_filter(
             payments,
             terms,
-            ['order_number', 'user__username', 'user__email', 'transaction_id']
+            ['order_number', 'user__username','user__first_name','user__last_name', 'user__email', 'transaction_id']
         )
     if user_filter:
         payments = payments.filter(user_id=user_filter)
@@ -4380,6 +4373,7 @@ def admin_payments(request):
         payments = payments.filter(total_amount__gte=min_amount)
     if max_amount:
         payments = payments.filter(total_amount__lte=max_amount)
+
 
     # 3. Calculate Summary Statistics
     total_payments = payments.count()
@@ -4503,6 +4497,7 @@ def export_payments_to_csv(payments):
 def admin_payment_gateways(request):
     profile = request.user.profile
     role = profile.role
+    search = request.GET.get('search', '')
 
     if role not in ['admin', 'staff'] and not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'CustomAdmin/permission_denied.html')
@@ -4510,6 +4505,14 @@ def admin_payment_gateways(request):
     
     
     gateways = PaymentGateway.objects.all()
+
+    if search:
+        terms = search.split()
+        gateways = and_search_filter(
+            gateways,
+            terms,
+            ['name']
+        )
     
     context = {
         'gateways': gateways,
@@ -4718,7 +4721,7 @@ def admin_orders(request):
         orders = and_search_filter(
             orders,
             terms,
-            ['order_number', 'user__username', 'user__email', 'transaction_id']
+            ['order_number', 'user__username','user__first_name','user__last_name', 'user__email', 'transaction_id']
         )
     if user_filter:
         orders = orders.filter(user_id=user_filter)
@@ -4917,7 +4920,7 @@ def admin_order_items(request):
         order_items = and_search_filter(
             order_items,
             terms,
-            ['order__order_number', 'factory__name', 'order__user__username']
+            ['order__order_number', 'factory__name','order__user__first_name','order__user__last_name', 'order__user__username']
         )
 
     # 3. CSV Export
@@ -5263,8 +5266,22 @@ def factory_stats(request):
         monthly_view_count=Count('view_trackers', filter=Q(view_trackers__viewed_at__date__gte=month_ago))
     ).order_by('-total_view_count')
 
+    search_query = request.GET.get('search', '')
+    if search_query:
+        terms = search_query.split()
+        factories = and_search_filter(
+            factories,
+            terms,
+            ['name', 'category', 'address', 'contact_person']
+        )
+
+    # 4. Pagination
+    paginator = Paginator(factories, 20)  # Show 20 order items per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'stats': factories,
+        'stats': page_obj,
         'title': 'Factory View Statistics',
     }
     return render(request, 'CustomAdmin/FactoryStat/factory_stats.html', context)
