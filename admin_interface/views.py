@@ -1015,10 +1015,6 @@ def admin_factories(request):
     elif f_verified == 'unverified':
         factories = factories.filter(is_verified=False)
     
-    if f_search:
-        terms = f_search.split()
-        factories = and_search_filter(factories, terms, ['name', 'category__name','description','address', 'contact_person'])
-    
     if f_status == 'active':
         factories = factories.filter(is_active=True)
     elif f_status == 'inactive':
@@ -1041,6 +1037,9 @@ def admin_factories(request):
         if sort_by in valid_sort_fields:
             factories = factories.order_by(sort_by)
 
+    if f_search:
+        terms = f_search.split()
+        factories = and_search_filter(factories, terms, ['name', 'category__name','description','address', 'contact_person'])
 
     page = request.GET.get('page', 1)
     paginator = Paginator(factories, 20)  # Show 20 factories per page
