@@ -40,6 +40,8 @@ from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 import razorpay
 import re
+from django.db.models import Q, Case, When, Value, IntegerField
+from django.db import connection
 
 # Initialize Stripe API key from database
 def get_stripe_api_key():
@@ -95,6 +97,182 @@ def validate_payment_gateway_config():
     except Exception as e:
         raise ValueError(f"Payment gateway configuration error: {str(e)}")
 
+
+# def factory_list(request):
+#     """List all factories with filtering and search"""
+#     # Only show user's factories if user is authenticated
+#     # if request.user.is_authenticated:
+#     #     factories = Factory.objects.filter(Q(is_active=True, is_deleted=False,is_verified=True) | Q(created_by=request.user)).select_related(
+#     #         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
+#     #     )
+#     # else:
+#     #     # For anonymous users, only show public factories
+#     #     factories = Factory.objects.filter(is_active=True, is_deleted=False, is_verified=True).select_related(
+#     #         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
+#     #     )
+
+#     factories = Factory.objects.filter(Q(is_active=True, is_deleted=False)).select_related(
+#             'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
+#         )
+    
+#     # Get cart items count for authenticated users
+#     cart_items_count = 0
+#     cart_items = []
+#     if request.user.is_authenticated:
+#         try:
+#             cart = Cart.objects.get(user=request.user)
+#             cart_items_count = cart.items.count()
+#             cart_items = list(cart.items.values_list('factory_id', flat=True))
+#         except Cart.DoesNotExist:
+#             pass
+    
+#     # Prepare initial data for form based on GET parameters
+#     initial_data = {}
+#     if 'category' in request.GET:
+#         try:
+#             category_id = int(request.GET.get('category'))
+#             initial_data['category'] = category_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'subcategory' in request.GET:
+#         try:
+#             subcategory_id = int(request.GET.get('subcategory'))
+#             initial_data['subcategory'] = subcategory_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'country' in request.GET:
+#         try:
+#             country_id = int(request.GET.get('country'))
+#             initial_data['country'] = country_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'state' in request.GET:
+#         try:
+#             state_id = int(request.GET.get('state'))
+#             initial_data['state'] = state_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'city' in request.GET:
+#         try:
+#             city_id = int(request.GET.get('city'))
+#             initial_data['city'] = city_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'district' in request.GET:
+#         try:
+#             district_id = int(request.GET.get('district'))
+#             initial_data['district'] = district_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if 'region' in request.GET:
+#         try:
+#             region_id = int(request.GET.get('region'))
+#             initial_data['region'] = region_id
+#         except (ValueError, TypeError):
+#             pass
+    
+#     # Apply filters
+#     filter_form = FactoryFilterForm(request.GET, initial=initial_data)
+#     if filter_form.is_valid():
+#         category = filter_form.cleaned_data.get('category')
+#         subcategory = filter_form.cleaned_data.get('subcategory')
+#         country = filter_form.cleaned_data.get('country')
+#         state = filter_form.cleaned_data.get('state')
+#         city = filter_form.cleaned_data.get('city')
+#         district = filter_form.cleaned_data.get('district')
+#         region = filter_form.cleaned_data.get('region')
+#         factory_type = filter_form.cleaned_data.get('factory_type')
+        
+
+#         if category:
+#             factories = factories.filter(category=category)
+#         if subcategory:
+#             factories = factories.filter(subcategory=subcategory)
+#         if country:
+#             factories = factories.filter(country=country)
+#         if state:
+#             factories = factories.filter(state=state)
+#         if city:
+#             factories = factories.filter(city=city)
+#         if district:
+#             factories = factories.filter(district=district)
+#         if region:
+#             factories = factories.filter(region=region)
+#         if factory_type:
+#             factories = factories.filter(factory_type__icontains=factory_type)
+        
+
+#     # Apply search with AND for multi-word queries
+#     search_query = request.GET.get('search', '')
+#     # if search_query:
+#     #     terms = search_query.split()
+#     #     q_objects = Q()
+#     #     for term in terms:
+#     #         term_q = (
+#     #             Q(name__icontains=term) |
+#     #             Q(description__icontains=term) |
+#     #             Q(address__icontains=term) |
+#     #             Q(contact_person__icontains=term) |
+#     #             Q(factory_type__icontains=term)
+#     #         )
+#     #         q_objects &= term_q
+#     #     factories = factories.filter(q_objects)
+
+#     if search_query:
+#         terms = search_query.split()
+#         q_objects = Q()
+
+#         for term in terms:
+#             escaped_term = re.escape(term)
+#             # \m = start of word, \M = end of word in Postgres
+#             pattern = rf'\m{escaped_term}\M'
+
+#             term_q = (
+#                 Q(name__iregex=pattern) |
+#                 Q(description__iregex=pattern) |
+#                 Q(address__iregex=pattern) |
+#                 Q(contact_person__iregex=pattern) |
+#                 Q(factory_type__iregex=pattern)
+#             )
+#             q_objects &= term_q
+
+#         factories = factories.filter(q_objects)
+
+#     sort_by = request.GET.get('sort', 'name')
+#     if sort_by in ['name', 'created_at', 'updated_at']:
+#         factories = factories.order_by(sort_by)
+#     elif sort_by == 'category':
+#         factories = factories.order_by('category__name', 'name')
+#     elif sort_by == 'location':
+#         factories = factories.order_by('country__name', 'state__name', 'city__name', 'name')
+
+#     # Pagination
+#     paginator = Paginator(factories, 10)
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+#     is_paginated = page_obj.has_other_pages()
+#      # Get random published blog posts for slider
+#     random_blogs = BlogPost.objects.filter(
+#         is_published=True, is_deleted=False
+#     ).select_related('author', 'category').order_by('-created_at')[:8]
+
+#     context = {
+#         'page_obj': page_obj,
+#         'filter_form': filter_form,
+#         'search_query': search_query,
+#         'sort_by': sort_by,
+#         'cart_items_count': cart_items_count,
+#         'cart_items': cart_items,
+#         'random_blogs': random_blogs,   # add this line
+#         'is_paginated': is_paginated,
+#     }
+#     return render(request, 'karkahan/factory_list.html', context)
 
 def factory_list(request):
     """List all factories with filtering and search"""
@@ -221,15 +399,19 @@ def factory_list(request):
     #         )
     #         q_objects &= term_q
     #     factories = factories.filter(q_objects)
-
+    # order_by_fields = []
     if search_query:
         terms = search_query.split()
         q_objects = Q()
+        is_sqlite = connection.vendor == 'sqlite'
 
         for term in terms:
             escaped_term = re.escape(term)
             # \m = start of word, \M = end of word in Postgres
-            pattern = rf'\m{escaped_term}\M'
+            if is_sqlite:
+                pattern = rf'\b{escaped_term}\b'
+            else:
+                pattern = rf'\m{escaped_term}\M'
 
             term_q = (
                 Q(name__iregex=pattern) |
@@ -242,13 +424,24 @@ def factory_list(request):
 
         factories = factories.filter(q_objects)
 
-    sort_by = request.GET.get('sort', 'name')
-    if sort_by in ['name', 'created_at', 'updated_at']:
-        factories = factories.order_by(sort_by)
-    elif sort_by == 'category':
-        factories = factories.order_by('category__name', 'name')
-    elif sort_by == 'location':
-        factories = factories.order_by('country__name', 'state__name', 'city__name', 'name')
+        # 2. Assign strict priority weights matching your hierarchy rules
+        # factories = factories.annotate(
+        #     search_priority=Case(
+        #         When(name__iexact=search_query, then=Value(100)),
+        #         When(name__istartswith=search_query, then=Value(80)),
+        #         When(name__icontains=search_query, then=Value(50)),
+        #         When(contact_person__iexact=search_query, then=Value(45)),
+        #         When(contact_person__icontains=search_query, then=Value(20)),
+        #         When(factory_type__icontains=search_query, then=Value(30)),
+        #         When(description__icontains=search_query, then=Value(15)),
+        #         When(address__icontains=search_query, then=Value(10)),
+        #         default=Value(0),
+        #         output_field=IntegerField(),
+        #     )
+        # )
+        # # Prepend search priority to the top of our sorting sequence
+        # factories = factories.order_by('-search_priority')
+
 
     # Pagination
     paginator = Paginator(factories, 10)
@@ -264,13 +457,13 @@ def factory_list(request):
         'page_obj': page_obj,
         'filter_form': filter_form,
         'search_query': search_query,
-        'sort_by': sort_by,
         'cart_items_count': cart_items_count,
         'cart_items': cart_items,
         'random_blogs': random_blogs,   # add this line
         'is_paginated': is_paginated,
     }
     return render(request, 'karkahan/factory_list.html', context)
+
 
 def process_hierarchical_fields(data):
     """

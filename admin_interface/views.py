@@ -30,6 +30,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import connection
 import re
+from django.db.models import Q, Case, When, Value, IntegerField
 
 # def and_search_filter(queryset, search_terms, fields):
 #     """
@@ -48,36 +49,76 @@ import re
 #         q_objects &= term_q
 #     return queryset.filter(q_objects)
 
+
 def and_search_filter(queryset, search_terms, fields, strict_words=True):
     """
-    Apply multi-word AND search across multiple fields dynamically.
-    
-    search_terms: list of strings (words)
-    fields: list of field names (e.g., ['name', 'description'])
-    strict_words: If True, uses database-specific regex boundaries to avoid partial matches.
+    Apply multi-word AND search across multiple fields dynamically
+    and sort by search priority.
+
+    search_terms: list of strings
+    fields: list of field names
+    strict_words: whole-word matching
     """
+
     if not search_terms or not fields:
         return queryset
 
-    # Detect active database engine once per execution sequence
-    is_postgres = connection.vendor == 'postgresql'
+    is_postgres = connection.vendor == "postgresql"
+
+    priority_cases = []
+    priority_score = 0
 
     for term in search_terms:
+
         term_q = Q()
-        
+
         if strict_words:
             escaped_term = re.escape(term)
-            pattern = rf'\m{escaped_term}\M' if is_postgres else rf'\b{escaped_term}\b'
-            
-            for field in fields:
-                term_q |= Q(**{f"{field}__iregex": pattern})
+
+            pattern = (
+                rf"\m{escaped_term}\M"
+                if is_postgres
+                else rf"\b{escaped_term}\b"
+            )
+
+            for index, field in enumerate(fields):
+
+                lookup = {f"{field}__iregex": pattern}
+
+                term_q |= Q(**lookup)
+
+                # Higher priority for earlier fields
+                priority_cases.append(
+                    When(
+                        **lookup,
+                        then=Value(len(fields) - index)
+                    )
+                )
+
         else:
-            # Fallback to loose lookup if strict_words=False is passed
-            for field in fields:
-                term_q |= Q(**{f"{field}__icontains": term})
-        
-        # Chain filters sequentially. Django automatically handles these as an 'AND' connection
+
+            for index, field in enumerate(fields):
+
+                lookup = {f"{field}__icontains": term}
+
+                term_q |= Q(**lookup)
+
+                priority_cases.append(
+                    When(
+                        **lookup,
+                        then=Value(len(fields) - index)
+                    )
+                )
+
         queryset = queryset.filter(term_q)
+
+    queryset = queryset.annotate(
+        search_priority=Case(
+            *priority_cases,
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ).order_by("-search_priority")
 
     return queryset
 
@@ -278,7 +319,7 @@ def admin_dashboard(request):
     search_query = request.GET.get('search', '').strip()
     is_search_active = bool(search_query)
     search_results = []
-    is_search_active = False
+
     if is_search_active:
         terms = search_query.split()
         
@@ -976,7 +1017,7 @@ def admin_factories(request):
     
     if f_search:
         terms = f_search.split()
-        factories = and_search_filter(factories, terms, ['name'])
+        factories = and_search_filter(factories, terms, ['name', 'category__name','description','address', 'contact_person'])
     
     if f_status == 'active':
         factories = factories.filter(is_active=True)
@@ -5272,7 +5313,7 @@ def factory_stats(request):
         factories = and_search_filter(
             factories,
             terms,
-            ['name', 'category', 'address', 'contact_person']
+            ['name', 'category__name', 'address', 'contact_person']
         )
 
     # 4. Pagination
