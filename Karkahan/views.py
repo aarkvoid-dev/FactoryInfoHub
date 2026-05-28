@@ -42,6 +42,7 @@ import razorpay
 import re
 from django.db.models import Q, Case, When, Value, IntegerField
 from django.db import connection
+from random import shuffle
 
 # Initialize Stripe API key from database
 def get_stripe_api_key():
@@ -422,7 +423,8 @@ def factory_list(request):
             )
             q_objects &= term_q
 
-        factories = factories.filter(q_objects)
+        factories = list(factories.filter(q_objects))
+        shuffle(factories)
 
         # 2. Assign strict priority weights matching your hierarchy rules
         # factories = factories.annotate(
