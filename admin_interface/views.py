@@ -999,7 +999,7 @@ def admin_factories(request):
     # 2. Build Factory Queryset
     factories = Factory.objects.all_with_deleted().select_related(
         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
-    )
+    ).order_by('-created_at')
 
     if f_country: factories = factories.filter(country_id=f_country)
     if f_state: factories = factories.filter(state_id=f_state)
@@ -1040,8 +1040,6 @@ def admin_factories(request):
     else:
         if sort_by in valid_sort_fields:
             factories = factories.order_by(sort_by)
-        else:
-            factories = factories.order_by('-created_at')  # default
 
 
     page = request.GET.get('page', 1)
