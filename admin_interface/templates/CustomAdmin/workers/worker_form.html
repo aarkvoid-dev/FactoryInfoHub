@@ -370,6 +370,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'admin_interface/js/admin-form-helpers.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // --- Form validation ---
@@ -398,33 +399,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (categorySelect && subcategorySelect) {
         categorySelect.addEventListener('change', function() {
-            const categoryId = this.value;
-            if (categoryId) {
-                subcategorySelect.innerHTML = '<option value="">Loading subcategories...</option>';
-                subcategorySelect.disabled = true;
-                fetch(`/categories/ajax/load-subcategories/${categoryId}/`)
-                    .then(response => response.json())
-                    .then(subcategories => {
-                        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-                        subcategories.forEach(subcat => {
-                            const option = document.createElement('option');
-                            option.value = subcat.id;
-                            option.textContent = subcat.name;
-                            subcategorySelect.appendChild(option);
-                        });
-                        subcategorySelect.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error('Error loading subcategories:', error);
-                        subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
-                        subcategorySelect.disabled = true;
-                    });
+            if (this.value) {
+                loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
             } else {
                 subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
                 subcategorySelect.disabled = true;
             }
         });
-        // DO NOT call loadSubcategories on page load – let the server‑rendered value stay.
     }
 
     // --- Location hierarchy cascading ---
@@ -434,135 +415,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const districtSelect = document.getElementById('{{ form.district.id_for_label }}');
     const regionSelect = document.getElementById('{{ form.region.id_for_label }}');
 
-    function loadStates() {
-        const countryId = countrySelect.value;
-        if (countryId) {
-            stateSelect.innerHTML = '<option value="">Loading states...</option>';
-            stateSelect.disabled = true;
-            fetch(`/location/ajax/states-by-country/${countryId}/`)
-                .then(response => response.json())
-                .then(states => {
-                    stateSelect.innerHTML = '<option value="">Select State</option>';
-                    states.forEach(state => {
-                        const option = document.createElement('option');
-                        option.value = state.id;
-                        option.textContent = state.name;
-                        stateSelect.appendChild(option);
-                    });
-                    stateSelect.disabled = false;
-                    // Reset dependent selects
-                    citySelect.innerHTML = '<option value="">Select City</option>';
-                    citySelect.disabled = true;
-                    districtSelect.innerHTML = '<option value="">Select Area</option>';
-                    districtSelect.disabled = true;
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                })
-                .catch(error => console.error('Error loading states:', error));
-        } else {
-            stateSelect.innerHTML = '<option value="">Select State</option>';
-            stateSelect.disabled = true;
-            citySelect.innerHTML = '<option value="">Select City</option>';
-            citySelect.disabled = true;
-            districtSelect.innerHTML = '<option value="">Select Area</option>';
-            districtSelect.disabled = true;
-            regionSelect.innerHTML = '<option value="">Select Region</option>';
-            regionSelect.disabled = true;
-        }
+    if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+            if (this.value) {
+                loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                stateSelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
     }
 
-    function loadCities() {
-        const stateId = stateSelect.value;
-        if (stateId) {
-            citySelect.innerHTML = '<option value="">Loading cities...</option>';
-            citySelect.disabled = true;
-            fetch(`/location/ajax/cities-by-state/${stateId}/`)
-                .then(response => response.json())
-                .then(cities => {
-                    citySelect.innerHTML = '<option value="">Select City</option>';
-                    cities.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city.id;
-                        option.textContent = city.name;
-                        citySelect.appendChild(option);
-                    });
-                    citySelect.disabled = false;
-                    // Reset deeper levels
-                    districtSelect.innerHTML = '<option value="">Select Area</option>';
-                    districtSelect.disabled = true;
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                })
-                .catch(error => console.error('Error loading cities:', error));
-        } else {
-            citySelect.innerHTML = '<option value="">Select City</option>';
-            citySelect.disabled = true;
-            districtSelect.innerHTML = '<option value="">Select Area</option>';
-            districtSelect.disabled = true;
-            regionSelect.innerHTML = '<option value="">Select Region</option>';
-            regionSelect.disabled = true;
-        }
+    if (stateSelect) {
+        stateSelect.addEventListener('change', function() {
+            if (this.value) {
+                loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
     }
 
-    function loadDistricts() {
-        const cityId = citySelect.value;
-        if (cityId) {
-            districtSelect.innerHTML = '<option value="">Loading districts...</option>';
-            districtSelect.disabled = true;
-            fetch(`/location/ajax/districts-by-city/${cityId}/`)
-                .then(response => response.json())
-                .then(districts => {
-                    districtSelect.innerHTML = '<option value="">Select Area</option>';
-                    districts.forEach(district => {
-                        const option = document.createElement('option');
-                        option.value = district.id;
-                        option.textContent = district.name;
-                        districtSelect.appendChild(option);
-                    });
-                    districtSelect.disabled = false;
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regionSelect.disabled = true;
-                })
-                .catch(error => console.error('Error loading districts:', error));
-        } else {
-            districtSelect.innerHTML = '<option value="">Select Area</option>';
-            districtSelect.disabled = true;
-            regionSelect.innerHTML = '<option value="">Select Region</option>';
-            regionSelect.disabled = true;
-        }
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            if (this.value) {
+                loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'Area');
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
     }
 
-    function loadRegions() {
-        const districtId = districtSelect.value;
-        if (districtId) {
-            regionSelect.innerHTML = '<option value="">Loading regions...</option>';
-            regionSelect.disabled = true;
-            fetch(`/location/ajax/regions-by-district/${districtId}/`)
-                .then(response => response.json())
-                .then(regions => {
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    regions.forEach(region => {
-                        const option = document.createElement('option');
-                        option.value = region.id;
-                        option.textContent = region.name;
-                        regionSelect.appendChild(option);
-                    });
-                    regionSelect.disabled = false;
-                })
-                .catch(error => console.error('Error loading regions:', error));
-        } else {
-            regionSelect.innerHTML = '<option value="">Select Region</option>';
-            regionSelect.disabled = true;
-        }
+    if (districtSelect) {
+        districtSelect.addEventListener('change', function() {
+            if (this.value) {
+                loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
+            } else {
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
+        });
     }
-
-    if (countrySelect) countrySelect.addEventListener('change', loadStates);
-    if (stateSelect) stateSelect.addEventListener('change', loadCities);
-    if (citySelect) citySelect.addEventListener('change', loadDistricts);
-    if (districtSelect) districtSelect.addEventListener('change', loadRegions);
-
-    // CRITICAL: Do NOT call loadStates/loadCities/etc. on page load.
-    // The server‑rendered values will stay. Only user‑triggered changes will reload.
 
     // --- Work experience dynamic formset ---
     const container = document.getElementById('experience-forms-container');

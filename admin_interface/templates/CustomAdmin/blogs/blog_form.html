@@ -580,6 +580,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'admin_interface/js/admin-form-helpers.js' %}"></script>
 <!-- TinyMCE -->
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
 <script>
@@ -647,26 +648,6 @@ document.addEventListener('DOMContentLoaded', function() {
             input.click();  // Open file explorer
         },
     });
-
-    // ========== HELPER: LOAD DATA VIA AJAX ==========
-    async function loadData(url, targetElement, placeholderName) {
-        if (!targetElement) return;
-        targetElement.innerHTML = `<option value="">Loading ${placeholderName}...</option>`;
-        targetElement.disabled = true;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            targetElement.innerHTML = `<option value="">Select ${placeholderName}</option>`;
-            data.forEach(item => {
-                const option = new Option(item.name, item.id);
-                targetElement.add(option);
-            });
-            targetElement.disabled = false;
-        } catch (error) {
-            targetElement.innerHTML = `<option value="">Error loading data</option>`;
-            targetElement.disabled = false;
-        }
-    }
 
     // ========== ELEMENT REFERENCES ==========
     const titleInput = document.getElementById('{{ form.title.id_for_label }}');
@@ -745,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categorySelect && subcategorySelect) {
         categorySelect.addEventListener('change', function() {
             if (this.value) {
-                loadData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
+                loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
             } else {
                 subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
                 subcategorySelect.disabled = true;
@@ -758,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (countrySelect && stateSelect) {
         countrySelect.addEventListener('change', function() {
             if (this.value) {
-                loadData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
+                loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
                 // Clear downstream selects
                 citySelect.innerHTML = '<option value="">Select City</option>';
                 citySelect.disabled = true;
@@ -783,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (stateSelect && citySelect) {
         stateSelect.addEventListener('change', function() {
             if (this.value && !stateSelect.disabled) {
-                loadData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
+                loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
                 // Clear downstream selects
                 districtSelect.innerHTML = '<option value="">Select District</option>';
                 districtSelect.disabled = true;
@@ -804,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (citySelect && districtSelect) {
         citySelect.addEventListener('change', function() {
             if (this.value && !citySelect.disabled) {
-                loadData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
+                loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
                 // Clear region
                 regionSelect.innerHTML = '<option value="">Select Region</option>';
                 regionSelect.disabled = true;
@@ -821,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (districtSelect && regionSelect) {
         districtSelect.addEventListener('change', function() {
             if (this.value && !districtSelect.disabled) {
-                loadData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
+                loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
             } else {
                 regionSelect.innerHTML = '<option value="">Select Region</option>';
                 regionSelect.disabled = true;

@@ -1,4 +1,5 @@
 {% extends 'CustomAdmin/base.html' %}
+{% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -478,6 +479,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'admin_interface/js/admin-form-helpers.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Location cascade functionality
@@ -491,24 +493,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const districtSelect = document.getElementById('id_district');
     const regionSelect = document.getElementById('id_region');
 
-    async function loadData(url, targetElement, placeholderName) {
-        if (!targetElement) return;
-        targetElement.innerHTML = `<option value="">Loading ${placeholderName}...</option>`;
-        targetElement.disabled = true;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            targetElement.innerHTML = `<option value="">Select ${placeholderName}</option>`;
-            data.forEach(item => {
-                const option = new Option(item.name, item.id);
-                targetElement.add(option);
-            });
-            targetElement.disabled = false;
-        } catch (error) {
-            targetElement.innerHTML = `<option value="">Error loading data</option>`;
-        }
-    }
-
     if (nameInput && slugInput) {
         nameInput.addEventListener('input', function() {
             const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -518,31 +502,83 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (categorySelect) {
         categorySelect.addEventListener('change', function() {
-            if (this.value) loadData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
+            if (this.value) {
+                loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
+            } else {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                subcategorySelect.disabled = true;
+            }
         });
     }
 
     if (countrySelect) {
         countrySelect.addEventListener('change', function() {
-            if (this.value) loadData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
+            if (this.value) {
+                loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
+                // Clear downstream selects
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                stateSelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
         });
     }
 
     if (stateSelect) {
         stateSelect.addEventListener('change', function() {
-            if (this.value) loadData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
+            if (this.value) {
+                loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
+                // Clear downstream selects
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                citySelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
         });
     }
 
     if (citySelect) {
         citySelect.addEventListener('change', function() {
-            if (this.value) loadData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
+            if (this.value) {
+                loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'Area');
+                // Clear region
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            } else {
+                districtSelect.innerHTML = '<option value="">Select Area</option>';
+                districtSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
         });
     }
 
     if (districtSelect) {
         districtSelect.addEventListener('change', function() {
-            if (this.value) loadData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
+            if (this.value) {
+                loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
+            } else {
+                regionSelect.innerHTML = '<option value="">Select Region</option>';
+                regionSelect.disabled = true;
+            }
         });
     }
 
