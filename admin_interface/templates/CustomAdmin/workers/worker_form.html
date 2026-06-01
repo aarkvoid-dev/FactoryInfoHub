@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const subcategorySelect = document.getElementById('{{ form.subcategory.id_for_label }}');
     
     if (categorySelect && subcategorySelect) {
-        categorySelect.addEventListener('change', function() {
+        categorySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
             } else {
@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const regionSelect = document.getElementById('{{ form.region.id_for_label }}');
 
     if (countrySelect) {
-        countrySelect.addEventListener('change', function() {
+        countrySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
                 citySelect.innerHTML = '<option value="">Select City</option>';
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (stateSelect) {
-        stateSelect.addEventListener('change', function() {
+        stateSelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
                 districtSelect.innerHTML = '<option value="">Select Area</option>';
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (citySelect) {
-        citySelect.addEventListener('change', function() {
+        citySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'Area');
                 regionSelect.innerHTML = '<option value="">Select Region</option>';
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (districtSelect) {
-        districtSelect.addEventListener('change', function() {
+        districtSelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
             } else {

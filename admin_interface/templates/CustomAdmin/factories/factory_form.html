@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (categorySelect) {
-        categorySelect.addEventListener('change', function() {
+        categorySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
             } else {
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (countrySelect) {
-        countrySelect.addEventListener('change', function() {
+        countrySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
                 // Clear downstream selects
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (stateSelect) {
-        stateSelect.addEventListener('change', function() {
+        stateSelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
                 // Clear downstream selects
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (citySelect) {
-        citySelect.addEventListener('change', function() {
+        citySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'Area');
                 // Clear region
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (districtSelect) {
-        districtSelect.addEventListener('change', function() {
+        districtSelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
             } else {

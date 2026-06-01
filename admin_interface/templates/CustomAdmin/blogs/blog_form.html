@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== CATEGORY → SUBCATEGORY ==========
     if (categorySelect && subcategorySelect) {
-        categorySelect.addEventListener('change', function() {
+        categorySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/categories/ajax/load-subcategories/' + this.value + '/', subcategorySelect, 'Subcategory');
             } else {
@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== LOCATION CASCADES (NO AUTO-TRIGGER ON PAGE LOAD) ==========
     // Country → State
     if (countrySelect && stateSelect) {
-        countrySelect.addEventListener('change', function() {
+        countrySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
                 // Clear downstream selects
@@ -761,7 +761,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // State → City
     if (stateSelect && citySelect) {
-        stateSelect.addEventListener('change', function() {
+        stateSelect.addEventListener('click', function() {
             if (this.value && !stateSelect.disabled) {
                 loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
                 // Clear downstream selects
@@ -782,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // City → District
     if (citySelect && districtSelect) {
-        citySelect.addEventListener('change', function() {
+        citySelect.addEventListener('click', function() {
             if (this.value && !citySelect.disabled) {
                 loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
                 // Clear region
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // District → Region
     if (districtSelect && regionSelect) {
-        districtSelect.addEventListener('change', function() {
+        districtSelect.addEventListener('click', function() {
             if (this.value && !districtSelect.disabled) {
                 loadCascadeData('/location/ajax/regions-by-district/' + this.value + '/', regionSelect, 'Region');
             } else {
