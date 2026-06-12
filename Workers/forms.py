@@ -26,7 +26,7 @@ class WorkerForm(ModelForm):
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., John Doe'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., +91 9876543210'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 9876543210', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'e.g., john.doe@example.com'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),
@@ -83,6 +83,15 @@ class WorkerForm(ModelForm):
             'is_active': 'Check to make your profile visible to potential employers and searchable in job listings',
             'is_verified': 'Check if your profile has been verified by administrators (usually checked by staff after verification)',
         }
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone:
+            phone_str = str(phone).strip()
+            if not phone_str.isdigit():
+                raise forms.ValidationError("Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.")
+            return phone_str
+        return phone
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -260,6 +269,14 @@ class WorkExperienceForm(forms.ModelForm):
         return cleaned_data
 
 class WorkerProfileForm(forms.ModelForm):
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone:
+            phone_str = str(phone).strip()
+            if not phone_str.isdigit():
+                raise forms.ValidationError("Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.")
+            return phone_str
+        return phone
     class Meta:
         model = Worker
         fields = [
@@ -272,7 +289,7 @@ class WorkerProfileForm(forms.ModelForm):
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),

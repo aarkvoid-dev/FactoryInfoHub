@@ -82,7 +82,10 @@ class CustomUserCreationForm(UserCreationForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': _('Enter your phone number')
+            'placeholder': _('Enter your phone number'),
+            'inputmode': 'numeric',
+            'pattern': '[0-9]*',
+            'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"
         }),
         help_text=_('Your contact phone number')
     )
@@ -111,6 +114,15 @@ class CustomUserCreationForm(UserCreationForm):
         if username and User.objects.filter(username=username).exists():
             raise ValidationError(_('A user with that username already exists.'))
         return username
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone:
+            phone_str = str(phone).strip()
+            if not phone_str.isdigit():
+                raise ValidationError(_('Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.'))
+            return phone_str
+        return phone
 
     def clean_email(self):
         """
@@ -296,6 +308,15 @@ class ProfileForm(forms.ModelForm):
     This form allows users to select and associate with a factory and provide personal details.
     """
     
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone:
+            phone_str = str(phone).strip()
+            if not phone_str.isdigit():
+                raise forms.ValidationError(_('Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.'))
+            return phone_str
+        return phone
+
     class Meta:
         model = Profile
         fields = ['factory', 'profile_image', 'date_of_birth', 'gender', 'phone_number', 'address','brand_name','citys']
@@ -320,7 +341,10 @@ class ProfileForm(forms.ModelForm):
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': _('Enter your phone number')
+                'placeholder': _('Enter your phone number'),
+                'inputmode': 'numeric',
+                'pattern': '[0-9]*',
+                'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"
             }),
             'address': forms.Textarea(attrs={
                 'class': 'form-control',

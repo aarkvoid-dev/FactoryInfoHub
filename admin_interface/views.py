@@ -694,7 +694,15 @@ def admin_user_create(request):
         is_active = 'is_active' in request.POST
         role = request.POST.get('role', 'user')
         address = request.POST.get('address', '').strip() or None
-        
+        phone_number = request.POST.get('phone_number', '').strip()
+
+        # Validate phone number: digits only
+        if phone_number and not phone_number.isdigit():
+            messages.error(request, 'Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.')
+            return render(request, 'CustomAdmin/users/user_form.html', {
+                'action': 'create',
+                'title': 'Create New User'
+            })
 
         # Validation
         if not username or not email or not password:
@@ -740,6 +748,7 @@ def admin_user_create(request):
             Profile.objects.create(
                 user=user,
                 role=role,
+                phone_number=phone_number or None,
                 email_notifications=True,
                 in_app_notifications=True,
                 address=address,
@@ -797,10 +806,19 @@ def admin_user_edit(request, user_id):
         if new_role in ['admin', 'staff', 'user']:
             user.profile.role = new_role
         
-        # Update phone number if provided
-        phone_number = request.POST.get('phone_number')
-        if phone_number is not None:
+        # Update phone number if provided (digits only)
+        phone_number = request.POST.get('phone_number', '').strip()
+        if phone_number:
+            if not phone_number.isdigit():
+                messages.error(request, 'Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.')
+                context = {
+                    'user_obj': user,
+                    'title': f'Edit User: {user.username}'
+                }
+                return render(request, 'CustomAdmin/users/user_edit.html', context)
             user.profile.phone_number = phone_number
+        elif phone_number is not None:
+            user.profile.phone_number = ''
         
         user.save()
         user.profile.save()
@@ -1015,6 +1033,10 @@ def admin_factories(request):
     elif f_verified == 'unverified':
         factories = factories.filter(is_verified=False)
     
+    if f_search:
+        terms = f_search.split()
+        factories = and_search_filter(factories, terms, ['name', 'category__name','description','address', 'contact_person'])
+    
     if f_status == 'active':
         factories = factories.filter(is_active=True)
     elif f_status == 'inactive':
@@ -1037,9 +1059,6 @@ def admin_factories(request):
         if sort_by in valid_sort_fields:
             factories = factories.order_by(sort_by)
 
-    if f_search:
-        terms = f_search.split()
-        factories = and_search_filter(factories, terms, ['name', 'category__name','description','address', 'contact_person'])
 
     page = request.GET.get('page', 1)
     paginator = Paginator(factories, 20)  # Show 20 factories per page

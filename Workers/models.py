@@ -28,7 +28,7 @@ class Worker(SoftDeleteModel):
     full_name = models.CharField(max_length=200)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='N')
-    phone_number = models.CharField(max_length=15, blank=True)
+    phone_number = models.CharField(max_length=50, blank=True)
     email = models.EmailField(blank=True)
     
     # Professional Information with Category/Subcategory
@@ -64,7 +64,25 @@ class Worker(SoftDeleteModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(f"{self.full_name}-{self.id or ''}")
+            from django.utils.crypto import get_random_string
+            base_slug = slugify(self.full_name)
+            if not base_slug:
+                base_slug = 'worker'
+            
+            if self.id:
+                # Existing object without a slug - use its ID
+                self.slug = f"{base_slug}-{self.id}"
+            else:
+                # New object - ID not yet assigned, use random suffix for uniqueness
+                self.slug = f"{base_slug}-{get_random_string(8)}"
+        
+        # Ensure slug uniqueness by appending a counter if a collision exists
+        original_slug = self.slug
+        suffix = 1
+        while Worker.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+            self.slug = f"{original_slug}-{suffix}"
+            suffix += 1
+        
         super().save(*args, **kwargs)
     
     def __str__(self):

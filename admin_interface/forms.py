@@ -23,7 +23,7 @@ class AdminProfileForm(forms.ModelForm):
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter address'}),
             'role': forms.Select(attrs={'class': 'form-control'}),
             'email_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -160,6 +160,15 @@ class AdminFactoryForm(forms.ModelForm):
         }
 
 class AdminWorkerForm(forms.ModelForm):
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone:
+            phone_str = str(phone).strip()
+            if not phone_str.isdigit():
+                raise forms.ValidationError("Phone number must contain only digits (0-9). No letters, spaces, or special characters allowed.")
+            return phone_str
+        return phone
+
     class Meta:
         model = Worker
         fields = [
@@ -173,7 +182,7 @@ class AdminWorkerForm(forms.ModelForm):
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full name'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number'}),
+            'phone_number': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter email address'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),
