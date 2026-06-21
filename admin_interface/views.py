@@ -3221,6 +3221,18 @@ def admin_blog_create(request):
         form = AdminBlogForm(request.POST, request.FILES)
         if form.is_valid():
             blog = form.save()
+            # Handle image uploads
+            images = request.FILES.getlist('images')
+            if images:
+                featured_index = int(request.POST.get('featured_image_index', 0))
+                for i, image_file in enumerate(images):
+                    BlogImage.objects.create(
+                        blog_post=blog,
+                        image=image_file,
+                        caption=request.POST.get(f'caption_{i}', ''),
+                        is_featured=(i == featured_index),
+                        order=i
+                    )
             messages.success(request, f'Blog post "{blog.title}" created successfully!')
             return redirect('admin_interface:admin_blogs')
         else:
@@ -3245,10 +3257,44 @@ def admin_blog_edit(request, blog_id):
 
     blog = get_object_or_404(BlogPost, id=blog_id, is_deleted=False)
     
+    # Handle AJAX image operations (delete, set_featured, clear_featured)
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        action = request.POST.get('action')
+        image_id = request.POST.get('image_id')
+        
+        if action == 'delete' and image_id:
+            blog_image = get_object_or_404(BlogImage, id=image_id, blog_post=blog)
+            blog_image.delete()
+            return JsonResponse({'ok': True})
+            
+        elif action == 'set_featured' and image_id:
+            blog_image = get_object_or_404(BlogImage, id=image_id, blog_post=blog)
+            blog.images.update(is_featured=False)
+            blog_image.is_featured = True
+            blog_image.save()
+            return JsonResponse({'ok': True})
+            
+        elif action == 'clear_featured':
+            blog.images.update(is_featured=False)
+            return JsonResponse({'ok': True})
+    
     if request.method == 'POST':
         form = AdminBlogForm(request.POST, request.FILES, instance=blog)
         if form.is_valid():
             blog = form.save()
+            # Handle new image uploads (from drag-drop + fetch submission)
+            images = request.FILES.getlist('images')
+            if images:
+                featured_index = int(request.POST.get('featured_image_index', -1))
+                next_order = blog.images.count()
+                for i, image_file in enumerate(images):
+                    BlogImage.objects.create(
+                        blog_post=blog,
+                        image=image_file,
+                        caption=request.POST.get(f'caption_{i}', ''),
+                        is_featured=(featured_index != -1 and i == featured_index),
+                        order=next_order + i
+                    )
             messages.success(request, f'Blog post "{blog.title}" updated successfully!')
             return redirect('admin_interface:admin_blogs')
         else:

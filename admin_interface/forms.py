@@ -30,13 +30,9 @@ class AdminProfileForm(forms.ModelForm):
             'in_app_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-class MultipleFileInput(forms.FileInput):
+class MultipleFileInput(forms.ClearableFileInput):
     """Custom widget that supports multiple file uploads"""
-    def __init__(self, attrs=None):
-        # Initialize without the multiple attribute first
-        super().__init__(attrs)
-        # Then add the multiple attribute directly
-        self.attrs['multiple'] = 'multiple'
+    allow_multiple_selected = True
 
 class AdminFactoryForm(forms.ModelForm):
     # Add image field for factory images with multiple file support
@@ -518,6 +514,7 @@ class AdminSubCategoryForm(forms.ModelForm):
 class AdminBlogForm(forms.ModelForm):
     district = forms.ModelChoiceField(queryset=District.objects.none(),label="Area",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
     city = forms.ModelChoiceField(queryset=City.objects.none(),label="City/Distric",required=False,widget=forms.Select(attrs={'class': 'form-control'}))
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -649,9 +646,8 @@ class AdminBlogForm(forms.ModelForm):
             'region': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'related_factories': forms.SelectMultiple(attrs={
-                'class': 'form-control',
-                'size': '5'
+            'related_factories': forms.CheckboxSelectMultiple(attrs={
+                'class': 'form-check-input',
             }),
             'published_at': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',

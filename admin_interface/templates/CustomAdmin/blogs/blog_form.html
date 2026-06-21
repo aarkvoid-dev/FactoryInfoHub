@@ -123,6 +123,12 @@
     .btn-icon.featured.inactive {
         color: #94a3b8;
     }
+    .btn-icon.insert-inline {
+        color: #2563eb;
+    }
+    .btn-icon.insert-inline:hover {
+        background: #dbeafe;
+    }
     .badge-featured {
         position: absolute;
         top: 0.5rem;
@@ -132,6 +138,19 @@
         font-size: 0.6rem;
         padding: 0.2rem 0.5rem;
         border-radius: 1rem;
+    }
+    .img-count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff3ee;
+        color: #EB662B;
+        border: 1px solid #fbd5c0;
+        border-radius: 100px;
+        padding: 4px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
     }
     /* Toggle Switch Styles */
     .toggle-switch {
@@ -193,6 +212,50 @@
 
     .status-text .draft {
         color: #64748b;
+    }
+    
+    /* Inline image button styling */
+    .inline-image-btn {
+        width: 100%;
+        aspect-ratio: 1/1;
+        background-size: cover;
+        background-position: center;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    .inline-image-btn:hover {
+        border-color: #EB662B;
+        transform: scale(1.05);
+    }
+    .inline-image-btn .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        border-radius: 0.375rem;
+        color: white;
+        font-size: 0.75rem;
+    }
+    .inline-image-btn:hover .overlay {
+        opacity: 1;
+    }
+    .featured-badge-overlay {
+        position: absolute;
+        top: 0.25rem;
+        left: 0.25rem;
+        background: #EB662B;
+        color: white;
+        font-size: 0.55rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 1rem;
+        z-index: 2;
     }
 </style>
 {% endblock %}
@@ -318,8 +381,21 @@
                                 <div class="text-danger small mt-1">{{ form.content.errors.0 }}</div>
                             {% endif %}
                             <div class="form-text d-flex justify-content-between">
-                                <span>Use markdown for formatting.</span>
+                                <span>Use TinyMCE editor. You can insert inline images using the buttons below.</span>
                                 <span id="content-counter" class="text-muted">0 characters</span>
+                            </div>
+                        </div>
+
+                        <!-- Inline Image Helper Section -->
+                        <div class="mb-4 bg-light p-3 rounded-3 border">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="fw-600 mb-0">📸 Inline Image Insertion</label>
+                                <small class="text-muted">Click an image to insert it at your cursor position in the editor</small>
+                            </div>
+                            <div id="inline-image-buttons" class="row g-2">
+                                <div class="col-12">
+                                    <small class="text-muted">Upload images below first, then click to insert them inline.</small>
+                                </div>
                             </div>
                         </div>
 
@@ -368,66 +444,74 @@
                             {% endif %}
                         </div>
 
-                        <!-- Related Factories (Select2 will handle) -->
+                        <!-- Related Factories (Checkboxes) -->
                         <div class="mb-4">
-                            <label for="{{ form.related_factories.id_for_label }}" class="form-label">{{ form.related_factories.label }}</label>
-                            {{ form.related_factories }}
+                            <label class="form-label">{{ form.related_factories.label }}</label>
+                            <div class="border rounded-3 p-3" style="max-height: 250px; overflow-y: auto;">
+                                {% if form.related_factories.field.queryset.exists %}
+                                    {% for checkbox in form.related_factories %}
+                                        <div class="form-check mb-1">
+                                            {{ checkbox.tag }}
+                                            <label class="form-check-label small" for="{{ checkbox.id_for_label }}">
+                                                {{ checkbox.choice_label }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small mb-0">No active factories available.</p>
+                                {% endif %}
+                            </div>
                             {% if form.related_factories.errors %}
                                 <div class="text-danger small mt-1">{{ form.related_factories.errors.0 }}</div>
                             {% endif %}
                             <div class="form-text">Select factories related to this blog post.</div>
                         </div>
 
-                        <!-- Image Management Section (only for edit) -->
-                        {% if action == 'edit' %}
+                        <!-- ===== IMAGE UPLOAD SECTION ===== -->
                         <div class="mb-4">
-                            <label class="form-label">Blog Images</label>
-                            <div class="row g-3">
-                                {% if blog.id %}
-                                <div class="col-md-6">
-                                    <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary w-100">
-                                        <i class="fas fa-images me-2"></i>Manage Images
-                                    </a>
-                                </div>
-                                {% endif %}
-                                <div class="col-md-6">
-                                    {% if blog.get_featured_image %}
-                                    <div class="border rounded p-2 text-center">
-                                        <small class="text-muted d-block mb-2">Current featured image:</small>
-                                        <img src="{{ blog.get_featured_image.image.url }}" alt="Featured Image" class="img-thumbnail" style="max-height: 100px; object-fit: cover; width: 100%;">
-                                        <small class="text-muted mt-1 d-block">{{ blog.get_featured_image.caption|default:"No caption" }}</small>
-                                    </div>
-                                    {% else %}
-                                    <div class="border rounded p-3 text-center text-muted">
-                                        <i class="fas fa-image fa-2x mb-2"></i>
-                                        <p class="mb-0 small">No featured image set</p>
-                                    </div>
-                                    {% endif %}
-                                </div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label mb-0">📷 Blog Images</label>
+                                <span class="img-count-badge" id="img-count-badge" style="display:none !important;">
+                                    <i class="fas fa-images"></i> <span id="img-count-num">0</span> image(s)
+                                </span>
                             </div>
-                            
-                            <!-- Gallery Preview -->
-                            {% if blog.get_gallery_images %}
-                            <div class="mt-3">
-                                <small class="text-muted d-block mb-2">Gallery images ({{ blog.get_gallery_images|length }}):</small>
-                                <div class="row g-2">
-                                    {% for image in blog.get_gallery_images %}
-                                    <div class="col-md-2 col-sm-3 col-4">
-                                        <div class="border rounded p-1 position-relative" style="height: 80px;">
-                                            <img src="{{ image.image.url }}" alt="Gallery Image" class="img-fluid h-100 w-100" style="object-fit: cover;">
-                                            {% if image.is_featured %}
-                                            <span class="position-absolute top-0 start-0 badge bg-success" style="font-size: 0.6rem;">Featured</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                            <p class="text-muted small mb-3">Upload images for your post. The first image is set as featured by default on create. Use the "Insert Inline" buttons above to place images within your content.</p>
+
+                            <!-- Dropzone -->
+                            <div class="upload-area" id="dropzone">
+                                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <h6 class="fw-600 mt-2 mb-1">Drag & Drop or Click to Upload</h6>
+                                <p class="form-text mb-0">JPG, PNG, WebP · Max 5 MB per file</p>
+                                <input type="file" id="id_images" name="images" multiple accept="image/*" style="display:none;">
+                            </div>
+                            <input type="hidden" name="featured_image_index" id="featured_image_index" value="{% if action == 'edit' %}-1{% else %}0{% endif %}">
+
+                            <!-- Image Preview Grid -->
+                            <div id="image-preview-grid" class="row g-3 mt-3"></div>
+
+                            <!-- Existing images data (hidden, for edit mode) -->
+                            <div id="existing-images-data" style="display: none;">
+                                {% if action == 'edit' and blog and blog.images.exists %}
+                                    {% for image in blog.images.all %}
+                                        <div class="existing-image-info"
+                                             data-index="{{ forloop.counter0 }}"
+                                             data-placeholder="[image:{{ forloop.counter0 }}]"
+                                             data-url="{{ image.image.url }}"
+                                             data-id="{{ image.id }}"
+                                             data-featured="{{ image.is_featured|yesno:'true,false' }}"></div>
                                     {% endfor %}
-                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Link to full image manager for edit mode -->
+                            {% if action == 'edit' and blog.id %}
+                            <div class="mt-3">
+                                <a href="{% url 'admin_interface:admin_blog_images' blog.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-images me-2"></i>Open Full Image Manager
+                                </a>
                             </div>
                             {% endif %}
-                            
-                            <div class="form-text mt-2">Manage blog images including featured image and gallery through the image management page.</div>
                         </div>
-                        {% endif %}
 
                         <!-- Form Actions -->
                         <div class="d-flex gap-3 pt-3 border-top">
@@ -456,6 +540,8 @@
                             <li>Title should be descriptive and SEO‑friendly.</li>
                             <li>Excerpt appears in blog lists and search results.</li>
                             <li>Featured image should be 1200x630 pixels for best display.</li>
+                            <li>Drag & drop images or click the upload area to select files.</li>
+                            <li>Click an image's "Insert Inline" button to place it in the editor.</li>
                             <li>Related factories help with content organization.</li>
                             <li>Unpublished posts are saved as drafts.</li>
                         </ul>
@@ -468,6 +554,7 @@
                             <li>Break up long text with headings.</li>
                             <li>Add relevant keywords for SEO.</li>
                             <li>Include calls‑to‑action where appropriate.</li>
+                            <li>Insert images inline using the image buttons below the editor.</li>
                         </ul>
                     </div>
                     
@@ -584,67 +671,51 @@
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ========== GLOBAL VARS ==========
+    let uploadedImages = [];
+    const isEditMode = {% if action == 'edit' %}true{% else %}false{% endif %};
+
+    // ========== TINYMCE INIT ==========
     tinymce.init({
-        selector: '#id_content',  // Use your actual field ID
+        selector: '#{{ form.content.id_for_label }}',
         height: 500,
         plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
         toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
         menubar: 'edit insert view format table tools',
         branding: false,
         promotion: false,
-
-        // Allow drag/drop of images
         paste_data_images: true,
-        // Optional: automatically upload pasted/dropped images
         automatic_uploads: true,
-
-        // Custom file picker (opens system file dialog)
         file_picker_callback: function(callback, value, meta) {
-            // Create an invisible file input element
             const input = document.createElement('input');
             input.setAttribute('type', 'file');
-            
-            // Set accepted file types based on what the user is picking
             if (meta.filetype === 'image') {
                 input.setAttribute('accept', 'image/*');
-            } else if (meta.filetype === 'media') {
-                input.setAttribute('accept', 'video/*,audio/*');
             } else {
                 input.setAttribute('accept', '*/*');
             }
-            
             input.onchange = function() {
                 const file = this.files[0];
                 if (!file) return;
-                
-                // If you want to upload the file to your server:
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('_token', '{{ csrf_token }}'); // Django CSRF
-                
-                fetch('/upload-tinymce/', {  // Create this URL in your Django urls.py
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                fetch('/upload-tinymce/', {
                     method: 'POST',
                     body: formData,
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.location) {
-                        callback(data.location);  // Insert the image URL
+                        callback(data.location);
                     } else {
                         console.error('Upload failed');
                     }
                 })
                 .catch(error => console.error('Error:', error));
-                
-                // Alternative: embed file as Base64 (no server upload)
-                // const reader = new FileReader();
-                // reader.onload = function(e) {
-                //     callback(e.target.result);
-                // };
-                // reader.readAsDataURL(file);
             };
-            
-            input.click();  // Open file explorer
+            input.click();
         },
     });
 
@@ -733,13 +804,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== LOCATION CASCADES (NO AUTO-TRIGGER ON PAGE LOAD) ==========
-    // Country → State
+    // ========== LOCATION CASCADES ==========
     if (countrySelect && stateSelect) {
         countrySelect.addEventListener('click', function() {
             if (this.value) {
                 loadCascadeData('/location/ajax/states-by-country/' + this.value + '/', stateSelect, 'State');
-                // Clear downstream selects
                 citySelect.innerHTML = '<option value="">Select City</option>';
                 citySelect.disabled = true;
                 districtSelect.innerHTML = '<option value="">Select District</option>';
@@ -759,12 +828,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // State → City
     if (stateSelect && citySelect) {
         stateSelect.addEventListener('click', function() {
             if (this.value && !stateSelect.disabled) {
                 loadCascadeData('/location/ajax/cities-by-state/' + this.value + '/', citySelect, 'City');
-                // Clear downstream selects
                 districtSelect.innerHTML = '<option value="">Select District</option>';
                 districtSelect.disabled = true;
                 regionSelect.innerHTML = '<option value="">Select Region</option>';
@@ -780,12 +847,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // City → District
     if (citySelect && districtSelect) {
         citySelect.addEventListener('click', function() {
             if (this.value && !citySelect.disabled) {
                 loadCascadeData('/location/ajax/districts-by-city/' + this.value + '/', districtSelect, 'District');
-                // Clear region
                 regionSelect.innerHTML = '<option value="">Select Region</option>';
                 regionSelect.disabled = true;
             } else {
@@ -797,7 +862,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // District → Region
     if (districtSelect && regionSelect) {
         districtSelect.addEventListener('click', function() {
             if (this.value && !districtSelect.disabled) {
@@ -809,9 +873,243 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== FORM VALIDATION ==========
+    // ========== IMAGE MANAGEMENT ==========
+    function updateCountBadge() {
+        const existing = document.querySelectorAll('#existing-images-data .existing-image-info').length;
+        const total = existing + uploadedImages.length;
+        const badge = document.getElementById('img-count-badge');
+        const num = document.getElementById('img-count-num');
+        if (total > 0) {
+            badge.style.removeProperty('display');
+            num.textContent = total;
+        } else {
+            badge.style.setProperty('display', 'none', 'important');
+        }
+    }
+
+    function insertImagePlaceholder(placeholder) {
+        const editor = tinymce.get('{{ form.content.id_for_label }}');
+        if (editor) {
+            editor.insertContent(placeholder);
+        } else {
+            // Fallback if TinyMCE not ready
+            const textarea = document.getElementById('{{ form.content.id_for_label }}');
+            if (textarea) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            }
+        }
+    }
+
+    function addInlineButton(placeholder, imageUrl) {
+        const container = document.getElementById('inline-image-buttons');
+        if (!container) return;
+        // Remove the "no images" placeholder if present
+        const noImagesMsg = container.querySelector('.text-muted');
+        if (noImagesMsg) noImagesMsg.remove();
+        
+        const btnCol = document.createElement('div');
+        btnCol.className = 'col-4 col-sm-3 col-md-2';
+        btnCol.innerHTML = `
+            <button type="button" class="inline-image-btn" title="Click to insert at cursor" style="background-image:url('${imageUrl}')">
+                <div class="overlay"><i class="fas fa-plus-circle me-1"></i> Insert</div>
+            </button>`;
+        btnCol.querySelector('button').addEventListener('click', () => insertImagePlaceholder(placeholder));
+        container.appendChild(btnCol);
+    }
+
+    function renderPreviews() {
+        const previewGrid = document.getElementById('image-preview-grid');
+        const inlineContainer = document.getElementById('inline-image-buttons');
+        if (!previewGrid || !inlineContainer) return;
+        previewGrid.innerHTML = '';
+        inlineContainer.innerHTML = '';
+
+        // Process existing images from hidden div
+        const existingInfos = document.querySelectorAll('#existing-images-data .existing-image-info');
+        existingInfos.forEach(info => {
+            const placeholder = info.dataset.placeholder;
+            const url = info.dataset.url;
+            const imageId = info.dataset.id;
+            const isFeatured = info.dataset.featured === 'true';
+            addInlineButton(placeholder, url);
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6';
+            col.dataset.existingId = imageId;
+            col.innerHTML = `
+                <div class="image-preview-card position-relative">
+                    ${isFeatured ? '<span class="featured-badge"><i class="fas fa-star"></i> Featured</span>' : ''}
+                    <img src="${url}" alt="">
+                    <div class="card-body">
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-inline-btn" data-placeholder="${placeholder}" title="Insert inline">
+                                <i class="fas fa-plus-circle"></i> Insert
+                            </button>
+                            <button type="button" class="btn btn-sm ${isFeatured ? 'btn-warning' : 'btn-outline-warning'} set-featured-existing" data-id="${imageId}" title="Set as featured">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-existing" data-id="${imageId}" title="Delete image">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            col.querySelector('.insert-inline-btn').addEventListener('click', () => insertImagePlaceholder(placeholder));
+            col.querySelector('.delete-existing').addEventListener('click', () => deleteExistingImage(imageId, col));
+            const featBtn = col.querySelector('.set-featured-existing');
+            if (featBtn) featBtn.addEventListener('click', () => setFeaturedExisting(imageId));
+            previewGrid.appendChild(col);
+        });
+
+        // Process newly uploaded images
+        uploadedImages.forEach((file, idx) => {
+            const placeholder = `[image:${idx}]`;
+            const reader = new FileReader();
+            reader.onload = e => {
+                addInlineButton(placeholder, e.target.result);
+                const featuredNewIdx = parseInt(document.getElementById('featured_image_index').value ?? '-1');
+                const isFeatured = (isEditMode ? false : (featuredNewIdx === idx));
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6';
+                col.dataset.newIndex = idx;
+                col.innerHTML = `
+                    <div class="image-preview-card position-relative">
+                        ${isFeatured ? '<span class="featured-badge"><i class="fas fa-star"></i> Featured</span>' : ''}
+                        <img src="${e.target.result}" alt="">
+                        <div class="card-body">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <button type="button" class="btn btn-sm btn-outline-primary insert-inline-btn" data-placeholder="${placeholder}" title="Insert inline">
+                                    <i class="fas fa-plus-circle"></i> Insert
+                                </button>
+                                <button type="button" class="btn btn-sm ${isFeatured ? 'btn-warning' : 'btn-outline-warning'} set-featured-new" data-index="${idx}" title="Set as featured">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-new" data-index="${idx}" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="img-filename text-muted small text-truncate mt-1">${file.name}</div>
+                        </div>
+                    </div>`;
+                col.querySelector('.insert-inline-btn').addEventListener('click', () => insertImagePlaceholder(placeholder));
+                col.querySelector('.delete-new').addEventListener('click', () => {
+                    uploadedImages.splice(idx, 1);
+                    const fi = parseInt(document.getElementById('featured_image_index').value || '-1');
+                    if (fi >= uploadedImages.length) document.getElementById('featured_image_index').value = '-1';
+                    renderPreviews();
+                });
+                const setFeatBtn = col.querySelector('.set-featured-new');
+                setFeatBtn.addEventListener('click', () => {
+                    if (isEditMode) {
+                        // Clear any featured existing images via AJAX
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        fetch(window.location.href, {
+                            method: 'POST',
+                            headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+                            body: new URLSearchParams({ action: 'clear_featured' })
+                        }).then(r => r.json()).then(data => {
+                            if (data.ok) {
+                                document.querySelectorAll('#existing-images-data .existing-image-info').forEach(el => el.dataset.featured = 'false');
+                                document.getElementById('featured_image_index').value = idx;
+                                renderPreviews();
+                            }
+                        }).catch(() => {
+                            // Fallback: just set locally
+                            document.getElementById('featured_image_index').value = idx;
+                            renderPreviews();
+                        });
+                    } else {
+                        document.getElementById('featured_image_index').value = idx;
+                        renderPreviews();
+                    }
+                });
+                previewGrid.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        if (existingInfos.length === 0 && uploadedImages.length === 0) {
+            inlineContainer.innerHTML = '<div class="col-12"><small class="text-muted">No images available. Upload images above to get insertion buttons.</small></div>';
+        }
+        updateCountBadge();
+    }
+
+    function deleteExistingImage(imageId, colEl) {
+        if (!confirm('Remove this image?')) return;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+            body: new URLSearchParams({ action: 'delete', image_id: imageId })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) {
+                colEl.remove();
+                const existingDiv = document.querySelector(`#existing-images-data .existing-image-info[data-id="${imageId}"]`);
+                if (existingDiv) existingDiv.remove();
+                updateCountBadge();
+                renderPreviews();
+            }
+        }).catch(() => {
+            // fallback: just remove from DOM
+            colEl.remove();
+            const existingDiv = document.querySelector(`#existing-images-data .existing-image-info[data-id="${imageId}"]`);
+            if (existingDiv) existingDiv.remove();
+            updateCountBadge();
+            renderPreviews();
+        });
+    }
+
+    function setFeaturedExisting(imageId) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: { 'x-requested-with': 'XMLHttpRequest', 'x-csrftoken': csrfToken },
+            body: new URLSearchParams({ action: 'set_featured', image_id: imageId })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) {
+                document.querySelectorAll('#existing-images-data .existing-image-info').forEach(el => {
+                    el.dataset.featured = (el.dataset.id === String(imageId)) ? 'true' : 'false';
+                });
+                document.getElementById('featured_image_index').value = '-1';
+                renderPreviews();
+            }
+        }).catch(() => {
+            renderPreviews();
+        });
+    }
+
+    // ========== IMAGE UPLOAD HANDLING ==========
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('id_images');
+    if (dropzone && fileInput) {
+        function handleFiles(files) {
+            uploadedImages = [...uploadedImages, ...files];
+            renderPreviews();
+        }
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            handleFiles(Array.from(e.dataTransfer.files));
+        });
+        fileInput.addEventListener('change', e => {
+            handleFiles(Array.from(e.target.files));
+            fileInput.value = '';
+        });
+    }
+
+    // ========== FORM SUBMISSION (fetch + FormData for reliable file upload) ==========
     const form = document.getElementById('blogForm');
-    form.addEventListener('submit', function(e) {
+    let submitting = false;
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (submitting) return;
+        submitting = true;
+
         let isValid = true;
         const requiredFields = ['{{ form.title.id_for_label }}', '{{ form.content.id_for_label }}', '{{ form.category.id_for_label }}'];
         requiredFields.forEach(fieldId => {
@@ -824,10 +1122,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         if (!isValid) {
-            e.preventDefault();
+            submitting = false;
             alert('Please fill in all required fields.');
+            return;
+        }
+
+        // Build FormData with all form fields + uploaded images
+        if (typeof tinymce !== 'undefined') tinymce.triggerSave();
+        const formData = new FormData(form);
+        
+        // Append uploaded (drag-drop) images to FormData
+        uploadedImages.forEach(file => {
+            formData.append('images', file);
+        });
+
+        try {
+            const response = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+            });
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            // If not redirected, reload the page to show errors
+            const html = await response.text();
+            document.open();
+            document.write(html);
+            document.close();
+        } catch (err) {
+            console.error(err);
+            alert('Submission failed. Please try again.');
+            submitting = false;
         }
     });
+
+    // ========== INITIAL RENDER ==========
+    renderPreviews();
 });
 </script>
 {% endblock %}
