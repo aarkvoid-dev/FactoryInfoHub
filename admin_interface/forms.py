@@ -34,9 +34,65 @@ class MultipleFileInput(forms.ClearableFileInput):
     """Custom widget that supports multiple file uploads"""
     allow_multiple_selected = True
 
+class MultipleImageField(forms.Field):
+    """Custom field that handles multiple image file uploads"""
+    default_error_messages = {
+        'invalid_image': 'Upload a valid image. The file you uploaded was either not an image or a corrupted image.',
+        'invalid_image_type': 'Invalid image format. Please upload JPG, PNG, GIF, or WebP files.',
+        'file_too_large': 'Image "%(name)s" is too large. Max size is 5MB.',
+    }
+
+    def to_python(self, data):
+        """Return a list of uploaded files."""
+        if not data:
+            return []
+        if isinstance(data, list):
+            return data
+        return [data]
+
+    def validate(self, value):
+        """Validate each file is a valid image."""
+        super().validate(value)
+        if not value:
+            return
+        
+        import os
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+        
+        for image_file in value:
+            # Check file extension first
+            file_extension = os.path.splitext(image_file.name)[1].lower()
+            if file_extension not in valid_extensions:
+                raise forms.ValidationError(
+                    self.error_messages['invalid_image_type'],
+                    code='invalid_image_type'
+                )
+            
+            # Check file size (max 5MB)
+            if image_file.size > 5 * 1024 * 1024:
+                raise forms.ValidationError(
+                    self.error_messages['file_too_large'],
+                    code='file_too_large',
+                    params={'name': image_file.name}
+                )
+            
+            # Try to verify it's an actual image
+            try:
+                from PIL import Image
+                # Check if it's a valid image by attempting to open it
+                image_file.seek(0)
+                image = Image.open(image_file)
+                image.verify()
+                image_file.seek(0)
+            except Exception:
+                raise forms.ValidationError(
+                    self.error_messages['invalid_image'],
+                    code='invalid_image'
+                )
+
 class AdminFactoryForm(forms.ModelForm):
     # Add image field for factory images with multiple file support
-    image = forms.ImageField(required=False, widget=MultipleFileInput(attrs={
+    image = MultipleImageField(required=False, widget=MultipleFileInput(attrs={
         'class': 'form-control',
         'accept': 'image/*',
     }))
