@@ -687,10 +687,10 @@ html { font-size: 14px; }
                 loop 
                 muted 
                 playsinline 
-                preload="metadata"
+                preload="none"
                 poster="{% static 'img/video-placeholder.jpg' %}"
+                data-src="{{ home_page_video.video.url }}"
               >
-                <source src="{{ home_page_video.video.url }}" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
               {% else %}
