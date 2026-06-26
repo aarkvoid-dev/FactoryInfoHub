@@ -5,7 +5,8 @@
 
 {% block extra_css %}
 <!-- Swiper CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" /> -->
+<link rel="stylesheet" href="{% static 'css/swiper-bundle.min.css' %}">
 
 <style>
 /* ============================================
@@ -902,7 +903,8 @@ html { font-size: 14px; }
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script> -->
+<script src="{% static 'js/swiper-bundle.min.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function getBreakpoints(cols) {

@@ -17,91 +17,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Google fonts -->
-  <!-- <link rel="preconnect" href="https://fonts.googleapis.com/"> -->
-  <!-- <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin> -->
-  <!-- <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet"> -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <!-- Website CSS -->
   <link rel="stylesheet" href="{% static 'css/vendors.css' %}">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <!-- Font Awesome 6.x -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/optimized-base.css' %}">
   
-  <!-- Main site CSS isolation - only apply to main site, not admin -->
-  <style>
-    /* Wrap all main site styles in a specific class to prevent admin conflicts */
-    .main-site-content {
-      /* Your main site styles here */
-    }
-    
-    /* Ensure admin pages are not affected by main site styles */
-    body:not(.djn-admin) .main-site-content {
-      /* Main site specific styles */
-    }
-  </style>
-
-  <!-- Mobile responsive styles -->
-  <style>
-    @media (max-width: 768px) {
-      .desktopNav__item a {
-        font-size: 14px;
-        padding: 8px 12px;
-      }
-
-      .desktopNav__item {
-        margin: 5px 0;
-      }
-
-      .header__logo h4 {
-        font-size: 20px;
-      }
-
-      .header__right .button {
-        font-size: 12px;
-        padding: 6px 12px;
-      }
-
-      .header__right a {
-        font-size: 14px;
-      }
-    }
-    @media (max-width: 1024px) {
-        .desktopNav, .xl\:d-none {
-            display: none !important;
-        }
-        
-        /* 2. Force the mobile menu button to become visible */
-        .headerMobile__left {
-            display: block !important;
-        }
-
-        /* 3. Adjust spacing for the 'middle' tablet size */
-        .header__container {
-            padding: 0 20px;
-        }
-    }
-
-    /* 4. Fix for the 'Middle' screen sizes (768px to 1024px) */
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .header__right {
-            display: flex !important;
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .header__right a {
-            font-size: 0;          /* hides the text */
-        }
-        .header__right a i {
-            font-size: 1rem;       /* ensures icon remains visible */
-            margin-right: 0;
-        }
-    }
-
-
-  </style>
+  <!-- Preload Font Awesome for better performance -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
 
   <!-- CSRF Token -->
   <meta name="csrf-token" content="{{ csrf_token }}">
@@ -869,10 +792,9 @@
   <!-- Website JavaScript -->
   <!-- Google Maps Dynamic Loader: only loads Maps API on pages that have map elements -->
   <script src="{% static 'js/maps-loader.js' %}" defer></script>
-  <!-- Bootstrap JS Bundle (required for modals, tooltips, etc.) -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script> -->
-  <script src="{% static 'js/vendors.js' %}"></script>
-  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}" defer></script>
+  <script src="{% static 'js/vendors.js' %}" defer></script>
+  <script src="{% static 'js/main.js' %}" defer></script>
 
   <!-- Mobile menu JavaScript -->
   <script>
