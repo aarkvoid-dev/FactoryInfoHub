@@ -277,16 +277,15 @@ def validate_payment_gateway_config():
 
 def factory_list(request):
     """List all factories with filtering and search"""
-    # Only show user's factories if user is authenticated
-    # if request.user.is_authenticated:
-    #     factories = Factory.objects.filter(Q(is_active=True, is_deleted=False,is_verified=True) | Q(created_by=request.user)).select_related(
-    #         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
-    #     )
-    # else:
-    #     # For anonymous users, only show public factories
-    #     factories = Factory.objects.filter(is_active=True, is_deleted=False, is_verified=True).select_related(
-    #         'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
-    #     )
+    from django.core.cache import cache
+    
+    # Generate cache key based on query parameters
+    cache_key = f'factory_list_{request.GET.urlencode()}'
+    cached_context = cache.get(cache_key)
+    
+    if cached_context and not request.user.is_authenticated:
+        # Only use cache for non-authenticated users to avoid showing other users' cart data
+        return render(request, 'karkahan/factory_list.html', cached_context)
 
     factories = Factory.objects.filter(Q(is_active=True, is_deleted=False)).select_related(
             'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
@@ -921,6 +920,16 @@ def get_regions(request):
 # Factory Detail with Purchase Logic
 def factory_detail(request, slug):
     """Display factory details with purchase options"""
+    from django.core.cache import cache
+    
+    # For anonymous users, try cache first
+    use_cache = not request.user.is_authenticated and not request.user.is_staff
+    cache_key = f'factory_detail_{slug}'
+    
+    if use_cache:
+        cached_context = cache.get(cache_key)
+        if cached_context:
+            return render(request, 'karkahan/factory_detail.html', cached_context)
     
     factory = get_object_or_404(Factory, slug=slug)
     
@@ -933,15 +942,12 @@ def factory_detail(request, slug):
         track_factory_view(factory, request)
     
     # Get related factories (same category, excluding current factory)
-    # related_factories = Factory.objects.filter(
-    #     category=factory.category,
-    #     is_active=True,
-    #     is_deleted=False
-    # ).exclude(slug=factory.slug).order_by('?')[:3]
-
     related_factories = Factory.objects.filter(
         category=factory.category, is_deleted=False
-    ).exclude(slug=factory.slug).select_related('city', 'state').order_by('-created_at')[:3]
+    ).exclude(slug=factory.slug).select_related('city', 'state').only(
+        'id', 'name', 'slug', 'city', 'state', 'created_at',
+        'city__name', 'state__name'
+    ).order_by('-created_at')[:3]
 
     user_has_purchased = False
     if request.user.is_authenticated:
@@ -963,6 +969,11 @@ def factory_detail(request, slug):
         'user_has_purchased': user_has_purchased,
         'view_stats': view_stats,
     }
+    
+    # Cache for 10 minutes for anonymous users
+    if use_cache:
+        cache.set(cache_key, context, 600)
+    
     return render(request, 'karkahan/factory_detail.html', context)
 
 

@@ -1,0 +1,248 @@
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .desktopNav__item a {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .desktopNav__item {
+    margin: 5px 0;
+  }
+
+  .header__logo h4 {
+    font-size: 20px;
+  }
+
+  .header__right .button {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .header__right a {
+    font-size: 14px;
+  }
+}
+@media (max-width: 1024px) {
+    .desktopNav, .xl\:d-none {
+        display: none !important;
+    }
+    
+    /* Force mobile menu button visible */
+    .headerMobile__left {
+        display: block !important;
+    }
+
+    .header__container {
+        padding: 0 20px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .header__right {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .header__right a {
+        font-size: 0;
+    }
+    .header__right a i {
+        font-size: 1rem;
+        margin-right: 0;
+    }
+}
+
+/* Message Modal Overlay */
+.message-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.message-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Message Modal Content */
+.message-modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-30px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Individual Message Popups */
+.message-popup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: popupSlideIn 0.3s ease-out;
+  transition: all 0.3s ease;
+}
+
+.message-popup:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes popupSlideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Message Types */
+.message-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+}
+
+.message-error {
+  background: linear-gradient(135deg, #dc3545, #fd7e14);
+  color: white;
+  box-shadow: 0 8px 24px rgba(220, 53, 69, 0.3);
+}
+
+.message-warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  color: #212529;
+  box-shadow: 0 8px 24px rgba(255, 193, 7, 0.3);
+}
+
+.message-info {
+  background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+  color: white;
+  box-shadow: 0 8px 24px rgba(23, 162, 184, 0.3);
+}
+
+/* Message Icon */
+.message-icon {
+  font-size: 24px;
+  margin-right: 16px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.message-success .message-icon i {
+  filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.5));
+}
+
+.message-error .message-icon i {
+  filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.5));
+}
+
+.message-warning .message-icon i {
+  filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.5));
+}
+
+.message-info .message-icon i {
+  filter: drop-shadow(0 2px 4px rgba(23, 162, 184, 0.5));
+}
+
+/* Message Text */
+.message-text {
+  flex-grow: 1;
+  font-weight: 600;
+  font-size: 16px;
+  text-align: left;
+}
+
+/* Close Button */
+.message-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+}
+
+.message-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.message-close-btn i {
+  font-size: 16px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .message-modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .message-popup {
+    padding: 14px 16px;
+  }
+
+  .message-text {
+    font-size: 14px;
+  }
+
+  .message-icon {
+    font-size: 20px;
+    margin-right: 12px;
+  }
+}
+
+/* Auto-hide animation */
+.message-popup.removing {
+  animation: popupSlideOut 0.3s ease-in;
+  opacity: 0;
+}
+
+@keyframes popupSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+}

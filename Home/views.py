@@ -24,33 +24,42 @@ def home(request):
 
     featured_factories = Factory.objects.filter(
         is_verified=True, is_active=True, is_deleted=False
-    ).select_related('category', 'city', 'state').order_by('-created_at')[:10]
+    ).select_related('category', 'city', 'state').only(
+        'id', 'name', 'slug', 'category', 'city', 'state', 'created_at',
+        'category__name', 'city__name', 'state__name'
+    ).order_by('-created_at')[:10]
 
     latest_posts = BlogPost.objects.filter(
         is_published=True, is_deleted=False
-    ).select_related('author', 'category', 'subcategory').order_by('-created_at')[:10]
+    ).select_related('author', 'category', 'subcategory').only(
+        'id', 'title', 'slug', 'author', 'category', 'subcategory', 'created_at',
+        'author__username', 'category__name', 'subcategory__name'
+    ).order_by('-created_at')[:10]
 
-    category_stats = Category.objects.annotate(
+    category_stats = Category.objects.filter(factories__is_active=True
+    ).distinct().annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
     ).order_by('-factory_count')
+  
 
-    city_stats = City.objects.annotate(
+    city_stats = City.objects.filter(factories__is_active=True
+    ).distinct().annotate(
         factory_count=Count('factories', filter=Q(factories__is_deleted=False, factories__is_active=True))
-    ).filter(factory_count__gt=0).order_by('-factory_count')[:20]
+    ).order_by('-factory_count')[:20]
 
     total_factories = Factory.objects.filter(is_deleted=False).count()
     active_factories = Factory.objects.filter(is_active=True, is_deleted=False).count()
     verified_factories = Factory.objects.filter(is_verified=True, is_deleted=False).count()
     categories_with_factories = Category.objects.filter(
         factories__isnull=False, factories__is_deleted=False
-    ).distinct().count()
+    ).distinct().only('id', 'name').count()
     countries_covered = Country.objects.filter(
         factories__isnull=False, factories__is_deleted=False
-    ).distinct().count()
+    ).distinct().only('id', 'name').count()
     cities_covered = City.objects.filter(
         factories__isnull=False, factories__is_deleted=False
-    ).distinct().count()
-    total_capacity = Factory.objects.filter(is_deleted=False).aggregate(
+    ).distinct().only('id', 'name').count()
+    total_capacity = Factory.objects.filter(is_deleted=False).only('annual_turnover').aggregate(
         total_capacity=Sum('annual_turnover')
     )['total_capacity'] or 0
 
