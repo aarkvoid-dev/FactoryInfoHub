@@ -4,7 +4,7 @@
 <html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
 <head>
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EF9R66C55H"></script>
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-EF9R66C55H"></script> -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -160,6 +160,16 @@
     <div class="preloader__title"> Fashion Chemistry </div>
   </div>
 
+  <!-- Fallback: auto-hide preloader after 4 seconds even if JS fails -->
+  <script>
+    setTimeout(function() {
+      var preloader = document.querySelector('.js-preloader');
+      if (preloader && !preloader.classList.contains('-is-hidden')) {
+        preloader.classList.add('-is-hidden');
+      }
+    }, 4000);
+  </script>
+
   <div class="tourPagesSidebar" data-x="tourPagesSidebar" data-x-toggle="-is-active">
     <div class="tourPagesSidebar__overlay"></div>
     <div class="tourPagesSidebar__content">
@@ -191,7 +201,7 @@
     <!-- Header Section -->
     {% block header %}
     <header class="header -type-9 js-header" style="background: #000;">
-        <div data-anim="fade delay-3" class="header__container container d-flex items-center justify-between">
+        <div class="header__container container d-flex items-center justify-between">
             
             <div class="headerMobile__left">
             <button class="header__menuBtn js-menu-button">
@@ -857,9 +867,10 @@
   </footer>
 
   <!-- Website JavaScript -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAz77U5XQuEME6TpftaMdX0bBelQxXRlM"></script>
+  <!-- Google Maps Dynamic Loader: only loads Maps API on pages that have map elements -->
+  <script src="{% static 'js/maps-loader.js' %}" defer></script>
   <!-- Bootstrap JS Bundle (required for modals, tooltips, etc.) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="{% static 'js/vendors.js' %}"></script>
   <script src="{% static 'js/main.js' %}"></script>
 
