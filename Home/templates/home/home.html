@@ -1021,6 +1021,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Lazy load video - load only when needed
+function loadVideo() {
+    const video = document.getElementById('mainVideo');
+    if (!video || video.src) return; // Already loaded or no video element
+    
+    const videoSrc = video.dataset.src;
+    if (videoSrc) {
+        video.src = videoSrc;
+        video.load();
+    }
+}
+
+// Load video after page is fully loaded (loads last)
+if (document.readyState === 'complete') {
+    loadVideo();
+} else {
+    window.addEventListener('load', loadVideo);
+}
+
 // Video controls
 function toggleMute() {
     const video = document.getElementById('mainVideo');
