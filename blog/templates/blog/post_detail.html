@@ -181,11 +181,11 @@
         margin: 0 0 1em;
     }
     .post-content ul, .post-content ol {
-        padding-left: 2em;
-        margin: 1em 0;
+        padding-left: 1.5em;
+        margin: 0.8em 0;
     }
     .post-content li {
-        margin: 0.5em 0;
+        margin: 0.3em 0;
     }
     .post-content ul li {
         list-style-type: disc;
@@ -304,7 +304,7 @@
                 </div>
 
                 <div class="post-content mt-20">
-                    {{ post.content|render_blog_content:post.images.all }}
+                    {{ post.content|render_blog_content:post.images.all|safe }}
                 </div>
 
                 <!-- Gallery -->
