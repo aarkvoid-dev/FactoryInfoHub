@@ -556,62 +556,89 @@
                         aria-expanded="false" 
                         aria-controls="share-section"
                         title="Toggle sharing options">
-                    <i class="fas fa-share-alt share-icon"></i>
+                    <i class="fas fa-share-alt share-icon"  style="color: #ffffff;"></i>
                 </button>
-                <span class="text-white opacity-75 share-label">Share this establishment</span>
+                <span class="text-white opacity-75 share-label" >Share this establishment</span>
             </div>
             <div id="share-section" class="share-section" aria-hidden="true">
                 <div class="d-flex flex-wrap gap-2 justify-content-start">
                     <a href="https://api.whatsapp.com/send?text={{ factory.name }}%20-%20{{ factory.city.name }},%20{{ factory.state.name }}%20-%20{{ request.build_absolute_uri }}" 
                     target="_blank" 
-                    class="btn btn-success btn-sm rounded-circle p-2"
-                    title="Share on WhatsApp">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #25D366; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on WhatsApp"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(37, 211, 102, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
                     target="_blank" 
-                    class="btn btn-primary btn-sm rounded-circle p-2"
-                    title="Share on Facebook">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #1877F2; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on Facebook"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(24, 119, 242, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-facebook-f"></i>
                     </a>
                     <a href="https://twitter.com/intent/tweet?text={{ factory.name }}%20-%20{{ factory.city.name }},%20{{ factory.state.name }}&url={{ request.build_absolute_uri }}" 
                     target="_blank" 
-                    class="btn btn-info btn-sm rounded-circle p-2"
-                    title="Share on Twitter">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #1DA1F2; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on Twitter"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(29, 161, 242, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-twitter"></i>
                     </a>
                     <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" 
                     target="_blank" 
-                    class="btn btn-secondary btn-sm rounded-circle p-2"
-                    title="Share on LinkedIn">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #0A66C2; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on LinkedIn"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(10, 102, 194, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
                     <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&media={{ factory.get_primary_image|urlencode }}&description={{ factory.name }}" 
                     target="_blank" 
-                    class="btn btn-danger btn-sm rounded-circle p-2"
-                    title="Share on Pinterest">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #BD081C; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on Pinterest"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(189, 8, 28, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-pinterest-p"></i>
                     </a>
                     <a href="https://www.threads.net/intent/post?text={{ factory.name }}%20-%20{{ factory.city.name }},%20{{ factory.state.name }}%20-%20&url={{ request.build_absolute_uri|urlencode }}" 
                     target="_blank" 
-                    class="btn btn-dark btn-sm rounded-circle p-2"
-                    title="Share on Threads">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #000000; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Share on Threads"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-threads"></i>
                     </a>
-                    <button class="btn btn-outline-light btn-sm rounded-circle p-2" 
+                    <button class="rounded-circle p-2 share-btn" 
                             onclick="copyLinkToClipboard()" 
-                            title="Copy link to clipboard">
+                            title="Copy link to clipboard"
+                            style="background-color: #6c757d; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(108, 117, 125, 0.3)';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fas fa-link"></i>
                     </button>
                     <!-- <a href="https://www.youtube.com/results?search_query={{ factory.name|urlencode }}" 
                     target="_blank" 
-                    class="btn btn-outline-danger btn-sm rounded-circle p-2"
-                    title="Search YouTube for this factory">
+                    class="rounded-circle p-2 share-btn"
+                    style="background-color: #FF0000; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s;"
+                    title="Search YouTube for this factory"
+                    onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(255, 0, 0, 0.3)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-youtube"></i>
                     </a> -->
-                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2"
+                    <button class="rounded-circle p-2 share-btn"
                             onclick="shareViaYouTube()"
-                            title="Copy link and open YouTube">
+                            title="Copy link and open YouTube"
+                            style="background-color: #FF0000; color: white; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(255, 0, 0, 0.3)';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                         <i class="fab fa-youtube"></i>
                     </button>
                 </div>
@@ -667,7 +694,7 @@
         </div>
         {% else %}
         <div class="purchase-actions">
-            <span class="badge bg-secondary px-3 py-2 rounded-pill">Not Available for Purchase</span>
+            <span class="badge bg-secondary px-3 py-2 rounded-pill" style="color: white;">Not Available for Purchase</span>
         </div>
         {% endif %}
     </div>
@@ -805,7 +832,18 @@
 
                     <div class="mt-4">
                         {% if user.is_staff or factory.created_by == user %}
-                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold mb-2">
+                        <a href="{% url 'karkahan:factory_edit' slug=factory.slug %}" 
+                           class="w-100 rounded-pill py-2 fw-bold mb-2"
+                           style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); 
+                                  color: white; 
+                                  border: none; 
+                                  text-decoration: none; 
+                                  display: inline-flex; 
+                                  align-items: center; 
+                                  justify-content: center;
+                                  transition: all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)';"
+                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             <i class="fas fa-edit me-2"></i> Edit Factory
                         </a>
                         {% endif %}
@@ -813,14 +851,38 @@
                         {% if user.is_superuser %}
                         <div class="btn-group-vertical w-100 mb-2" role="group">
                             {% if factory.is_deleted %}
-                            <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" onclick="restoreFactory('{{ factory.slug }}')">
+                            <button type="button" 
+                                    class="w-100 rounded-pill py-2 fw-bold mb-2"
+                                    onclick="restoreFactory('{{ factory.slug }}')"
+                                    style="background: #10b981; 
+                                           color: white; 
+                                           border: 2px solid #10b981;
+                                           transition: all 0.2s;"
+                                    onmouseover="this.style.background='#059669'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)';"
+                                    onmouseout="this.style.background='#10b981'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                 <i class="fas fa-undo me-2"></i> Restore Factory
                             </button>
                             {% else %}
-                            <button type="button" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')">
+                            <button type="button" 
+                                    class="w-100 rounded-pill py-2 fw-bold mb-2"
+                                    onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')"
+                                    style="background: transparent; 
+                                           color: #ef4444; 
+                                           border: 2px solid #ef4444;
+                                           transition: all 0.2s;"
+                                    onmouseover="this.style.background='#ef4444'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';"
+                                    onmouseout="this.style.background='transparent'; this.style.color='#ef4444'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                 <i class="fas fa-trash me-2"></i> Soft Delete
                             </button>
-                            <button type="button" class="btn btn-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'hard')">
+                            <button type="button" 
+                                    class="w-100 rounded-pill py-2 fw-bold mb-2"
+                                    onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'hard')"
+                                    style="background: #dc2626; 
+                                           color: white; 
+                                           border: none;
+                                           transition: all 0.2s;"
+                                    onmouseover="this.style.background='#b91c1c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(220, 38, 38, 0.3)';"
+                                    onmouseout="this.style.background='#dc2626'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                 <i class="fas fa-skull-crossbones me-2"></i> Hard Delete
                             </button>
                             {% endif %}
@@ -828,11 +890,27 @@
                         {% elif user == factory.created_by %}
                         <div class="btn-group-vertical w-100 mb-2" role="group">
                             {% if factory.is_deleted %}
-                            <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" onclick="restoreFactory('{{ factory.slug }}')">
+                            <button type="button" 
+                                    class="w-100 rounded-pill py-2 fw-bold mb-2"
+                                    onclick="restoreFactory('{{ factory.slug }}')"
+                                    style="background: #10b981; 
+                                           color: white; 
+                                           border: 2px solid #10b981;
+                                           transition: all 0.2s;"
+                                    onmouseover="this.style.background='#059669'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)';"
+                                    onmouseout="this.style.background='#10b981'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                 <i class="fas fa-undo me-2"></i> Restore Factory
                             </button>
                             {% else %}
-                            <button type="button" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold" onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')">
+                            <button type="button" 
+                                    class="w-100 rounded-pill py-2 fw-bold mb-2"
+                                    onclick="showDeleteModal('{{ factory.slug }}', '{{ factory.name }}', 'soft')"
+                                    style="background: transparent; 
+                                           color: #ef4444; 
+                                           border: 2px solid #ef4444;
+                                           transition: all 0.2s;"
+                                    onmouseover="this.style.background='#ef4444'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';"
+                                    onmouseout="this.style.background='transparent'; this.style.color='#ef4444'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                 <i class="fas fa-trash me-2"></i> Soft Delete
                             </button>
                             {% endif %}

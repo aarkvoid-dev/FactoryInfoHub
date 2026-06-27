@@ -53,10 +53,14 @@
 
     .searchForm.-type-1 {
         display: flex;
-        background-color: rgba(255, 255, 255, 0);
-        padding: 10px;
-        border-radius: 12px;
-        height: 80px;
+        background-color: white;
+        padding: 8px;
+        border-radius: 16px;
+        height: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #EDEDED;
+        flex: 1;
+        min-width: 0;
     }
 
     /* ===== FACTORY CARD STYLES ===== */
@@ -385,6 +389,82 @@
         .price-value { font-size: 18px; }
     }
 
+    /* Floating Share Popup */
+    .share-popup {
+        position: absolute;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        padding: 16px;
+        z-index: 1000;
+        min-width: 280px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        border: 1px solid #EDEDED;
+    }
+    .share-popup.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .share-popup::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid white;
+        filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.1));
+    }
+    .share-popup__header {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 12px;
+        color: #1A1C1E;
+        text-align: center;
+    }
+    .share-popup__options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    .share-popup__option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .share-popup__option:hover {
+        background: #F8F9FB;
+        transform: translateY(-2px);
+    }
+    .share-popup__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+        font-size: 18px;
+    }
+    .share-popup__label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+    }
+
     /* Search form full width */
     .searchForm {
         width: 100%;
@@ -434,16 +514,39 @@
         }
     }
 
+    /* Search input styling */
+    .search-input {
+        background: transparent;
+        border: none;
+        font-size: 15px;
+        color: #1A1C1E;
+        width: 100%;
+    }
+    .search-input:focus {
+        outline: none;
+    }
+    .search-input::placeholder {
+        color: #999;
+    }
+
     /* Make search button visible on mobile */
     .btn-accent-1 {
         background: #EB662B;
         border: none;
         color: white;
-        height: 50px;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
     }
     .btn-accent-1:hover {
         background: #d45b23;
         color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(235, 102, 43, 0.3);
     }
 </style>
 {% endblock %}
@@ -476,14 +579,14 @@
             <i class="fas fa-filter me-1"></i> <span class="d-none d-sm-inline">Filter</span>
           </button>
 
-          <div class="searchForm -type-1 -col-1 -narrow flex-grow-1">
-            <form action="" method="get" class="d-flex align-items-center w-100">
-              <div class="searchForm__form w-100">
+          <div class="searchForm -type-1 -col-12 -narrow flex-grow-1">
+            <form action="" method="get" class="d-flex align-items-center " style="width:100%;">
+              <div class="searchForm__form">
                 <div class="searchFormItem">
                   <div class="searchFormItem__button">
                     <div class="pl-calendar d-flex items-center position-relative">
                       <i class="icon-search text-20 position-absolute start-0 ms-3" style="z-index: 1;"></i>
-                      <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" class="search-input ps-5" placeholder="Search factories...">
+                      <input type="text" id="search-input" name="search" value="{{ request.GET.search }}" class="search-input ps-5" placeholder="Search factories..." style="width:100%;">
                     </div>
                   </div>
                 </div>
@@ -830,98 +933,66 @@
   </div>
 </section>
 
-<!-- Share Modal -->
-<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 bg-light">
-                <h5 class="modal-title fw-semibold">
-                    <i class="fas fa-share-alt me-2 text-accent-1"></i>Share this factory
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Floating Share Popup Container -->
+<div id="sharePopup" class="share-popup">
+    <div class="share-popup__header">Share this factory</div>
+    <div class="share-popup__options">
+        <a href="#" id="share-whatsapp" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-success-soft">
+                <i class="fab fa-whatsapp text-success"></i>
             </div>
-            <div class="modal-body">
-                <div class="row g-3 text-center">
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-whatsapp" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-whatsapp text-success"></i>
-                            </div>
-                            <span class="small">WhatsApp</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-facebook" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-facebook-f fa-2x text-primary"></i>
-                            </div>
-                            <span class="small">Facebook</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-twitter" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-twitter fa-2x text-info"></i>
-                            </div>
-                            <span class="small">Twitter</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-linkedin" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-linkedin-in fa-2x text-secondary"></i>
-                            </div>
-                            <span class="small">LinkedIn</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-email" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-envelope fa-2x text-warning"></i>
-                            </div>
-                            <span class="small">Email</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-telegramUrl" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-telegram-plane fa-2x text-secondary"></i>
-                            </div>
-                            <span class="small">Telegram</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-pinterestUrl" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-pinterest fa-2x text-warning"></i>
-                            </div>
-                            <span class="small">Pinterest</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="#" id="share-threadsUrl" target="_blank" class="d-block text-decoration-none">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fab fa-threads fa-2x text-warning"></i>
-                            </div>
-                            <span class="small">Threads</span>
-                        </a>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <button id="copy-link-btn" class="btn d-block text-decoration-none w-100">
-                            <div class="bg-success-soft rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-link fa-2x text-dark"></i>
-                            </div>
-                            <span class="small">Copy Link</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="copy-message" class="text-success text-center small mt-3" style="display: none;">Link copied to clipboard!</div>
+            <span class="share-popup__label">WhatsApp</span>
+        </a>
+        <a href="#" id="share-facebook" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-primary-soft">
+                <i class="fab fa-facebook-f text-primary"></i>
             </div>
-            <div class="modal-footer border-0 bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <span class="share-popup__label">Facebook</span>
+        </a>
+        <a href="#" id="share-twitter" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-info-soft">
+                <i class="fab fa-twitter text-info"></i>
             </div>
-        </div>
+            <span class="share-popup__label">Twitter</span>
+        </a>
+        <a href="#" id="share-linkedin" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-secondary-soft">
+                <i class="fab fa-linkedin-in text-secondary"></i>
+            </div>
+            <span class="share-popup__label">LinkedIn</span>
+        </a>
+        <a href="#" id="share-email" class="share-popup__option">
+            <div class="share-popup__icon bg-warning-soft">
+                <i class="fas fa-envelope text-warning"></i>
+            </div>
+            <span class="share-popup__label">Email</span>
+        </a>
+        <a href="#" id="share-telegramUrl" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-secondary-soft">
+                <i class="fab fa-telegram-plane text-secondary"></i>
+            </div>
+            <span class="share-popup__label">Telegram</span>
+        </a>
+        <a href="#" id="share-pinterestUrl" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-warning-soft">
+                <i class="fab fa-pinterest text-warning"></i>
+            </div>
+            <span class="share-popup__label">Pinterest</span>
+        </a>
+        <a href="#" id="share-threadsUrl" target="_blank" class="share-popup__option">
+            <div class="share-popup__icon bg-warning-soft">
+                <i class="fab fa-threads text-warning"></i>
+            </div>
+            <span class="share-popup__label">Threads</span>
+        </a>
+        <a href="#" id="copy-link-btn" class="share-popup__option">
+            <div class="share-popup__icon bg-success-soft">
+                <i class="fas fa-link text-dark"></i>
+            </div>
+            <span class="share-popup__label">Copy Link</span>
+        </a>
     </div>
+    <div id="copy-message" class="text-success text-center small mt-3" style="display: none;">Link copied to clipboard!</div>
 </div>
 
 <!-- Random Blog Slider Section -->
@@ -1182,11 +1253,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---------- Social Share Modal (FIXED: correct Threads URL) ----------
-    const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+    // ---------- Social Share Floating Popup ----------
+    const sharePopup = document.getElementById('sharePopup');
     const shareButtons = document.querySelectorAll('.share-factory-btn');
+    let currentShareButton = null;
 
-    function openShareModal(factoryName, factorySlug) {
+    function openSharePopup(factoryName, factorySlug, button) {
         const baseUrl = window.location.origin;
         const factoryUrl = `${baseUrl}/karkhana/factories/${factorySlug}/`;
         const encodedUrl = encodeURIComponent(factoryUrl);
@@ -1200,13 +1272,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('share-email').href = `mailto:?subject=Check out ${encodedTitle}&body=I thought you might be interested in this factory: ${factoryUrl}`;
         document.getElementById('share-pinterestUrl').href = `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&text=${encodedTitle}`;
         document.getElementById('share-telegramUrl').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
-        
-        // FIXED: Correct Threads share URL using 'text' parameter (includes both title and URL)
         document.getElementById('share-threadsUrl').href = `https://www.threads.net/intent/post?text=${encodedTitle}%20-%20${encodedUrl}`;
 
         const copyBtn = document.getElementById('copy-link-btn');
         const copyMessage = document.getElementById('copy-message');
-        copyBtn.onclick = async () => {
+        const newCopyBtn = copyBtn.cloneNode(true);
+        copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+        newCopyBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             try {
                 await navigator.clipboard.writeText(factoryUrl);
                 copyMessage.style.display = 'block';
@@ -1214,17 +1287,73 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (err) {
                 alert('Failed to copy link. Please try again.');
             }
-        };
-        shareModal.show();
+        });
+
+        // Position the popup near the button
+        if (button) {
+            const buttonRect = button.getBoundingClientRect();
+            const popupHeight = 300; // Approximate height
+            const popupWidth = 280;
+            
+            // Calculate position
+            let top = buttonRect.bottom + window.scrollY + 8;
+            let left = buttonRect.left + window.scrollX + (buttonRect.width / 2) - (popupWidth / 2);
+            
+            // Adjust if popup goes off screen
+            if (left + popupWidth > window.innerWidth) {
+                left = window.innerWidth - popupWidth - 20;
+            }
+            if (left < 20) {
+                left = 20;
+            }
+            if (top + popupHeight > window.innerHeight + window.scrollY) {
+                top = buttonRect.top + window.scrollY - popupHeight - 8;
+            }
+            
+            sharePopup.style.top = `${top}px`;
+            sharePopup.style.left = `${left}px`;
+            sharePopup.style.position = 'absolute';
+        }
+
+        // Show popup
+        sharePopup.classList.add('active');
+        currentShareButton = button;
+    }
+
+    function closeSharePopup() {
+        sharePopup.classList.remove('active');
+        currentShareButton = null;
     }
 
     shareButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const factoryName = btn.dataset.factoryName;
             const factorySlug = btn.dataset.factorySlug;
-            openShareModal(factoryName, factorySlug);
+            
+            // Close any open popup first
+            closeSharePopup();
+            
+            // Small delay to ensure clean transition
+            setTimeout(() => {
+                openSharePopup(factoryName, factorySlug, btn);
+            }, 10);
         });
+    });
+
+    // Close popup when clicking outside
+    document.addEventListener('click', (e) => {
+        if (currentShareButton && !sharePopup.contains(e.target) && !e.target.closest('.share-factory-btn')) {
+            closeSharePopup();
+        }
+    });
+
+    // Close popup on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSharePopup();
+        }
     });
 
     // ---------- Initialize Blog Circle Slider ----------
