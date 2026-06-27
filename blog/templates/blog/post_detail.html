@@ -181,33 +181,41 @@
         margin: 0 0 1em;
     }
 
-    /* --- FIXED LIST STYLES --- */
+    /* --- FIXED LIST STYLES (bullet visible, tighter spacing) --- */
     .post-content ul,
     .post-content ol {
-        padding-left: 1.5em;
-        margin: 0.5em 0;
+        padding-left: 2em;           /* Space for bullet/number */
+        margin: 0.4em 0;            /* Reduced vertical spacing */
         list-style-position: outside;
     }
-    .post-content li {
-        margin: 0.1em 0;          /* Reduce vertical spacing */
-        line-height: 1.6;         /* Match body line height */
+
+    .post-content ul {
+        list-style-type: disc;      /* Force bullets */
     }
-    /* Remove extra margin from <p> inside list items */
+    .post-content ol {
+        list-style-type: decimal;   /* Force numbers */
+    }
+
+    .post-content li {
+        margin: 0.05em 0;           /* Very tight between items */
+        line-height: 1.5;           /* Tighter than body text */
+    }
+
     .post-content li p {
         margin: 0;
-        display: inline;         /* Keeps text inline with the bullet */
+        display: inline;           /* Keep text inline with bullet */
     }
-    /* Hide stray <br> tags inside lists */
+
     .post-content ul br,
     .post-content ol br {
-        display: none;
+        display: none;             /* Hide stray line breaks */
     }
-    /* Ensure nested lists don't add extra space */
+
     .post-content ul ul,
     .post-content ol ol,
     .post-content ul ol,
     .post-content ol ul {
-        margin: 0.2em 0;
+        margin: 0.15em 0;
     }
 
     /* Other block styles (unchanged) */
