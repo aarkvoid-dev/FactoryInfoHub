@@ -180,19 +180,37 @@
     .post-content p {
         margin: 0 0 1em;
     }
-    .post-content ul, .post-content ol {
+
+    /* --- FIXED LIST STYLES --- */
+    .post-content ul,
+    .post-content ol {
         padding-left: 1.5em;
-        margin: 0.8em 0;
+        margin: 0.5em 0;
+        list-style-position: outside;
     }
     .post-content li {
-        margin: 0.3em 0;
+        margin: 0.1em 0;          /* Reduce vertical spacing */
+        line-height: 1.6;         /* Match body line height */
     }
-    .post-content ul li {
-        list-style-type: disc;
+    /* Remove extra margin from <p> inside list items */
+    .post-content li p {
+        margin: 0;
+        display: inline;         /* Keeps text inline with the bullet */
     }
-    .post-content ol li {
-        list-style-type: decimal;
+    /* Hide stray <br> tags inside lists */
+    .post-content ul br,
+    .post-content ol br {
+        display: none;
     }
+    /* Ensure nested lists don't add extra space */
+    .post-content ul ul,
+    .post-content ol ol,
+    .post-content ul ol,
+    .post-content ol ul {
+        margin: 0.2em 0;
+    }
+
+    /* Other block styles (unchanged) */
     .post-content blockquote {
         border-left: 4px solid #EB662B;
         padding: 0.8em 1em;
@@ -389,9 +407,6 @@
                     </div>
                 </div>
 
-
-                
-
                 <!-- Admin / Author Actions -->
                 {% if user.is_staff or user == post.author %}
                     <div class="line mt-60 mb-30"></div>
@@ -401,92 +416,6 @@
                         <a href="{% url 'blog:post_delete' post.slug %}" class="button -md -outline-accent-1 text-accent-1"><i class="icon-trash text-16 me-1"></i>Delete Post</a>
                     </div>
                 {% endif %}
-                
-
-                <div class="line mt-30 mb-30"></div>
-
-                <!-- ========== COMMENTS SECTION ========== -->
-                {% comment %} <div class="comments-section">
-                    <h3 class="h4 mb-4">Comments ({{ comments.count }})</h3>
-
-                    <!-- Comment Form -->
-                    <div class="comment-form-box border rounded-4 p-4 mb-5" style="background: #f9fafb;">
-                        <h4 class="h5 mb-3">Leave a comment</h4>
-                        <form method="post">
-                            {% csrf_token %}
-
-                            {% if user.is_authenticated %}
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Your Name</label>
-                                            <input type="text" name="name" class="form-control" value="{{ user.get_full_name|default:user.username }}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Email Address</label>
-                                            <input type="email" name="email" class="form-control" value="{{ user.email }}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Comment *</label>
-                                            <textarea name="content" rows="4" class="form-control" placeholder="Write your comment..." required></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Your Name *</label>
-                                            <input type="text" name="name" class="form-control" placeholder="Enter your name" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Email Address *</label>
-                                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label fw-semibold small text-muted">Comment *</label>
-                                            <textarea name="content" rows="4" class="form-control" placeholder="Write your comment..." required></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endif %}
-
-                            <button type="submit" class="button -md bg-accent-1 text-white px-4 mt-3">
-                                Post Comment <i class="icon-arrow-top-right text-16 ml-10"></i>
-                            </button>
-                        </form>
-                    </div>
-
-                    
-
-                    <!-- Comments List -->
-                    <div class="comments-list-box border rounded-4 p-3" style="max-height: 400px; overflow-y: auto; background: white;">
-                        <h5 class="fw-semibold mb-3">All Comments</h5>
-                        {% if comments %}
-                            {% for comment in comments|dictsortreversed:"created_at" %}
-                                <div class="comment mb-3 pb-3 border-bottom">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong class="text-primary">{{ comment.display_name }}</strong>
-                                            <small class="text-muted ms-2">{{ comment.created_at|date:"M d, Y" }}</small>
-                                        </div>
-                                    </div>
-                                    <p class="mt-2 mb-0">{{ comment.content|linebreaksbr }}</p>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted">No comments yet. Be the first to share your thoughts!</p>
-                        {% endif %}
-                    </div>
-                </div> {% endcomment %}
 
                 <div class="line mt-30 mb-30"></div>
 
@@ -506,6 +435,7 @@
                         </a>
                     </div>
                 </div>
+
                 <!-- ========== CATEGORY SLIDER (ABOVE AUTHOR SECTION) ========== -->
                 {% if categories %}
                     <div class="mt-5 pt-3">
@@ -540,19 +470,9 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                            <!-- Navigation buttons -->
-                            <!-- <div class="d-flex justify-center mt-30 gap-2">
-                                <div class="category-slider-prev button -outline-accent-1 rounded-12 px-20 py-8">
-                                    <i class="icon-arrow-left"></i> Prev
-                                </div>
-                                <div class="category-slider-next button -outline-accent-1 rounded-12 px-20 py-8">
-                                    Next <i class="icon-arrow-right"></i>
-                                </div>
-                            </div> -->
                         </div>
                     </div>
                 {% endif %}
-
 
                 <!-- ========== ABOUT THE AUTHOR ========== -->
                 <div class="bg-light-1 rounded-6 p-30 mt-5">
