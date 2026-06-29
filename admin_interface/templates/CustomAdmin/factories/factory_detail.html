@@ -131,11 +131,11 @@
                             <div class="row">
                                 <div class="col-12">
                                     <h6 class="text-muted mb-3">Factory Images</h6>
-                                    <div class="row">
+                                    <div class="row" id="admin-gallery-{{ factory.slug }}">
                                         {% for image in images %}
                                         <div class="col-md-4 mb-3">
-                                            <div class="card">
-                                                <img src="{{ image.image.url }}" class="card-img-top" alt="Factory Image" style="height: 200px; object-fit: cover;">
+                                            <div class="card admin-gallery-card" style="cursor: pointer;" onclick="openAdminImageModal(this)" data-image-url="{{ image.image.url }}" data-caption="{{ image.caption|default:'No caption' }}">
+                                                <img src="{{ image.image.url }}" class="card-img-top admin-clickable-image" alt="Factory Image" style="height: 200px; object-fit: cover;">
                                                 <div class="card-body">
                                                     <p class="card-text text-muted small">{{ image.caption|default:"No caption" }}</p>
                                                     {% if image.is_primary %}

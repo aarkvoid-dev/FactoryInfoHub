@@ -2155,7 +2155,76 @@ function calendarInteraction() {
   function getIndex(element) {
     return parseInt(element.getAttribute('data-index'))
   }
-}
+  
+  
 
+})();
 
+// Lazy-load remaining home page data after initial render
+(function() {
+  var lazyLoadUrl = '{% url "home_lazy_data" %}';
+  fetch(lazyLoadUrl)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data || !data.extra_categories) return;
+      
+      // Append extra categories to the category slider (if the slider exists)
+      var catSlider = document.querySelector('.js-category-slider');
+      if (catSlider && data.extra_categories.length) {
+        var wrapper = catSlider.querySelector('.swiper-wrapper');
+        if (wrapper) {
+          data.extra_categories.forEach(function(cat) {
+            var slide = document.createElement('div');
+            slide.className = 'swiper-slide slide';
+            var imgSrc = cat.image || '{% static "img/features/6/1.jpg" %}';
+            slide.innerHTML = '<a href="{% url "karkahan:factory_list" %}?category=' + cat.id + '" class="featureImage -type-1 text-center -hover-image-scale">' +
+              '<div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">' +
+                '<img src="' + imgSrc + '" alt="' + cat.name + '" class="size-130 object-cover rounded-full">' +
+              '</div>' +
+              '<h3 class="featureImage__title text-16 fw-500 mt-20">' + cat.name + '</h3>' +
+              '<p class="text-14">' + cat.factory_count + '+ Factories</p>' +
+            '</a>';
+            wrapper.appendChild(slide);
+          });
+          // Re-init category slider if Swiper is available
+          if (window.Swiper && catSlider.swiper) catSlider.swiper.update();
+        }
+      }
+
+      // Append extra cities to the first location slider
+      var locSlider = document.querySelector('.js-location-slider');
+      if (locSlider && data.extra_cities.length) {
+        var wrapper2 = locSlider.querySelector('.swiper-wrapper');
+        if (wrapper2) {
+          data.extra_cities.forEach(function(city) {
+            var slide = document.createElement('div');
+            slide.className = 'swiper-slide slide';
+            var imgSrc = city.image || '{% static "img/destinationCards/1/1.png" %}';
+            slide.innerHTML = '<a href="{% url "karkahan:factory_list" %}?city=' + city.id + '" class="featureImage -type-1 text-center -hover-image-scale">' +
+              '<div class="featureImage__image mx-auto rounded-full -hover-image-scale__image">' +
+                '<img src="' + imgSrc + '" alt="' + city.name + '" class="size-130 object-cover rounded-full">' +
+              '</div>' +
+              '<h3 class="featureImage__title text-16 fw-500 mt-20">' + city.name + '</h3>' +
+            '</a>';
+            wrapper2.appendChild(slide);
+          });
+          if (window.Swiper && locSlider.swiper) locSlider.swiper.update();
+        }
+      }
+
+      // Update stats counters if present
+      if (data.stats) {
+        var counters = {
+          categories_with_factories: data.stats.categories_with_factories,
+          countries_covered: data.stats.countries_covered,
+          cities_covered: data.stats.cities_covered,
+          total_capacity: data.stats.total_capacity
+        };
+        Object.keys(counters).forEach(function(key) {
+          var el = document.getElementById('stat-' + key);
+          if (el) el.textContent = counters[key];
+        });
+      }
+    })
+    .catch(function() { /* fail silently */ });
 })();
