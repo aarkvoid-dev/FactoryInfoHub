@@ -462,6 +462,33 @@
         .modal-nav-btn { width: 32px; height: 32px; font-size: 16px; }
     }
 
+    /* Close button overlay on the image preview */
+    .modal-close-overlay-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.5);
+        border: 2px solid rgba(255,255,255,0.5);
+        color: white;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 1060;
+        opacity: 0.8;
+    }
+    .modal-close-overlay-btn:hover {
+        background: rgba(255,255,255,0.9);
+        color: #000;
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
     /* 3. Mobile Friendly Tabs - No Horizontal Scroll */
     .tabs-controls {
         display: flex;
@@ -966,16 +993,29 @@
 </section>
 
 <!-- Image Preview Modal with Navigation -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true" style="display: none;">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content bg-dark">
-            <div class="modal-header border-0 position-relative">
+            <div class="modal-header border-0 position-relative py-2">
+                <span class="text-white small opacity-75">
+                    <i class="fas fa-image me-1"></i> Image Preview
+                </span>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center p-0 position-relative">
                 <img id="modalImage" src="" alt="Preview" class="img-fluid" style="max-height: 80vh; object-fit: contain;">
-                <button class="modal-nav-btn modal-nav-prev" onclick="changeImage(-1)">&#10094;</button>
-                <button class="modal-nav-btn modal-nav-next" onclick="changeImage(1)">&#10095;</button>
+                <button class="modal-nav-btn modal-nav-prev" onclick="changeImage(-1)" title="Previous image">&#10094;</button>
+                <button class="modal-nav-btn modal-nav-next" onclick="changeImage(1)" title="Next image">&#10095;</button>
+                <!-- Large close button overlay on the image -->
+                <button type="button" class="modal-close-overlay-btn" data-bs-dismiss="modal" title="Close preview" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-footer border-0 justify-content-center py-2">
+                <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Close
+                </button>
+                <span class="text-white-50 small" id="imageCounter"></span>
             </div>
         </div>
     </div>
@@ -984,7 +1024,8 @@
 <script>
     // ========== AJAX ADD TO CART (with persistent green state) ==========
     document.addEventListener('DOMContentLoaded', function() {
-        const addToCartBtn = document.querySelector('.add-to-cart-ajax');
+        try {
+            const addToCartBtn = document.querySelector('.add-to-cart-ajax');
         const cartBadge = document.querySelector('#cart-badge-count');
 
         function getCookie(name) {
@@ -1003,92 +1044,101 @@
         }
 
         if (addToCartBtn && !addToCartBtn.disabled) {
-            addToCartBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                const slug = this.dataset.factorySlug;
-                const originalText = this.innerHTML;
-                
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Adding...';
-                
-                try {
-                    const response = await fetch(`/karkhana/cart/add-api/${slug}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    const data = await response.json();
+                addToCartBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const slug = this.dataset.factorySlug;
+                    const originalText = this.innerHTML;
                     
-                    if (data.success) {
-                        // Update cart badge count
-                        if (cartBadge) {
-                            cartBadge.textContent = data.cart_count;
-                            if (data.cart_count > 0) {
-                                cartBadge.style.display = 'inline-block';
-                            } else {
-                                cartBadge.style.display = 'none';
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Adding...';
+                    
+                    try {
+                        const response = await fetch(`/karkhana/cart/add-api/${slug}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken'),
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Update cart badge count
+                            if (cartBadge) {
+                                cartBadge.textContent = data.cart_count;
+                                if (data.cart_count > 0) {
+                                    cartBadge.style.display = 'inline-block';
+                                } else {
+                                    cartBadge.style.display = 'none';
+                                }
                             }
+                            // Change button to green "Added to Cart"
+                            this.innerHTML = '<i class="fas fa-check me-2"></i> Added to Cart';
+                            this.classList.add('added');
+                            this.disabled = true;
+                        } else {
+                            this.innerHTML = originalText;
+                            this.disabled = false;
+                            alert(data.message || 'Failed to add to cart.');
                         }
-                        // Change button to green "Added to Cart"
-                        this.innerHTML = '<i class="fas fa-check me-2"></i> Added to Cart';
-                        this.classList.add('added');
-                        this.disabled = true;
-                        // Optional: alert or toast – remove if you don't want
-                        // alert('Factory added to cart!');
-                    } else {
+                    } catch (error) {
+                        console.error('Add to cart error:', error);
                         this.innerHTML = originalText;
                         this.disabled = false;
-                        alert(data.message || 'Failed to add to cart.');
+                        alert('Network error. Please try again.');
                     }
-                } catch (error) {
-                    console.error('Add to cart error:', error);
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                    alert('Network error. Please try again.');
-                }
-            });
+                });
+            }
+        } catch(e) {
+            console.error('Add-to-cart initialization error:', e);
         }
     });
 
-    // ========== EXISTING FUNCTIONS (unchanged) ==========
+    // ========== TAB SWITCHING ==========
     function switchTab(event, tabName) {
-        const buttons = document.querySelectorAll('.tab-button');
-        const panels = document.querySelectorAll('.tab-panel');
-        
-        buttons.forEach(btn => btn.classList.remove('is-active'));
-        panels.forEach(p => p.style.display = 'none');
-        
-        event.currentTarget.classList.add('is-active');
-        
-        const factorySlug = '{{ factory.slug }}';
-        const targetId = tabName === 'gallery' ? `gallery-${factorySlug}` : 
-                         tabName === 'video' ? `video-${factorySlug}` : tabName;
-        
-        const targetPanel = document.getElementById(targetId);
-        if (targetPanel) {
-            targetPanel.style.display = 'block';
-        }
+        try {
+            const buttons = document.querySelectorAll('.tab-button');
+            const panels = document.querySelectorAll('.tab-panel');
+            
+            buttons.forEach(btn => btn.classList.remove('is-active'));
+            panels.forEach(p => p.style.display = 'none');
+            
+            event.currentTarget.classList.add('is-active');
+            
+            const factorySlug = '{{ factory.slug }}';
+            const targetId = tabName === 'gallery' ? `gallery-${factorySlug}` : 
+                             tabName === 'video' ? `video-${factorySlug}` : tabName;
+            
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.style.display = 'block';
+            }
 
-        if(tabName === 'video') {
-            const ifr = document.getElementById('factory-video-iframe');
-            ifr.src = ifr.src;
+            if(tabName === 'video') {
+                const ifr = document.getElementById('factory-video-iframe');
+                if (ifr) ifr.src = ifr.src;
+            }
+        } catch(e) {
+            console.error('switchTab error:', e);
         }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash;
-        if (hash) {
-            const tabName = hash.substring(1);
-            const targetButton = document.querySelector(`.tab-button[onclick*="${tabName}"]`);
-            if (targetButton) {
-                targetButton.click();
-                const tabContent = targetButton.closest('.bg-white');
-                if (tabContent) {
-                    tabContent.scrollIntoView({ behavior: 'smooth' });
+        try {
+            const hash = window.location.hash;
+            if (hash) {
+                const tabName = hash.substring(1);
+                const targetButton = document.querySelector(`.tab-button[onclick*="${tabName}"]`);
+                if (targetButton) {
+                    targetButton.click();
+                    const tabContent = targetButton.closest('.bg-white');
+                    if (tabContent) {
+                        tabContent.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             }
+        } catch(e) {
+            console.error('Hash tab switch error:', e);
         }
     });
 
@@ -1268,76 +1318,132 @@
         }
     }
 
-    let currentImageIndex = 0;
-    let galleryImages = [];
-
-    function collectGalleryImages() {
-        const galleryTab = document.getElementById('gallery-{{ factory.slug }}');
-        if (galleryTab) {
-            const images = galleryTab.querySelectorAll('.clickable-image');
-            galleryImages = Array.from(images).map(img => img.getAttribute('data-image-url') || img.src);
-        } else {
-            galleryImages = [];
-        }
-    }
-
-    function openImageModal(imgElement) {
-        collectGalleryImages();
-        const clickedUrl = imgElement.getAttribute('data-image-url') || imgElement.src;
-        currentImageIndex = galleryImages.indexOf(clickedUrl);
-        if (currentImageIndex === -1) currentImageIndex = 0;
-        const modalImage = document.getElementById('modalImage');
-        modalImage.src = galleryImages[currentImageIndex] || clickedUrl;
-        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-        modal.show();
-    }
-
-
-
-    function changeImage(direction) {
-        if (galleryImages.length === 0) return;
-        currentImageIndex += direction;
-        if (currentImageIndex < 0) currentImageIndex = galleryImages.length - 1;
-        if (currentImageIndex >= galleryImages.length) currentImageIndex = 0;
-        const modalImage = document.getElementById('modalImage');
-        modalImage.src = galleryImages[currentImageIndex];
-    }
-
     function shareViaYouTube() {
-        // Copy the current page URL to clipboard
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            // Show "Link copied!" toast (reuses the same style as copyLinkToClipboard)
-            const toast = document.createElement('div');
+        var url = window.location.href;
+        navigator.clipboard.writeText(url).then(function() {
+            var toast = document.createElement('div');
             toast.className = 'copy-toast';
             toast.innerHTML = '<i class="fas fa-check-circle me-2"></i> Link copied! Opening YouTube...';
             document.body.appendChild(toast);
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.classList.add('copy-toast-hide');
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(function() { toast.remove(); }, 300);
             }, 2000);
-            
-            // Open YouTube in a new tab
             window.open('https://www.youtube.com', '_blank');
-        }).catch(err => {
+        }).catch(function(err) {
             console.error('Could not copy link: ', err);
             alert('Unable to copy link. You can manually copy the URL.');
-            // Still open YouTube even if copy fails
             window.open('https://www.youtube.com', '_blank');
         });
     }
+</script>
+{% endblock %}
 
-    document.addEventListener('keydown', function(e) {
-        const modal = document.getElementById('imageModal');
-        if (modal && modal.classList.contains('show')) {
-            if (e.key === 'ArrowLeft') {
-                changeImage(-1);
-                e.preventDefault();
-            } else if (e.key === 'ArrowRight') {
-                changeImage(1);
-                e.preventDefault();
+{% block extra_js %}
+<script>
+// ====================================================================
+// IMAGE GALLERY MODAL - Isolated to prevent interference from other JS
+// ====================================================================
+(function() {
+    'use strict';
+
+    let currentImageIndex = 0;
+    let galleryImages = [];
+
+    window.collectGalleryImages = function() {
+        try {
+            const galleryTab = document.getElementById('gallery-{{ factory.slug }}');
+            if (galleryTab) {
+                const images = galleryTab.querySelectorAll('.clickable-image');
+                galleryImages = Array.from(images).map(function(img) {
+                    return img.getAttribute('data-image-url') || img.src;
+                });
+            } else {
+                console.warn('Gallery tab not found: gallery-{{ factory.slug }}');
+                galleryImages = [];
             }
+        } catch(e) {
+            console.error('collectGalleryImages error:', e);
+            galleryImages = [];
+        }
+    };
+
+    window.openImageModal = function(imgElement) {
+        try {
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap JS not loaded. Modal cannot open.');
+                return;
+            }
+
+            window.collectGalleryImages();
+            var clickedUrl = imgElement.getAttribute('data-image-url') || imgElement.src;
+            currentImageIndex = galleryImages.indexOf(clickedUrl);
+            if (currentImageIndex === -1) currentImageIndex = 0;
+
+            var modalImage = document.getElementById('modalImage');
+            if (!modalImage) {
+                console.error('Modal image element not found');
+                return;
+            }
+
+            modalImage.src = galleryImages[currentImageIndex] || clickedUrl;
+
+            var modalEl = document.getElementById('imageModal');
+            if (!modalEl) {
+                console.error('Image modal element not found');
+                return;
+            }
+
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            updateImageCounter();
+        } catch(e) {
+            console.error('openImageModal error:', e);
+        }
+    };
+
+    window.changeImage = function(direction) {
+        try {
+            if (galleryImages.length === 0) return;
+            currentImageIndex += direction;
+            if (currentImageIndex < 0) currentImageIndex = galleryImages.length - 1;
+            if (currentImageIndex >= galleryImages.length) currentImageIndex = 0;
+            var modalImage = document.getElementById('modalImage');
+            if (modalImage) {
+                modalImage.src = galleryImages[currentImageIndex];
+            }
+            updateImageCounter();
+        } catch(e) {
+            console.error('changeImage error:', e);
+        }
+    };
+
+    // Update image counter in modal footer
+    function updateImageCounter() {
+        var counter = document.getElementById('imageCounter');
+        if (counter && galleryImages.length > 0) {
+            counter.textContent = (currentImageIndex + 1) + ' / ' + galleryImages.length;
+        }
+    }
+
+    // Keyboard navigation for image modal
+    document.addEventListener('keydown', function(e) {
+        try {
+            var modal = document.getElementById('imageModal');
+            if (modal && modal.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    window.changeImage(-1);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowRight') {
+                    window.changeImage(1);
+                    e.preventDefault();
+                }
+            }
+        } catch(e) {
+            console.error('Image modal keyboard nav error:', e);
         }
     });
+
+})();
 </script>
 {% endblock %}

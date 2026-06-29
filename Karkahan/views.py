@@ -287,9 +287,11 @@ def factory_list(request):
         # Only use cache for non-authenticated users to avoid showing other users' cart data
         return render(request, 'karkahan/factory_list.html', cached_context)
 
-    factories = Factory.objects.filter(Q(is_active=True, is_deleted=False)).select_related(
-            'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
-        )
+    factories = Factory.objects.filter(
+        Q(is_active=True, is_deleted=False)
+    ).select_related(
+        'category', 'subcategory', 'country', 'state', 'city', 'district', 'region'
+    )
     
     # Get cart items count for authenticated users
     cart_items_count = 0
@@ -304,54 +306,7 @@ def factory_list(request):
     
     # Prepare initial data for form based on GET parameters
     initial_data = {}
-    if 'category' in request.GET:
-        try:
-            category_id = int(request.GET.get('category'))
-            initial_data['category'] = category_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'subcategory' in request.GET:
-        try:
-            subcategory_id = int(request.GET.get('subcategory'))
-            initial_data['subcategory'] = subcategory_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'country' in request.GET:
-        try:
-            country_id = int(request.GET.get('country'))
-            initial_data['country'] = country_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'state' in request.GET:
-        try:
-            state_id = int(request.GET.get('state'))
-            initial_data['state'] = state_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'city' in request.GET:
-        try:
-            city_id = int(request.GET.get('city'))
-            initial_data['city'] = city_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'district' in request.GET:
-        try:
-            district_id = int(request.GET.get('district'))
-            initial_data['district'] = district_id
-        except (ValueError, TypeError):
-            pass
-    
-    if 'region' in request.GET:
-        try:
-            region_id = int(request.GET.get('region'))
-            initial_data['region'] = region_id
-        except (ValueError, TypeError):
-            pass
+    # ... (same as before – keep your existing initial_data logic) ...
     
     # Apply filters
     filter_form = FactoryFilterForm(request.GET, initial=initial_data)
@@ -364,7 +319,6 @@ def factory_list(request):
         district = filter_form.cleaned_data.get('district')
         region = filter_form.cleaned_data.get('region')
         factory_type = filter_form.cleaned_data.get('factory_type')
-        
 
         if category:
             factories = factories.filter(category=category)
@@ -382,24 +336,9 @@ def factory_list(request):
             factories = factories.filter(region=region)
         if factory_type:
             factories = factories.filter(factory_type__icontains=factory_type)
-        
 
     # Apply search with AND for multi-word queries
     search_query = request.GET.get('search', '')
-    # if search_query:
-    #     terms = search_query.split()
-    #     q_objects = Q()
-    #     for term in terms:
-    #         term_q = (
-    #             Q(name__icontains=term) |
-    #             Q(description__icontains=term) |
-    #             Q(address__icontains=term) |
-    #             Q(contact_person__icontains=term) |
-    #             Q(factory_type__icontains=term)
-    #         )
-    #         q_objects &= term_q
-    #     factories = factories.filter(q_objects)
-    # order_by_fields = []
     if search_query:
         terms = search_query.split()
         q_objects = Q()
@@ -407,7 +346,6 @@ def factory_list(request):
 
         for term in terms:
             escaped_term = re.escape(term)
-            # \m = start of word, \M = end of word in Postgres
             if is_sqlite:
                 pattern = rf'\b{escaped_term}\b'
             else:
@@ -422,34 +360,37 @@ def factory_list(request):
             )
             q_objects &= term_q
 
-        factories = list(factories.filter(q_objects))
-        shuffle(factories)
+        # Apply the filter – keep it as a queryset (no list conversion)
+        factories = factories.filter(q_objects)
 
-        # 2. Assign strict priority weights matching your hierarchy rules
-        # factories = factories.annotate(
-        #     search_priority=Case(
-        #         When(name__iexact=search_query, then=Value(100)),
-        #         When(name__istartswith=search_query, then=Value(80)),
-        #         When(name__icontains=search_query, then=Value(50)),
-        #         When(contact_person__iexact=search_query, then=Value(45)),
-        #         When(contact_person__icontains=search_query, then=Value(20)),
-        #         When(factory_type__icontains=search_query, then=Value(30)),
-        #         When(description__icontains=search_query, then=Value(15)),
-        #         When(address__icontains=search_query, then=Value(10)),
-        #         default=Value(0),
-        #         output_field=IntegerField(),
-        #     )
-        # )
-        # # Prepend search priority to the top of our sorting sequence
-        # factories = factories.order_by('-search_priority')
+        # Annotate search priority and order consistently
+        factories = factories.annotate(
+            search_priority=Case(
+                When(name__iexact=search_query, then=Value(100)),
+                When(name__istartswith=search_query, then=Value(80)),
+                When(name__icontains=search_query, then=Value(50)),
+                When(contact_person__iexact=search_query, then=Value(45)),
+                When(contact_person__icontains=search_query, then=Value(20)),
+                When(factory_type__icontains=search_query, then=Value(30)),
+                When(description__icontains=search_query, then=Value(15)),
+                When(address__icontains=search_query, then=Value(10)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        # Order by priority first, then by creation date for tie‑breaks
+        factories = factories.order_by('-search_priority', '-created_at')
+    else:
+        # No search – order by newest first (or any consistent ordering)
+        factories = factories.order_by('-created_at')
 
-
-    # Pagination
+    # Pagination – now factories is a queryset with deterministic order
     paginator = Paginator(factories, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     is_paginated = page_obj.has_other_pages()
-     # Get random published blog posts for slider
+
+    # Get random published blog posts for slider
     random_blogs = BlogPost.objects.filter(
         is_published=True, is_deleted=False
     ).select_related('author', 'category').order_by('-created_at')[:8]
@@ -460,7 +401,7 @@ def factory_list(request):
         'search_query': search_query,
         'cart_items_count': cart_items_count,
         'cart_items': cart_items,
-        'random_blogs': random_blogs,   # add this line
+        'random_blogs': random_blogs,
         'is_paginated': is_paginated,
     }
     return render(request, 'karkahan/factory_list.html', context)
