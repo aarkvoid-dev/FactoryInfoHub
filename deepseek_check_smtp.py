@@ -1,70 +1,64 @@
 #!/usr/bin/env python3
-import os
 import smtplib
 import socket
-import sys
 
-# Read settings from environment (same as your Django config)
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'sg2nlvphout-v01.shr.prod.sin2.secureserver.net')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+# ---------- YOUR EXACT SETTINGS (hardcoded) ----------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "info@fashionchemistry.net"
+EMAIL_HOST_PASSWORD = "ztvi btmr wsiu kqws"   # <-- CHANGE THIS
+DEFAULT_FROM_EMAIL = "info@fashionchemistry.net"
 
-# Optional: recipient for a test email
-TEST_RECIPIENT = os.environ.get('TEST_RECIPIENT', '')  # e.g., your-email@example.com
+# Optional: send a test email to yourself
+TEST_RECIPIENT = "your-own-email@example.com"  # change to your real email
 
-def test_email():
-    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
-        print("❌ EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set in environment.")
-        print("   Please set them and try again.")
-        return False
+# ----------------------------------------------------
 
-    print(f"Testing SMTP connection to {EMAIL_HOST}:{EMAIL_PORT}...")
+def test_smtp():
+    print(f"Connecting to {EMAIL_HOST}:{EMAIL_PORT} (TLS={EMAIL_USE_TLS})...")
+
+    # 1. Check that the host resolves
     try:
-        # 1. Check that the hostname resolves
         socket.gethostbyname(EMAIL_HOST)
     except socket.gaierror:
         print(f"❌ Hostname '{EMAIL_HOST}' does not resolve.")
         return False
 
     try:
-        # 2. Connect to SMTP server
-        if EMAIL_PORT == 465:
-            server = smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, timeout=10)
-        else:
-            server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=10)
+        # 2. Connect and start TLS
+        server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=10)
+        server.ehlo()
+        if EMAIL_USE_TLS:
+            server.starttls()
             server.ehlo()
-            if EMAIL_USE_TLS:
-                server.starttls()
-                server.ehlo()
 
-        # 3. Attempt login
+        # 3. Login
         server.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
         print("✅ SMTP login successful – credentials are valid!")
 
-        # 4. Optionally send a test email
+        # 4. (Optional) send a test email
         if TEST_RECIPIENT:
             subject = "Test email from Django SMTP checker"
             body = "This is a test email to verify that the email configuration is working."
             msg = f"Subject: {subject}\n\n{body}"
-            server.sendmail(EMAIL_HOST_USER, [TEST_RECIPIENT], msg)
+            server.sendmail(DEFAULT_FROM_EMAIL, [TEST_RECIPIENT], msg)
             print(f"✅ Test email sent to {TEST_RECIPIENT}")
 
         server.quit()
         return True
 
     except smtplib.SMTPAuthenticationError:
-        print("❌ SMTP authentication failed. Check your username/password.")
-        print("   If you use 2FA, you may need an app-specific password.")
+        print("❌ Authentication failed. Check your password or use an App Password.")
         return False
     except (smtplib.SMTPException, socket.timeout, ConnectionRefusedError) as e:
-        print(f"❌ SMTP connection error: {e}")
+        print(f"❌ SMTP error: {e}")
         return False
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
         return False
 
 if __name__ == "__main__":
-    success = test_email()
-    sys.exit(0 if success else 1)
+    success = test_smtp()
+    exit(0 if success else 1)
