@@ -364,9 +364,9 @@ def contact(request, type='enquiry'):
             )
             
             # Start background thread to send emails
-            admin_recipients = getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL])
-            # admin_recipients.append(email)
-            admin_recipients += [email] 
+            admin_recipients = []
+            admin_recipients = list(getattr(settings, 'CONTACT_EMAIL_RECIPIENTS', [settings.DEFAULT_FROM_EMAIL]))
+            admin_recipients.append(email)
             thread = threading.Thread(
                 target=send_emails_async,
                 args=(contact_message, admin_recipients, attachment_data)
