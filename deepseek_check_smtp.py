@@ -8,7 +8,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "info@fashionchemistry.net"
-EMAIL_HOST_PASSWORD = "ztvi btmr wsiu kqws"   # <-- CHANGE THIS
+EMAIL_HOST_PASSWORD = "xmbh jxdr iuam zwhs"   # <-- CHANGE THIS
 DEFAULT_FROM_EMAIL = "info@fashionchemistry.net"
 
 # Optional: send a test email to yourself
