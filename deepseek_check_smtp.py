@@ -12,7 +12,7 @@ EMAIL_HOST_PASSWORD = "xmbh jxdr iuam zwhs"   # <-- CHANGE THIS
 DEFAULT_FROM_EMAIL = "info@fashionchemistry.net"
 
 # Optional: send a test email to yourself
-TEST_RECIPIENT = "your-own-email@example.com"  # change to your real email
+TEST_RECIPIENT = "motulshaikh@gmail.com"  # change to your real email
 
 # ----------------------------------------------------
 

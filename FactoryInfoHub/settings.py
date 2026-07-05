@@ -45,7 +45,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DATA_UPLOAD_MAX_MEMORY_SIZE', 
 FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('FILE_UPLOAD_MAX_MEMORY_SIZE', 50 * 1024 * 1024))  # Default 50 MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = int(os.environ.get('DATA_UPLOAD_MAX_NUMBER_FIELDS', 1000))  # Default 1000 fields
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -226,6 +225,8 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'sg2nlvphout-v01.shr.prod.sin2.secureserver.net')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+
+print("EMAIL_HOST_USER :",EMAIL_HOST_USER,"EMAIL_HOST_PASSWORD :",EMAIL_HOST_PASSWORD)
 
 # Configure email backend with fallback
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
