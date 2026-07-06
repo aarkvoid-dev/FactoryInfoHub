@@ -1,5 +1,5 @@
 """
-Factory InfoHub Email Service
+FashionChemistry Email Service
 
 Centralized email service for sending factory information emails.
 Handles both single and multiple factory emails in a consistent, maintainable way.
@@ -108,6 +108,6 @@ class FactoryEmailService:
             content += f"{factory.get('country', '')}\n\n"
         
         content += "This information is confidential and intended solely for your use.\n\n"
-        content += "Best regards,\nFactory InfoHub Team"
+        content += "Best regards,\nFashionChemistry Team"
         
         return content

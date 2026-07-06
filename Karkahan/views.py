@@ -926,7 +926,7 @@ def test_email(request):
         try:
             # Send test email
             send_mail(
-                subject='Test Email from Factory InfoHub',
+                subject='Test Email from FashionChemistry',
                 message='This is a test email to verify the email system is working correctly.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[request.user.email],
@@ -1434,7 +1434,7 @@ def handle_successful_checkout(session):
 def send_order_receipt(user, order, factories, retry_count=0):
     """Send order receipt email with improved error handling and retry logic"""
     try:
-        subject = f"Your Factory InfoHub Order #{order.order_number}"
+        subject = f"Your FashionChemistry Order #{order.order_number}"
         context = {
             'user': user,
             'order': order,
