@@ -26,8 +26,9 @@ if ! python -c "import django_redis" 2>/dev/null; then
 fi
 
 # Set environment variables
-export EMAIL_HOST_USER="arfatur.shaikh@gmail.com"
+export EMAIL_HOST_USER="arfatur.shaikh@gmail.con"
 export EMAIL_HOST_PASSWORD="lyfq xmir oiul voqe"
+export DEFAULT_FROM_EMAIL="Fashion Chemistry <arfatur.shaikh@gmail.con>"
 export DEBUG=True
 export ALLOWED_HOSTS="localhost,127.0.0.1,*"
 export SECRET_KEY="django-insecure-development-key-not-for-production-use-this-is-very-weak-and-should-be-changed"

@@ -9,7 +9,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "info@fashionchemistry.net"
 EMAIL_HOST_PASSWORD = "xmbh jxdr iuam zwhs"   # <-- CHANGE THIS
-DEFAULT_FROM_EMAIL = "info@fashionchemistry.net"
+DEFAULT_FROM_EMAIL = "Fashion Chemistry <info@fashionchemistry.net>"
 
 # Optional: send a test email to yourself
 TEST_RECIPIENT = "motulshaikh@gmail.com"  # change to your real email

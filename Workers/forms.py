@@ -26,7 +26,7 @@ class WorkerForm(ModelForm):
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., John Doe'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 9876543210', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 9867619254', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '')"}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'e.g., john.doe@example.com'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'subcategory': forms.Select(attrs={'class': 'form-control'}),

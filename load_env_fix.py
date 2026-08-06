@@ -49,6 +49,7 @@ print(f"EMAIL_PORT: {settings.EMAIL_PORT}")
 print(f"EMAIL_USE_TLS: {settings.EMAIL_USE_TLS}")
 print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
 print(f"DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}")
+print(f"EMAIL_HOST_PASSWORD: {'***' if settings.EMAIL_HOST_PASSWORD else 'EMPTY'}")
 print(f"CONTACT_EMAIL_RECIPIENTS: {settings.CONTACT_EMAIL_RECIPIENTS}")
 
 print("\n" + "=" * 60)
